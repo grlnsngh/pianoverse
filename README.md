@@ -1,66 +1,87 @@
-# Welcome to your Expo app 👋
+# Pianoverse: Inventory Management App 🎹
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Welcome to **Pianoverse**, your comprehensive cross-platform inventory management app for pianos, built with the power of [React Native](https://reactnative.dev/) and [Expo](https://expo.dev). This app helps manage piano inventory across multiple categories like rentable, events, on sale, sold, and warehouse.
 
-## Get started
+## Technologies Used
 
-1. Install dependencies
+- **Front-end:** React Native with Expo
+- **Back-end:** Appwrite
 
-   ```bash
-   npm install
-   ```
+## Features
 
-2. Start the app
+- **Cross-platform:** Runs seamlessly on iOS, Android, and web.
+- **Category Management:** Efficiently manage pianos across different categories.
+- **Real-time Updates:** Keep your inventory updated in real time with Appwrite backend.
 
-   ```bash
-    npx expo start
-   ```
+## Getting Started
 
-In the output, you'll find options to open the app in a
+Follow these steps to get started with Pianoverse:
+
+### Prerequisites
+
+- Ensure you have [Node.js](https://nodejs.org/) installed.
+- Install Expo CLI globally by running:
+
+```sh
+npm install -g expo-cli
+```
+
+### Installation
+
+Clone the repository:
+
+```sh
+git clone https://github.com/yourusername/pianoverse.git
+cd pianoverse
+```
+
+Install dependencies:
+
+```sh
+npm install
+```
+
+## Running the App
+
+Start the app by running:
+
+```sh
+npx expo start
+```
+
+You will see options to open the app in:
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)
 - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Resetting the Project
 
-## Get a fresh project
+To reset the project to a fresh state:
 
-When you're ready, run:
-
-```bash
+```sh
 npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This command moves the starter code to the **app-example** directory and creates a blank **app** directory for new development.
 
 ## Build for Android Internal Testing
 
-To build the project for Android internal testing, use the following command:
+To build the project for Android internal testing:
 
 ```sh
 eas build -p android --profile preview --local
 ```
 
-## Starting the project with a clear cache
+## Clear Cache and Start Fresh
 
 To start the project with a clear cache, you can use the following command:
 
 ```sh
 npx expo start -c
 ```
+
+## License
+
+This project is licensed under the [MIT License](https://opensource.org/license/mit).
