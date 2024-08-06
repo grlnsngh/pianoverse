@@ -48,3 +48,19 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Build for Android Internal Testing
+
+To build the project for Android internal testing, use the following command:
+
+```sh
+eas build -p android --profile preview --local
+```
+
+## Starting the project with a clear cache
+
+To start the project with a clear cache, you can use the following command:
+
+```sh
+npx expo start -c
+```
