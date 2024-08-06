@@ -14,14 +14,16 @@ import { signOut } from "@/lib/appwrite";
 import { router } from "expo-router";
 import { icons } from "@/constants";
 import { useState } from "react";
-import { getAllPianoEntries } from "@/lib/appwrite";
+import { getUserPianoEntries } from "@/lib/appwrite";
 import useAppwrite from "@/lib/useAppwrite";
 import InfoBox from "../components/InfoBox";
 
 const Profile = () => {
   const { user, setUser, setIsLogged } = useGlobalContext();
   const [modalVisible, setModalVisible] = useState(false);
-  const { data: items } = useAppwrite(getAllPianoEntries);
+  const { data: items } = useAppwrite(() =>
+    getUserPianoEntries(user.accountId)
+  );
 
   const handleConfirmLogout = async () => {
     setModalVisible(false);
@@ -78,11 +80,7 @@ const Profile = () => {
             titleStyles="text-xl"
             containerStyles="mr-10"
           />
-          <InfoBox
-            title={items?.length}
-            subtitle="My Pianos"
-            titleStyles="text-xl"
-          />
+          <InfoBox title={0} subtitle="Bookmarked" titleStyles="text-xl" />
         </View>
       </View>
 

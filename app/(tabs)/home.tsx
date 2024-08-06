@@ -9,7 +9,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "@/constants";
-import { getAllPianoEntries } from "@/lib/appwrite";
+import { getUserPianoEntries } from "@/lib/appwrite";
 
 import { useGlobalContext } from "@/context/GlobalProvider";
 import useAppwrite from "@/lib/useAppwrite";
@@ -19,7 +19,9 @@ import EmptyState from "../components/EmptyState";
 
 const Home = () => {
   const { user } = useGlobalContext();
-  const { data: items, refetch } = useAppwrite(getAllPianoEntries);
+  const { data: items, refetch } = useAppwrite(() =>
+    getUserPianoEntries(user.accountId)
+  );
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -28,8 +30,6 @@ const Home = () => {
     await refetch();
     setRefreshing(false);
   };
-
-  console.log(items);
 
   return (
     <SafeAreaView className="bg-primary h-full">

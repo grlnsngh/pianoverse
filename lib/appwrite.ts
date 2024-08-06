@@ -105,12 +105,12 @@ export async function getCurrentUser() {
 }
 
 // Get all piano entries
-export async function getAllPianoEntries() {
+export async function getUserPianoEntries(userAccountId: string) {
   try {
     const items = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.pianoCollectionId,
-      [Query.orderDesc("$createdAt")]
+      [Query.orderDesc("$createdAt"), Query.equal("creator", userAccountId)]
     );
     return items.documents;
   } catch (error) {
