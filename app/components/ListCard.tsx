@@ -1,6 +1,8 @@
-import React, { useState } from "react";
 import { icons } from "@/constants";
+import { deletePianoEntry } from "@/lib/appwrite";
+import { router, usePathname } from "expo-router";
 import PropTypes from "prop-types";
+import React from "react";
 import {
   Alert,
   Image,
@@ -10,21 +12,39 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  Button,
-  Menu,
-  Divider,
-  PaperProvider,
-  IconButton,
-} from "react-native-paper";
-import { deletePianoEntry } from "@/lib/appwrite";
+import { IconButton, Menu, PaperProvider } from "react-native-paper";
 
-const ListCard = ({ item, visibleMenuId, openMenu, closeMenu }) => {
+interface ListCardProps {
+  item: {
+    $id: string;
+    title?: string;
+    image_url?: string;
+    users?: {
+      username?: string;
+      avatar?: string;
+    };
+  };
+  visibleMenuId: string | null;
+  openMenu: (id: string) => void;
+  closeMenu: () => void;
+}
+
+const ListCard: React.FC<ListCardProps> = ({
+  item,
+  visibleMenuId,
+  openMenu,
+  closeMenu,
+}) => {
   const { title = "", image_url = "", users = {} } = item;
   const { username = "", avatar = "" } = users;
+  const pathname = usePathname();
 
   const handleOnClickItem = () => {
     ToastAndroid.show(`Item clicked: ${title}`, ToastAndroid.SHORT);
+    // router.push(`/detail?id=${item.id}`);
+
+    if (pathname.startsWith("/search")) router.setParams({ id: item.$id });
+    else router.push(`/detail/${item.$id}`);
   };
 
   const handleOnClickCloseMenu = async () => {
