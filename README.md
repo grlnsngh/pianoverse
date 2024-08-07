@@ -4,8 +4,11 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 
 ## Technologies Used
 
-- **Front-end:** React Native with Expo
-- **Back-end:** Appwrite
+- **Front-end Framework:** [React Native](https://reactnative.dev/)
+- **Front-end Framework:** [Expo](https://docs.expo.dev/)
+- **Back-end:** [Appwrite](https://appwrite.io/)
+- **UI Library:** [React Native Paper](https://callstack.github.io/react-native-paper/)
+- **CSS Framework:** [Tailwind](https://tailwindcss.com/)
 
 ## Features
 
