@@ -324,7 +324,7 @@ const Create = () => {
               {form.image ? (
                 <>
                   <Image
-                    style={{ height: 120 }}
+                    style={{ height: 180 }}
                     source={{ uri: form.image.uri }}
                     resizeMode="cover"
                     className="w-full h-64 rounded-2xl"
