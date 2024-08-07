@@ -31,12 +31,24 @@ const Home = () => {
     setRefreshing(false);
   };
 
+  const [visibleMenuId, setVisibleMenuId] = useState<string | null>(null);
+
+  const openMenu = (menuId: string) => setVisibleMenuId(menuId);
+  const closeMenu = () => setVisibleMenuId(null);
+
   return (
     <SafeAreaView className="bg-primary h-full">
       <FlatList
         data={items}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => <ListCard item={item} />}
+        renderItem={({ item }) => (
+          <ListCard
+            item={item}
+            visibleMenuId={visibleMenuId}
+            openMenu={openMenu}
+            closeMenu={closeMenu}
+          />
+        )}
         ListHeaderComponent={() => (
           <View className="flex my-6 px-4 space-y-6">
             <View className="flex justify-between items-start flex-row mb-6">
