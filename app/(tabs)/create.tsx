@@ -180,6 +180,7 @@ const Create = () => {
       title: form.title,
       description: form.description,
       image_url: form.image,
+      creator: user.accountId,
     };
 
     // Check if all basic details are provided
