@@ -84,8 +84,8 @@ const Home = () => {
         )}
         ListEmptyComponent={() => (
           <EmptyState
-            title="No Videos Found"
-            subtitle="No videos created yet"
+            title="No Pianos Found"
+            subtitle="No Pianos created yet"
           />
         )}
         refreshControl={
