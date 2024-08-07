@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { icons } from "@/constants";
 import PropTypes from "prop-types";
 import {
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -16,18 +17,32 @@ import {
   PaperProvider,
   IconButton,
 } from "react-native-paper";
+import { deletePianoEntry } from "@/lib/appwrite";
 
 const ListCard = ({ item, visibleMenuId, openMenu, closeMenu }) => {
   const { title = "", image_url = "", users = {} } = item;
   const { username = "", avatar = "" } = users;
 
-  // const [visible, setVisible] = useState(false);
-
-  // const openMenu = () => setVisible(true);
-  // const closeMenu = () => setVisible(false);
-
   const handleOnClickItem = () => {
     ToastAndroid.show(`Item clicked: ${title}`, ToastAndroid.SHORT);
+  };
+
+  const handleOnClickCloseMenu = async () => {
+    try {
+      await deletePianoEntry(item.$id);
+      ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
+    } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert(
+          "Error",
+          `Error deleting piano entry: ${title} - ${error.message}`
+        );
+      } else {
+        Alert.alert("Error", "An unknown error occurred");
+      }
+    } finally {
+      closeMenu();
+    }
   };
 
   return (
@@ -78,7 +93,7 @@ const ListCard = ({ item, visibleMenuId, openMenu, closeMenu }) => {
               >
                 <Menu.Item
                   onPress={() => {
-                    console.log("Edit");
+                    ToastAndroid.show(`Edit: ${title}`, ToastAndroid.SHORT);
                     closeMenu();
                   }}
                   title="Edit"
@@ -93,10 +108,7 @@ const ListCard = ({ item, visibleMenuId, openMenu, closeMenu }) => {
                   }}
                 />
                 <Menu.Item
-                  onPress={() => {
-                    console.log("Delete");
-                    closeMenu();
-                  }}
+                  onPress={handleOnClickCloseMenu}
                   title="Delete"
                   leadingIcon={() => {
                     return (

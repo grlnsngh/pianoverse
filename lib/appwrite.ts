@@ -201,3 +201,19 @@ export async function createPianoEntry(pianoData) {
     throw new Error(errorMessage);
   }
 }
+
+// Delete a piano entry
+export async function deletePianoEntry(itemId: string) {
+  try {
+    const response = await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.pianoCollectionId,
+      itemId
+    );
+    return response;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error deleting piano entry:", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
