@@ -1,7 +1,6 @@
 import { icons } from "@/constants";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { router, usePathname } from "expo-router";
-import PropTypes from "prop-types";
 import React from "react";
 import {
   Alert,
@@ -42,8 +41,7 @@ const ListCard: React.FC<ListCardProps> = ({
   const handleOnClickItem = () => {
     ToastAndroid.show(`Item clicked: ${title}`, ToastAndroid.SHORT);
     // router.push(`/detail?id=${item.id}`);
-
-    if (pathname.startsWith("/search")) router.setParams({ id: item.$id });
+    if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
     else router.push(`/detail/${item.$id}`);
   };
 
@@ -160,17 +158,6 @@ const ListCard: React.FC<ListCardProps> = ({
       </View>
     </PaperProvider>
   );
-};
-
-ListCard.propTypes = {
-  item: PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    image_url: PropTypes.string.isRequired,
-    users: PropTypes.shape({
-      username: PropTypes.string.isRequired,
-      avatar: PropTypes.string.isRequired,
-    }),
-  }).isRequired,
 };
 
 export default ListCard;
