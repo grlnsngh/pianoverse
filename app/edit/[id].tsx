@@ -291,10 +291,6 @@ const EditScreen = () => {
     }
   };
 
-  useEffect(() => {
-    console.log("form.image", form.image);
-  }, [form.image]);
-
   return (
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
