@@ -1,3 +1,4 @@
+import { PianoItemFormStateType } from "@/redux/pianos/types";
 import {
   Account,
   Client,
@@ -198,6 +199,42 @@ export async function createPianoEntry(pianoData) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error creating piano entry:", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+/**
+ * Updates an existing piano entry in the database.
+ *
+ * @param {string} documentId - The ID of the document to update.
+ * @param {Partial<PianoItemFormStateType>} pianoData - The data of the piano entry to update.
+ * @param {string} [pianoData.image_url] - The URL or local file path of the piano image.
+ * @returns {Promise<Object>} The updated document response from the database.
+ * @throws {Error} If there is an error updating the piano entry.
+ */
+export async function updatePianoEntry(
+  documentId: string,
+  pianoData: Partial<PianoItemFormStateType>
+) {
+  try {
+    let imageUrl = pianoData.image_url;
+
+    // Check if image_url is a local file path
+    if (imageUrl.startsWith("file://")) {
+      imageUrl = await uploadFile(pianoData);
+    }
+
+    const response = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.pianoCollectionId,
+      documentId,
+      { ...pianoData, image_url: imageUrl }
+    );
+
+    return response;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error updating piano entry:", errorMessage);
     throw new Error(errorMessage);
   }
 }
