@@ -32,7 +32,15 @@ const storage = new Storage(client);
 const avatars = new Avatars(client);
 const databases = new Databases(client);
 
-// Register user
+/**
+ * Creates a new user account and user document in the database.
+ *
+ * @param {string} email - The email address of the new user.
+ * @param {string} password - The password for the new user account.
+ * @param {string} username - The username for the new user.
+ * @returns {Promise<any>} A promise that resolves to the newly created user document.
+ * @throws {Error} If there is an error during the user creation process.
+ */
 export async function createUser(
   email: string,
   password: string,
@@ -72,7 +80,14 @@ export async function createUser(
   }
 }
 
-// Sign In
+/**
+ * Signs in a user using their email and password.
+ *
+ * @param {string} email - The email address of the user.
+ * @param {string} password - The password of the user.
+ * @returns {Promise<any>} A promise that resolves to the session object if the sign-in is successful.
+ * @throws {Error} If there is an error during the sign-in process.
+ */
 export async function signIn(email: string, password: string): Promise<any> {
   try {
     const session = await account.createEmailPasswordSession(email, password);
@@ -84,7 +99,12 @@ export async function signIn(email: string, password: string): Promise<any> {
   }
 }
 
-// Get Current User
+/**
+ * Retrieves the current user's account and user document from the database.
+ *
+ * @returns {Promise<Object|null>} A promise that resolves to the current user's document, or null if an error occurs.
+ * @throws {Error} If there is an error retrieving the current user's account or document.
+ */
 export async function getCurrentUser() {
   try {
     const currentAccount = await account.get();
@@ -105,7 +125,13 @@ export async function getCurrentUser() {
   }
 }
 
-// Get all piano entries
+/**
+ * Retrieves piano entries created by a specific user.
+ *
+ * @param {string} userAccountId - The ID of the user whose piano entries are to be retrieved.
+ * @returns {Promise<Object[]>} A promise that resolves to an array of documents representing the user's piano entries.
+ * @throws {Error} If there is an error retrieving the piano entries.
+ */
 export async function getUserPianoEntries(userAccountId: string) {
   try {
     const items = await databases.listDocuments(
@@ -120,6 +146,12 @@ export async function getUserPianoEntries(userAccountId: string) {
   }
 }
 
+/**
+ * Signs out the current user by deleting their session.
+ *
+ * @returns {Promise<Object>} The response from the server after deleting the session.
+ * @throws {Error} If there is an error during the sign-out process.
+ */
 export async function signOut() {
   try {
     const session = await account.deleteSession("current");
@@ -131,7 +163,19 @@ export async function signOut() {
   }
 }
 
-// Upload File
+/**
+ * Uploads a file to Appwrite storage and returns the file preview URL.
+ *
+ * @param {Object} pianoData - The data for the piano entry.
+ * @param {Object} pianoData.image_url - The image file to be uploaded.
+ * @param {string} pianoData.image_url.fileName - The original file name of the image.
+ * @param {string} pianoData.image_url.type - The MIME type of the image.
+ * @param {number} pianoData.image_url.fileSize - The size of the image file in bytes.
+ * @param {string} pianoData.image_url.uri - The URI of the image file.
+ * @param {string} pianoData.title - The title of the piano entry.
+ * @returns {Promise<string>} The URL of the uploaded file preview.
+ * @throws {Error} If there is an error uploading the file.
+ */
 export async function uploadFile(pianoData) {
   const file = pianoData.image_url;
   if (!file) return;
@@ -162,7 +206,18 @@ export async function uploadFile(pianoData) {
     throw new Error(errorMessage);
   }
 }
-// Get File Preview
+
+/**
+ * Creates a new piano entry in the database.
+ *
+ * @param {Object} pianoData - The data for the piano entry.
+ * @param {string} pianoData.name - The name of the piano.
+ * @param {string} pianoData.type - The type of the piano.
+ * @param {string} pianoData.manufacturer - The manufacturer of the piano.
+ * @param {string} pianoData.image - The image file of the piano.
+ * @returns {Promise<Object>} The response from the database after creating the document.
+ * @throws {Error} If there is an error creating the piano entry.
+ */
 export async function getFilePreview(fileId) {
   let fileUrl;
 
@@ -185,7 +240,17 @@ export async function getFilePreview(fileId) {
   }
 }
 
-// Create a new piano entry
+/**
+ * Creates a new piano entry in the database.
+ *
+ * @param {Object} pianoData - The data for the piano entry.
+ * @param {string} pianoData.name - The name of the piano.
+ * @param {string} pianoData.type - The type of the piano.
+ * @param {string} pianoData.manufacturer - The manufacturer of the piano.
+ * @param {string} pianoData.image - The image file of the piano.
+ * @returns {Promise<Object>} The response from the database after creating the document.
+ * @throws {Error} If there is an error creating the piano entry.
+ */
 export async function createPianoEntry(pianoData) {
   try {
     const imageUrl = await uploadFile(pianoData);
