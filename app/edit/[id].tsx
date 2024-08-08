@@ -280,9 +280,6 @@ const EditScreen = () => {
 
     try {
       setUploading(true);
-      // console.log(finalDetails);
-      // console.log(resetPianoItem(finalDetails));
-      // console.log(id.toString());
       await updatePianoEntry(id.toString(), finalDetails);
       router.push("/home");
       ToastAndroid.show("Piano entry updated successfully", ToastAndroid.SHORT);
@@ -290,29 +287,6 @@ const EditScreen = () => {
       const errorMessage = (error as Error).message;
       Alert.alert("Error while uploading", errorMessage);
     } finally {
-      // setForm({
-      //   category: PIANO_CATEGORY.RENTABLE,
-      //   title: "",
-      //   description: "",
-      //   image: null,
-      //   make: "",
-      //   rentalCustomerName: "",
-      //   rentalCustomerAddress: "",
-      //   rentalCustomerMobileNumber: "",
-      //   rentalStartDate: new Date(),
-      //   rentalEndDate: new Date(),
-      //   rentalPrice: 0,
-      //   warehouseStoredSinceDate: new Date(),
-      //   eventPurchasePrice: 0,
-      //   eventPurchaseFrom: "",
-      //   eventModelNumber: "",
-      //   eventBNumber: "",
-      //   eventCompanyAssociated: "",
-      //   onSalePurchaseFrom: "",
-      //   onSaleImportDate: new Date(),
-      //   onSalePrice: 0,
-      // });
-
       setUploading(false);
     }
   };
