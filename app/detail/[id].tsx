@@ -94,7 +94,13 @@ const DetailScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    navigation.setOptions({ title: `${title}` });
+    navigation.setOptions({
+      headerStyle: {
+        backgroundColor: "#FFA001",
+      },
+      headerTintColor: "#161622",
+      title: `${title}`,
+    });
   }, [id]);
 
   return (
