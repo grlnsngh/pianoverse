@@ -19,20 +19,20 @@ export interface PianoItem {
   event_purchase_price?: string | null;
   image_url: string;
   make: string;
-  on_sale_import_date?: string | null;
+  on_sale_import_date?: Date | null;
   on_sale_price?: string | null;
   on_sale_purchase_from?: string | null;
   rental_customer_address?: string;
   rental_customer_mobile?: string;
   rental_customer_name?: string;
-  rental_period_end?: string;
-  rental_period_start?: string;
+  rental_period_end?: Date;
+  rental_period_start?: Date;
   rental_price?: number;
-  sold_date?: string | null;
+  sold_date?: Date | null;
   sold_price?: string | null;
   sold_to_address?: string | null;
   sold_to_name?: string | null;
   title: string;
   users: User;
-  warehouse_since_date?: string | null;
+  warehouse_since_date?: Date | null;
 }
