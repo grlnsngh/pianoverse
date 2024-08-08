@@ -2,6 +2,8 @@ import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
 import GlobalProvider from "@/context/GlobalProvider";
+import { Provider } from "react-redux";
+import store from "@/redux/store";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -36,12 +38,14 @@ export default function RootLayout() {
   }
 
   return (
-    <GlobalProvider>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      </Stack>
-    </GlobalProvider>
+    <Provider store={store}>
+      <GlobalProvider>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        </Stack>
+      </GlobalProvider>
+    </Provider>
   );
 }
