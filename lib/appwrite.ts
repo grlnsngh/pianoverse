@@ -164,27 +164,31 @@ export async function signOut() {
 }
 
 /**
- * Uploads a file to Appwrite storage and returns the file preview URL.
+ * Uploads a file to the storage.
  *
- * @param {Object} pianoData - The data for the piano entry.
- * @param {Object} pianoData.image_url - The image file to be uploaded.
- * @param {string} pianoData.image_url.fileName - The original file name of the image.
- * @param {string} pianoData.image_url.type - The MIME type of the image.
- * @param {number} pianoData.image_url.fileSize - The size of the image file in bytes.
- * @param {string} pianoData.image_url.uri - The URI of the image file.
- * @param {string} pianoData.title - The title of the piano entry.
- * @returns {Promise<string>} The URL of the uploaded file preview.
- * @throws {Error} If there is an error uploading the file.
+ * @param {Object} pianoData - The data object containing file and user information.
+ * @param {Object} pianoData.image_url - The file object to be uploaded.
+ * @param {string} pianoData.users - The user ID.
+ * @param {string} pianoData.title - The title of the item.
+ * @returns {Promise<string | void>} - The URL of the uploaded file or void if no file is provided.
+ * @throws {Error} - Throws an error if the upload fails.
  */
-export async function uploadFile(pianoData) {
+export async function uploadFile(pianoData: any) {
   const file = pianoData.image_url;
   if (!file) return;
 
   try {
     // Extract the file extension from the original file name
     const fileExtension = file.fileName.split(".").pop();
+    const sanitizeFileName = (input: string) => {
+      return input.replace(/[^a-zA-Z0-9-_]/g, "_");
+    };
+    const userId = sanitizeFileName(pianoData.users);
+    const itemTitle = sanitizeFileName(pianoData.title);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-"); // Optional: Add timestamp for uniqueness
+
     // Create a new file name using pianoData.title and the extracted file extension
-    const newFileName = `${pianoData.title}.${fileExtension}`;
+    const newFileName = `userId_${userId}_itemTitle_${itemTitle}_${timestamp}.${fileExtension}`;
 
     const asset = {
       name: newFileName,
