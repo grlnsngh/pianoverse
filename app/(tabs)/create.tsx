@@ -22,13 +22,8 @@ import { router } from "expo-router";
 import * as ImageManipulator from "expo-image-manipulator";
 import FormField from "../components/FormField";
 import CustomButton from "../components/CustomButton";
+import { categoryOptions, PIANO_CATEGORY } from "../constants/Piano";
 
-const categoryOptions = [
-  { label: "Rentable", value: "rentable" },
-  { label: "Events", value: "events" },
-  { label: "On Sale", value: "on_sale" },
-  { label: "Warehouse", value: "warehouse" },
-];
 interface ImageAsset {
   uri: string;
   fileSize: number;
@@ -193,7 +188,7 @@ const Create = () => {
 
     let finalDetails = { ...basicDetails };
 
-    if (form.category === "rentable") {
+    if (form.category === PIANO_CATEGORY.RENTABLE) {
       const rentalDetails = {
         rental_customer_name: form.rentalCustomerName,
         rental_customer_address: form.rentalCustomerAddress,
@@ -203,12 +198,12 @@ const Create = () => {
         rental_price: form.rentalPrice,
       };
       finalDetails = { ...finalDetails, ...rentalDetails };
-    } else if (form.category === "warehouse") {
+    } else if (form.category === PIANO_CATEGORY.WAREHOUSE) {
       const warehouseDetails = {
         warehouse_since_date: form.warehouseStoredSinceDate.toDateString(),
       };
       finalDetails = { ...finalDetails, ...warehouseDetails };
-    } else if (form.category === "events") {
+    } else if (form.category === PIANO_CATEGORY.EVENTS) {
       const eventDetails = {
         event_purchase_price: 0,
         event_purchase_from: "",
@@ -217,7 +212,7 @@ const Create = () => {
         event_company_associated: "",
       };
       finalDetails = { ...finalDetails, ...eventDetails };
-    } else if (form.category === "on_sale") {
+    } else if (form.category === PIANO_CATEGORY.ON_SALE) {
       const onSaleDetails = {
         on_sale_purchase_from: "",
         on_sale_import_date: new Date().toDateString(),
@@ -239,7 +234,7 @@ const Create = () => {
       Alert.alert("Error while uploading", errorMessage);
     } finally {
       setForm({
-        category: "rentable",
+        category: PIANO_CATEGORY.RENTABLE,
         title: "",
         description: "",
         image: null,
@@ -374,7 +369,7 @@ const Create = () => {
             </TouchableOpacity>
           </View>
 
-          {form.category === "rentable" && (
+          {form.category === PIANO_CATEGORY.RENTABLE && (
             <>
               <FormField
                 title="Customer Name"
@@ -445,7 +440,7 @@ const Create = () => {
             </>
           )}
 
-          {form.category === "warehouse" && (
+          {form.category === PIANO_CATEGORY.WAREHOUSE && (
             <View>
               <FormField
                 title="Stored Since Date"
@@ -464,7 +459,7 @@ const Create = () => {
             </View>
           )}
 
-          {form.category === "events" && (
+          {form.category === PIANO_CATEGORY.EVENTS && (
             <>
               <FormField
                 title="Purchase Price"
@@ -507,7 +502,7 @@ const Create = () => {
               />
             </>
           )}
-          {form.category === "on_sale" && (
+          {form.category === PIANO_CATEGORY.ON_SALE && (
             <>
               <FormField
                 title="Purchase From"
