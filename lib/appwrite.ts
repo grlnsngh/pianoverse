@@ -217,7 +217,7 @@ export async function updatePianoEntry(
   pianoData: Partial<PianoItemFormStateType>
 ) {
   try {
-    let imageUrl = pianoData.image_url;
+    let imageUrl = pianoData?.image_url || "";
 
     // Check if image_url is a local file path
     if (imageUrl.startsWith("file://")) {
@@ -239,7 +239,13 @@ export async function updatePianoEntry(
   }
 }
 
-// Delete a piano entry
+/**
+ * Deletes a piano entry from the database.
+ *
+ * @param {string} itemId - The ID of the piano entry to delete.
+ * @returns {Promise<Object>} The response from the database after deletion.
+ * @throws {Error} If there is an error deleting the piano entry.
+ */
 export async function deletePianoEntry(itemId: string) {
   try {
     const response = await databases.deleteDocument(
