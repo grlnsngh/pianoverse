@@ -10,65 +10,109 @@ import { PIANO_CATEGORY } from "../constants/Piano";
 
 const RentableDetails = ({ piano }: { piano: PianoItem }) => (
   <View className="space-y-6 mt-6">
-    <Text className="text-lg text-white">
-      Customer Name: {piano.rental_customer_name}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Customer Name:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {piano.rental_customer_name}
+      </Text>
     </Text>
-    <Text className="text-lg text-white">
-      Customer Address: {piano.rental_customer_address}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Customer Address:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {piano.rental_customer_address}
+      </Text>
     </Text>
-    <Text className="text-lg text-white">
-      Customer Mobile: {piano.rental_customer_mobile}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Customer Mobile:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {piano.rental_customer_mobile}
+      </Text>
     </Text>
-    <Text className="text-lg text-white">
-      Rental Period Start: {formatDate(piano.rental_period_start)}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Rental Period Start:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {formatDate(piano.rental_period_start)}
+      </Text>
     </Text>
-    <Text className="text-lg text-white">
-      Rental Period End: {formatDate(piano.rental_period_end)}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Rental Period End:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {formatDate(piano.rental_period_end)}
+      </Text>
     </Text>
-    <Text className="text-lg text-white">
-      Rental Price: {piano.rental_price}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Rental Price:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {piano.rental_price}
+      </Text>
     </Text>
   </View>
 );
 
 const WarehouseDetails = ({ piano }: { piano: PianoItem }) => (
   <View className="space-y-6 mt-6">
-    <Text className="text-lg text-white">
-      Warehouse Since Date: {formatDate(piano.warehouse_since_date)}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Warehouse Since Date:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {formatDate(piano.warehouse_since_date)}
+      </Text>
     </Text>
   </View>
 );
 
 const EventDetails = ({ piano }: { piano: PianoItem }) => (
   <View className="space-y-6 mt-6">
-    <Text className="text-lg text-white">
-      Event Purchase Price: {piano.event_purchase_price}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Event Purchase Price:{" "}
+      <Text className="text-white font-psemibold text-base"></Text>
+      {piano.event_purchase_price}
     </Text>
-    <Text className="text-lg text-white">
-      Event Purchase From: {piano.event_purchase_from}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Event Purchase From:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {piano.event_purchase_from}
+      </Text>
     </Text>
-    <Text className="text-lg text-white">
-      Event Model Number: {piano.event_model_number}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Event Model Number:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {piano.event_model_number}
+      </Text>
     </Text>
-    <Text className="text-lg text-white">
-      Event B Number: {piano.event_b_number}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Event B Number:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {piano.event_b_number}
+      </Text>
     </Text>
-    <Text className="text-lg text-white">
-      Event Company Associated: {piano.event_company_associated}
+    <Text className="text-base text-gray-100 font-pmedium">
+      Event Company Associated:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {piano.event_company_associated}
+      </Text>
     </Text>
   </View>
 );
 
 const OnSaleDetails = ({ piano }: { piano: PianoItem }) => (
   <View className="space-y-6 mt-6">
-    <Text className="text-lg text-white">
-      On Sale Purchase From: {piano.on_sale_purchase_from}
+    <Text className="text-base text-gray-100 font-pmedium">
+      On Sale Purchase From:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {piano.on_sale_purchase_from}
+      </Text>
     </Text>
-    <Text className="text-lg text-white">
-      On Sale Import Date: {formatDate(piano.on_sale_import_date)}
+    <Text className="text-base text-gray-100 font-pmedium">
+      On Sale Import Date:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {formatDate(piano.on_sale_import_date)}
+      </Text>
     </Text>
-    <Text className="text-lg text-white">
-      On Sale Price: {piano.on_sale_price}
+    <Text className="text-base text-gray-100 font-pmedium">
+      On Sale Price:{" "}
+      <Text className="text-white font-psemibold text-base">
+        {piano.on_sale_price}
+      </Text>
     </Text>
   </View>
 );
@@ -113,13 +157,22 @@ const DetailScreen = () => {
             resizeMode="cover"
           />
 
-          <Text className="text-lg text-white">
-            Category: {printCategoryLabel(category)}
+          <Text className="text-base text-gray-100 font-pmedium">
+            Category:{" "}
+            <Text className="text-white font-psemibold text-base">
+              {printCategoryLabel(category)}
+            </Text>
           </Text>
-          <Text className="text-lg text-white">Make: {make}</Text>
+          <Text className="text-base text-gray-100 font-pmedium">
+            Make:{" "}
+            <Text className="text-white font-psemibold text-base">{make}</Text>
+          </Text>
           {description && (
-            <Text className="text-lg text-white">
-              Description: {description}
+            <Text className="text-base text-gray-100 font-pmedium">
+              Description:{" "}
+              <Text className="text-white font-psemibold text-base">
+                {description}
+              </Text>
             </Text>
           )}
           {category === PIANO_CATEGORY.RENTABLE && (
