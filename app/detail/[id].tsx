@@ -9,7 +9,7 @@ import { useSelector } from "react-redux";
 import { PIANO_CATEGORY } from "../constants/Piano";
 
 const RentableDetails = ({ piano }: { piano: PianoItem }) => (
-  <View className="space-y-6">
+  <View className="space-y-6 mt-6">
     <Text className="text-lg text-white">
       Customer Name: {piano.rental_customer_name}
     </Text>
@@ -32,7 +32,7 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => (
 );
 
 const WarehouseDetails = ({ piano }: { piano: PianoItem }) => (
-  <View className="space-y-6">
+  <View className="space-y-6 mt-6">
     <Text className="text-lg text-white">
       Warehouse Since Date: {formatDate(piano.warehouse_since_date)}
     </Text>
@@ -40,7 +40,7 @@ const WarehouseDetails = ({ piano }: { piano: PianoItem }) => (
 );
 
 const EventDetails = ({ piano }: { piano: PianoItem }) => (
-  <View className="space-y-6">
+  <View className="space-y-6 mt-6">
     <Text className="text-lg text-white">
       Event Purchase Price: {piano.event_purchase_price}
     </Text>
@@ -60,7 +60,7 @@ const EventDetails = ({ piano }: { piano: PianoItem }) => (
 );
 
 const OnSaleDetails = ({ piano }: { piano: PianoItem }) => (
-  <View className="space-y-6">
+  <View className="space-y-6 mt-6">
     <Text className="text-lg text-white">
       On Sale Purchase From: {piano.on_sale_purchase_from}
     </Text>
