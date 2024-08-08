@@ -1,9 +1,15 @@
-import { PianoItem } from "@/redux/pianos/types";
+import { icons } from "@/constants";
+import { updatePianoEntry } from "@/lib/appwrite";
+import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
-import { formatDate, printCategoryLabel } from "@/utils/ObjectManipulation";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -14,14 +20,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import { categoryOptions, PIANO_CATEGORY } from "../constants/Piano";
-import { Picker } from "@react-native-picker/picker";
-import * as ImagePicker from "expo-image-picker";
-import FormField from "../components/FormField";
-import { icons } from "@/constants";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomButton from "../components/CustomButton";
-import * as ImageManipulator from "expo-image-manipulator";
+import FormField from "../components/FormField";
+import { categoryOptions, PIANO_CATEGORY } from "../constants/Piano";
 
 interface ImageAsset {
   uri: string;
@@ -221,8 +222,99 @@ const EditScreen = () => {
     }
   };
 
+  const user = useSelector((state: RootState) => state.users.user);
+
   const handleOnSubmit = async () => {
-    ToastAndroid.show("Piano updated successfully", ToastAndroid.SHORT);
+    const basicDetails = {
+      users: user.$id,
+      category: form.category,
+      make: form.make,
+      title: form.title,
+      description: form.description,
+      image_url: form.image ? form.image.uri : image_url,
+      creator: user.accountId,
+    };
+
+    // Check if all basic details are provided
+    for (const [key, value] of Object.entries(basicDetails)) {
+      if (!value) {
+        Alert.alert("Error", `Please provide a valid ${key}.`);
+        return;
+      }
+    }
+
+    let finalDetails: Partial<PianoItemFormStateType> = { ...basicDetails };
+
+    if (form.category === PIANO_CATEGORY.RENTABLE) {
+      const rentalDetails = {
+        rental_customer_name: form.rentalCustomerName,
+        rental_customer_address: form.rentalCustomerAddress,
+        rental_customer_mobile: form.rentalCustomerMobileNumber,
+        rental_period_start: form.rentalStartDate.toDateString(),
+        rental_period_end: form.rentalEndDate.toDateString(),
+        rental_price: form.rentalPrice,
+      };
+      finalDetails = { ...finalDetails, ...rentalDetails };
+    } else if (form.category === PIANO_CATEGORY.WAREHOUSE) {
+      const warehouseDetails = {
+        warehouse_since_date: form.warehouseStoredSinceDate.toDateString(),
+      };
+      finalDetails = { ...finalDetails, ...warehouseDetails };
+    } else if (form.category === PIANO_CATEGORY.EVENTS) {
+      const eventDetails = {
+        event_purchase_price: 0,
+        event_purchase_from: "",
+        event_model_number: "",
+        event_b_number: "",
+        event_company_associated: "",
+      };
+      finalDetails = { ...finalDetails, ...eventDetails };
+    } else if (form.category === PIANO_CATEGORY.ON_SALE) {
+      const onSaleDetails = {
+        on_sale_purchase_from: "",
+        on_sale_import_date: new Date().toDateString(),
+        on_sale_price: 0,
+      };
+      finalDetails = { ...finalDetails, ...onSaleDetails };
+    }
+
+    try {
+      setUploading(true);
+      // console.log(finalDetails);
+      // console.log(resetPianoItem(finalDetails));
+      // console.log(id.toString());
+      await updatePianoEntry(id.toString(), finalDetails);
+      router.push("/home");
+      ToastAndroid.show("Piano entry updated successfully", ToastAndroid.SHORT);
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      Alert.alert("Error while uploading", errorMessage);
+    } finally {
+      // setForm({
+      //   category: PIANO_CATEGORY.RENTABLE,
+      //   title: "",
+      //   description: "",
+      //   image: null,
+      //   make: "",
+      //   rentalCustomerName: "",
+      //   rentalCustomerAddress: "",
+      //   rentalCustomerMobileNumber: "",
+      //   rentalStartDate: new Date(),
+      //   rentalEndDate: new Date(),
+      //   rentalPrice: 0,
+      //   warehouseStoredSinceDate: new Date(),
+      //   eventPurchasePrice: 0,
+      //   eventPurchaseFrom: "",
+      //   eventModelNumber: "",
+      //   eventBNumber: "",
+      //   eventCompanyAssociated: "",
+      //   onSalePurchaseFrom: "",
+      //   onSaleImportDate: new Date(),
+      //   onSalePrice: 0,
+      // });
+
+      setUploading(false);
+    }
   };
 
   useEffect(() => {
