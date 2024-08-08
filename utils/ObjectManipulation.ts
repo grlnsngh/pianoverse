@@ -1,4 +1,5 @@
 import { categoryOptions } from "@/app/constants/Piano";
+import { PianoItem } from "@/redux/pianos/types";
 
 /**
  * Finds and returns the label for a given category value.
@@ -34,4 +35,23 @@ export const formatDate = (
     month: "long",
     day: "numeric",
   });
+};
+
+/**
+ * Searches an array of PianoItems based on a search input.
+ * @param items - The array of PianoItems to search.
+ * @param searchInput - The search input to match against the PianoItem titles.
+ * @returns An array of PianoItems that match the search input.
+ */
+export const searchPianoItems = (
+  items: PianoItem[],
+  searchInput: string
+): PianoItem[] => {
+  const trimmedInput = searchInput.trim();
+  if (trimmedInput === "") {
+    return items;
+  }
+  return items.filter((item) =>
+    item.title.toLowerCase().includes(trimmedInput.toLowerCase())
+  );
 };
