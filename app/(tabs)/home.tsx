@@ -16,12 +16,16 @@ import useAppwrite from "@/lib/useAppwrite";
 import ListCard from "../components/ListCard";
 import SearchInput from "../components/SearchInput";
 import EmptyState from "../components/EmptyState";
+import { useDispatch } from "react-redux";
+import { setPianoListItems } from "@/redux/pianos/actions";
 
 const Home = () => {
   const { user } = useGlobalContext();
   const { data: items, refetch } = useAppwrite(() =>
     getUserPianoEntries(user.accountId)
   );
+
+  const dispatch = useDispatch();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -35,6 +39,12 @@ const Home = () => {
 
   const openMenu = (menuId: string) => setVisibleMenuId(menuId);
   const closeMenu = () => setVisibleMenuId(null);
+
+  useEffect(() => {
+    if (items.length > 0) {
+      dispatch(setPianoListItems(items));
+    }
+  }, [items]);
 
   return (
     <SafeAreaView className="bg-primary h-full">
