@@ -1,6 +1,10 @@
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
-import { formatDate, printCategoryLabel } from "@/utils/ObjectManipulation";
+import {
+  formatDate,
+  formatDateString,
+  printCategoryLabel,
+} from "@/utils/ObjectManipulation";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect } from "react";
 import { Image, ScrollView, Text, View } from "react-native";
@@ -178,15 +182,30 @@ const DetailScreen = () => {
     });
   }, [id]);
 
+  const createdAtString = formatDateString(filteredPiano.$createdAt);
+  const updatedAtString = formatDateString(filteredPiano.$updatedAt);
+
+  const isUpdated = filteredPiano.$updatedAt !== filteredPiano.$createdAt;
+  const dateLabel = isUpdated ? "Last Updated" : "Created on";
+  const dateString = isUpdated ? updatedAtString : createdAtString;
+
   return (
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
         <View className="w-full flex min-h-[90vh] px-4 space-y-6 pb-16">
           <Image
             source={{ uri: image_url }}
+            style={{ height: 300 }}
             className="w-max h-64 rounded-xl"
             resizeMode="cover"
           />
+
+          <Text className="text-base text-gray-100 font-pmedium">
+            {dateLabel}:{" "}
+            <Text className="text-white font-psemibold text-base">
+              {dateString}
+            </Text>
+          </Text>
 
           <Text className="text-base text-gray-100 font-pmedium">
             Category:{" "}
