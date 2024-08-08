@@ -39,8 +39,6 @@ const ListCard: React.FC<ListCardProps> = ({
   const pathname = usePathname();
 
   const handleOnClickItem = () => {
-    ToastAndroid.show(`Item clicked: ${title}`, ToastAndroid.SHORT);
-    // router.push(`/detail?id=${item.id}`);
     if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
     else router.push(`/detail/${item.$id}`);
   };
