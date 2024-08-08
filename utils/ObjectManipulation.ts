@@ -140,3 +140,21 @@ export const resetPianoItem = (
 
   return resetItem;
 };
+
+/**
+ * Formats a date string into a localized date and time string.
+ * @param dateString - The date string to format.
+ * @returns The formatted date and time string.
+ */
+export const formatDateString = (dateString: string) => {
+  return new Date(dateString).toLocaleString("en-US", {
+    weekday: "short", // "Mon"
+    year: "numeric", // "2023"
+    month: "short", // "Oct"
+    day: "numeric", // "2"
+    hour: "numeric", // "10"
+    minute: "numeric", // "30"
+    second: "numeric", // "15"
+    hour12: true, // "AM/PM"
+  });
+};
