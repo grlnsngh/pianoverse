@@ -1,8 +1,8 @@
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { formatDate, printCategoryLabel } from "@/utils/ObjectManipulation";
-import { useLocalSearchParams } from "expo-router";
-import React from "react";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import React, { useEffect } from "react";
 import { Image, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
@@ -91,6 +91,12 @@ const DetailScreen = () => {
 
   const { title, image_url, category, make, description } = filteredPiano;
 
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({ title: `${title}` });
+  }, [id]);
+
   return (
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
@@ -100,7 +106,7 @@ const DetailScreen = () => {
             className="w-max h-64 rounded-xl"
             resizeMode="cover"
           />
-          <Text className="text-3xl text-white">{title}</Text>
+
           <Text className="text-lg text-white">
             Category: {printCategoryLabel(category)}
           </Text>
