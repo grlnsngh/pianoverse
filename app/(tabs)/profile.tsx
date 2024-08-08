@@ -1,29 +1,25 @@
+import { icons } from "@/constants";
+import { useGlobalContext } from "@/context/GlobalProvider";
+import { signOut } from "@/lib/appwrite";
+import { RootState } from "@/redux/store";
+import { router } from "expo-router";
+import React, { useState } from "react";
 import {
-  Alert,
   Image,
+  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Modal,
 } from "react-native";
-import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useGlobalContext } from "@/context/GlobalProvider";
-import { signOut } from "@/lib/appwrite";
-import { router } from "expo-router";
-import { icons } from "@/constants";
-import { useState } from "react";
-import { getUserPianoEntries } from "@/lib/appwrite";
-import useAppwrite from "@/lib/useAppwrite";
+import { useSelector } from "react-redux";
 import InfoBox from "../components/InfoBox";
 
 const Profile = () => {
   const { user, setUser, setIsLogged } = useGlobalContext();
   const [modalVisible, setModalVisible] = useState(false);
-  const { data: items } = useAppwrite(() =>
-    getUserPianoEntries(user.accountId)
-  );
+  const items = useSelector((state: RootState) => state.pianos.items);
 
   const handleConfirmLogout = async () => {
     setModalVisible(false);
