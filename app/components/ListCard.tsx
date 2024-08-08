@@ -43,7 +43,13 @@ const ListCard: React.FC<ListCardProps> = ({
     else router.push(`/detail/${item.$id}`);
   };
 
-  const handleOnClickCloseMenu = async () => {
+  const handleOnClickEditMenu = () => {
+    if (pathname.startsWith("/edit")) router.setParams({ id: item.$id });
+    else router.push(`/edit/${item.$id}`);
+    closeMenu();
+  };
+
+  const handleOnClickDeleteMenu = async () => {
     try {
       await deletePianoEntry(item.$id);
       ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
@@ -108,10 +114,7 @@ const ListCard: React.FC<ListCardProps> = ({
                 }
               >
                 <Menu.Item
-                  onPress={() => {
-                    ToastAndroid.show(`Edit: ${title}`, ToastAndroid.SHORT);
-                    closeMenu();
-                  }}
+                  onPress={handleOnClickEditMenu}
                   title="Edit"
                   leadingIcon={() => {
                     return (
@@ -124,7 +127,7 @@ const ListCard: React.FC<ListCardProps> = ({
                   }}
                 />
                 <Menu.Item
-                  onPress={handleOnClickCloseMenu}
+                  onPress={handleOnClickDeleteMenu}
                   title="Delete"
                   leadingIcon={() => {
                     return (
