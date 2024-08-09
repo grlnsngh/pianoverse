@@ -1,34 +1,34 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Alert,
-  StyleSheet,
-  TextInput,
-  ToastAndroid,
-} from "react-native";
-import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { icons } from "@/constants";
-import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { SECONDARY_COLOR } from "@/constants/colors";
 import { useGlobalContext } from "@/context/GlobalProvider";
-import { Picker } from "@react-native-picker/picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { createPianoEntry } from "@/lib/appwrite";
-import { router } from "expo-router";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
 import * as ImageManipulator from "expo-image-manipulator";
-import FormField from "../components/FormField";
+import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
+import React, { useState } from "react";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Dropdown } from "react-native-element-dropdown";
+import { SegmentedButtons } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "../components/CustomButton";
+import FormField from "../components/FormField";
 import {
   categoryOptions,
   COMPANY_ASSOCIATED,
   PIANO_CATEGORY,
+  pianoCompaniesMakeList,
 } from "../constants/Piano";
-import { SegmentedButtons } from "react-native-paper";
-import { SECONDARY_COLOR } from "@/constants/colors";
 
 interface ImageAsset {
   uri: string;
@@ -365,6 +365,30 @@ const Create = () => {
           </View>
 
           <Text className="text-base text-gray-100 font-pmedium mb-2 mt-7">
+            Make
+          </Text>
+          <View className="w-full px-4 py-5 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary">
+            <Dropdown
+              data={pianoCompaniesMakeList}
+              search
+              labelField="label"
+              valueField="value"
+              placeholder="Select piano make"
+              searchPlaceholder="Search..."
+              placeholderStyle={styles.pianoMakePlaceholderStyle}
+              selectedTextStyle={styles.pianoMakeSelectedTextStyle}
+              containerStyle={{
+                width: "90%",
+                borderRadius: 16,
+                left: 21,
+              }}
+              value={form.make}
+              onChange={(item) => setForm({ ...form, make: item.value })}
+              maxHeight={300}
+            />
+          </View>
+
+          <Text className="text-base text-gray-100 font-pmedium mb-2 mt-7">
             Company Associated
           </Text>
 
@@ -381,13 +405,6 @@ const Create = () => {
                 COMPANY_ASSOCIATED.GDSINGH
               ),
             ]}
-          />
-
-          <FormField
-            title="Make"
-            value={form.make}
-            handleChangeText={(e) => setForm({ ...form, make: e })}
-            placeholder="Enter Piano Make"
           />
 
           <FormField
@@ -586,6 +603,13 @@ const styles = StyleSheet.create({
     height: 50,
     width: "100%",
     color: "#f7fafc",
+  },
+
+  pianoMakePlaceholderStyle: {
+    color: "white",
+  },
+  pianoMakeSelectedTextStyle: {
+    color: "white",
   },
 });
 
