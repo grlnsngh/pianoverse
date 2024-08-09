@@ -266,6 +266,17 @@ const Create = () => {
     }
   };
 
+  /**
+   * Creates a button configuration object.
+   *
+   * @param {string} value - The value associated with the button.
+   * @param {string} label - The label to display on the button.
+   * @returns {Object} The button configuration object.
+   * @property {string} value - The value associated with the button.
+   * @property {string} label - The label to display on the button.
+   * @property {Object} labelStyle - The style object for the label.
+   * @property {Object} style - The style object for the button.
+   */
   const createButtonConfig = (value, label) => ({
     value,
     label,
