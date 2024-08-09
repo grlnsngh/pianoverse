@@ -16,3 +16,21 @@ export const COMPANY_ASSOCIATED = {
   SHAMSHERSONS: "Shamshersons",
   GDSINGH: "GD Singh Inc",
 };
+
+export const PIANO_COMPANY_MAKE: { [key: string]: string } = {
+  YAMAHA: "Yamaha",
+  KAWAI: "Kawai",
+  STEINWAY: "Steinway",
+  BOSTON: "Boston",
+  ESSEX: "Essex",
+  YONGCHANG: "Yongchang",
+  PEARL_RIVER: "Pearl River",
+  OTHER: "Other",
+};
+
+export const pianoCompaniesMakeList = Object.keys(PIANO_COMPANY_MAKE).map(
+  (key) => ({
+    label: PIANO_COMPANY_MAKE[key],
+    value: PIANO_COMPANY_MAKE[key],
+  })
+);
