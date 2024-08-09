@@ -3,7 +3,7 @@ import { useGlobalContext } from "@/context/GlobalProvider";
 import { signOut } from "@/lib/appwrite";
 import { RootState } from "@/redux/store";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Modal,
@@ -15,11 +15,21 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import InfoBox from "../components/InfoBox";
+import { PIANO_CATEGORY } from "../constants/Piano";
 
 const Profile = () => {
   const { user, setUser, setIsLogged } = useGlobalContext();
   const [modalVisible, setModalVisible] = useState(false);
   const items = useSelector((state: RootState) => state.pianos.items);
+
+  const filterItemsByCategory = (category: string) => {
+    return items.filter((item) => item.category === category).length;
+  };
+
+  const rentableCount = filterItemsByCategory(PIANO_CATEGORY.RENTABLE);
+  const eventsCount = filterItemsByCategory(PIANO_CATEGORY.EVENTS);
+  const onSaleCount = filterItemsByCategory(PIANO_CATEGORY.ON_SALE);
+  const warehouseCount = filterItemsByCategory(PIANO_CATEGORY.WAREHOUSE);
 
   const handleConfirmLogout = async () => {
     setModalVisible(false);
@@ -77,6 +87,32 @@ const Profile = () => {
             containerStyles="mr-10"
           />
           <InfoBox title={0} subtitle="Bookmarked" titleStyles="text-xl" />
+        </View>
+
+        <View className="mt-16 flex flex-row">
+          <InfoBox
+            title={rentableCount}
+            subtitle="Rentable"
+            titleStyles="text-xl"
+            containerStyles="mr-5"
+          />
+          <InfoBox
+            title={eventsCount}
+            subtitle="Events"
+            titleStyles="text-xl"
+            containerStyles="mr-5"
+          />
+          <InfoBox
+            title={onSaleCount}
+            subtitle="On Sale"
+            titleStyles="text-xl"
+            containerStyles="mr-5"
+          />
+          <InfoBox
+            title={warehouseCount}
+            subtitle="Warehouse"
+            titleStyles="text-xl"
+          />
         </View>
       </View>
 
