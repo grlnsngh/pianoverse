@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import React from "react";
 import { View, Image, Text } from "react-native";
 import { icons } from "../../constants";
+import { SECONDARY_COLOR } from "@/constants/colors";
 
 const TabIcon = ({ icon, color, name, focused }) => {
   return (
@@ -26,7 +27,7 @@ const TabsLayout = () => {
     <>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: "#FFA001",
+          tabBarActiveTintColor: SECONDARY_COLOR,
           tabBarInactiveTintColor: "#CDCDE0",
           tabBarShowLabel: false,
           tabBarStyle: {

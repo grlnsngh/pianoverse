@@ -23,6 +23,7 @@ import { useSelector } from "react-redux";
 import CustomButton from "../components/CustomButton";
 import FormField from "../components/FormField";
 import { categoryOptions, PIANO_CATEGORY } from "../constants/Piano";
+import { SECONDARY_COLOR } from "@/constants/colors";
 
 interface ImageAsset {
   uri: string;
@@ -72,7 +73,7 @@ const EditScreen = () => {
   useEffect(() => {
     navigation.setOptions({
       headerStyle: {
-        backgroundColor: "#FFA001",
+        backgroundColor: SECONDARY_COLOR,
       },
       headerTintColor: "#161622",
       title: `Edit Piano`,

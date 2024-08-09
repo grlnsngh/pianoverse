@@ -18,6 +18,7 @@ import SearchInput from "../components/SearchInput";
 import EmptyState from "../components/EmptyState";
 import { useDispatch } from "react-redux";
 import { setPianoListItems } from "@/redux/pianos/actions";
+import { SECONDARY_COLOR } from "@/constants/colors";
 
 const Home = () => {
   const { user } = useGlobalContext();
@@ -75,7 +76,7 @@ const Home = () => {
                   source={images.piano}
                   className="w-10 h-10"
                   resizeMode="contain"
-                  tintColor="#FFA001"
+                  tintColor={SECONDARY_COLOR}
                 />
               </View>
             </View>

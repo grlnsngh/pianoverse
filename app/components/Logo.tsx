@@ -1,6 +1,7 @@
 import { View, Text, Image } from "react-native";
 import React from "react";
 import { images } from "@/constants";
+import { SECONDARY_COLOR } from "@/constants/colors";
 
 const Logo = () => {
   return (
@@ -9,7 +10,7 @@ const Logo = () => {
         source={images.piano}
         className="w-10 h-10"
         resizeMode="contain"
-        tintColor="#FFA001"
+        tintColor={SECONDARY_COLOR}
       />
       <Text className="text-5xl text-white font-bold text-center">
         Piano

@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import EmptyState from "../components/EmptyState";
 import ListCard from "../components/ListCard";
+import { SECONDARY_COLOR } from "@/constants/colors";
 
 const Search = () => {
   const { query } = useLocalSearchParams();
@@ -18,7 +19,7 @@ const Search = () => {
   useEffect(() => {
     navigation.setOptions({
       headerStyle: {
-        backgroundColor: "#FFA001",
+        backgroundColor: SECONDARY_COLOR,
       },
       headerTintColor: "#161622",
       title: `Search results for ${query}`,

@@ -11,6 +11,7 @@ import { Image, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { PIANO_CATEGORY } from "../constants/Piano";
+import { SECONDARY_COLOR } from "@/constants/colors";
 
 const RentableDetails = ({ piano }: { piano: PianoItem }) => (
   <View className="space-y-6 mt-6">
@@ -168,7 +169,7 @@ const DetailScreen = () => {
   useEffect(() => {
     navigation.setOptions({
       headerStyle: {
-        backgroundColor: "#FFA001",
+        backgroundColor: SECONDARY_COLOR,
       },
       headerTintColor: "#161622",
       title: `${title}`,

@@ -11,3 +11,8 @@ export const categoryOptions = [
   { label: "On Sale", value: PIANO_CATEGORY.ON_SALE },
   { label: "Warehouse", value: PIANO_CATEGORY.WAREHOUSE },
 ];
+
+export const COMPANY_ASSOCIATED = {
+  SHAMSHERSONS: "Shamshersons",
+  GDSINGH: "GD Singh Inc",
+};
