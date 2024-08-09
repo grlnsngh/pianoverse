@@ -22,7 +22,13 @@ import { router } from "expo-router";
 import * as ImageManipulator from "expo-image-manipulator";
 import FormField from "../components/FormField";
 import CustomButton from "../components/CustomButton";
-import { categoryOptions, PIANO_CATEGORY } from "../constants/Piano";
+import {
+  categoryOptions,
+  COMPANY_ASSOCIATED,
+  PIANO_CATEGORY,
+} from "../constants/Piano";
+import { SegmentedButtons } from "react-native-paper";
+import { SECONDARY_COLOR } from "@/constants/colors";
 
 interface ImageAsset {
   uri: string;
@@ -83,7 +89,7 @@ const Create = () => {
     onSalePurchaseFrom: "",
     onSaleImportDate: new Date(),
     onSalePrice: 0,
-    companyAssociated: "",
+    companyAssociated: COMPANY_ASSOCIATED.SHAMSHERSONS,
   });
 
   const [showRentalStartDatePicker, setShowRentalStartDatePicker] =
@@ -176,6 +182,7 @@ const Create = () => {
       description: form.description,
       image_url: form.image,
       creator: user.accountId,
+      company_associated: form.companyAssociated,
     };
 
     // Check if all basic details are provided
@@ -252,12 +259,22 @@ const Create = () => {
         onSalePurchaseFrom: "",
         onSaleImportDate: new Date(),
         onSalePrice: 0,
-        companyAssociated: "",
+        companyAssociated: COMPANY_ASSOCIATED.SHAMSHERSONS,
       });
 
       setUploading(false);
     }
   };
+
+  const createButtonConfig = (value, label) => ({
+    value,
+    label,
+    labelStyle: form.companyAssociated === value ? {} : { color: "white" },
+    style:
+      form.companyAssociated === value
+        ? { backgroundColor: SECONDARY_COLOR }
+        : {},
+  });
 
   return (
     <SafeAreaView className="bg-primary h-full">
@@ -347,11 +364,23 @@ const Create = () => {
             </TouchableOpacity>
           </View>
 
-          <FormField
-            title="Company Associated"
+          <Text className="text-base text-gray-100 font-pmedium mb-2 mt-7">
+            Company Associated
+          </Text>
+
+          <SegmentedButtons
             value={form.companyAssociated}
-            handleChangeText={(e) => setForm({ ...form, companyAssociated: e })}
-            placeholder="Enter Company Associated"
+            onValueChange={(e) => setForm({ ...form, companyAssociated: e })}
+            buttons={[
+              createButtonConfig(
+                COMPANY_ASSOCIATED.SHAMSHERSONS,
+                COMPANY_ASSOCIATED.SHAMSHERSONS
+              ),
+              createButtonConfig(
+                COMPANY_ASSOCIATED.GDSINGH,
+                COMPANY_ASSOCIATED.GDSINGH
+              ),
+            ]}
           />
 
           <FormField
