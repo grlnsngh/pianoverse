@@ -1,4 +1,4 @@
-import { icons } from "@/constants";
+import { icons, images } from "@/constants";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { router, usePathname } from "expo-router";
 import React from "react";
@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { IconButton, Menu, PaperProvider } from "react-native-paper";
+import { PIANO_CATEGORY } from "../constants/Piano";
 
 interface ListCardProps {
   item: {
@@ -39,6 +40,7 @@ const ListCard: React.FC<ListCardProps> = ({
     image_url = "",
     users = {},
     company_associated = "",
+    category = "",
   } = item;
   const { avatar = "" } = users;
   const pathname = usePathname();
@@ -82,7 +84,17 @@ const ListCard: React.FC<ListCardProps> = ({
            justify-center items-center p-0.5"
             >
               <Image
-                source={{ uri: avatar }}
+                source={
+                  category === PIANO_CATEGORY.RENTABLE
+                    ? images.category_rentable
+                    : category === PIANO_CATEGORY.EVENTS
+                    ? images.category_event
+                    : category === PIANO_CATEGORY.ON_SALE
+                    ? images.category_sale
+                    : category === PIANO_CATEGORY.WAREHOUSE
+                    ? images.category_warehouse
+                    : { uri: avatar }
+                }
                 className="w-full h-full rounded-lg"
                 resizeMode="cover"
               />
