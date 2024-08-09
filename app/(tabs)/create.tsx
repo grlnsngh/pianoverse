@@ -54,10 +54,10 @@ interface FormState {
   eventPurchaseFrom: string;
   eventModelNumber: string;
   eventBNumber: string;
-  eventCompanyAssociated: string;
   onSalePurchaseFrom: string;
   onSaleImportDate: Date;
   onSalePrice: number;
+  companyAssociated: string;
 }
 
 const Create = () => {
@@ -80,10 +80,10 @@ const Create = () => {
     eventPurchaseFrom: "",
     eventModelNumber: "",
     eventBNumber: "",
-    eventCompanyAssociated: "",
     onSalePurchaseFrom: "",
     onSaleImportDate: new Date(),
     onSalePrice: 0,
+    companyAssociated: "",
   });
 
   const [showRentalStartDatePicker, setShowRentalStartDatePicker] =
@@ -209,7 +209,6 @@ const Create = () => {
         event_purchase_from: "",
         event_model_number: "",
         event_b_number: "",
-        event_company_associated: "",
       };
       finalDetails = { ...finalDetails, ...eventDetails };
     } else if (form.category === PIANO_CATEGORY.ON_SALE) {
@@ -250,10 +249,10 @@ const Create = () => {
         eventPurchaseFrom: "",
         eventModelNumber: "",
         eventBNumber: "",
-        eventCompanyAssociated: "",
         onSalePurchaseFrom: "",
         onSaleImportDate: new Date(),
         onSalePrice: 0,
+        companyAssociated: "",
       });
 
       setUploading(false);
@@ -289,27 +288,6 @@ const Create = () => {
               </Picker>
             </View>
           </View>
-
-          <FormField
-            title="Make"
-            value={form.make}
-            handleChangeText={(e) => setForm({ ...form, make: e })}
-            placeholder="Enter Piano Make"
-          />
-
-          <FormField
-            title="Title"
-            placeholder="Enter Piano Title"
-            value={form.title}
-            handleChangeText={(e) => setForm({ ...form, title: e })}
-          />
-
-          <FormField
-            title="Description"
-            value={form.description}
-            handleChangeText={(e) => setForm({ ...form, description: e })}
-            placeholder="Enter addition details ..."
-          />
 
           <View className="mt-7 space-y-2">
             <Text className="text-base text-gray-100 font-pmedium">
@@ -368,6 +346,34 @@ const Create = () => {
               )}
             </TouchableOpacity>
           </View>
+
+          <FormField
+            title="Company Associated"
+            value={form.companyAssociated}
+            handleChangeText={(e) => setForm({ ...form, companyAssociated: e })}
+            placeholder="Enter Company Associated"
+          />
+
+          <FormField
+            title="Make"
+            value={form.make}
+            handleChangeText={(e) => setForm({ ...form, make: e })}
+            placeholder="Enter Piano Make"
+          />
+
+          <FormField
+            title="Title"
+            placeholder="Enter Piano Title"
+            value={form.title}
+            handleChangeText={(e) => setForm({ ...form, title: e })}
+          />
+
+          <FormField
+            title="Description"
+            value={form.description}
+            handleChangeText={(e) => setForm({ ...form, description: e })}
+            placeholder="Enter addition details ..."
+          />
 
           {form.category === PIANO_CATEGORY.RENTABLE && (
             <>
@@ -491,13 +497,6 @@ const Create = () => {
                 value={form.eventBNumber}
                 handleChangeText={(e) => {
                   setForm({ ...form, eventBNumber: e });
-                }}
-              />
-              <FormField
-                title="Company Associated"
-                value={form.eventCompanyAssociated}
-                handleChangeText={(e) => {
-                  setForm({ ...form, eventCompanyAssociated: e });
                 }}
               />
             </>

@@ -73,12 +73,12 @@ export const resetPianoItem = (
     description: item.description,
     image_url: item.image_url,
     creator: item.creator,
+    company_associated: item.company_associated,
   };
 
   let resetItem: Partial<PianoItemFormStateType> = {
     ...basicDetails,
     event_b_number: null,
-    event_company_associated: null,
     event_model_number: null,
     event_purchase_from: null,
     event_purchase_price: null,
@@ -114,7 +114,6 @@ export const resetPianoItem = (
       resetItem = {
         ...resetItem,
         event_b_number: item.event_b_number,
-        event_company_associated: item.event_company_associated,
         event_model_number: item.event_model_number,
         event_purchase_from: item.event_purchase_from,
         event_purchase_price: item.event_purchase_price,

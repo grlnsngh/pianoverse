@@ -13,7 +13,6 @@ export interface PianoItem {
   creator: string;
   description?: string;
   event_b_number?: string | null;
-  event_company_associated?: string | null;
   event_model_number?: string | null;
   event_purchase_from?: string | null;
   event_purchase_price?: number | null;
@@ -35,14 +34,15 @@ export interface PianoItem {
   title: string;
   users: User;
   warehouse_since_date?: Date | null;
+  company_associated?: string | null;
 }
 
 export interface PianoItemFormStateType {
   category: string;
   creator: string;
   description?: string;
+  company_associated?: string | null;
   event_b_number?: string | null;
-  event_company_associated?: string | null;
   event_model_number?: string | null;
   event_purchase_from?: string | null;
   event_purchase_price?: number | null;

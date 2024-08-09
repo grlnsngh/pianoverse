@@ -42,6 +42,7 @@ interface FormState {
   category: string;
   title: string;
   description: string;
+  companyAssociated: string;
   image: ImageAsset | null;
   make: string;
   rentalCustomerName: string;
@@ -55,7 +56,6 @@ interface FormState {
   eventPurchaseFrom: string;
   eventModelNumber: string;
   eventBNumber: string;
-  eventCompanyAssociated: string;
   onSalePurchaseFrom: string;
   onSaleImportDate: Date;
   onSalePrice: number;
@@ -93,6 +93,7 @@ const EditScreen = () => {
     category,
     make,
     description,
+    company_associated,
     rental_customer_name,
     rental_customer_address,
     rental_customer_mobile,
@@ -104,7 +105,6 @@ const EditScreen = () => {
     event_purchase_from,
     event_model_number,
     event_b_number,
-    event_company_associated,
     on_sale_purchase_from,
     on_sale_import_date,
     on_sale_price,
@@ -116,6 +116,7 @@ const EditScreen = () => {
     category: category,
     title: title,
     description: description || "",
+    companyAssociated: company_associated || "",
     image: null,
     make: make,
     rentalCustomerName: rental_customer_name || "",
@@ -133,7 +134,6 @@ const EditScreen = () => {
     eventPurchaseFrom: event_purchase_from || "",
     eventModelNumber: event_model_number || "",
     eventBNumber: event_b_number || "",
-    eventCompanyAssociated: event_company_associated || "",
     onSalePurchaseFrom: on_sale_purchase_from || "",
     onSaleImportDate: on_sale_import_date
       ? new Date(on_sale_import_date)
@@ -231,6 +231,7 @@ const EditScreen = () => {
       make: form.make,
       title: form.title,
       description: form.description,
+      company_associated: form.companyAssociated,
       image_url: form.image ? form.image.uri : image_url,
       creator: user.accountId,
     };
@@ -266,7 +267,6 @@ const EditScreen = () => {
         event_purchase_from: "",
         event_model_number: "",
         event_b_number: "",
-        event_company_associated: "",
       };
       finalDetails = { ...finalDetails, ...eventDetails };
     } else if (form.category === PIANO_CATEGORY.ON_SALE) {
@@ -392,6 +392,13 @@ const EditScreen = () => {
               </Picker>
             </View>
           </View>
+
+          <FormField
+            title="Company Associated"
+            value={form.companyAssociated}
+            handleChangeText={(e) => setForm({ ...form, companyAssociated: e })}
+            placeholder="Enter Company Associated"
+          />
 
           <FormField
             title="Make"

@@ -112,14 +112,6 @@ const EventDetails = ({ piano }: { piano: PianoItem }) => (
         </Text>
       </Text>
     )}
-    {piano.event_company_associated && (
-      <Text className="text-base text-gray-100 font-pmedium">
-        Event Company Associated:{" "}
-        <Text className="text-white font-psemibold text-base">
-          {piano.event_company_associated}
-        </Text>
-      </Text>
-    )}
   </View>
 );
 
@@ -168,7 +160,8 @@ const DetailScreen = () => {
     );
   }
 
-  const { title, image_url, category, make, description } = filteredPiano;
+  const { title, image_url, category, make, description, company_associated } =
+    filteredPiano;
 
   const navigation = useNavigation();
 
@@ -213,6 +206,16 @@ const DetailScreen = () => {
               {printCategoryLabel(category)}
             </Text>
           </Text>
+
+          {company_associated && (
+            <Text className="text-base text-gray-100 font-pmedium">
+              Company Associated:{" "}
+              <Text className="text-white font-psemibold text-base">
+                {company_associated}
+              </Text>
+            </Text>
+          )}
+
           <Text className="text-base text-gray-100 font-pmedium">
             Make:{" "}
             <Text className="text-white font-psemibold text-base">{make}</Text>
