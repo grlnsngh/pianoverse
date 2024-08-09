@@ -309,19 +309,67 @@ export async function updatePianoEntry(
 }
 
 /**
- * Deletes a piano entry from the database.
+ * Extracts the file ID from the given URL.
  *
- * @param {string} itemId - The ID of the piano entry to delete.
- * @returns {Promise<Object>} The response from the database after deletion.
- * @throws {Error} If there is an error deleting the piano entry.
+ * @param {string} url - The URL of the file.
+ * @returns {string | null} - The extracted file ID or null if not found.
+ *
+ * @example
+ * // Example URL
+ * const url = "https://cloud.appwrite.io/v1/storage/buckets/66b26b77003445e612b4/files/66b55a6900354f2ced05/preview?width=2000&height=2000&gravity=top&quality=100&project=66b2693000154e2fa3c8";
+ * const fileId = extractFileIdFromUrl(url);
+ * console.log(fileId); // Output: "66b55a6900354f2ced05"
  */
-export async function deletePianoEntry(itemId: string) {
+const extractFileIdFromUrl = (url: string): string | null => {
+  const match = url.match(/files\/([^/]+)\//);
+  return match ? match[1] : null;
+};
+
+/**
+ * Deletes a file from the storage.
+ *
+ * @param {string} url - The URL of the file to be deleted.
+ * @returns {Promise<void>} - Resolves when the file is successfully deleted.
+ * @throws {Error} - Throws an error if the deletion fails.
+ */
+export async function deleteFileByUrl(url: string): Promise<void> {
+  const fileId = extractFileIdFromUrl(url);
+  if (!fileId) {
+    throw new Error("Invalid file URL. Unable to extract file ID.");
+  }
+
   try {
+    await storage.deleteFile(appwriteConfig.storageId, fileId);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to delete file: ${errorMessage}`);
+  }
+}
+
+/**
+ * Deletes a piano entry from the database and its associated file from the storage.
+ *
+ * @param {object} item - The piano entry object to be deleted.
+ * @param {string} item.$id - The ID of the piano entry.
+ * @param {string} [item.image_url] - The URL of the associated image file (optional).
+ * @returns {Promise<void>} - Resolves when the piano entry and its associated file are successfully deleted.
+ * @throws {Error} - Throws an error if the deletion fails.
+ * @see {@link deleteFileByUrl}
+ */
+export async function deletePianoEntry(item) {
+  try {
+    // Delete the associated file if the image URL exists
+    if (item.image_url) {
+      await deleteFileByUrl(item.image_url);
+    }
+
+    // Delete the piano entry from the database
     const response = await databases.deleteDocument(
       appwriteConfig.databaseId,
       appwriteConfig.pianoCollectionId,
-      itemId
+      item.$id
     );
+
     return response;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
