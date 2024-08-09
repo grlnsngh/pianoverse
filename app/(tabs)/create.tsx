@@ -29,6 +29,7 @@ import {
   PIANO_CATEGORY,
   pianoCompaniesMakeList,
 } from "../constants/Piano";
+import { createButtonConfig } from "@/utils/ObjectManipulation";
 
 interface ImageAsset {
   uri: string;
@@ -266,27 +267,6 @@ const Create = () => {
     }
   };
 
-  /**
-   * Creates a button configuration object.
-   *
-   * @param {string} value - The value associated with the button.
-   * @param {string} label - The label to display on the button.
-   * @returns {Object} The button configuration object.
-   * @property {string} value - The value associated with the button.
-   * @property {string} label - The label to display on the button.
-   * @property {Object} labelStyle - The style object for the label.
-   * @property {Object} style - The style object for the button.
-   */
-  const createButtonConfig = (value, label) => ({
-    value,
-    label,
-    labelStyle: form.companyAssociated === value ? {} : { color: "white" },
-    style:
-      form.companyAssociated === value
-        ? { backgroundColor: SECONDARY_COLOR }
-        : {},
-  });
-
   return (
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
@@ -408,10 +388,12 @@ const Create = () => {
             onValueChange={(e) => setForm({ ...form, companyAssociated: e })}
             buttons={[
               createButtonConfig(
+                form,
                 COMPANY_ASSOCIATED.SHAMSHERSONS,
                 COMPANY_ASSOCIATED.SHAMSHERSONS
               ),
               createButtonConfig(
+                form,
                 COMPANY_ASSOCIATED.GDSINGH,
                 COMPANY_ASSOCIATED.GDSINGH
               ),
@@ -615,7 +597,6 @@ const styles = StyleSheet.create({
     width: "100%",
     color: "#f7fafc",
   },
-
   pianoMakePlaceholderStyle: {
     color: "white",
   },
