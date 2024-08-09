@@ -34,7 +34,6 @@ const ListCard: React.FC<ListCardProps> = ({
   openMenu,
   closeMenu,
 }) => {
-  console.log("ListCard", item);
   const {
     title = "",
     image_url = "",
