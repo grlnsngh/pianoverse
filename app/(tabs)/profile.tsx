@@ -77,6 +77,7 @@ const Profile = () => {
           title={user?.username}
           containerStyles="mt-5"
           titleStyles="text-lg"
+          subtitle={user?.email}
         />
 
         <View className="mt-5 flex flex-row">
