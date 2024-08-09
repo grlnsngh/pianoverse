@@ -85,6 +85,11 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
 
   const totalDuration = calculateDifference(start, end);
   const remaining = calculateRemainingPeriod(end);
+  const isRemainingPositive =
+    remaining.days > 0 ||
+    remaining.weeks > 0 ||
+    remaining.months > 0 ||
+    remaining.years > 0;
 
   return (
     <View className="space-y-6 mt-6">
@@ -133,7 +138,7 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
         <DurationText label="Total Duration" period={totalDuration} />
       )}
 
-      {piano.rental_period_end && (
+      {piano.rental_period_end && isRemainingPositive && (
         <DurationText label="Remaining Period" period={remaining} />
       )}
 
