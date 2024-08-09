@@ -19,6 +19,7 @@ import EmptyState from "../components/EmptyState";
 import { useDispatch } from "react-redux";
 import { setPianoListItems } from "@/redux/pianos/actions";
 import { SECONDARY_COLOR } from "@/constants/colors";
+import FilterButton from "../components/FilterButton";
 
 const Home = () => {
   const { user } = useGlobalContext();
@@ -68,7 +69,15 @@ const Home = () => {
             />
           </View>
         </View>
-        <SearchInput />
+
+        <View className="flex flex-row w-full gap-1">
+          <View className="flex-1">
+            <SearchInput />
+          </View>
+          <View className="w-14">
+            <FilterButton />
+          </View>
+        </View>
       </View>
       <FlatList
         data={items}

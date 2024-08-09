@@ -14,7 +14,7 @@ import play from "../assets/icons/play.png";
 import close from "../assets/icons/close.png";
 import pencil from "../assets/icons/pencil.png";
 import trash from "../assets/icons/trash.png";
-
+import filter from "../assets/icons/filter.png";
 export default {
   play,
   bookmark,
@@ -32,4 +32,5 @@ export default {
   close,
   pencil,
   trash,
+  filter,
 };
