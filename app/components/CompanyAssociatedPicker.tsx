@@ -24,15 +24,13 @@ const CompanyAssociatedPicker: React.FC<CompanyAssociatedPickerProps> = ({
         value={form.companyAssociated}
         onValueChange={(e) => setForm({ ...form, companyAssociated: e })}
         buttons={[
+          createButtonConfig(form, COMPANY_ASSOCIATED.SHAMSHERSONS, "SS"),
+          createButtonConfig(form, COMPANY_ASSOCIATED.KIRPALSONS, "KS"),
+          createButtonConfig(form, COMPANY_ASSOCIATED.RS_MUSIC_CENTER, "RS"),
           createButtonConfig(
             form,
-            COMPANY_ASSOCIATED.SHAMSHERSONS,
-            COMPANY_ASSOCIATED.SHAMSHERSONS
-          ),
-          createButtonConfig(
-            form,
-            COMPANY_ASSOCIATED.GDSINGH,
-            COMPANY_ASSOCIATED.GDSINGH
+            COMPANY_ASSOCIATED.THE_PIANO_SERVICES,
+            "TPS"
           ),
         ]}
       />

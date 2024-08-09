@@ -14,7 +14,9 @@ export const categoryOptions = [
 
 export const COMPANY_ASSOCIATED = {
   SHAMSHERSONS: "Shamshersons",
-  GDSINGH: "GD Singh Inc",
+  KIRPALSONS: "Kirpalsons",
+  RS_MUSIC_CENTER: "RS Music Center",
+  THE_PIANO_SERVICES: "The Piano Services",
 };
 
 export const PIANO_COMPANY_MAKE: { [key: string]: string } = {
