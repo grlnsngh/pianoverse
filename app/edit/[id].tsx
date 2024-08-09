@@ -22,8 +22,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import CustomButton from "../components/CustomButton";
 import FormField from "../components/FormField";
-import { categoryOptions, PIANO_CATEGORY } from "../constants/Piano";
+import {
+  categoryOptions,
+  COMPANY_ASSOCIATED,
+  PIANO_CATEGORY,
+  pianoCompaniesMakeList,
+} from "../constants/Piano";
 import { SECONDARY_COLOR } from "@/constants/colors";
+import { Dropdown } from "react-native-element-dropdown";
+import { SegmentedButtons } from "react-native-paper";
+import { createButtonConfig } from "@/utils/ObjectManipulation";
 
 interface ImageAsset {
   uri: string;
@@ -394,18 +402,49 @@ const EditScreen = () => {
             </View>
           </View>
 
-          <FormField
-            title="Company Associated"
-            value={form.companyAssociated}
-            handleChangeText={(e) => setForm({ ...form, companyAssociated: e })}
-            placeholder="Enter Company Associated"
-          />
+          <Text className="text-base text-gray-100 font-pmedium mb-2 mt-7">
+            Make
+          </Text>
+          <View className="w-full px-4 py-5 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary">
+            <Dropdown
+              data={pianoCompaniesMakeList}
+              search
+              labelField="label"
+              valueField="value"
+              placeholder="Select piano make"
+              searchPlaceholder="Search..."
+              placeholderStyle={styles.pianoMakePlaceholderStyle}
+              selectedTextStyle={styles.pianoMakeSelectedTextStyle}
+              containerStyle={{
+                width: "90%",
+                borderRadius: 16,
+                left: 21,
+              }}
+              value={form.make}
+              onChange={(item) => setForm({ ...form, make: item.value })}
+              maxHeight={300}
+            />
+          </View>
 
-          <FormField
-            title="Make"
-            value={form.make}
-            handleChangeText={(e) => setForm({ ...form, make: e })}
-            placeholder="Enter Piano Make"
+          <Text className="text-base text-gray-100 font-pmedium mb-2 mt-7">
+            Company Associated
+          </Text>
+
+          <SegmentedButtons
+            value={form.companyAssociated}
+            onValueChange={(e) => setForm({ ...form, companyAssociated: e })}
+            buttons={[
+              createButtonConfig(
+                form,
+                COMPANY_ASSOCIATED.SHAMSHERSONS,
+                COMPANY_ASSOCIATED.SHAMSHERSONS
+              ),
+              createButtonConfig(
+                form,
+                COMPANY_ASSOCIATED.GDSINGH,
+                COMPANY_ASSOCIATED.GDSINGH
+              ),
+            ]}
           />
 
           <FormField
@@ -612,6 +651,12 @@ const styles = StyleSheet.create({
     height: 50,
     width: "100%",
     color: "#f7fafc",
+  },
+  pianoMakePlaceholderStyle: {
+    color: "white",
+  },
+  pianoMakeSelectedTextStyle: {
+    color: "white",
   },
 });
 
