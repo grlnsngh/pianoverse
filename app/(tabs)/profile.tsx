@@ -1,4 +1,4 @@
-import { icons } from "@/constants";
+import { icons, images } from "@/constants";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { signOut } from "@/lib/appwrite";
 import { RootState } from "@/redux/store";
@@ -109,17 +109,28 @@ const Profile = () => {
               shadowRadius: 2,
             }}
           >
-            <InfoBox
-              title={rentableCount}
-              subtitle="Rentable"
-              titleStyles="text-xl"
-            />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ flex: 1, marginStart: 4 }}>
+                <Image
+                  source={images.category_rentable}
+                  className="w-10 h-10 rounded-lg"
+                  resizeMode="cover"
+                />
+              </View>
+              <View style={{ width: 100 }}>
+                <InfoBox
+                  title={rentableCount}
+                  subtitle="Rentable"
+                  titleStyles="text-xl"
+                />
+              </View>
+            </View>
           </Card>
         </View>
         <View className="w-1/2 p-2">
           <Card
             className="bg-primary-400 p-2"
-            elevation={4}
+            elevation={5}
             style={{
               margin: 5,
               shadowColor: "#000",
@@ -128,17 +139,28 @@ const Profile = () => {
               shadowRadius: 2,
             }}
           >
-            <InfoBox
-              title={eventsCount}
-              subtitle="Events"
-              titleStyles="text-xl"
-            />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ flex: 1, marginStart: 4 }}>
+                <Image
+                  source={images.category_event}
+                  className="w-10 h-10 rounded-lg"
+                  resizeMode="cover"
+                />
+              </View>
+              <View style={{ width: 100 }}>
+                <InfoBox
+                  title={eventsCount}
+                  subtitle="Events"
+                  titleStyles="text-xl"
+                />
+              </View>
+            </View>
           </Card>
         </View>
         <View className="w-1/2 p-2">
           <Card
             className="bg-primary-400 p-2"
-            elevation={4}
+            elevation={5}
             style={{
               margin: 5,
               shadowColor: "#000",
@@ -147,17 +169,28 @@ const Profile = () => {
               shadowRadius: 2,
             }}
           >
-            <InfoBox
-              title={onSaleCount}
-              subtitle="On Sale"
-              titleStyles="text-xl"
-            />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ flex: 1, marginStart: 4 }}>
+                <Image
+                  source={images.category_sale}
+                  className="w-10 h-10 rounded-lg"
+                  resizeMode="cover"
+                />
+              </View>
+              <View style={{ width: 100 }}>
+                <InfoBox
+                  title={onSaleCount}
+                  subtitle="On Sale"
+                  titleStyles="text-xl"
+                />
+              </View>
+            </View>
           </Card>
         </View>
         <View className="w-1/2 p-2">
           <Card
             className="bg-primary-400 p-2"
-            elevation={4}
+            elevation={5}
             style={{
               margin: 5,
               shadowColor: "#000",
@@ -166,11 +199,22 @@ const Profile = () => {
               shadowRadius: 2,
             }}
           >
-            <InfoBox
-              title={warehouseCount}
-              subtitle="Warehouse"
-              titleStyles="text-xl"
-            />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ flex: 1, marginStart: 4 }}>
+                <Image
+                  source={images.category_warehouse}
+                  className="w-10 h-10 rounded-lg"
+                  resizeMode="cover"
+                />
+              </View>
+              <View style={{ width: 100 }}>
+                <InfoBox
+                  title={warehouseCount}
+                  subtitle="Warehouse"
+                  titleStyles="text-xl"
+                />
+              </View>
+            </View>
           </Card>
         </View>
       </View>
