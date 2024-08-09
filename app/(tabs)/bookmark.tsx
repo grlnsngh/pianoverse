@@ -6,7 +6,7 @@ const Bookmark = () => {
   return (
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
-        <View className="w-full flex justify-center min-h-[90vh] px-4 my-6">
+        <View className="w-full flex  min-h-[90vh] px-4 my-6">
           <Text className="text-2xl text-white font-psemibold">Bookmark</Text>
         </View>
       </ScrollView>
