@@ -84,9 +84,9 @@ const Profile = () => {
             title={items?.length}
             subtitle="Total pianos"
             titleStyles="text-xl"
-            containerStyles="mr-10"
+            // containerStyles="mr-10"
           />
-          <InfoBox title={0} subtitle="Bookmarked" titleStyles="text-xl" />
+          {/* <InfoBox title={0} subtitle="Bookmarked" titleStyles="text-xl" /> */}
         </View>
 
         <View className="mt-16 flex flex-row">
