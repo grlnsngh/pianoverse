@@ -19,9 +19,9 @@ interface ListCardProps {
     title?: string;
     image_url?: string;
     users?: {
-      username?: string;
       avatar?: string;
     };
+    company_associated?: string;
   };
   visibleMenuId: string | null;
   openMenu: (id: string) => void;
@@ -34,8 +34,14 @@ const ListCard: React.FC<ListCardProps> = ({
   openMenu,
   closeMenu,
 }) => {
-  const { title = "", image_url = "", users = {} } = item;
-  const { username = "", avatar = "" } = users;
+  console.log("ListCard", item);
+  const {
+    title = "",
+    image_url = "",
+    users = {},
+    company_associated = "",
+  } = item;
+  const { avatar = "" } = users;
   const pathname = usePathname();
 
   const handleOnClickItem = () => {
@@ -89,12 +95,14 @@ const ListCard: React.FC<ListCardProps> = ({
               >
                 {title}
               </Text>
-              <Text
-                className="text-xs text-gray-100 font-pregular"
-                numberOfLines={1}
-              >
-                {username}
-              </Text>
+              {company_associated && (
+                <Text
+                  className="text-xs text-gray-100 font-pregular"
+                  numberOfLines={1}
+                >
+                  {company_associated}
+                </Text>
+              )}
             </View>
           </View>
           <View className="pt-2">
