@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import InfoBox from "../components/InfoBox";
 import { PIANO_CATEGORY } from "../constants/Piano";
+import { Card } from "react-native-paper";
 
 const Profile = () => {
   const { user, setUser, setIsLogged } = useGlobalContext();
@@ -80,40 +81,97 @@ const Profile = () => {
           subtitle={user?.email}
         />
 
-        <View className="mt-5 flex flex-row">
+        {/* <View className="mt-5 flex flex-row">
           <InfoBox
             title={items?.length}
             subtitle="Total pianos"
             titleStyles="text-xl"
             // containerStyles="mr-10"
           />
-          {/* <InfoBox title={0} subtitle="Bookmarked" titleStyles="text-xl" /> */}
-        </View>
+          <InfoBox title={0} subtitle="Bookmarked" titleStyles="text-xl" />
+        </View> */}
+      </View>
 
-        <View className="mt-16 flex flex-row">
-          <InfoBox
-            title={rentableCount}
-            subtitle="Rentable"
-            titleStyles="text-xl"
-            containerStyles="mr-5"
-          />
-          <InfoBox
-            title={eventsCount}
-            subtitle="Events"
-            titleStyles="text-xl"
-            containerStyles="mr-5"
-          />
-          <InfoBox
-            title={onSaleCount}
-            subtitle="On Sale"
-            titleStyles="text-xl"
-            containerStyles="mr-5"
-          />
-          <InfoBox
-            title={warehouseCount}
-            subtitle="Warehouse"
-            titleStyles="text-xl"
-          />
+      <Text className="ml-4 mt-10 text-left text-white text-lg font-plight">
+        Pianos count: {items?.length}
+      </Text>
+
+      <View className="flex flex-wrap flex-row">
+        <View className="w-1/2 p-2">
+          <Card
+            className="bg-primary-400 p-2"
+            elevation={5}
+            style={{
+              margin: 5,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.8,
+              shadowRadius: 2,
+            }}
+          >
+            <InfoBox
+              title={rentableCount}
+              subtitle="Rentable"
+              titleStyles="text-xl"
+            />
+          </Card>
+        </View>
+        <View className="w-1/2 p-2">
+          <Card
+            className="bg-primary-400 p-2"
+            elevation={4}
+            style={{
+              margin: 5,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.8,
+              shadowRadius: 2,
+            }}
+          >
+            <InfoBox
+              title={eventsCount}
+              subtitle="Events"
+              titleStyles="text-xl"
+            />
+          </Card>
+        </View>
+        <View className="w-1/2 p-2">
+          <Card
+            className="bg-primary-400 p-2"
+            elevation={4}
+            style={{
+              margin: 5,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.8,
+              shadowRadius: 2,
+            }}
+          >
+            <InfoBox
+              title={onSaleCount}
+              subtitle="On Sale"
+              titleStyles="text-xl"
+            />
+          </Card>
+        </View>
+        <View className="w-1/2 p-2">
+          <Card
+            className="bg-primary-400 p-2"
+            elevation={4}
+            style={{
+              margin: 5,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.8,
+              shadowRadius: 2,
+            }}
+          >
+            <InfoBox
+              title={warehouseCount}
+              subtitle="Warehouse"
+              titleStyles="text-xl"
+            />
+          </Card>
         </View>
       </View>
 
