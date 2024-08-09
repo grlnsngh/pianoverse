@@ -51,7 +51,7 @@ const ListCard: React.FC<ListCardProps> = ({
 
   const handleOnClickDeleteMenu = async () => {
     try {
-      await deletePianoEntry(item.$id);
+      await deletePianoEntry(item);
       ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
     } catch (error) {
       if (error instanceof Error) {
