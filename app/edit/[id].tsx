@@ -32,6 +32,7 @@ import { SECONDARY_COLOR } from "@/constants/colors";
 import { Dropdown } from "react-native-element-dropdown";
 import { SegmentedButtons } from "react-native-paper";
 import { createButtonConfig } from "@/utils/ObjectManipulation";
+import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 
 interface ImageAsset {
   uri: string;
@@ -426,26 +427,7 @@ const EditScreen = () => {
             />
           </View>
 
-          <Text className="text-base text-gray-100 font-pmedium mb-2 mt-7">
-            Company Associated
-          </Text>
-
-          <SegmentedButtons
-            value={form.companyAssociated}
-            onValueChange={(e) => setForm({ ...form, companyAssociated: e })}
-            buttons={[
-              createButtonConfig(
-                form,
-                COMPANY_ASSOCIATED.SHAMSHERSONS,
-                COMPANY_ASSOCIATED.SHAMSHERSONS
-              ),
-              createButtonConfig(
-                form,
-                COMPANY_ASSOCIATED.GDSINGH,
-                COMPANY_ASSOCIATED.GDSINGH
-              ),
-            ]}
-          />
+          <CompanyAssociatedPicker form={form} setForm={setForm} />
 
           <FormField
             title="Title"
