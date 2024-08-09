@@ -12,59 +12,142 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { PIANO_CATEGORY } from "../constants/Piano";
 import { SECONDARY_COLOR } from "@/constants/colors";
+import {
+  format,
+  differenceInDays,
+  differenceInWeeks,
+  differenceInMonths,
+  differenceInYears,
+} from "date-fns";
 
-const RentableDetails = ({ piano }: { piano: PianoItem }) => (
-  <View className="space-y-6 mt-6">
-    {piano.rental_customer_name && (
-      <Text className="text-base text-gray-100 font-pmedium">
-        Customer Name:{" "}
-        <Text className="text-white font-psemibold text-base">
-          {piano.rental_customer_name}
-        </Text>
-      </Text>
-    )}
-    {piano.rental_customer_address && (
-      <Text className="text-base text-gray-100 font-pmedium">
-        Customer Address:{" "}
-        <Text className="text-white font-psemibold text-base">
-          {piano.rental_customer_address}
-        </Text>
-      </Text>
-    )}
-    {piano.rental_customer_mobile && (
-      <Text className="text-base text-gray-100 font-pmedium">
-        Customer Mobile:{" "}
-        <Text className="text-white font-psemibold text-base">
-          {piano.rental_customer_mobile}
-        </Text>
-      </Text>
-    )}
-    {piano.rental_period_start && (
-      <Text className="text-base text-gray-100 font-pmedium">
-        Rental Period Start:{" "}
-        <Text className="text-white font-psemibold text-base">
-          {formatDate(piano.rental_period_start)}
-        </Text>
-      </Text>
-    )}
-    {piano.rental_period_end && (
-      <Text className="text-base text-gray-100 font-pmedium">
-        Rental Period End:{" "}
-        <Text className="text-white font-psemibold text-base">
-          {formatDate(piano.rental_period_end)}
-        </Text>
-      </Text>
-    )}
-    {piano.rental_price && (
-      <Text className="text-base text-gray-100 font-pmedium">
-        Rental Price:{" "}
-        <Text className="text-white font-psemibold text-base">
-          {piano.rental_price}
-        </Text>
-      </Text>
-    )}
-  </View>
+const calculateDifference = (start: string, end: string) => {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  const days = differenceInDays(endDate, startDate);
+  const weeks = differenceInWeeks(endDate, startDate);
+  const months = differenceInMonths(endDate, startDate);
+  const years = differenceInYears(endDate, startDate);
+
+  return { days, weeks, months, years };
+};
+
+const formatRentalDate = (date: Date | string) => {
+  if (date instanceof Date) {
+    return format(date, "yyyy-MM-dd");
+  }
+  return date;
+};
+
+const calculateRemainingPeriod = (end: string) => {
+  const endDate = new Date(end);
+  const currentDate = new Date();
+
+  const days = differenceInDays(endDate, currentDate);
+  const weeks = differenceInWeeks(endDate, currentDate);
+  const months = differenceInMonths(endDate, currentDate);
+  const years = differenceInYears(endDate, currentDate);
+
+  return { days, weeks, months, years };
+};
+
+const DurationText = ({
+  label,
+  period,
+}: {
+  label: string;
+  period: { days: number; weeks: number; months: number; years: number };
+}) => (
+  <Text className="text-base text-gray-100 font-pmedium mt-6">
+    {label}:{" "}
+    <Text className="text-white font-psemibold text-base">
+      {period.years > 0
+        ? `${period.years} years`
+        : period.months > 0
+        ? `${period.months} months`
+        : period.weeks > 0
+        ? `${period.weeks} weeks`
+        : `${period.days} days`}
+    </Text>
+  </Text>
 );
+
+const RentableDetails = ({ piano }: { piano: PianoItem }) => {
+  const { rental_period_start, rental_period_end } = piano;
+
+  // Ensure rental_period_start and rental_period_end are strings
+  const start = rental_period_start
+    ? formatRentalDate(rental_period_start)
+    : "";
+  const end = rental_period_end ? formatRentalDate(rental_period_end) : "";
+
+  const { days, weeks, months, years } = calculateDifference(start, end);
+
+  const totalDuration = calculateDifference(start, end);
+  const remaining = calculateRemainingPeriod(end);
+
+  return (
+    <View className="space-y-6 mt-6">
+      {piano.rental_customer_name && (
+        <Text className="text-base text-gray-100 font-pmedium">
+          Customer Name:{" "}
+          <Text className="text-white font-psemibold text-base">
+            {piano.rental_customer_name}
+          </Text>
+        </Text>
+      )}
+      {piano.rental_customer_address && (
+        <Text className="text-base text-gray-100 font-pmedium">
+          Customer Address:{" "}
+          <Text className="text-white font-psemibold text-base">
+            {piano.rental_customer_address}
+          </Text>
+        </Text>
+      )}
+      {piano.rental_customer_mobile && (
+        <Text className="text-base text-gray-100 font-pmedium">
+          Customer Mobile:{" "}
+          <Text className="text-white font-psemibold text-base">
+            {piano.rental_customer_mobile}
+          </Text>
+        </Text>
+      )}
+      {piano.rental_period_start && (
+        <Text className="text-base text-gray-100 font-pmedium">
+          Rental Period Start:{" "}
+          <Text className="text-white font-psemibold text-base">
+            {formatDate(piano.rental_period_start)}
+          </Text>
+        </Text>
+      )}
+      {piano.rental_period_end && (
+        <Text className="text-base text-gray-100 font-pmedium">
+          Rental Period End:{" "}
+          <Text className="text-white font-psemibold text-base">
+            {formatDate(piano.rental_period_end)}
+          </Text>
+        </Text>
+      )}
+
+      {piano.rental_period_start && piano.rental_period_end && (
+        <DurationText label="Total Duration" period={totalDuration} />
+      )}
+
+      {piano.rental_period_end && (
+        <DurationText label="Remaining Period" period={remaining} />
+      )}
+
+      {piano.rental_price && (
+        <Text className="text-base text-gray-100 font-pmedium">
+          Rental Price:{" "}
+          <Text className="text-white font-psemibold text-base">
+            {piano.rental_price}
+          </Text>
+        </Text>
+      )}
+    </View>
+  );
+};
 
 const WarehouseDetails = ({ piano }: { piano: PianoItem }) => (
   <View className="space-y-6 mt-6">
