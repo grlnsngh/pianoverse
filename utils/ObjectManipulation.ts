@@ -35,6 +35,7 @@ export const formatDate = (
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "UTC",
   });
 };
 
@@ -181,3 +182,19 @@ export const createButtonConfig = (form, value, label) => ({
       ? { backgroundColor: SECONDARY_COLOR }
       : {},
 });
+
+/**
+ * Adds a specified number of hours to a given date.
+ *
+ * @param {string | Date | null} [inputDate] - The date to which hours will be added. If not provided or null, the current date and time will be used.
+ * @param {number} [hoursToAdd=12] - The number of hours to add to the date. Defaults to 12 hours if not specified.
+ * @returns {Date} - The new date with the added hours.
+ */
+export const addHoursToDate = (
+  inputDate?: string | Date | null,
+  hoursToAdd: number = 12
+): Date => {
+  const date = inputDate ? new Date(inputDate) : new Date();
+  date.setHours(date.getHours() + hoursToAdd);
+  return date;
+};
