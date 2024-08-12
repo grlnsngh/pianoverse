@@ -249,8 +249,15 @@ const DetailScreen = () => {
     );
   }
 
-  const { title, image_url, category, make, description, company_associated } =
-    filteredPiano;
+  const {
+    title,
+    image_url,
+    category,
+    make,
+    description,
+    company_associated,
+    date_of_purchase,
+  } = filteredPiano;
 
   const navigation = useNavigation();
 
@@ -309,6 +316,16 @@ const DetailScreen = () => {
             Make:{" "}
             <Text className="text-white font-psemibold text-base">{make}</Text>
           </Text>
+
+          {date_of_purchase && (
+            <Text className="text-base text-gray-100 font-pmedium">
+              Date of Purchase:{" "}
+              <Text className="text-white font-psemibold text-base">
+                {formatDate(date_of_purchase)}
+              </Text>
+            </Text>
+          )}
+
           {description && (
             <Text className="text-base text-gray-100 font-pmedium">
               Description:{" "}
