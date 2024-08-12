@@ -15,6 +15,10 @@ import close from "../assets/icons/close.png";
 import pencil from "../assets/icons/pencil.png";
 import trash from "../assets/icons/trash.png";
 import filter from "../assets/icons/filter.png";
+import grid from "../assets/icons/grid.png";
+import card from "../assets/icons/card.png";
+import list from "../assets/icons/list.png";
+
 export default {
   play,
   bookmark,
@@ -33,4 +37,7 @@ export default {
   pencil,
   trash,
   filter,
+  grid,
+  card,
+  list,
 };
