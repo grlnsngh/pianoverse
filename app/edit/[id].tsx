@@ -1,7 +1,9 @@
 import { icons } from "@/constants";
+import { SECONDARY_COLOR } from "@/constants/colors";
 import { updatePianoEntry } from "@/lib/appwrite";
 import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
+import { addHoursToDate } from "@/utils/ObjectManipulation";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -18,21 +20,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Dropdown } from "react-native-element-dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 import CustomButton from "../components/CustomButton";
 import FormField from "../components/FormField";
 import {
   categoryOptions,
-  COMPANY_ASSOCIATED,
   PIANO_CATEGORY,
   pianoCompaniesMakeList,
 } from "../constants/Piano";
-import { SECONDARY_COLOR } from "@/constants/colors";
-import { Dropdown } from "react-native-element-dropdown";
-import { SegmentedButtons } from "react-native-paper";
-import { createButtonConfig } from "@/utils/ObjectManipulation";
-import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 
 interface ImageAsset {
   uri: string;
@@ -69,6 +67,7 @@ interface FormState {
   onSalePurchaseFrom: string;
   onSaleImportDate: Date;
   onSalePrice: number;
+  dateOfPurchase: Date;
 }
 
 const EditScreen = () => {
@@ -118,10 +117,12 @@ const EditScreen = () => {
     on_sale_purchase_from,
     on_sale_import_date,
     on_sale_price,
+    date_of_purchase,
   } = filteredPiano;
 
   const navigation = useNavigation();
   const [uploading, setUploading] = useState(false);
+
   const [form, setForm] = useState<FormState>({
     category: category,
     title: title,
@@ -132,23 +133,18 @@ const EditScreen = () => {
     rentalCustomerName: rental_customer_name || "",
     rentalCustomerAddress: rental_customer_address || "",
     rentalCustomerMobileNumber: rental_customer_mobile || "",
-    rentalStartDate: rental_period_start
-      ? new Date(rental_period_start)
-      : new Date(),
-    rentalEndDate: rental_period_end ? new Date(rental_period_end) : new Date(),
+    rentalStartDate: addHoursToDate(rental_period_start),
+    rentalEndDate: addHoursToDate(rental_period_end),
     rentalPrice: rental_price || 0,
-    warehouseStoredSinceDate: warehouse_since_date
-      ? new Date(warehouse_since_date)
-      : new Date(),
+    warehouseStoredSinceDate: addHoursToDate(warehouse_since_date),
     eventPurchasePrice: event_purchase_price || 0,
     eventPurchaseFrom: event_purchase_from || "",
     eventModelNumber: event_model_number || "",
     eventBNumber: event_b_number || "",
     onSalePurchaseFrom: on_sale_purchase_from || "",
-    onSaleImportDate: on_sale_import_date
-      ? new Date(on_sale_import_date)
-      : new Date(),
+    onSaleImportDate: addHoursToDate(on_sale_import_date),
     onSalePrice: on_sale_price || 0,
+    dateOfPurchase: addHoursToDate(date_of_purchase),
   });
 
   const [showRentalStartDatePicker, setShowRentalStartDatePicker] =
@@ -158,6 +154,17 @@ const EditScreen = () => {
     showWarehouseStoredSinceDatePicker,
     setShowWarehouseStoredSinceDatePicker,
   ] = useState(false);
+  const [showDateOfPurchasePicker, setShowDateOfPurchasePicker] =
+    useState(false);
+
+  const onDateOfPurchaseChange = (
+    event: React.SyntheticEvent,
+    selectedDate?: Date
+  ) => {
+    const currentDate = selectedDate || form.dateOfPurchase;
+    setShowDateOfPurchasePicker(false);
+    setForm({ ...form, dateOfPurchase: currentDate });
+  };
 
   const onRentalStartDateChange = (
     event: React.SyntheticEvent,
@@ -244,6 +251,7 @@ const EditScreen = () => {
       company_associated: form.companyAssociated,
       image_url: form.image ? form.image.uri : image_url,
       creator: user.accountId,
+      date_of_purchase: form.dateOfPurchase.toDateString(),
     };
 
     // Check if all basic details are provided
@@ -442,6 +450,23 @@ const EditScreen = () => {
             handleChangeText={(e) => setForm({ ...form, description: e })}
             placeholder="Enter addition details ..."
           />
+
+          <View>
+            <FormField
+              title="Date of Purchase"
+              value={form.dateOfPurchase.toDateString()}
+              handleChangeText={() => {}}
+              onFocus={() => setShowDateOfPurchasePicker(true)}
+            />
+            {showDateOfPurchasePicker && (
+              <DateTimePicker
+                value={form.dateOfPurchase}
+                mode="date"
+                display="default"
+                onChange={onDateOfPurchaseChange}
+              />
+            )}
+          </View>
 
           {form.category === PIANO_CATEGORY.RENTABLE && (
             <>
