@@ -10,15 +10,29 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { icons } from "@/constants";
-import { Chip, Button, Divider } from "react-native-paper";
-import { PRIMARY_COLOR } from "@/constants/colors";
+import { Chip, Button, Divider, Switch } from "react-native-paper";
+import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
+import { Picker } from "@react-native-picker/picker";
+import { Dropdown } from "react-native-element-dropdown";
 
 const FilterButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [isRentalSwitchOn, setIsRentalSwitchOn] = React.useState(false);
+  const [isSoldSwitchOn, setIsSoldSwitchOn] = React.useState(false);
+  const [selectedValue, setSelectedValue] = useState("Latest Added");
+  const [isFocused, setIsFocused] = useState(false);
 
+  const onToggleRentalSwitch = () => setIsRentalSwitchOn(!isRentalSwitchOn);
+  const onToggleSoldSwitch = () => setIsSoldSwitchOn(!isSoldSwitchOn);
   const toggleModal = () => {
     setModalVisible(!modalVisible);
   };
+
+  const data = [
+    { label: "Latest Added", value: "Latest Added" },
+    { label: "Title", value: "Title" },
+    { label: "Purchase Date", value: "Purchase Date" },
+  ];
 
   return (
     <View style={{ flex: 1 }}>
@@ -52,8 +66,48 @@ const FilterButton = () => {
                 <View style={styles.modalContent}>
                   <Text style={styles.title}>Filters</Text>
                   <Divider />
+                  <View>
+                    <Text style={styles.option} className="mt-5">
+                      Sort By
+                    </Text>
+
+                    <View
+                      style={{
+                        marginTop: 8,
+                        borderWidth: 1,
+                        borderColor: isFocused ? SECONDARY_COLOR : "#ccc",
+                      }}
+                      className="w-full h-16 px-4 rounded-2xl flex flex-row items-center"
+                    >
+                      <Dropdown
+                        data={data}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="Select item"
+                        value={selectedValue}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        onChange={(item) => {
+                          setSelectedValue(item.value);
+                          setIsFocused(false);
+                        }}
+                        style={{
+                          height: 60,
+                          width: "100%",
+                        }}
+                        containerStyle={{
+                          width: "90%",
+                          borderRadius: 16,
+                          left: 21,
+                        }}
+                      />
+                    </View>
+                  </View>
+
+                  <Divider className="mt-5" />
+
                   <Text style={styles.option} className="mt-5">
-                    Sort By
+                    Category Selection
                   </Text>
                   <View
                     style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}
@@ -61,25 +115,65 @@ const FilterButton = () => {
                   >
                     <Chip
                       mode="outlined"
-                      onPress={() => console.log("Pressed Purchase Date")}
+                      onPress={() => console.log("Pressed Rentable")}
                     >
-                      Purchase Date
+                      Rentable
                     </Chip>
                     <Chip
                       mode="outlined"
-                      onPress={() => console.log("Pressed Make")}
+                      onPress={() => console.log("Pressed Events")}
                     >
-                      Make
+                      Events
                     </Chip>
                     <Chip
                       mode="outlined"
-                      onPress={() => console.log("Pressed Title")}
+                      onPress={() => console.log("Pressed On Sale")}
                     >
-                      Title
+                      On Sale
+                    </Chip>
+                    <Chip
+                      mode="outlined"
+                      onPress={() => console.log("Pressed Warehouse")}
+                    >
+                      Warehouse
                     </Chip>
                   </View>
 
                   <Divider className="mt-5" />
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                    className="mt-2"
+                  >
+                    <Text style={styles.option}>Active rentals</Text>
+                    <Switch
+                      value={isRentalSwitchOn}
+                      onValueChange={onToggleRentalSwitch}
+                    />
+                  </View>
+
+                  <Divider className="mt-1" />
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                    className="mt-2"
+                  >
+                    <Text style={styles.option}>Sold</Text>
+                    <Switch
+                      value={isSoldSwitchOn}
+                      onValueChange={onToggleSoldSwitch}
+                    />
+                  </View>
+
+                  <Divider className="mt-1" />
 
                   <View style={styles.buttonContainer}>
                     <Button
