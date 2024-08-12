@@ -35,6 +35,7 @@ export interface PianoItem {
   users: User;
   warehouse_since_date?: Date | null;
   company_associated?: string | null;
+  date_of_purchase?: Date;
 }
 
 export interface PianoItemFormStateType {
@@ -64,4 +65,5 @@ export interface PianoItemFormStateType {
   title: string;
   users: User;
   warehouse_since_date?: string | null; // Changed to string
+  date_of_purchase?: string; // Changed to string
 }
