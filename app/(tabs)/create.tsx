@@ -66,6 +66,7 @@ interface FormState {
   onSaleImportDate: Date;
   onSalePrice: number;
   companyAssociated: string;
+  dateOfPurchase: Date;
 }
 
 const Create = () => {
@@ -92,6 +93,7 @@ const Create = () => {
     onSaleImportDate: new Date(),
     onSalePrice: 0,
     companyAssociated: COMPANY_ASSOCIATED.SHAMSHERSONS,
+    dateOfPurchase: new Date(),
   });
 
   const [showRentalStartDatePicker, setShowRentalStartDatePicker] =
@@ -101,6 +103,17 @@ const Create = () => {
     showWarehouseStoredSinceDatePicker,
     setShowWarehouseStoredSinceDatePicker,
   ] = useState(false);
+  const [showDateOfPurchasePicker, setShowDateOfPurchasePicker] =
+    useState(false);
+
+  const onDateOfPurchaseChange = (
+    event: React.SyntheticEvent,
+    selectedDate?: Date
+  ) => {
+    const currentDate = selectedDate || form.dateOfPurchase;
+    setShowDateOfPurchasePicker(false);
+    setForm({ ...form, dateOfPurchase: currentDate });
+  };
 
   const onRentalStartDateChange = (
     event: React.SyntheticEvent,
@@ -185,6 +198,7 @@ const Create = () => {
       image_url: form.image,
       creator: user.accountId,
       company_associated: form.companyAssociated,
+      date_of_purchase: form.dateOfPurchase.toDateString(),
     };
 
     // Check if all basic details are provided
@@ -262,6 +276,7 @@ const Create = () => {
         onSaleImportDate: new Date(),
         onSalePrice: 0,
         companyAssociated: COMPANY_ASSOCIATED.SHAMSHERSONS,
+        dateOfPurchase: new Date(),
       });
 
       setUploading(false);
@@ -395,6 +410,23 @@ const Create = () => {
             handleChangeText={(e) => setForm({ ...form, description: e })}
             placeholder="Enter addition details ..."
           />
+
+          <View>
+            <FormField
+              title="Date of Purchase"
+              value={form.dateOfPurchase.toDateString()}
+              handleChangeText={() => {}}
+              onFocus={() => setShowDateOfPurchasePicker(true)}
+            />
+            {showDateOfPurchasePicker && (
+              <DateTimePicker
+                value={form.dateOfPurchase}
+                mode="date"
+                display="default"
+                onChange={onDateOfPurchaseChange}
+              />
+            )}
+          </View>
 
           {form.category === PIANO_CATEGORY.RENTABLE && (
             <>
