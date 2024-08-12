@@ -56,3 +56,9 @@ export const pianoCompaniesMakeList = Object.keys(PIANO_COMPANY_MAKE).map(
     value: PIANO_COMPANY_MAKE[key],
   })
 );
+
+export const SORT_BY_OPTIONS = {
+  LATEST_ADDED: "Latest Added",
+  TITLE: "Title",
+  PURCHASE_DATE: "Purchase Date",
+};
