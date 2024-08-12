@@ -1,38 +1,107 @@
+import { icons } from "@/constants";
+import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
+import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
   Image,
   Modal,
   StyleSheet,
+  Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
-  PanResponder,
+  View,
 } from "react-native";
-import React, { useState } from "react";
-import { icons } from "@/constants";
-import { Chip, Button, Divider, Switch } from "react-native-paper";
-import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
-import { Picker } from "@react-native-picker/picker";
 import { Dropdown } from "react-native-element-dropdown";
+import {
+  Button,
+  Chip,
+  Divider,
+  Switch,
+  ToggleButton,
+} from "react-native-paper";
+import { SORT_BY_OPTIONS } from "../constants/Piano";
+
+interface FilterForm {
+  sortBy: string;
+  category: string;
+  isActiveRentals: boolean;
+  isSold: boolean;
+  layoutStatus: {
+    grid: string;
+    list: string;
+    card: string;
+  };
+}
 
 const FilterButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [isRentalSwitchOn, setIsRentalSwitchOn] = React.useState(false);
-  const [isSoldSwitchOn, setIsSoldSwitchOn] = React.useState(false);
-  const [selectedValue, setSelectedValue] = useState("Latest Added");
   const [isFocused, setIsFocused] = useState(false);
 
-  const onToggleRentalSwitch = () => setIsRentalSwitchOn(!isRentalSwitchOn);
-  const onToggleSoldSwitch = () => setIsSoldSwitchOn(!isSoldSwitchOn);
+  const sortByOptions = [
+    {
+      label: SORT_BY_OPTIONS.LATEST_ADDED,
+      value: SORT_BY_OPTIONS.LATEST_ADDED,
+    },
+    { label: SORT_BY_OPTIONS.TITLE, value: SORT_BY_OPTIONS.TITLE },
+    {
+      label: SORT_BY_OPTIONS.PURCHASE_DATE,
+      value: SORT_BY_OPTIONS.PURCHASE_DATE,
+    },
+  ];
+
+  const DEFAULT_FILTER_FORM: FilterForm = {
+    sortBy: SORT_BY_OPTIONS.LATEST_ADDED,
+    category: "",
+    isActiveRentals: false,
+    isSold: false,
+    layoutStatus: {
+      card: "checked",
+      list: "unchecked",
+      grid: "unchecked",
+    },
+  };
+
+  const [filterForm, setFilterForm] = useState<FilterForm>(DEFAULT_FILTER_FORM);
+
   const toggleModal = () => {
     setModalVisible(!modalVisible);
   };
 
-  const data = [
-    { label: "Latest Added", value: "Latest Added" },
-    { label: "Title", value: "Title" },
-    { label: "Purchase Date", value: "Purchase Date" },
-  ];
+  const onShowResults = () => {
+    console.log(filterForm);
+    toggleModal();
+  };
+
+  const handleCategoryPress = (label: string) => {
+    const newCategory = filterForm.category === label ? "" : label;
+    setFilterForm({ ...filterForm, category: newCategory });
+  };
+
+  const renderChip = (label: string) => (
+    <Chip
+      mode="outlined"
+      onPress={() => handleCategoryPress(label)}
+      selected={filterForm.category === label}
+      // selectedColor={filterForm.category === label ? "white" : PRIMARY_COLOR}
+      // style={{
+      //   backgroundColor:
+      //     filterForm.category === label ? SECONDARY_COLOR : "white",
+      // }}
+      // showSelectedCheck={false}
+    >
+      {label}
+    </Chip>
+  );
+
+  const onLayoutButtonPress = (layout: string) => {
+    setFilterForm((prevForm) => ({
+      ...prevForm,
+      layoutStatus: {
+        grid: layout === "grid" ? "checked" : "unchecked",
+        list: layout === "list" ? "checked" : "unchecked",
+        card: layout === "card" ? "checked" : "unchecked",
+      },
+    }));
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -64,8 +133,68 @@ const FilterButton = () => {
             <TouchableWithoutFeedback>
               <View>
                 <View style={styles.modalContent}>
-                  <Text style={styles.title}>Filters</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 16,
+                    }}
+                  >
+                    <Text style={styles.title}>Filters</Text>
+                    <TouchableOpacity onPress={toggleModal}>
+                      <Image
+                        source={icons.close}
+                        className="w-3 h-3"
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
+                  </View>
                   <Divider />
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                    className="mt-2"
+                  >
+                    <Text style={styles.option}>Layout</Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <ToggleButton
+                        icon={icons.card}
+                        value="card"
+                        status={filterForm.layoutStatus.card}
+                        onPress={() => onLayoutButtonPress("card")}
+                        iconColor={PRIMARY_COLOR}
+                      />
+                      <ToggleButton
+                        icon={icons.list}
+                        value="list"
+                        status={filterForm.layoutStatus.list}
+                        onPress={() => onLayoutButtonPress("list")}
+                        iconColor={PRIMARY_COLOR}
+                      />
+                      <ToggleButton
+                        icon={icons.grid}
+                        value="grid"
+                        status={filterForm.layoutStatus.grid}
+                        onPress={() => onLayoutButtonPress("grid")}
+                        iconColor={PRIMARY_COLOR}
+                      />
+                    </View>
+                  </View>
+
+                  <Divider className="mt-2" />
+
                   <View>
                     <Text style={styles.option} className="mt-5">
                       Sort By
@@ -73,22 +202,22 @@ const FilterButton = () => {
 
                     <View
                       style={{
-                        marginTop: 8,
+                        marginTop: 12,
                         borderWidth: 1,
                         borderColor: isFocused ? SECONDARY_COLOR : "#ccc",
                       }}
                       className="w-full h-16 px-4 rounded-2xl flex flex-row items-center"
                     >
                       <Dropdown
-                        data={data}
+                        data={sortByOptions}
                         labelField="label"
                         valueField="value"
                         placeholder="Select item"
-                        value={selectedValue}
+                        value={filterForm.sortBy}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         onChange={(item) => {
-                          setSelectedValue(item.value);
+                          setFilterForm({ ...filterForm, sortBy: item.value });
                           setIsFocused(false);
                         }}
                         style={{
@@ -111,32 +240,12 @@ const FilterButton = () => {
                   </Text>
                   <View
                     style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}
-                    className="mt-2"
+                    className="mt-3"
                   >
-                    <Chip
-                      mode="outlined"
-                      onPress={() => console.log("Pressed Rentable")}
-                    >
-                      Rentable
-                    </Chip>
-                    <Chip
-                      mode="outlined"
-                      onPress={() => console.log("Pressed Events")}
-                    >
-                      Events
-                    </Chip>
-                    <Chip
-                      mode="outlined"
-                      onPress={() => console.log("Pressed On Sale")}
-                    >
-                      On Sale
-                    </Chip>
-                    <Chip
-                      mode="outlined"
-                      onPress={() => console.log("Pressed Warehouse")}
-                    >
-                      Warehouse
-                    </Chip>
+                    {renderChip("Rentable")}
+                    {renderChip("Events")}
+                    {renderChip("On Sale")}
+                    {renderChip("Warehouse")}
                   </View>
 
                   <Divider className="mt-5" />
@@ -151,8 +260,13 @@ const FilterButton = () => {
                   >
                     <Text style={styles.option}>Active rentals</Text>
                     <Switch
-                      value={isRentalSwitchOn}
-                      onValueChange={onToggleRentalSwitch}
+                      value={filterForm.isActiveRentals}
+                      onValueChange={() =>
+                        setFilterForm({
+                          ...filterForm,
+                          isActiveRentals: !filterForm.isActiveRentals,
+                        })
+                      }
                     />
                   </View>
 
@@ -168,30 +282,24 @@ const FilterButton = () => {
                   >
                     <Text style={styles.option}>Sold</Text>
                     <Switch
-                      value={isSoldSwitchOn}
-                      onValueChange={onToggleSoldSwitch}
+                      value={filterForm.isSold}
+                      onValueChange={() =>
+                        setFilterForm({
+                          ...filterForm,
+                          isSold: !filterForm.isSold,
+                        })
+                      }
                     />
                   </View>
 
-                  <Divider className="mt-1" />
-
-                  <View style={styles.buttonContainer}>
+                  <View className="mt-3 flex items-center justify-center">
                     <Button
-                      icon="close"
                       mode="contained"
-                      onPress={toggleModal}
-                      buttonColor={PRIMARY_COLOR}
-                    >
-                      Cancel
-                    </Button>
-
-                    <Button
-                      icon="check"
-                      mode="contained"
-                      onPress={toggleModal}
+                      onPress={onShowResults}
                       buttonColor="green"
+                      style={{ width: "70%", height: 40 }}
                     >
-                      OK
+                      Show results
                     </Button>
                   </View>
                 </View>
@@ -219,16 +327,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
   },
   option: {
     fontSize: 16,
     marginBottom: 5,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
   },
   button: {
     padding: 10,
