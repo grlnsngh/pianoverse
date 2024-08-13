@@ -109,15 +109,14 @@ const Home = () => {
               />
             );
           } else if (layoutView.grid === "checked") {
-            return <GridItem />;
-            // return (
-            //   <GridCard
-            //     item={item}
-            //     visibleMenuId={visibleMenuId}
-            //     openMenu={openMenu}
-            //     closeMenu={closeMenu}
-            //   />
-            // );
+            return (
+              <GridItem
+                item={item}
+                visibleMenuId={visibleMenuId}
+                openMenu={openMenu}
+                closeMenu={closeMenu}
+              />
+            );
           } else if (layoutView.list === "checked") {
             return (
               <ListItem
