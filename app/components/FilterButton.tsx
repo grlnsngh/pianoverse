@@ -59,35 +59,48 @@ const FilterButton = () => {
 
   const onShowResults = () => {
     dispatch(setPianoFilters(filterForm));
-    let filteredItems: PianoItem[] = pianoItems;
-    // console.log("pianoItems", pianoItems);
-    if (filterForm.sortBy === SORT_BY_OPTIONS.TITLE_ASC) {
-      filteredItems = filteredItems
-        .slice()
-        .sort((a, b) => a.title.localeCompare(b.title));
-    } else if (filterForm.sortBy === SORT_BY_OPTIONS.TITLE_DES) {
-      filteredItems = filteredItems
-        .slice()
-        .sort((a, b) => b.title.localeCompare(a.title));
-    } else if (filterForm.sortBy === SORT_BY_OPTIONS.LATEST_ADDED) {
-      filteredItems = filteredItems
-        .slice()
-        .sort(
+    let filteredItems: PianoItem[] = pianoItems.slice();
+
+    const sortItems = (
+      items: PianoItem[],
+      compareFn: (a: PianoItem, b: PianoItem) => number
+    ) => {
+      return items.sort(compareFn);
+    };
+
+    switch (filterForm.sortBy) {
+      case SORT_BY_OPTIONS.TITLE_ASC:
+        filteredItems = sortItems(filteredItems, (a, b) =>
+          a.title.localeCompare(b.title)
+        );
+        break;
+      case SORT_BY_OPTIONS.TITLE_DES:
+        filteredItems = sortItems(filteredItems, (a, b) =>
+          b.title.localeCompare(a.title)
+        );
+        break;
+      case SORT_BY_OPTIONS.LATEST_ADDED:
+        filteredItems = sortItems(
+          filteredItems,
           (a, b) =>
             new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime()
         );
-    } else if (filterForm.sortBy === SORT_BY_OPTIONS.PURCHASE_DATE) {
-      filteredItems = filteredItems.slice().sort((a, b) => {
-        const dateA = a.date_of_purchase
-          ? new Date(a.date_of_purchase).getTime()
-          : new Date(0).getTime();
-        const dateB = b.date_of_purchase
-          ? new Date(b.date_of_purchase).getTime()
-          : new Date(0).getTime();
-        return dateB - dateA;
-      });
+        break;
+      case SORT_BY_OPTIONS.PURCHASE_DATE:
+        filteredItems = sortItems(filteredItems, (a, b) => {
+          const dateA = a.date_of_purchase
+            ? new Date(a.date_of_purchase).getTime()
+            : new Date(0).getTime();
+          const dateB = b.date_of_purchase
+            ? new Date(b.date_of_purchase).getTime()
+            : new Date(0).getTime();
+          return dateB - dateA;
+        });
+        break;
+      default:
+        break;
     }
-    // console.log("filteredItems", filteredItems);
+
     dispatch(setPianoListItems(filteredItems));
     toggleModal();
   };
