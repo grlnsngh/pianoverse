@@ -44,7 +44,6 @@ const ListItem: React.FC<ListItemProps> = ({
     company_associated = "",
     category = "",
   } = item;
-  const { avatar = "" } = users;
   const pathname = usePathname();
 
   const handleOnClickItem = () => {
