@@ -95,51 +95,51 @@ const Home = () => {
           </View>
         </View>
       </View>
-      <FlatList
-        data={pianoItems}
-        keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => {
-          if (layoutView.card === "checked") {
-            return (
-              <CardItem
-                item={item}
-                visibleMenuId={visibleMenuId}
-                openMenu={openMenu}
-                closeMenu={closeMenu}
-              />
-            );
-          } else if (layoutView.grid === "checked") {
-            return (
-              <GridItem
-                item={item}
-                visibleMenuId={visibleMenuId}
-                openMenu={openMenu}
-                closeMenu={closeMenu}
-              />
-            );
-          } else if (layoutView.list === "checked") {
-            return (
-              <ListItem
-                item={item}
-                visibleMenuId={visibleMenuId}
-                openMenu={openMenu}
-                closeMenu={closeMenu}
-              />
-            );
-          } else {
-            return null; // Render nothing if no view is checked
+      {layoutView.grid === "checked" ? (
+        <GridItem
+          item={pianoItems}
+          visibleMenuId={visibleMenuId}
+          openMenu={openMenu}
+          closeMenu={closeMenu}
+        />
+      ) : (
+        <FlatList
+          data={pianoItems}
+          keyExtractor={(item) => item.$id}
+          renderItem={({ item }) => {
+            if (layoutView.card === "checked") {
+              return (
+                <CardItem
+                  item={item}
+                  visibleMenuId={visibleMenuId}
+                  openMenu={openMenu}
+                  closeMenu={closeMenu}
+                />
+              );
+            } else if (layoutView.list === "checked") {
+              return (
+                <ListItem
+                  item={item}
+                  visibleMenuId={visibleMenuId}
+                  openMenu={openMenu}
+                  closeMenu={closeMenu}
+                />
+              );
+            } else {
+              return null; // Render nothing if no view is checked
+            }
+          }}
+          ListEmptyComponent={() => (
+            <EmptyState
+              title="No Pianos Found"
+              subtitle="No Pianos created yet"
+            />
+          )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-        }}
-        ListEmptyComponent={() => (
-          <EmptyState
-            title="No Pianos Found"
-            subtitle="No Pianos created yet"
-          />
-        )}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      />
+        />
+      )}
     </SafeAreaView>
   );
 };
