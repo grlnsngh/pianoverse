@@ -1,3 +1,5 @@
+import { FiltersType } from "@/redux/pianos/types";
+
 export const PIANO_CATEGORY = {
   RENTABLE: "rentable",
   EVENTS: "events",
@@ -61,4 +63,16 @@ export const SORT_BY_OPTIONS = {
   LATEST_ADDED: "Latest Added",
   TITLE: "Title",
   PURCHASE_DATE: "Purchase Date",
+};
+
+export const DEFAULT_FILTERS: FiltersType = {
+  sortBy: SORT_BY_OPTIONS.LATEST_ADDED,
+  category: "",
+  isActiveRentals: false,
+  isSold: false,
+  layoutStatus: {
+    card: "checked",
+    list: "unchecked",
+    grid: "unchecked",
+  },
 };
