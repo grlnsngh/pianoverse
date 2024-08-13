@@ -198,3 +198,16 @@ export const addHoursToDate = (
   date.setHours(date.getHours() + hoursToAdd);
   return date;
 };
+
+/**
+ * Retrieves the label for a given category value.
+ *
+ * @param {string} categoryValue - The value of the category to find the label for.
+ * @returns {string} The label corresponding to the category value, or "Unknown Category" if not found.
+ */
+export const getCategoryLabel = (categoryValue: string): string => {
+  const category = categoryOptions.find(
+    (option) => option.value === categoryValue
+  );
+  return category ? category.label : "Unknown Category";
+};
