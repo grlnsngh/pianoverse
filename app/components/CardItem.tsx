@@ -42,6 +42,7 @@ const CardItem: React.FC<CardItemProps> = ({
     company_associated = "",
     category = "",
   } = item;
+  console.log("image_url", image_url);
   const { avatar = "" } = users;
   const pathname = usePathname();
 
@@ -73,6 +74,10 @@ const CardItem: React.FC<CardItemProps> = ({
       closeMenu();
     }
   };
+
+  if (item.empty) {
+    return <View style={styles.itemInvisible} />;
+  }
 
   return (
     <PaperProvider>
@@ -194,4 +199,7 @@ const styles = StyleSheet.create({
   },
   menu: { top: 0, right: 20, width: 120 },
   menuItemIcon: { paddingEnd: 10 },
+  itemInvisible: {
+    backgroundColor: "transparent",
+  },
 });

@@ -75,6 +75,10 @@ const ListItem: React.FC<ListItemProps> = ({
     }
   };
 
+  if (item.empty) {
+    return <View style={styles.itemInvisible} />;
+  }
+
   return (
     <PaperProvider>
       <View className="flex-col items-center px-4 mb-4">
@@ -193,4 +197,7 @@ const styles = StyleSheet.create({
   },
   menu: { top: 0, right: 20, width: 120 },
   menuItemIcon: { paddingEnd: 10 },
+  itemInvisible: {
+    backgroundColor: "transparent",
+  },
 });
