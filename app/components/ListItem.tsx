@@ -1,5 +1,7 @@
-import { icons, images } from "@/constants";
+import { icons } from "@/constants";
+import { CATEGORY_COLORS } from "@/constants/colors";
 import { deletePianoEntry } from "@/lib/appwrite";
+import { getCategoryLabel } from "@/utils/ObjectManipulation";
 import { router, usePathname } from "expo-router";
 import React from "react";
 import {
@@ -76,29 +78,21 @@ const ListItem: React.FC<ListItemProps> = ({
 
   return (
     <PaperProvider>
-      <View className="flex-col items-center px-4 mb-14">
+      <View className="flex-col items-center px-4 mb-4">
         <View className="flex-row gap-3 items-start">
           <View className="justify-center items-center flex-row flex-1">
-            <View
-              className="w-[46px] h-[46px] rounded-lg 
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleOnClickItem}
+              className="w-[90px] h-[90px] rounded-lg 
            justify-center items-center p-0.5"
             >
               <Image
-                source={
-                  category === PIANO_CATEGORY.RENTABLE
-                    ? images.category_rentable
-                    : category === PIANO_CATEGORY.EVENTS
-                    ? images.category_event
-                    : category === PIANO_CATEGORY.ON_SALE
-                    ? images.category_sale
-                    : category === PIANO_CATEGORY.WAREHOUSE
-                    ? images.category_warehouse
-                    : { uri: avatar }
-                }
-                className="w-full h-full rounded-lg"
+                source={{ uri: image_url }}
+                className="w-full h-full rounded-xl mt-3"
                 resizeMode="cover"
               />
-            </View>
+            </TouchableOpacity>
 
             <View className="justify-center flex-1 ml-3 gap-y-1">
               <Text
@@ -110,8 +104,20 @@ const ListItem: React.FC<ListItemProps> = ({
               <Text
                 className="text-xs text-gray-100 font-pregular"
                 numberOfLines={1}
+                style={{
+                  color:
+                    category === PIANO_CATEGORY.RENTABLE
+                      ? CATEGORY_COLORS.RENTABLE
+                      : category === PIANO_CATEGORY.EVENTS
+                      ? CATEGORY_COLORS.EVENTS
+                      : category === PIANO_CATEGORY.ON_SALE
+                      ? CATEGORY_COLORS.ON_SALE
+                      : category === PIANO_CATEGORY.WAREHOUSE
+                      ? CATEGORY_COLORS.WAREHOUSE
+                      : "",
+                }}
               >
-                {category}
+                {getCategoryLabel(category)}
               </Text>
               {company_associated && (
                 <Text
@@ -123,7 +129,7 @@ const ListItem: React.FC<ListItemProps> = ({
               )}
             </View>
           </View>
-          <View className="pt-2">
+          <View className="pt-4">
             <View style={styles.container}>
               <Menu
                 style={styles.menu}
@@ -169,19 +175,6 @@ const ListItem: React.FC<ListItemProps> = ({
             </View>
           </View>
         </View>
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={handleOnClickItem}
-          className="w-full h-60 rounded-xl mt-3 relative 
-        justify-center items-center"
-        >
-          <Image
-            source={{ uri: image_url }}
-            className="w-full h-full rounded-xl mt-3"
-            resizeMode="cover"
-          />
-        </TouchableOpacity>
       </View>
     </PaperProvider>
   );
