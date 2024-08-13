@@ -1,5 +1,8 @@
 import { icons } from "@/constants";
 import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
+import { setPianoFilters } from "@/redux/pianos/actions";
+import { FiltersType } from "@/redux/pianos/types";
+import { RootState } from "@/redux/store";
 import React, { useState } from "react";
 import {
   Image,
@@ -18,19 +21,8 @@ import {
   Switch,
   ToggleButton,
 } from "react-native-paper";
-import { SORT_BY_OPTIONS } from "../constants/Piano";
-
-interface FilterForm {
-  sortBy: string;
-  category: string;
-  isActiveRentals: boolean;
-  isSold: boolean;
-  layoutStatus: {
-    grid: string;
-    list: string;
-    card: string;
-  };
-}
+import { useDispatch, useSelector } from "react-redux";
+import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "../constants/Piano";
 
 const FilterButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -48,26 +40,23 @@ const FilterButton = () => {
     },
   ];
 
-  const DEFAULT_FILTER_FORM: FilterForm = {
-    sortBy: SORT_BY_OPTIONS.LATEST_ADDED,
-    category: "",
-    isActiveRentals: false,
-    isSold: false,
-    layoutStatus: {
-      card: "checked",
-      list: "unchecked",
-      grid: "unchecked",
-    },
-  };
-
-  const [filterForm, setFilterForm] = useState<FilterForm>(DEFAULT_FILTER_FORM);
+  const [filterForm, setFilterForm] = useState<FiltersType>(DEFAULT_FILTERS);
 
   const toggleModal = () => {
     setModalVisible(!modalVisible);
   };
 
+  const filterState = useSelector((state: RootState) => state.pianos.filters);
+
+  const toggleAndResetModal = () => {
+    setFilterForm(filterState);
+    toggleModal();
+  };
+
+  const dispatch = useDispatch();
+
   const onShowResults = () => {
-    console.log(filterForm);
+    dispatch(setPianoFilters(filterForm));
     toggleModal();
   };
 
@@ -126,9 +115,9 @@ const FilterButton = () => {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={toggleModal}
+        onRequestClose={toggleAndResetModal}
       >
-        <TouchableWithoutFeedback onPress={toggleModal}>
+        <TouchableWithoutFeedback onPress={toggleAndResetModal}>
           <View style={styles.modalContainer}>
             <TouchableWithoutFeedback>
               <View>
@@ -142,7 +131,7 @@ const FilterButton = () => {
                     }}
                   >
                     <Text style={styles.title}>Filters</Text>
-                    <TouchableOpacity onPress={toggleModal}>
+                    <TouchableOpacity onPress={toggleAndResetModal}>
                       <Image
                         source={icons.close}
                         className="w-3 h-3"
