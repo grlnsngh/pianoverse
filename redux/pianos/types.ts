@@ -1,5 +1,9 @@
 import { User } from "../users/types";
 
+// Define the action type
+export const SET_PIANO_LIST_ITEMS = "SET_PIANO_LIST_ITEMS";
+export const SET_PIANO_FILTERS = "SET_PIANO_FILTERS";
+
 // Define the type for a piano item
 export interface PianoItem {
   $collectionId: string;
@@ -67,3 +71,27 @@ export interface PianoItemFormStateType {
   warehouse_since_date?: string | null; // Changed to string
   date_of_purchase?: string; // Changed to string
 }
+
+export interface FiltersType {
+  sortBy: string;
+  category: string;
+  isActiveRentals: boolean;
+  isSold: boolean;
+  layoutStatus: {
+    grid: string;
+    list: string;
+    card: string;
+  };
+}
+
+export interface SetPianoListItemsAction {
+  type: typeof SET_PIANO_LIST_ITEMS;
+  payload: PianoItem[];
+}
+
+export interface SetPianoFiltersAction {
+  type: typeof SET_PIANO_FILTERS;
+  payload: FiltersType;
+}
+
+export type PianoActionTypes = SetPianoFiltersAction | SetPianoListItemsAction;
