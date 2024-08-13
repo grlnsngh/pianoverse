@@ -13,7 +13,7 @@ import { getUserPianoEntries } from "@/lib/appwrite";
 
 import { useGlobalContext } from "@/context/GlobalProvider";
 import useAppwrite from "@/lib/useAppwrite";
-import ListCard from "../components/ListCard";
+import CardItem from "../components/CardItem";
 import SearchInput from "../components/SearchInput";
 import EmptyState from "../components/EmptyState";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,6 +22,8 @@ import { SECONDARY_COLOR } from "@/constants/colors";
 import FilterButton from "../components/FilterButton";
 import { RootState } from "@/redux/store";
 import { PianoItem } from "@/redux/pianos/types";
+import GridItem from "../components/GridItem";
+import ListItem from "../components/ListItem";
 
 const Home = () => {
   const { user } = useGlobalContext();
@@ -30,6 +32,9 @@ const Home = () => {
   );
   const pianoReduxItems: PianoItem[] = useSelector(
     (state: RootState) => state.pianos.items
+  );
+  const layoutView = useSelector(
+    (state: RootState) => state.pianos.filters.layoutStatus
   );
 
   const [pianoItems, setPianoItems] = useState(items);
@@ -93,14 +98,39 @@ const Home = () => {
       <FlatList
         data={pianoItems}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => (
-          <ListCard
-            item={item}
-            visibleMenuId={visibleMenuId}
-            openMenu={openMenu}
-            closeMenu={closeMenu}
-          />
-        )}
+        renderItem={({ item }) => {
+          if (layoutView.card === "checked") {
+            return (
+              <CardItem
+                item={item}
+                visibleMenuId={visibleMenuId}
+                openMenu={openMenu}
+                closeMenu={closeMenu}
+              />
+            );
+          } else if (layoutView.grid === "checked") {
+            return <GridItem />;
+            // return (
+            //   <GridCard
+            //     item={item}
+            //     visibleMenuId={visibleMenuId}
+            //     openMenu={openMenu}
+            //     closeMenu={closeMenu}
+            //   />
+            // );
+          } else if (layoutView.list === "checked") {
+            return (
+              <ListItem
+                item={item}
+                visibleMenuId={visibleMenuId}
+                openMenu={openMenu}
+                closeMenu={closeMenu}
+              />
+            );
+          } else {
+            return null; // Render nothing if no view is checked
+          }
+        }}
         ListEmptyComponent={() => (
           <EmptyState
             title="No Pianos Found"
