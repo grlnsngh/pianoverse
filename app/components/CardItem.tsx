@@ -14,7 +14,7 @@ import {
 import { IconButton, Menu, PaperProvider } from "react-native-paper";
 import { PIANO_CATEGORY } from "../constants/Piano";
 
-interface ListCardProps {
+interface CardItemProps {
   item: {
     $id: string;
     title?: string;
@@ -29,7 +29,7 @@ interface ListCardProps {
   closeMenu: () => void;
 }
 
-const ListCard: React.FC<ListCardProps> = ({
+const CardItem: React.FC<CardItemProps> = ({
   item,
   visibleMenuId,
   openMenu,
@@ -180,7 +180,7 @@ const ListCard: React.FC<ListCardProps> = ({
   );
 };
 
-export default ListCard;
+export default CardItem;
 
 const styles = StyleSheet.create({
   container: {

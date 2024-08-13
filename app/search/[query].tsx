@@ -7,7 +7,7 @@ import { FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import EmptyState from "../components/EmptyState";
-import ListCard from "../components/ListCard";
+import CardItem from "../components/CardItem";
 import { SECONDARY_COLOR } from "@/constants/colors";
 
 const Search = () => {
@@ -39,7 +39,7 @@ const Search = () => {
         data={items}
         keyExtractor={(item) => item.$id}
         renderItem={({ item }) => (
-          <ListCard
+          <CardItem
             item={item}
             visibleMenuId={visibleMenuId}
             openMenu={openMenu}
