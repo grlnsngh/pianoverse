@@ -61,8 +61,9 @@ export const pianoCompaniesMakeList = Object.keys(PIANO_COMPANY_MAKE).map(
 
 export const SORT_BY_OPTIONS = {
   LATEST_ADDED: "Latest Added",
-  TITLE: "Title",
   PURCHASE_DATE: "Purchase Date",
+  TITLE_ASC: "Title (A-Z)",
+  TITLE_DES: "Title (Z-A)",
 };
 
 export const DEFAULT_FILTERS: FiltersType = {

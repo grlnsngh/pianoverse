@@ -1,7 +1,7 @@
 import { icons } from "@/constants";
 import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
-import { setPianoFilters } from "@/redux/pianos/actions";
-import { FiltersType } from "@/redux/pianos/types";
+import { setPianoFilters, setPianoListItems } from "@/redux/pianos/actions";
+import { FiltersType, PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import React, { useState } from "react";
 import {
@@ -33,11 +33,12 @@ const FilterButton = () => {
       label: SORT_BY_OPTIONS.LATEST_ADDED,
       value: SORT_BY_OPTIONS.LATEST_ADDED,
     },
-    { label: SORT_BY_OPTIONS.TITLE, value: SORT_BY_OPTIONS.TITLE },
     {
       label: SORT_BY_OPTIONS.PURCHASE_DATE,
       value: SORT_BY_OPTIONS.PURCHASE_DATE,
     },
+    { label: SORT_BY_OPTIONS.TITLE_ASC, value: SORT_BY_OPTIONS.TITLE_ASC },
+    { label: SORT_BY_OPTIONS.TITLE_DES, value: SORT_BY_OPTIONS.TITLE_DES },
   ];
 
   const [filterForm, setFilterForm] = useState<FiltersType>(DEFAULT_FILTERS);
@@ -47,6 +48,7 @@ const FilterButton = () => {
   };
 
   const filterState = useSelector((state: RootState) => state.pianos.filters);
+  const pianoItems = useSelector((state: RootState) => state.pianos.items);
 
   const toggleAndResetModal = () => {
     setFilterForm(filterState);
@@ -57,6 +59,36 @@ const FilterButton = () => {
 
   const onShowResults = () => {
     dispatch(setPianoFilters(filterForm));
+    let filteredItems: PianoItem[] = pianoItems;
+    // console.log("pianoItems", pianoItems);
+    if (filterForm.sortBy === SORT_BY_OPTIONS.TITLE_ASC) {
+      filteredItems = filteredItems
+        .slice()
+        .sort((a, b) => a.title.localeCompare(b.title));
+    } else if (filterForm.sortBy === SORT_BY_OPTIONS.TITLE_DES) {
+      filteredItems = filteredItems
+        .slice()
+        .sort((a, b) => b.title.localeCompare(a.title));
+    } else if (filterForm.sortBy === SORT_BY_OPTIONS.LATEST_ADDED) {
+      filteredItems = filteredItems
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime()
+        );
+    } else if (filterForm.sortBy === SORT_BY_OPTIONS.PURCHASE_DATE) {
+      filteredItems = filteredItems.slice().sort((a, b) => {
+        const dateA = a.date_of_purchase
+          ? new Date(a.date_of_purchase).getTime()
+          : new Date(0).getTime();
+        const dateB = b.date_of_purchase
+          ? new Date(b.date_of_purchase).getTime()
+          : new Date(0).getTime();
+        return dateB - dateA;
+      });
+    }
+    // console.log("filteredItems", filteredItems);
+    dispatch(setPianoListItems(filteredItems));
     toggleModal();
   };
 

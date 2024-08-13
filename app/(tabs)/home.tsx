@@ -16,16 +16,23 @@ import useAppwrite from "@/lib/useAppwrite";
 import ListCard from "../components/ListCard";
 import SearchInput from "../components/SearchInput";
 import EmptyState from "../components/EmptyState";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setPianoListItems } from "@/redux/pianos/actions";
 import { SECONDARY_COLOR } from "@/constants/colors";
 import FilterButton from "../components/FilterButton";
+import { RootState } from "@/redux/store";
+import { PianoItem } from "@/redux/pianos/types";
 
 const Home = () => {
   const { user } = useGlobalContext();
   const { data: items, refetch } = useAppwrite(() =>
     getUserPianoEntries(user.accountId)
   );
+  const pianoReduxItems: PianoItem[] = useSelector(
+    (state: RootState) => state.pianos.items
+  );
+
+  const [pianoItems, setPianoItems] = useState(items);
 
   const dispatch = useDispatch();
 
@@ -47,6 +54,10 @@ const Home = () => {
       dispatch(setPianoListItems(items));
     }
   }, [items]);
+
+  useEffect(() => {
+    setPianoItems(pianoReduxItems);
+  }, [pianoReduxItems]);
 
   return (
     <SafeAreaView className="bg-primary h-full">
@@ -80,7 +91,7 @@ const Home = () => {
         </View>
       </View>
       <FlatList
-        data={items}
+        data={pianoItems}
         keyExtractor={(item) => item.$id}
         renderItem={({ item }) => (
           <ListCard
