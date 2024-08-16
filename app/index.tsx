@@ -1,11 +1,12 @@
-import { Link, Redirect, router } from "expo-router";
-import { Image, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Logo from "./components/Logo";
 import { images } from "@/constants";
-import { StatusBar } from "expo-status-bar";
-import CustomButton from "./components/CustomButton";
 import { useGlobalContext } from "@/context/GlobalProvider";
+import { Image } from "expo-image";
+import { Redirect, router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import CustomButton from "./components/CustomButton";
+import Logo from "./components/Logo";
 
 export default function Index() {
   const { loading, isLogged } = useGlobalContext();

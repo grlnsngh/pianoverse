@@ -1,7 +1,7 @@
-import { router } from "expo-router";
-import { View, Text, Image } from "react-native";
-
 import { images } from "@/constants";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { Text, View } from "react-native";
 import CustomButton from "./CustomButton";
 
 interface EmptyStateProps {

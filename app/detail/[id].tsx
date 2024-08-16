@@ -1,3 +1,4 @@
+import { SECONDARY_COLOR } from "@/constants/colors";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import {
@@ -5,20 +6,20 @@ import {
   formatDateString,
   printCategoryLabel,
 } from "@/utils/ObjectManipulation";
+import {
+  differenceInDays,
+  differenceInMonths,
+  differenceInWeeks,
+  differenceInYears,
+  format,
+} from "date-fns";
+import { Image } from "expo-image";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect } from "react";
-import { Image, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { PIANO_CATEGORY } from "../constants/Piano";
-import { SECONDARY_COLOR } from "@/constants/colors";
-import {
-  format,
-  differenceInDays,
-  differenceInWeeks,
-  differenceInMonths,
-  differenceInYears,
-} from "date-fns";
 
 const calculateDifference = (start: string, end: string) => {
   const startDate = new Date(start);

@@ -1,22 +1,20 @@
-import { icons, images } from "@/constants";
 import { CATEGORY_COLORS } from "@/constants/colors";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
+import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React from "react";
 import {
   Alert,
   Dimensions,
   FlatList,
-  Image,
   StyleSheet,
   Text,
   ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
-import { IconButton, Menu, PaperProvider, Surface } from "react-native-paper";
-import { PIANO_CATEGORY } from "../constants/Piano";
+import { Surface } from "react-native-paper";
 
 interface GridItemProps {
   item: {

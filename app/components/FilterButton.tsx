@@ -3,9 +3,9 @@ import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
 import { setPianoFilters, setPianoListItems } from "@/redux/pianos/actions";
 import { FiltersType, PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
+import { Image } from "expo-image";
 import React, { useState } from "react";
 import {
-  Image,
   Modal,
   StyleSheet,
   Text,

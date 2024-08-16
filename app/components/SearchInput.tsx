@@ -1,8 +1,9 @@
 /* eslint-disable react/react-in-jsx-scope */
-import { useState } from "react";
-import { router, usePathname } from "expo-router";
-import { View, TouchableOpacity, Image, TextInput, Alert } from "react-native";
 import { icons } from "@/constants";
+import { Image } from "expo-image";
+import { router, usePathname } from "expo-router";
+import { useState } from "react";
+import { Alert, TextInput, TouchableOpacity, View } from "react-native";
 
 interface SearchInputProps {
   initialQuery?: string;

@@ -1,16 +1,15 @@
 import { icons } from "@/constants";
-import { SECONDARY_COLOR } from "@/constants/colors";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { createPianoEntry } from "@/lib/appwrite";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
+import { Image } from "expo-image";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,8 +18,8 @@ import {
   View,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import { SegmentedButtons } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 import CustomButton from "../components/CustomButton";
 import FormField from "../components/FormField";
 import {
@@ -29,8 +28,6 @@ import {
   PIANO_CATEGORY,
   pianoCompaniesMakeList,
 } from "../constants/Piano";
-import { createButtonConfig } from "@/utils/ObjectManipulation";
-import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 
 interface ImageAsset {
   uri: string;

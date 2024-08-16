@@ -1,10 +1,10 @@
 import { icons, images } from "@/constants";
 import { deletePianoEntry } from "@/lib/appwrite";
+import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React from "react";
 import {
   Alert,
-  Image,
   StyleSheet,
   Text,
   ToastAndroid,
@@ -42,7 +42,6 @@ const CardItem: React.FC<CardItemProps> = ({
     company_associated = "",
     category = "",
   } = item;
-  console.log("image_url", image_url);
   const { avatar = "" } = users;
   const pathname = usePathname();
 

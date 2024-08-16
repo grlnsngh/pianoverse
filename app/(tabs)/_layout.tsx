@@ -1,8 +1,9 @@
+import { SECONDARY_COLOR } from "@/constants/colors";
+import { Image } from "expo-image";
 import { Tabs } from "expo-router";
 import React from "react";
-import { View, Image, Text } from "react-native";
+import { Text, View } from "react-native";
 import { icons } from "../../constants";
-import { SECONDARY_COLOR } from "@/constants/colors";
 
 const TabIcon = ({ icon, color, name, focused }) => {
   return (

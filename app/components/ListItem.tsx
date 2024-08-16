@@ -2,11 +2,11 @@ import { icons } from "@/constants";
 import { CATEGORY_COLORS } from "@/constants/colors";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
+import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React from "react";
 import {
   Alert,
-  Image,
   StyleSheet,
   Text,
   ToastAndroid,

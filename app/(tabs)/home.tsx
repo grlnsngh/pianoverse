@@ -1,29 +1,22 @@
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  RefreshControl,
-  Alert,
-} from "react-native";
-import React, { useEffect, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "@/constants";
-import { getUserPianoEntries } from "@/lib/appwrite";
-
-import { useGlobalContext } from "@/context/GlobalProvider";
-import useAppwrite from "@/lib/useAppwrite";
-import CardItem from "../components/CardItem";
-import SearchInput from "../components/SearchInput";
-import EmptyState from "../components/EmptyState";
-import { useDispatch, useSelector } from "react-redux";
-import { setPianoListItems } from "@/redux/pianos/actions";
 import { SECONDARY_COLOR } from "@/constants/colors";
-import FilterButton from "../components/FilterButton";
-import { RootState } from "@/redux/store";
+import { useGlobalContext } from "@/context/GlobalProvider";
+import { getUserPianoEntries } from "@/lib/appwrite";
+import useAppwrite from "@/lib/useAppwrite";
+import { setPianoListItems } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
+import { RootState } from "@/redux/store";
+import { Image } from "expo-image";
+import React, { useEffect, useState } from "react";
+import { FlatList, RefreshControl, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useDispatch, useSelector } from "react-redux";
+import CardItem from "../components/CardItem";
+import EmptyState from "../components/EmptyState";
+import FilterButton from "../components/FilterButton";
 import GridItem from "../components/GridItem";
 import ListItem from "../components/ListItem";
+import SearchInput from "../components/SearchInput";
 
 const Home = () => {
   const { user } = useGlobalContext();

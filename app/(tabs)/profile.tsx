@@ -2,21 +2,15 @@ import { icons, images } from "@/constants";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { signOut } from "@/lib/appwrite";
 import { RootState } from "@/redux/store";
+import { Image } from "expo-image";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
-import {
-  Image,
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useState } from "react";
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Card } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import InfoBox from "../components/InfoBox";
 import { PIANO_CATEGORY } from "../constants/Piano";
-import { Card } from "react-native-paper";
 
 const Profile = () => {
   const { user, setUser, setIsLogged } = useGlobalContext();

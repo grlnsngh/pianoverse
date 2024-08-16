@@ -1,7 +1,8 @@
 /* eslint-disable react/react-in-jsx-scope */
 import { icons } from "@/constants";
+import { Image } from "expo-image";
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Image } from "react-native";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 interface FormFieldProps {
   title: string;

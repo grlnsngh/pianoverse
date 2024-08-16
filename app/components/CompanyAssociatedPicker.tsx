@@ -1,9 +1,8 @@
+import { createButtonConfig } from "@/utils/ObjectManipulation";
 import React from "react";
 import { Text } from "react-native";
 import { SegmentedButtons } from "react-native-paper";
 import { COMPANY_ASSOCIATED } from "../constants/Piano";
-import { SECONDARY_COLOR } from "@/constants/colors";
-import { createButtonConfig } from "@/utils/ObjectManipulation";
 
 interface CompanyAssociatedPickerProps {
   form: any;
