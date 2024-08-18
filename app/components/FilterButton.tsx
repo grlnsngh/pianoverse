@@ -1,6 +1,9 @@
 import { icons } from "@/constants";
 import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
-import { setPianoFilters, setPianoListItems } from "@/redux/pianos/actions";
+import {
+  setFilteredPianoListItems,
+  setPianoFilters,
+} from "@/redux/pianos/actions";
 import { FiltersType, PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
@@ -101,7 +104,17 @@ const FilterButton = () => {
         break;
     }
 
-    dispatch(setPianoListItems(filteredItems));
+    if (filterForm.category) {
+      const formattedFilter = filterForm.category
+        .replace(/\s+/g, "_")
+        .toLowerCase();
+
+      filteredItems = filteredItems.filter(
+        (item) => item.category === formattedFilter
+      );
+    }
+
+    dispatch(setFilteredPianoListItems(filteredItems));
     toggleModal();
   };
 

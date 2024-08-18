@@ -2,6 +2,7 @@ import {
   FiltersType,
   PianoActionTypes,
   PianoItem,
+  SET_FILTERED_PIANO_LIST_ITEMS,
   SET_PIANO_FILTERS,
   SET_PIANO_LIST_ITEMS,
 } from "./types";
@@ -11,12 +12,14 @@ import { DEFAULT_FILTERS } from "@/app/constants/Piano";
 export interface PianoState {
   items: PianoItem[];
   filters: FiltersType;
+  filteredItems: PianoItem[];
 }
 
 // Define the initial state
 const initialState: PianoState = {
   items: [],
   filters: DEFAULT_FILTERS,
+  filteredItems: [],
 };
 
 // Create the reducer
@@ -34,6 +37,11 @@ const pianoReducer = (
       return {
         ...state,
         filters: action.payload,
+      };
+    case SET_FILTERED_PIANO_LIST_ITEMS:
+      return {
+        ...state,
+        filteredItems: action.payload,
       };
     default:
       return state;

@@ -3,6 +3,7 @@ import { User } from "../users/types";
 // Define the action type
 export const SET_PIANO_LIST_ITEMS = "SET_PIANO_LIST_ITEMS";
 export const SET_PIANO_FILTERS = "SET_PIANO_FILTERS";
+export const SET_FILTERED_PIANO_LIST_ITEMS = "SET_FILTERED_PIANO_LIST_ITEMS";
 
 // Define the type for a piano item
 export interface PianoItem {
@@ -94,4 +95,12 @@ export interface SetPianoFiltersAction {
   payload: FiltersType;
 }
 
-export type PianoActionTypes = SetPianoFiltersAction | SetPianoListItemsAction;
+export interface SetFilteredPianoListItemsAction {
+  type: typeof SET_FILTERED_PIANO_LIST_ITEMS;
+  payload: PianoItem[];
+}
+
+export type PianoActionTypes =
+  | SetPianoFiltersAction
+  | SetPianoListItemsAction
+  | SetFilteredPianoListItemsAction;

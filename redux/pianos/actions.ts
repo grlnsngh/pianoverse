@@ -1,8 +1,10 @@
 import {
   FiltersType,
   PianoItem,
+  SET_FILTERED_PIANO_LIST_ITEMS,
   SET_PIANO_FILTERS,
   SET_PIANO_LIST_ITEMS,
+  SetFilteredPianoListItemsAction,
   SetPianoFiltersAction,
   SetPianoListItemsAction,
 } from "./types";
@@ -20,4 +22,11 @@ export const setPianoFilters = (
 ): SetPianoFiltersAction => ({
   type: SET_PIANO_FILTERS,
   payload: filters,
+});
+
+export const setFilteredPianoListItems = (
+  items: PianoItem[]
+): SetFilteredPianoListItemsAction => ({
+  type: SET_FILTERED_PIANO_LIST_ITEMS,
+  payload: items,
 });

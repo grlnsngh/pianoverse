@@ -3,7 +3,10 @@ import { SECONDARY_COLOR } from "@/constants/colors";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import useAppwrite from "@/lib/useAppwrite";
-import { setPianoListItems } from "@/redux/pianos/actions";
+import {
+  setFilteredPianoListItems,
+  setPianoListItems,
+} from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
@@ -19,20 +22,20 @@ import ListItem from "../components/ListItem";
 import SearchInput from "../components/SearchInput";
 
 const Home = () => {
+  const dispatch = useDispatch();
+
   const { user } = useGlobalContext();
   const { data: items, refetch } = useAppwrite(() =>
     getUserPianoEntries(user.accountId)
   );
-  const pianoReduxItems: PianoItem[] = useSelector(
-    (state: RootState) => state.pianos.items
+
+  const [pianoItems, setPianoItems] = useState(items);
+  const filteredPianoReduxItems: PianoItem[] = useSelector(
+    (state: RootState) => state.pianos.filteredItems
   );
   const layoutView = useSelector(
     (state: RootState) => state.pianos.filters.layoutStatus
   );
-
-  const [pianoItems, setPianoItems] = useState(items);
-
-  const dispatch = useDispatch();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -46,16 +49,24 @@ const Home = () => {
 
   const openMenu = (menuId: string) => setVisibleMenuId(menuId);
   const closeMenu = () => setVisibleMenuId(null);
+  const filter: string = useSelector(
+    (state: RootState) => state.pianos.filters.category
+  );
 
+  useEffect(() => {
+    setPianoItems(filteredPianoReduxItems);
+  }, [filter, filteredPianoReduxItems]);
+
+  //set items in redux store on successful fetch API call
   useEffect(() => {
     if (items.length > 0) {
+      //this will set the items in redux store - original items
       dispatch(setPianoListItems(items));
+
+      //this will be used to show items according to filter on home screen
+      dispatch(setFilteredPianoListItems(items));
     }
   }, [items]);
-
-  useEffect(() => {
-    setPianoItems(pianoReduxItems);
-  }, [pianoReduxItems]);
 
   return (
     <SafeAreaView className="bg-primary h-full">
