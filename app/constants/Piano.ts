@@ -72,8 +72,8 @@ export const DEFAULT_FILTERS: FiltersType = {
   isActiveRentals: false,
   isSold: false,
   layoutStatus: {
-    card: "checked",
-    list: "unchecked",
+    card: "unchecked",
+    list: "checked",
     grid: "unchecked",
   },
 };
