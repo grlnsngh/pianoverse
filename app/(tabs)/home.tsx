@@ -70,8 +70,8 @@ const Home = () => {
 
   return (
     <SafeAreaView className="bg-primary h-full">
-      <View className="flex my-6 px-4 space-y-6">
-        <View className="flex justify-between items-start flex-row">
+      <View className="flex mt-6 px-4">
+        <View className="flex justify-between items-start flex-row mb-6">
           <View>
             <Text className="font-pmedium text-sm text-gray-100">
               Welcome Back
@@ -98,7 +98,18 @@ const Home = () => {
             <FilterButton />
           </View>
         </View>
+
+        <View className="flex flex-row justify-end mr-1 my-3">
+          <Text className="font-pmedium text-sm text-gray-100">
+            {pianoItems.length === 0
+              ? "No Pianos"
+              : `${pianoItems.length} ${
+                  pianoItems.length === 1 ? "Piano" : "Pianos"
+                }`}
+          </Text>
+        </View>
       </View>
+
       {layoutView.grid === "checked" ? (
         <GridItem
           item={pianoItems}
