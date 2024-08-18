@@ -9,6 +9,8 @@ import { useSelector } from "react-redux";
 import EmptyState from "../components/EmptyState";
 import CardItem from "../components/CardItem";
 import { SECONDARY_COLOR } from "@/constants/colors";
+import ListItem from "../components/ListItem";
+import GridItem from "../components/GridItem";
 
 const Search = () => {
   const { query } = useLocalSearchParams();
@@ -33,26 +35,54 @@ const Search = () => {
   const openMenu = (menuId: string) => setVisibleMenuId(menuId);
   const closeMenu = () => setVisibleMenuId(null);
 
+  const layoutView = useSelector(
+    (state: RootState) => state.pianos.filters.layoutStatus
+  );
+
   return (
     <SafeAreaView className="bg-primary h-full">
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => (
-          <CardItem
-            item={item}
-            visibleMenuId={visibleMenuId}
-            openMenu={openMenu}
-            closeMenu={closeMenu}
-          />
-        )}
-        ListEmptyComponent={() => (
-          <EmptyState
-            title="No Pianos Found"
-            subtitle="Try other search terms"
-          />
-        )}
-      />
+      {layoutView.grid === "checked" ? (
+        <GridItem
+          item={items}
+          visibleMenuId={visibleMenuId}
+          openMenu={openMenu}
+          closeMenu={closeMenu}
+        />
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.$id}
+          renderItem={({ item }) => {
+            if (layoutView.card === "checked") {
+              return (
+                <CardItem
+                  item={item}
+                  visibleMenuId={visibleMenuId}
+                  openMenu={openMenu}
+                  closeMenu={closeMenu}
+                />
+              );
+            } else if (layoutView.list === "checked") {
+              return (
+                <ListItem
+                  item={item}
+                  visibleMenuId={visibleMenuId}
+                  openMenu={openMenu}
+                  closeMenu={closeMenu}
+                />
+              );
+            } else {
+              return null; // Render nothing if no view is checked
+            }
+          }}
+          ListEmptyComponent={() => (
+            <EmptyState
+              title="No Pianos Found"
+              subtitle="Try other search terms"
+            />
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 };
