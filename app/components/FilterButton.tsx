@@ -38,6 +38,10 @@ const FilterButton = () => {
       value: SORT_BY_OPTIONS.LATEST_ADDED,
     },
     {
+      label: SORT_BY_OPTIONS.DUE_DATE,
+      value: SORT_BY_OPTIONS.DUE_DATE,
+    },
+    {
       label: SORT_BY_OPTIONS.PURCHASE_DATE,
       value: SORT_BY_OPTIONS.PURCHASE_DATE,
     },
@@ -101,6 +105,16 @@ const FilterButton = () => {
           return dateB - dateA;
         });
         break;
+      case SORT_BY_OPTIONS.DUE_DATE:
+        filteredItems = sortItems(
+          filteredItems.filter(
+            (item) => item.category === "rentable" && item.rental_period_end
+          ),
+          (a, b) =>
+            new Date(b.rental_period_end).getTime() -
+            new Date(a.rental_period_end).getTime()
+        );
+        break;
       default:
         break;
     }
@@ -142,8 +156,14 @@ const FilterButton = () => {
     <Chip
       mode="outlined"
       onPress={() => handleCategoryPress(label)}
-      selected={filterForm.category === label}
-      disabled={filterForm.isActiveRentals && label !== "Rentable"}
+      selected={
+        filterForm.category === label ||
+        (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label === "Rentable")
+      }
+      disabled={
+        (filterForm.isActiveRentals && label !== "Rentable") ||
+        (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label !== "Rentable")
+      }
       // selectedColor={filterForm.category === label ? "white" : PRIMARY_COLOR}
       // style={{
       //   backgroundColor:
