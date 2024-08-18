@@ -92,6 +92,20 @@ const ListItem: React.FC<ListItemProps> = ({
     return pluralize(remaining.days, "day");
   };
 
+  const isLessThanOrEqualTo7Days = (remaining: {
+    years: number;
+    months: number;
+    weeks: number;
+    days: number;
+  }) => {
+    return (
+      remaining.years === 0 &&
+      remaining.months === 0 &&
+      remaining.weeks === 0 &&
+      remaining.days <= 7
+    );
+  };
+
   const displayElapsedTime = (elapsed: {
     years: number;
     months: number;
@@ -191,7 +205,11 @@ const ListItem: React.FC<ListItemProps> = ({
 
               {rental_period_end && isRemainingPositive && (
                 <Text className="text-xs text-gray-100 font-pregular">
-                  <Text className="text-white font-psemibold">
+                  <Text
+                    className={`text-white font-psemibold ${
+                      isLessThanOrEqualTo7Days(remaining) ? "text-red-500" : ""
+                    }`}
+                  >
                     {displayRemainingTime(remaining)}
                   </Text>
                   {` remaining`}

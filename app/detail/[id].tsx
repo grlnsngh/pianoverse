@@ -53,6 +53,20 @@ const calculateRemainingPeriod = (end: string) => {
   return { days, weeks, months, years };
 };
 
+const isLessThanOrEqualTo7Days = (remaining: {
+  years: number;
+  months: number;
+  weeks: number;
+  days: number;
+}) => {
+  return (
+    remaining.years === 0 &&
+    remaining.months === 0 &&
+    remaining.weeks === 0 &&
+    remaining.days <= 7
+  );
+};
+
 const pluralize = (value: number, unit: string) =>
   `${value} ${unit}${value > 1 ? "s" : ""}`;
 
@@ -77,7 +91,11 @@ export const DurationText = ({
 }) => (
   <Text className="text-base text-gray-100 font-pmedium mt-6">
     {label}:{" "}
-    <Text className="text-white font-psemibold text-base">
+    <Text
+      className={`text-white font-psemibold ${
+        isLessThanOrEqualTo7Days(period) ? "text-red-500" : ""
+      }`}
+    >
       {displayRemainingTime(period)}
     </Text>
   </Text>
