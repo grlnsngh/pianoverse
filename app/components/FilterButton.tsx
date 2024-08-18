@@ -6,6 +6,7 @@ import {
 } from "@/redux/pianos/actions";
 import { FiltersType, PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
+import { differenceInDays } from "date-fns";
 import { Image } from "expo-image";
 import React, { useState } from "react";
 import {
@@ -111,6 +112,20 @@ const FilterButton = () => {
 
       filteredItems = filteredItems.filter(
         (item) => item.category === formattedFilter
+      );
+    }
+
+    const isRentalPeriodActive = (end: string): boolean => {
+      const endDate = new Date(end);
+      const currentDate = new Date();
+      const days = differenceInDays(endDate, currentDate);
+
+      return days > -1;
+    };
+
+    if (filterForm.isActiveRentals) {
+      filteredItems = filteredItems.filter((item) =>
+        isRentalPeriodActive(item.rental_period_end)
       );
     }
 
