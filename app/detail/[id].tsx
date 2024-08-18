@@ -43,6 +43,7 @@ const formatRentalDate = (date: Date | string) => {
 const calculateRemainingPeriod = (end: string) => {
   const endDate = new Date(end);
   const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
 
   const days = differenceInDays(endDate, currentDate);
   const weeks = differenceInWeeks(endDate, currentDate);
@@ -151,6 +152,13 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
       {piano.rental_period_end && isRemainingPositive && (
         <DurationText label="Remaining Period" period={remaining} />
       )}
+
+      <Text className="text-base text-gray-100 font-pmedium">
+        Current Date:{" "}
+        <Text className="text-white font-psemibold text-base">
+          {formatDate(new Date())}
+        </Text>
+      </Text>
 
       {piano.rental_price && (
         <Text className="text-base text-gray-100 font-pmedium">

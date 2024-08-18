@@ -43,6 +43,7 @@ interface ListItemProps {
 const calculateRemainingPeriod = (end: string) => {
   const endDate = new Date(end);
   const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
 
   const days = differenceInDays(endDate, currentDate);
   const weeks = differenceInWeeks(endDate, currentDate);
