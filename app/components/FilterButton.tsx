@@ -128,6 +128,7 @@ const FilterButton = () => {
       mode="outlined"
       onPress={() => handleCategoryPress(label)}
       selected={filterForm.category === label}
+      disabled={filterForm.isActiveRentals && label !== "Rentable"}
       // selectedColor={filterForm.category === label ? "white" : PRIMARY_COLOR}
       // style={{
       //   backgroundColor:
@@ -308,12 +309,16 @@ const FilterButton = () => {
                     <Text style={styles.option}>Active rentals</Text>
                     <Switch
                       value={filterForm.isActiveRentals}
-                      onValueChange={() =>
+                      onValueChange={() => {
+                        const newCategory =
+                          filterForm.category === "Rentable" ? "" : "Rentable";
+
                         setFilterForm({
                           ...filterForm,
+                          category: newCategory,
                           isActiveRentals: !filterForm.isActiveRentals,
-                        })
-                      }
+                        });
+                      }}
                     />
                   </View>
 
