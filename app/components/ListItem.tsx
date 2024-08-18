@@ -2,6 +2,13 @@ import { icons } from "@/constants";
 import { CATEGORY_COLORS } from "@/constants/colors";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
+import {
+  differenceInDays,
+  differenceInMonths,
+  differenceInWeeks,
+  differenceInYears,
+  format,
+} from "date-fns";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React from "react";
@@ -25,11 +32,25 @@ interface ListItemProps {
       avatar?: string;
     };
     company_associated?: string;
+    rental_period_end?: string;
+    category: string;
   };
   visibleMenuId: string | null;
   openMenu: (id: string) => void;
   closeMenu: () => void;
 }
+
+const calculateRemainingPeriod = (end: string) => {
+  const endDate = new Date(end);
+  const currentDate = new Date();
+
+  const days = differenceInDays(endDate, currentDate);
+  const weeks = differenceInWeeks(endDate, currentDate);
+  const months = differenceInMonths(endDate, currentDate);
+  const years = differenceInYears(endDate, currentDate);
+
+  return { days, weeks, months, years };
+};
 
 const ListItem: React.FC<ListItemProps> = ({
   item,
@@ -43,8 +64,44 @@ const ListItem: React.FC<ListItemProps> = ({
     users = {},
     company_associated = "",
     category = "",
+    rental_period_end = "",
   } = item;
   const pathname = usePathname();
+
+  const remaining = calculateRemainingPeriod(rental_period_end);
+
+  const isRemainingPositive =
+    remaining.days > 0 ||
+    remaining.weeks > 0 ||
+    remaining.months > 0 ||
+    remaining.years > 0;
+
+  const pluralize = (value: number, unit: string) =>
+    `${value} ${unit}${value > 1 ? "s" : ""}`;
+
+  const displayRemainingTime = (remaining: {
+    years: number;
+    months: number;
+    weeks: number;
+    days: number;
+  }) => {
+    if (remaining.years > 0) return pluralize(remaining.years, "year");
+    if (remaining.months > 0) return pluralize(remaining.months, "month");
+    if (remaining.weeks > 0) return pluralize(remaining.weeks, "week");
+    return pluralize(remaining.days, "day");
+  };
+
+  const displayElapsedTime = (elapsed: {
+    years: number;
+    months: number;
+    weeks: number;
+    days: number;
+  }) => {
+    if (elapsed.years > 0) return pluralize(elapsed.years, "year");
+    if (elapsed.months > 0) return pluralize(elapsed.months, "month");
+    if (elapsed.weeks > 0) return pluralize(elapsed.weeks, "week");
+    return pluralize(elapsed.days, "day");
+  };
 
   const handleOnClickItem = () => {
     if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
@@ -128,6 +185,31 @@ const ListItem: React.FC<ListItemProps> = ({
                   numberOfLines={1}
                 >
                   {company_associated}
+                </Text>
+              )}
+
+              {rental_period_end && isRemainingPositive && (
+                <Text className="text-xs text-gray-100 font-pregular">
+                  <Text className="text-white font-psemibold">
+                    {displayRemainingTime(remaining)}
+                  </Text>
+                  {` remaining`}
+                </Text>
+              )}
+
+              {rental_period_end && !isRemainingPositive && (
+                <Text className="text-xs text-gray-100 font-pregular">
+                  {`Expired `}
+
+                  <Text className="text-white font-psemibold">
+                    {displayElapsedTime({
+                      years: Math.abs(remaining.years),
+                      months: Math.abs(remaining.months),
+                      weeks: Math.abs(remaining.weeks),
+                      days: Math.abs(remaining.days),
+                    })}
+                  </Text>
+                  {` ago`}
                 </Text>
               )}
             </View>
