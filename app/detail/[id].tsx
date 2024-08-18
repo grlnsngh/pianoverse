@@ -52,7 +52,22 @@ const calculateRemainingPeriod = (end: string) => {
   return { days, weeks, months, years };
 };
 
-const DurationText = ({
+const pluralize = (value: number, unit: string) =>
+  `${value} ${unit}${value > 1 ? "s" : ""}`;
+
+const displayRemainingTime = (remaining: {
+  years: number;
+  months: number;
+  weeks: number;
+  days: number;
+}) => {
+  if (remaining.years > 0) return pluralize(remaining.years, "year");
+  if (remaining.months > 0) return pluralize(remaining.months, "month");
+  if (remaining.weeks > 0) return pluralize(remaining.weeks, "week");
+  return pluralize(remaining.days, "day");
+};
+
+export const DurationText = ({
   label,
   period,
 }: {
@@ -62,13 +77,7 @@ const DurationText = ({
   <Text className="text-base text-gray-100 font-pmedium mt-6">
     {label}:{" "}
     <Text className="text-white font-psemibold text-base">
-      {period.years > 0
-        ? `${period.years} years`
-        : period.months > 0
-        ? `${period.months} months`
-        : period.weeks > 0
-        ? `${period.weeks} weeks`
-        : `${period.days} days`}
+      {displayRemainingTime(period)}
     </Text>
   </Text>
 );
