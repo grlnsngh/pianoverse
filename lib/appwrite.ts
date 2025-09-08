@@ -126,10 +126,36 @@ export async function getCurrentUser() {
 }
 
 /**
- * Retrieves piano entries created by a specific user.
+ * Converts an old transformed image URL to a new URL without transformations.
+ *
+ * @param {string} oldUrl - The old URL with transformation parameters.
+ * @returns {string | null} - The new URL without transformations or null if conversion fails.
+ */
+export function convertImageUrl(oldUrl: string): string | null {
+  if (!oldUrl || typeof oldUrl !== 'string') return null;
+
+  // If it's already a view URL (no transformation parameters), return as is
+  if (oldUrl.includes('/view?')) {
+    return oldUrl;
+  }
+
+  // Extract file ID from the old URL
+  const fileIdMatch = oldUrl.match(/files\/([^/]+)\//);
+  if (!fileIdMatch) return null;
+
+  const fileId = fileIdMatch[1];
+
+  // Generate new URL without transformations
+  const newUrl = `https://cloud.appwrite.io/v1/storage/buckets/${appwriteConfig.storageId}/files/${fileId}/view?project=${appwriteConfig.projectId}`;
+
+  return newUrl;
+}
+
+/**
+ * Retrieves piano entries created by a specific user and converts image URLs.
  *
  * @param {string} userAccountId - The ID of the user whose piano entries are to be retrieved.
- * @returns {Promise<Object[]>} A promise that resolves to an array of documents representing the user's piano entries.
+ * @returns {Promise<Object[]>} A promise that resolves to an array of documents with converted image URLs.
  * @throws {Error} If there is an error retrieving the piano entries.
  */
 export async function getUserPianoEntries(userAccountId: string) {
@@ -139,7 +165,14 @@ export async function getUserPianoEntries(userAccountId: string) {
       appwriteConfig.pianoCollectionId,
       [Query.orderDesc("$createdAt"), Query.equal("creator", userAccountId)]
     );
-    return items.documents;
+
+    // Convert image URLs to remove transformations
+    const convertedItems = items.documents.map(item => ({
+      ...item,
+      image_url: item.image_url ? convertImageUrl(item.image_url) : item.image_url
+    }));
+
+    return convertedItems;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(errorMessage);
@@ -226,13 +259,9 @@ export async function getFilePreview(fileId) {
   let fileUrl;
 
   try {
-    fileUrl = storage.getFilePreview(
+    fileUrl = storage.getFileView(
       appwriteConfig.storageId,
-      fileId,
-      2000,
-      2000,
-      "top",
-      100
+      fileId
     );
 
     if (!fileUrl) throw Error;
