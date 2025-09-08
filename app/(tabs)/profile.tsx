@@ -87,6 +87,32 @@ const Profile = () => {
     setModalVisible(true);
   };
 
+  const formatMemberSince = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const calculateMembershipDuration = (dateString: string) => {
+    const joinDate = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - joinDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 30) {
+      return `${diffDays} day${diffDays !== 1 ? "s" : ""}`;
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      return `${months} month${months !== 1 ? "s" : ""}`;
+    } else {
+      const years = Math.floor(diffDays / 365);
+      return `${years} year${years !== 1 ? "s" : ""}`;
+    }
+  };
+
   return (
     <SafeAreaView className="bg-primary h-full">
       <ScrollView className="flex-1">
@@ -125,6 +151,34 @@ const Profile = () => {
             subtitle={user?.email}
           />
         </View>
+
+        {/* Member Since Section */}
+        {user?.$createdAt && (
+          <View className="px-4 mb-6">
+            <View className="bg-primary-400 rounded-xl p-4">
+              <View className="flex-row items-center justify-center">
+                <View className="bg-secondary rounded-full p-2 mr-3">
+                  <Image
+                    source={icons.profile}
+                    className="w-5 h-5"
+                    tintColor="#161622"
+                  />
+                </View>
+                <View>
+                  <Text className="text-white text-base font-psemibold mb-1">
+                    Member Since
+                  </Text>
+                  <Text className="text-gray-100 text-sm font-pregular">
+                    {formatMemberSince(user.$createdAt)}
+                  </Text>
+                  <Text className="text-secondary text-xs font-pmedium">
+                    {calculateMembershipDuration(user.$createdAt)} with us
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Stats Section */}
         <View className="px-4 mb-4">
