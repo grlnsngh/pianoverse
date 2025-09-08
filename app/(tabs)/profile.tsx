@@ -186,106 +186,164 @@ const Profile = () => {
             Your Stats
           </Text>
 
-          {/* Main Stats Grid */}
-          <View className="flex-row flex-wrap mb-3">
-            {/* Total Pianos */}
-            <View className="w-1/2 p-1">
-              <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
-                <View className="bg-secondary rounded-full p-1.5 mb-1.5">
-                  <Image
-                    source={icons.card}
-                    className="w-4 h-4"
-                    tintColor="#161622"
-                  />
+          {items.length === 0 ? (
+            /* Empty State for No Pianos */
+            <View className="bg-primary-400 rounded-xl p-6 items-center">
+              <View className="bg-secondary bg-opacity-20 rounded-full p-4 mb-4">
+                <Image
+                  source={icons.card}
+                  className="w-12 h-12"
+                  tintColor="#FF9C01"
+                />
+              </View>
+              <Text className="text-white text-lg font-psemibold mb-2">
+                No Pianos Yet
+              </Text>
+              <Text className="text-gray-100 text-center text-sm font-pregular mb-4">
+                Start building your piano collection by adding your first
+                instrument
+              </Text>
+              <TouchableOpacity
+                className="bg-secondary rounded-xl px-6 py-3 flex-row items-center"
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={icons.plus}
+                  className="w-5 h-5 mr-2"
+                  tintColor="#161622"
+                />
+                <Text className="text-primary font-psemibold">
+                  Add First Piano
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              {/* Main Stats Grid */}
+              <View className="flex-row flex-wrap mb-3">
+                {/* Total Pianos */}
+                <View className="w-1/2 p-1">
+                  <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
+                    <View className="bg-secondary rounded-full p-1.5 mb-1.5">
+                      <Image
+                        source={icons.card}
+                        className="w-4 h-4"
+                        tintColor="#161622"
+                      />
+                    </View>
+                    <Text className="text-white text-center text-lg font-pbold">
+                      {items?.length || 0}
+                    </Text>
+                    <Text className="text-gray-100 text-center font-pregular text-xs">
+                      Total Pianos
+                    </Text>
+                  </View>
                 </View>
-                <Text className="text-white text-center text-lg font-pbold">
-                  {items?.length || 0}
-                </Text>
-                <Text className="text-gray-100 text-center font-pregular text-xs">
-                  Total Pianos
-                </Text>
-              </View>
-            </View>
 
-            {/* Total Value */}
-            <View className="w-1/2 p-1">
-              <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
-                <View className="bg-green-500 rounded-full p-1.5 mb-1.5">
-                  <Image
-                    source={icons.upload}
-                    className="w-4 h-4"
-                    tintColor="#ffffff"
-                  />
+                {/* Total Value */}
+                <View className="w-1/2 p-1">
+                  <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
+                    <View className="bg-green-500 rounded-full p-1.5 mb-1.5">
+                      <Image
+                        source={icons.upload}
+                        className="w-4 h-4"
+                        tintColor="#ffffff"
+                      />
+                    </View>
+                    <Text className="text-white text-center text-base font-pbold">
+                      ${totalValue.toLocaleString()}
+                    </Text>
+                    <Text className="text-gray-100 text-center font-pregular text-xs">
+                      Total Value
+                    </Text>
+                  </View>
                 </View>
-                <Text className="text-white text-center text-base font-pbold">
-                  ${totalValue.toLocaleString()}
-                </Text>
-                <Text className="text-gray-100 text-center font-pregular text-xs">
-                  Total Value
-                </Text>
-              </View>
-            </View>
 
-            {/* Active Rentals */}
-            <View className="w-1/2 p-1">
-              <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
-                <View className="bg-blue-500 rounded-full p-1.5 mb-1.5">
-                  <Image
-                    source={icons.eye}
-                    className="w-4 h-4"
-                    tintColor="#ffffff"
-                  />
+                {/* Active Rentals */}
+                <View className="w-1/2 p-1">
+                  <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
+                    <View className="bg-blue-500 rounded-full p-1.5 mb-1.5">
+                      <Image
+                        source={icons.eye}
+                        className="w-4 h-4"
+                        tintColor="#ffffff"
+                      />
+                    </View>
+                    <Text className="text-white text-center text-lg font-pbold">
+                      {activeRentals}
+                    </Text>
+                    <Text className="text-gray-100 text-center font-pregular text-xs">
+                      Active Rentals
+                    </Text>
+                  </View>
                 </View>
-                <Text className="text-white text-center text-lg font-pbold">
-                  {activeRentals}
-                </Text>
-                <Text className="text-gray-100 text-center font-pregular text-xs">
-                  Active Rentals
-                </Text>
-              </View>
-            </View>
 
-            {/* Recent Additions */}
-            <View className="w-1/2 p-1">
-              <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
-                <View className="bg-purple-500 rounded-full p-1.5 mb-1.5">
-                  <Image
-                    source={icons.plus}
-                    className="w-4 h-4"
-                    tintColor="#ffffff"
-                  />
+                {/* Recent Additions */}
+                <View className="w-1/2 p-1">
+                  <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
+                    <View className="bg-purple-500 rounded-full p-1.5 mb-1.5">
+                      <Image
+                        source={icons.plus}
+                        className="w-4 h-4"
+                        tintColor="#ffffff"
+                      />
+                    </View>
+                    <Text className="text-white text-center text-lg font-pbold">
+                      {recentAdditions}
+                    </Text>
+                    <Text className="text-gray-100 text-center font-pregular text-xs">
+                      Added This Month
+                    </Text>
+                  </View>
                 </View>
-                <Text className="text-white text-center text-lg font-pbold">
-                  {recentAdditions}
-                </Text>
-                <Text className="text-gray-100 text-center font-pregular text-xs">
-                  Added This Month
-                </Text>
               </View>
-            </View>
-          </View>
 
-          {/* Additional Stats Row */}
-          <View className="bg-primary-400 rounded-lg p-3 mb-3">
-            <View className="flex-row justify-between items-center">
-              <View className="flex-1">
-                <Text className="text-white text-sm font-psemibold mb-0.5">
-                  This Month
-                </Text>
-                <Text className="text-gray-100 font-pregular text-xs">
-                  Sales & Activity
-                </Text>
-              </View>
-              <View className="items-end">
-                <Text className="text-secondary text-base font-pbold">
-                  {soldThisMonth}
-                </Text>
-                <Text className="text-gray-100 font-pregular text-xs">
-                  Pianos Sold
-                </Text>
-              </View>
-            </View>
-          </View>
+              {/* Additional Stats Row */}
+              {soldThisMonth === 0 ? (
+                <View className="bg-primary-400 rounded-lg p-4 mb-3">
+                  <View className="flex-row items-center">
+                    <View className="bg-gray-500 rounded-full p-2 mr-3">
+                      <Image
+                        source={icons.trash}
+                        className="w-5 h-5"
+                        tintColor="#ffffff"
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-white text-sm font-psemibold mb-1">
+                        No Sales This Month
+                      </Text>
+                      <Text className="text-gray-100 font-pregular text-xs">
+                        Your sales activity will appear here once you start
+                        selling pianos
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              ) : (
+                <View className="bg-primary-400 rounded-lg p-3 mb-3">
+                  <View className="flex-row justify-between items-center">
+                    <View className="flex-1">
+                      <Text className="text-white text-sm font-psemibold mb-0.5">
+                        This Month
+                      </Text>
+                      <Text className="text-gray-100 font-pregular text-xs">
+                        Sales & Activity
+                      </Text>
+                    </View>
+                    <View className="items-end">
+                      <Text className="text-secondary text-base font-pbold">
+                        {soldThisMonth}
+                      </Text>
+                      <Text className="text-gray-100 font-pregular text-xs">
+                        Pianos Sold
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </>
+          )}
         </View>
 
         {/* Category Cards */}
@@ -294,180 +352,213 @@ const Profile = () => {
             Piano Categories
           </Text>
 
-          {/* Compact Horizontal Layout */}
-          <View className="flex-row justify-between">
-            {/* Rentable */}
-            <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
-              <View
-                className="rounded-xl p-3 items-center shadow-lg h-32"
-                style={{
-                  backgroundColor: CATEGORY_COLORS.RENTABLE,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 3 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
-                }}
-              >
-                <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
-                  <Image
-                    source={images.category_rentable}
-                    className="w-6 h-6 rounded-md"
-                    resizeMode="cover"
-                  />
-                </View>
-                <Text className="text-primary text-lg font-pbold mb-0.5">
-                  {rentableCount}
-                </Text>
-                <Text className="text-primary font-psemibold text-xs opacity-80">
-                  Rentable
-                </Text>
-                {/* Progress bar */}
-                <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
-                  <View
-                    className="bg-primary rounded-full h-1"
-                    style={{
-                      width:
-                        items.length > 0
-                          ? `${(rentableCount / items.length) * 100}%`
-                          : "0%",
-                    }}
-                  />
-                </View>
+          {items.length === 0 ? (
+            /* Empty State for No Categories */
+            <View className="bg-primary-400 rounded-xl p-6 items-center">
+              <View className="bg-secondary bg-opacity-20 rounded-full p-4 mb-4">
+                <Image
+                  source={icons.grid}
+                  className="w-12 h-12"
+                  tintColor="#FF9C01"
+                />
               </View>
-            </TouchableOpacity>
-
-            {/* Events */}
-            <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
-              <View
-                className="rounded-xl p-3 items-center shadow-lg h-32"
-                style={{
-                  backgroundColor: CATEGORY_COLORS.EVENTS,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 3 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
-                }}
-              >
-                <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
-                  <Image
-                    source={images.category_event}
-                    className="w-6 h-6 rounded-md"
-                    resizeMode="cover"
-                  />
-                </View>
-                <Text className="text-primary text-lg font-pbold mb-0.5">
-                  {eventsCount}
-                </Text>
-                <Text className="text-primary font-psemibold text-xs opacity-80">
-                  Events
-                </Text>
-                <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
-                  <View
-                    className="bg-primary rounded-full h-1"
-                    style={{
-                      width:
-                        items.length > 0
-                          ? `${(eventsCount / items.length) * 100}%`
-                          : "0%",
-                    }}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            {/* On Sale */}
-            <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
-              <View
-                className="rounded-xl p-3 items-center shadow-lg h-32"
-                style={{
-                  backgroundColor: CATEGORY_COLORS.ON_SALE,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 3 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
-                }}
-              >
-                <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
-                  <Image
-                    source={images.category_sale}
-                    className="w-6 h-6 rounded-md"
-                    resizeMode="cover"
-                  />
-                </View>
-                <Text className="text-primary text-lg font-pbold mb-0.5">
-                  {onSaleCount}
-                </Text>
-                <Text className="text-primary font-psemibold text-xs opacity-80">
-                  On Sale
-                </Text>
-                <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
-                  <View
-                    className="bg-primary rounded-full h-1"
-                    style={{
-                      width:
-                        items.length > 0
-                          ? `${(onSaleCount / items.length) * 100}%`
-                          : "0%",
-                    }}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            {/* Warehouse */}
-            <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
-              <View
-                className="rounded-xl p-3 items-center shadow-lg h-32"
-                style={{
-                  backgroundColor: CATEGORY_COLORS.WAREHOUSE,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 3 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
-                }}
-              >
-                <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
-                  <Image
-                    source={images.category_warehouse}
-                    className="w-6 h-6 rounded-md"
-                    resizeMode="cover"
-                  />
-                </View>
-                <Text className="text-primary text-lg font-pbold mb-0.5">
-                  {warehouseCount}
-                </Text>
-                <Text className="text-primary font-psemibold text-xs opacity-80 text-center leading-tight">
-                  Storage
-                </Text>
-                <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
-                  <View
-                    className="bg-primary rounded-full h-1"
-                    style={{
-                      width:
-                        items.length > 0
-                          ? `${(warehouseCount / items.length) * 100}%`
-                          : "0%",
-                    }}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Category Summary */}
-          <View className="mt-4 bg-primary-400 rounded-lg p-3">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-white text-sm font-psemibold">
-                Category Distribution
+              <Text className="text-white text-lg font-psemibold mb-2">
+                No Categories Yet
               </Text>
-              <View className="flex-row items-center">
-                <Text className="text-gray-100 text-xs mr-2">
-                  Total: {items.length}
-                </Text>
-                <View className="w-2 h-2 bg-secondary rounded-full"></View>
-              </View>
+              <Text className="text-gray-100 text-center text-sm font-pregular mb-4">
+                Add your first piano to see category breakdowns and track your
+                inventory
+              </Text>
+              <TouchableOpacity
+                className="bg-secondary rounded-xl px-6 py-3 flex-row items-center"
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={icons.plus}
+                  className="w-5 h-5 mr-2"
+                  tintColor="#161622"
+                />
+                <Text className="text-primary font-psemibold">Add Piano</Text>
+              </TouchableOpacity>
             </View>
-          </View>
+          ) : (
+            <>
+              {/* Compact Horizontal Layout */}
+              <View className="flex-row justify-between">
+                {/* Rentable */}
+                <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+                  <View
+                    className="rounded-xl p-3 items-center shadow-lg h-32"
+                    style={{
+                      backgroundColor: CATEGORY_COLORS.RENTABLE,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 3 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 4,
+                    }}
+                  >
+                    <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
+                      <Image
+                        source={images.category_rentable}
+                        className="w-6 h-6 rounded-md"
+                        resizeMode="cover"
+                      />
+                    </View>
+                    <Text className="text-primary text-lg font-pbold mb-0.5">
+                      {rentableCount}
+                    </Text>
+                    <Text className="text-primary font-psemibold text-xs opacity-80">
+                      Rentable
+                    </Text>
+                    {/* Progress bar */}
+                    <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
+                      <View
+                        className="bg-primary rounded-full h-1"
+                        style={{
+                          width:
+                            items.length > 0
+                              ? `${(rentableCount / items.length) * 100}%`
+                              : "0%",
+                        }}
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Events */}
+                <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+                  <View
+                    className="rounded-xl p-3 items-center shadow-lg h-32"
+                    style={{
+                      backgroundColor: CATEGORY_COLORS.EVENTS,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 3 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 4,
+                    }}
+                  >
+                    <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
+                      <Image
+                        source={images.category_event}
+                        className="w-6 h-6 rounded-md"
+                        resizeMode="cover"
+                      />
+                    </View>
+                    <Text className="text-primary text-lg font-pbold mb-0.5">
+                      {eventsCount}
+                    </Text>
+                    <Text className="text-primary font-psemibold text-xs opacity-80">
+                      Events
+                    </Text>
+                    <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
+                      <View
+                        className="bg-primary rounded-full h-1"
+                        style={{
+                          width:
+                            items.length > 0
+                              ? `${(eventsCount / items.length) * 100}%`
+                              : "0%",
+                        }}
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+
+                {/* On Sale */}
+                <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+                  <View
+                    className="rounded-xl p-3 items-center shadow-lg h-32"
+                    style={{
+                      backgroundColor: CATEGORY_COLORS.ON_SALE,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 3 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 4,
+                    }}
+                  >
+                    <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
+                      <Image
+                        source={images.category_sale}
+                        className="w-6 h-6 rounded-md"
+                        resizeMode="cover"
+                      />
+                    </View>
+                    <Text className="text-primary text-lg font-pbold mb-0.5">
+                      {onSaleCount}
+                    </Text>
+                    <Text className="text-primary font-psemibold text-xs opacity-80">
+                      On Sale
+                    </Text>
+                    <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
+                      <View
+                        className="bg-primary rounded-full h-1"
+                        style={{
+                          width:
+                            items.length > 0
+                              ? `${(onSaleCount / items.length) * 100}%`
+                              : "0%",
+                        }}
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Warehouse */}
+                <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+                  <View
+                    className="rounded-xl p-3 items-center shadow-lg h-32"
+                    style={{
+                      backgroundColor: CATEGORY_COLORS.WAREHOUSE,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 3 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 4,
+                    }}
+                  >
+                    <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
+                      <Image
+                        source={images.category_warehouse}
+                        className="w-6 h-6 rounded-md"
+                        resizeMode="cover"
+                      />
+                    </View>
+                    <Text className="text-primary text-lg font-pbold mb-0.5">
+                      {warehouseCount}
+                    </Text>
+                    <Text className="text-primary font-psemibold text-xs opacity-80 text-center leading-tight">
+                      Storage
+                    </Text>
+                    <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
+                      <View
+                        className="bg-primary rounded-full h-1"
+                        style={{
+                          width:
+                            items.length > 0
+                              ? `${(warehouseCount / items.length) * 100}%`
+                              : "0%",
+                        }}
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              {/* Category Summary */}
+              <View className="mt-4 bg-primary-400 rounded-lg p-3">
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-white text-sm font-psemibold">
+                    Category Distribution
+                  </Text>
+                  <View className="flex-row items-center">
+                    <Text className="text-gray-100 text-xs mr-2">
+                      Total: {items.length}
+                    </Text>
+                    <View className="w-2 h-2 bg-secondary rounded-full"></View>
+                  </View>
+                </View>
+              </View>
+            </>
+          )}
         </View>
       </ScrollView>
 
