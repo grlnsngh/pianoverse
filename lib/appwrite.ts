@@ -132,10 +132,10 @@ export async function getCurrentUser() {
  * @returns {string | null} - The new URL without transformations or null if conversion fails.
  */
 export function convertImageUrl(oldUrl: string): string | null {
-  if (!oldUrl || typeof oldUrl !== 'string') return null;
+  if (!oldUrl || typeof oldUrl !== "string") return null;
 
   // If it's already a view URL (no transformation parameters), return as is
-  if (oldUrl.includes('/view?')) {
+  if (oldUrl.includes("/view?")) {
     return oldUrl;
   }
 
@@ -167,9 +167,11 @@ export async function getUserPianoEntries(userAccountId: string) {
     );
 
     // Convert image URLs to remove transformations
-    const convertedItems = items.documents.map(item => ({
+    const convertedItems = items.documents.map((item) => ({
       ...item,
-      image_url: item.image_url ? convertImageUrl(item.image_url) : item.image_url
+      image_url: item.image_url
+        ? convertImageUrl(item.image_url)
+        : item.image_url,
     }));
 
     return convertedItems;
@@ -259,10 +261,7 @@ export async function getFilePreview(fileId) {
   let fileUrl;
 
   try {
-    fileUrl = storage.getFileView(
-      appwriteConfig.storageId,
-      fileId
-    );
+    fileUrl = storage.getFileView(appwriteConfig.storageId, fileId);
 
     if (!fileUrl) throw Error;
 
