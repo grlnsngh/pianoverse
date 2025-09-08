@@ -5,8 +5,14 @@ import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Modal, StyleSheet, Text, TouchableOpacity, View, ScrollView } from "react-native";
-import { Card } from "react-native-paper";
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import InfoBox from "../components/InfoBox";
@@ -32,26 +38,26 @@ const Profile = () => {
   };
 
   const calculateActiveRentals = () => {
-    return items.filter((item) => 
-      item.category === PIANO_CATEGORY.RENTABLE && 
-      item.rental_period_end && 
-      new Date(item.rental_period_end) > new Date()
+    return items.filter(
+      (item) =>
+        item.category === PIANO_CATEGORY.RENTABLE &&
+        item.rental_period_end &&
+        new Date(item.rental_period_end) > new Date()
     ).length;
   };
 
   const calculateRecentAdditions = () => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return items.filter((item) => 
-      new Date(item.$createdAt) > thirtyDaysAgo
-    ).length;
+    return items.filter((item) => new Date(item.$createdAt) > thirtyDaysAgo)
+      .length;
   };
 
   const calculateSoldThisMonth = () => {
     const thisMonth = new Date();
     thisMonth.setDate(1);
-    return items.filter((item) => 
-      item.sold_date && new Date(item.sold_date) >= thisMonth
+    return items.filter(
+      (item) => item.sold_date && new Date(item.sold_date) >= thisMonth
     ).length;
   };
 
@@ -122,7 +128,9 @@ const Profile = () => {
 
         {/* Stats Section */}
         <View className="px-4 mb-4">
-          <Text className="text-white text-base font-psemibold mb-3">Your Stats</Text>
+          <Text className="text-white text-base font-psemibold mb-3">
+            Your Stats
+          </Text>
 
           {/* Main Stats Grid */}
           <View className="flex-row flex-wrap mb-3">
@@ -136,8 +144,12 @@ const Profile = () => {
                     tintColor="#161622"
                   />
                 </View>
-                <Text className="text-white text-center text-lg font-pbold">{items?.length || 0}</Text>
-                <Text className="text-gray-100 text-center font-pregular text-xs">Total Pianos</Text>
+                <Text className="text-white text-center text-lg font-pbold">
+                  {items?.length || 0}
+                </Text>
+                <Text className="text-gray-100 text-center font-pregular text-xs">
+                  Total Pianos
+                </Text>
               </View>
             </View>
 
@@ -154,7 +166,9 @@ const Profile = () => {
                 <Text className="text-white text-center text-base font-pbold">
                   ${totalValue.toLocaleString()}
                 </Text>
-                <Text className="text-gray-100 text-center font-pregular text-xs">Total Value</Text>
+                <Text className="text-gray-100 text-center font-pregular text-xs">
+                  Total Value
+                </Text>
               </View>
             </View>
 
@@ -168,8 +182,12 @@ const Profile = () => {
                     tintColor="#ffffff"
                   />
                 </View>
-                <Text className="text-white text-center text-lg font-pbold">{activeRentals}</Text>
-                <Text className="text-gray-100 text-center font-pregular text-xs">Active Rentals</Text>
+                <Text className="text-white text-center text-lg font-pbold">
+                  {activeRentals}
+                </Text>
+                <Text className="text-gray-100 text-center font-pregular text-xs">
+                  Active Rentals
+                </Text>
               </View>
             </View>
 
@@ -183,8 +201,12 @@ const Profile = () => {
                     tintColor="#ffffff"
                   />
                 </View>
-                <Text className="text-white text-center text-lg font-pbold">{recentAdditions}</Text>
-                <Text className="text-gray-100 text-center font-pregular text-xs">Added This Month</Text>
+                <Text className="text-white text-center text-lg font-pbold">
+                  {recentAdditions}
+                </Text>
+                <Text className="text-gray-100 text-center font-pregular text-xs">
+                  Added This Month
+                </Text>
               </View>
             </View>
           </View>
@@ -193,12 +215,20 @@ const Profile = () => {
           <View className="bg-primary-400 rounded-lg p-3 mb-3">
             <View className="flex-row justify-between items-center">
               <View className="flex-1">
-                <Text className="text-white text-sm font-psemibold mb-0.5">This Month</Text>
-                <Text className="text-gray-100 font-pregular text-xs">Sales & Activity</Text>
+                <Text className="text-white text-sm font-psemibold mb-0.5">
+                  This Month
+                </Text>
+                <Text className="text-gray-100 font-pregular text-xs">
+                  Sales & Activity
+                </Text>
               </View>
               <View className="items-end">
-                <Text className="text-secondary text-base font-pbold">{soldThisMonth}</Text>
-                <Text className="text-gray-100 font-pregular text-xs">Pianos Sold</Text>
+                <Text className="text-secondary text-base font-pbold">
+                  {soldThisMonth}
+                </Text>
+                <Text className="text-gray-100 font-pregular text-xs">
+                  Pianos Sold
+                </Text>
               </View>
             </View>
           </View>
@@ -206,110 +236,182 @@ const Profile = () => {
 
         {/* Category Cards */}
         <View className="px-4 mb-6">
-          <Text className="text-white text-lg font-psemibold mb-4">Piano Categories</Text>
-          <View className="flex-row flex-wrap">
-            <View className="w-1/2 p-2">
-              <Card
-                className="p-4 rounded-xl"
-                elevation={5}
+          <Text className="text-white text-base font-psemibold mb-3">
+            Piano Categories
+          </Text>
+
+          {/* Compact Horizontal Layout */}
+          <View className="flex-row justify-between">
+            {/* Rentable */}
+            <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+              <View
+                className="rounded-xl p-3 items-center shadow-lg h-32"
                 style={{
                   backgroundColor: CATEGORY_COLORS.RENTABLE,
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.8,
-                  shadowRadius: 2,
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 4,
                 }}
               >
-                <View className="flex-row items-center">
+                <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
                   <Image
                     source={images.category_rentable}
-                    className="w-12 h-12 rounded-lg mr-3"
+                    className="w-6 h-6 rounded-md"
                     resizeMode="cover"
                   />
-                  <View>
-                    <Text className="text-primary text-2xl font-pbold">{rentableCount}</Text>
-                    <Text className="text-primary font-pregular">Rentable</Text>
-                  </View>
                 </View>
-              </Card>
-            </View>
+                <Text className="text-primary text-lg font-pbold mb-0.5">
+                  {rentableCount}
+                </Text>
+                <Text className="text-primary font-psemibold text-xs opacity-80">
+                  Rentable
+                </Text>
+                {/* Progress bar */}
+                <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
+                  <View
+                    className="bg-primary rounded-full h-1"
+                    style={{
+                      width:
+                        items.length > 0
+                          ? `${(rentableCount / items.length) * 100}%`
+                          : "0%",
+                    }}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
 
-            <View className="w-1/2 p-2">
-              <Card
-                className="p-4 rounded-xl"
-                elevation={5}
+            {/* Events */}
+            <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+              <View
+                className="rounded-xl p-3 items-center shadow-lg h-32"
                 style={{
                   backgroundColor: CATEGORY_COLORS.EVENTS,
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.8,
-                  shadowRadius: 2,
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 4,
                 }}
               >
-                <View className="flex-row items-center">
+                <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
                   <Image
                     source={images.category_event}
-                    className="w-12 h-12 rounded-lg mr-3"
+                    className="w-6 h-6 rounded-md"
                     resizeMode="cover"
                   />
-                  <View>
-                    <Text className="text-primary text-2xl font-pbold">{eventsCount}</Text>
-                    <Text className="text-primary font-pregular">Events</Text>
-                  </View>
                 </View>
-              </Card>
-            </View>
+                <Text className="text-primary text-lg font-pbold mb-0.5">
+                  {eventsCount}
+                </Text>
+                <Text className="text-primary font-psemibold text-xs opacity-80">
+                  Events
+                </Text>
+                <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
+                  <View
+                    className="bg-primary rounded-full h-1"
+                    style={{
+                      width:
+                        items.length > 0
+                          ? `${(eventsCount / items.length) * 100}%`
+                          : "0%",
+                    }}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
 
-            <View className="w-1/2 p-2">
-              <Card
-                className="p-4 rounded-xl"
-                elevation={5}
+            {/* On Sale */}
+            <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+              <View
+                className="rounded-xl p-3 items-center shadow-lg h-32"
                 style={{
                   backgroundColor: CATEGORY_COLORS.ON_SALE,
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.8,
-                  shadowRadius: 2,
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 4,
                 }}
               >
-                <View className="flex-row items-center">
+                <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
                   <Image
                     source={images.category_sale}
-                    className="w-12 h-12 rounded-lg mr-3"
+                    className="w-6 h-6 rounded-md"
                     resizeMode="cover"
                   />
-                  <View>
-                    <Text className="text-primary text-2xl font-pbold">{onSaleCount}</Text>
-                    <Text className="text-primary font-pregular">On Sale</Text>
-                  </View>
                 </View>
-              </Card>
-            </View>
+                <Text className="text-primary text-lg font-pbold mb-0.5">
+                  {onSaleCount}
+                </Text>
+                <Text className="text-primary font-psemibold text-xs opacity-80">
+                  On Sale
+                </Text>
+                <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
+                  <View
+                    className="bg-primary rounded-full h-1"
+                    style={{
+                      width:
+                        items.length > 0
+                          ? `${(onSaleCount / items.length) * 100}%`
+                          : "0%",
+                    }}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
 
-            <View className="w-1/2 p-2">
-              <Card
-                className="p-4 rounded-xl"
-                elevation={5}
+            {/* Warehouse */}
+            <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+              <View
+                className="rounded-xl p-3 items-center shadow-lg h-32"
                 style={{
                   backgroundColor: CATEGORY_COLORS.WAREHOUSE,
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.8,
-                  shadowRadius: 2,
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 4,
                 }}
               >
-                <View className="flex-row items-center">
+                <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
                   <Image
                     source={images.category_warehouse}
-                    className="w-12 h-12 rounded-lg mr-3"
+                    className="w-6 h-6 rounded-md"
                     resizeMode="cover"
                   />
-                  <View>
-                    <Text className="text-primary text-2xl font-pbold">{warehouseCount}</Text>
-                    <Text className="text-primary font-pregular">Warehouse</Text>
-                  </View>
                 </View>
-              </Card>
+                <Text className="text-primary text-lg font-pbold mb-0.5">
+                  {warehouseCount}
+                </Text>
+                <Text className="text-primary font-psemibold text-xs opacity-80 text-center leading-tight">
+                  Storage
+                </Text>
+                <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
+                  <View
+                    className="bg-primary rounded-full h-1"
+                    style={{
+                      width:
+                        items.length > 0
+                          ? `${(warehouseCount / items.length) * 100}%`
+                          : "0%",
+                    }}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Category Summary */}
+          <View className="mt-4 bg-primary-400 rounded-lg p-3">
+            <View className="flex-row justify-between items-center">
+              <Text className="text-white text-sm font-psemibold">
+                Category Distribution
+              </Text>
+              <View className="flex-row items-center">
+                <Text className="text-gray-100 text-xs mr-2">
+                  Total: {items.length}
+                </Text>
+                <View className="w-2 h-2 bg-secondary rounded-full"></View>
+              </View>
             </View>
           </View>
         </View>
@@ -346,14 +448,18 @@ const Profile = () => {
                 className="bg-gray-100 rounded-xl py-3 px-6 flex-1 mr-2 border border-gray-200"
                 activeOpacity={0.7}
               >
-                <Text className="text-gray-700 font-psemibold text-center">Cancel</Text>
+                <Text className="text-gray-700 font-psemibold text-center">
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleConfirmLogout}
                 className="bg-red-500 rounded-xl py-3 px-6 flex-1 ml-2 shadow-lg"
                 activeOpacity={0.8}
               >
-                <Text className="text-white font-psemibold text-center">Sign Out</Text>
+                <Text className="text-white font-psemibold text-center">
+                  Sign Out
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
