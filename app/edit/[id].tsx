@@ -122,6 +122,8 @@ const EditScreen = () => {
 
   const navigation = useNavigation();
   const [uploading, setUploading] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [existingImageError, setExistingImageError] = useState(false);
 
   const [form, setForm] = useState<FormState>({
     category: category,
@@ -156,6 +158,11 @@ const EditScreen = () => {
   ] = useState(false);
   const [showDateOfPurchasePicker, setShowDateOfPurchasePicker] =
     useState(false);
+
+  // Reset image error when image changes
+  useEffect(() => {
+    setImageError(false);
+  }, [form.image]);
 
   const onDateOfPurchaseChange = (
     event: React.SyntheticEvent,
@@ -202,7 +209,20 @@ const EditScreen = () => {
     });
 
     if (!result.canceled) {
-      const imageUri = result.assets[0].uri;
+      const asset = result.assets[0];
+
+      // Check minimum dimensions to prevent too small cropped images
+      const minWidth = 50;
+      const minHeight = 50;
+      if (asset.width < minWidth || asset.height < minHeight) {
+        Alert.alert(
+          "Image Too Small",
+          `The cropped image is too small (${asset.width}x${asset.height}). Please select a larger area or choose a different image. Minimum size: ${minWidth}x${minHeight} pixels.`
+        );
+        return;
+      }
+
+      const imageUri = asset.uri;
       const response = await fetch(imageUri);
       const blob = await response.blob();
       const fileSize = blob.size; // File size in bytes
@@ -231,7 +251,7 @@ const EditScreen = () => {
       setForm({
         ...form,
         image: {
-          ...result.assets[0],
+          ...asset,
           uri: compressedImageUri,
           fileSize: compressedFileSize,
         },
@@ -317,12 +337,24 @@ const EditScreen = () => {
             <View>
               {form.image ? (
                 <>
-                  <Image
-                    style={{ height: 300 }}
-                    source={{ uri: form.image.uri }}
-                    resizeMode="cover"
-                    className="w-full h-64 rounded-2xl"
-                  />
+                  {imageError ? (
+                    <View className="w-full h-64 rounded-2xl bg-black-100 items-center justify-center">
+                      <Text className="text-gray-100 font-pmedium">
+                        Failed to load image
+                      </Text>
+                      <Text className="text-gray-100 text-sm mt-2 text-center px-4">
+                        The image may be corrupted or too small.
+                      </Text>
+                    </View>
+                  ) : (
+                    <Image
+                      style={{ height: 300 }}
+                      source={{ uri: form.image.uri }}
+                      resizeMode="cover"
+                      className="w-full h-64 rounded-2xl"
+                      onError={() => setImageError(true)}
+                    />
+                  )}
                   <TouchableOpacity
                     onPress={() => {
                       setForm({ ...form, image: null });
@@ -349,12 +381,27 @@ const EditScreen = () => {
                 </>
               ) : (
                 <>
-                  <Image
-                    source={{ uri: image_url }}
-                    className="w-full rounded-2xl"
-                    resizeMode="cover"
-                    style={{ height: 300 }}
-                  />
+                  {existingImageError ? (
+                    <View
+                      className="w-full rounded-2xl bg-black-100 items-center justify-center"
+                      style={{ height: 300 }}
+                    >
+                      <Text className="text-gray-100 font-pmedium">
+                        Failed to load image
+                      </Text>
+                      <Text className="text-gray-100 text-sm mt-2 text-center px-4">
+                        The existing image may be corrupted.
+                      </Text>
+                    </View>
+                  ) : (
+                    <Image
+                      source={{ uri: image_url }}
+                      className="w-full rounded-2xl"
+                      resizeMode="cover"
+                      style={{ height: 300 }}
+                      onError={() => setExistingImageError(true)}
+                    />
+                  )}
                   <TouchableOpacity
                     onPress={() => {
                       // setForm({ ...form, image: null });

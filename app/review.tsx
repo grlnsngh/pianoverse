@@ -3,7 +3,7 @@ import { useGlobalContext } from "@/context/GlobalProvider";
 import { createPianoEntry } from "@/lib/appwrite";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import React, { useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -24,9 +24,51 @@ const Review = () => {
   const params = useLocalSearchParams();
   const navigation = useNavigation();
   const [uploading, setUploading] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [lastImageUri, setLastImageUri] = useState<string | null>(null);
+  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
 
   // Parse the form data from the navigation params
   const form = params.formData ? JSON.parse(params.formData as string) : {};
+
+  // Reset image error when image URI changes
+  useEffect(() => {
+    if (form.image && form.image.uri !== lastImageUri) {
+      setImageError(false);
+      setImageLoading(false); // Reset loading state
+      setLastImageUri(form.image.uri);
+
+      // Clear any existing timeout
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+
+      // Set a timeout to clear loading state if image doesn't load within 2 seconds
+      const timeout = setTimeout(() => {
+        setImageLoading(false);
+      }, 2000);
+
+      setLoadingTimeout(timeout);
+    } else if (!form.image) {
+      setImageLoading(false);
+      setImageError(false);
+      setLastImageUri(null);
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        setLoadingTimeout(null);
+      }
+    }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+    };
+  }, [form.image, lastImageUri, loadingTimeout]);
 
   // Hide the default header
   useLayoutEffect(() => {
@@ -203,11 +245,56 @@ const Review = () => {
                     Piano Image:
                   </Text>
                   <View className="rounded-xl overflow-hidden shadow-md">
-                    <Image
-                      source={{ uri: form.image.uri }}
-                      className="w-full h-48"
-                      resizeMode="cover"
-                    />
+                    {form.image ? (
+                      <>
+                        {imageLoading && (
+                          <View className="absolute inset-0 bg-black-100 items-center justify-center z-10">
+                            <Text className="text-gray-100 font-pmedium">
+                              Loading image...
+                            </Text>
+                          </View>
+                        )}
+                        {!imageError ? (
+                          <Image
+                            source={{ uri: form.image.uri }}
+                            className="w-full h-48"
+                            resizeMode="cover"
+                            onError={() => {
+                              setImageError(true);
+                              setImageLoading(false);
+                              if (loadingTimeout) {
+                                clearTimeout(loadingTimeout);
+                                setLoadingTimeout(null);
+                              }
+                            }}
+                            onLoad={() => {
+                              setImageError(false);
+                              setImageLoading(false);
+                              if (loadingTimeout) {
+                                clearTimeout(loadingTimeout);
+                                setLoadingTimeout(null);
+                              }
+                            }}
+                            onLoadStart={() => {
+                              // Only set loading if not already loading (prevents unnecessary re-renders)
+                              if (!imageLoading) {
+                                setImageLoading(true);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <View className="w-full h-48 bg-black-100 items-center justify-center">
+                            <Text className="text-gray-100 font-pmedium">
+                              Failed to load image
+                            </Text>
+                            <Text className="text-gray-100 text-sm mt-2 text-center px-4">
+                              The image may be corrupted, too small, or unable
+                              to load.
+                            </Text>
+                          </View>
+                        )}
+                      </>
+                    ) : null}
                   </View>
                 </View>
               )}
