@@ -4,7 +4,7 @@ import { signOut } from "@/lib/appwrite";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Modal,
   StyleSheet,
@@ -12,10 +12,11 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
+  Animated,
+  Easing,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import InfoBox from "../components/InfoBox";
 import CustomButton from "../components/CustomButton";
 import { PIANO_CATEGORY } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
@@ -24,6 +25,219 @@ const Profile = () => {
   const { user, setUser, setIsLogged } = useGlobalContext();
   const [modalVisible, setModalVisible] = useState(false);
   const items = useSelector((state: RootState) => state.pianos.items);
+
+  // Animation refs
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const statsFadeAnim = useRef(new Animated.Value(0)).current;
+  const categoryFadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Category card pulse animation
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Individual stat card animations
+  const statCardAnim1 = useRef(new Animated.Value(0)).current;
+  const statCardAnim2 = useRef(new Animated.Value(0)).current;
+  const statCardAnim3 = useRef(new Animated.Value(0)).current;
+  const statCardAnim4 = useRef(new Animated.Value(0)).current;
+
+  // Loading animation
+  const loadingAnim = useRef(new Animated.Value(0)).current;
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate data loading (replace with actual data fetching)
+  useEffect(() => {
+    const loadProfileData = async () => {
+      try {
+        // Simulate API call or data processing
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        setIsLoading(false);
+
+        // Start animations after data is loaded
+        const loadingAnimation = Animated.loop(
+          Animated.timing(loadingAnim, {
+            toValue: 1,
+            duration: 1500,
+            easing: Easing.inOut(Easing.cubic),
+            useNativeDriver: true,
+          })
+        );
+        loadingAnimation.start();
+
+        // Start main animations
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 800,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(statsFadeAnim, {
+            toValue: 1,
+            duration: 1000,
+            delay: 300,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(categoryFadeAnim, {
+            toValue: 1,
+            duration: 1000,
+            delay: 600,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.stagger(200, [
+            Animated.timing(statCardAnim1, {
+              toValue: 1,
+              duration: 600,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+            Animated.timing(statCardAnim2, {
+              toValue: 1,
+              duration: 600,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+            Animated.timing(statCardAnim3, {
+              toValue: 1,
+              duration: 600,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+            Animated.timing(statCardAnim4, {
+              toValue: 1,
+              duration: 600,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+          ]),
+        ]).start();
+
+        return () => loadingAnimation.stop();
+      } catch (error) {
+        console.error('Error loading profile data:', error);
+        setIsLoading(false);
+      }
+    };
+
+    loadProfileData();
+  }, []);
+
+  useEffect(() => {
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 2000,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulseAnimation.start();
+
+    return () => pulseAnimation.stop();
+  }, []);
+
+  // Loading animation
+  useEffect(() => {
+    const loadingAnimation = Animated.loop(
+      Animated.timing(loadingAnim, {
+        toValue: 1,
+        duration: 1500,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: true,
+      })
+    );
+    loadingAnimation.start();
+
+    // Simulate loading time and then show content
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      loadingAnimation.stop();
+
+      // Start main animations after loading
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(statsFadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          delay: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(categoryFadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          delay: 600,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.stagger(200, [
+          Animated.timing(statCardAnim1, {
+            toValue: 1,
+            duration: 600,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(statCardAnim2, {
+            toValue: 1,
+            duration: 600,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(statCardAnim3, {
+            toValue: 1,
+            duration: 600,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(statCardAnim4, {
+            toValue: 1,
+            duration: 600,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
+    }, 500); // Reduced from 2000ms to 500ms
+
+    return () => {
+      clearTimeout(timer);
+      loadingAnimation.stop();
+    };
+  }, []);
+
+  // Button press animation
+  const animateButtonPress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 150,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
   const filterItemsByCategory = (category: string) => {
     return items.filter((item) => item.category === category).length;
@@ -115,15 +329,56 @@ const Profile = () => {
 
   return (
     <SafeAreaView className="bg-primary h-full">
-      <ScrollView className="flex-1">
-        {/* Header */}
-        <View className="flex-row justify-between items-center px-4 py-4">
-          <Text className="text-white text-2xl font-pbold">Profile</Text>
-          <TouchableOpacity
-            onPress={showLogoutModal}
-            className="bg-red-500 flex-row items-center px-4 py-2 rounded-xl shadow-lg"
-            activeOpacity={0.8}
+      {isLoading ? (
+        /* Loading Screen */
+        <View className="flex-1 justify-center items-center">
+          <Animated.View
+            style={{
+              transform: [
+                {
+                  rotate: loadingAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ["0deg", "360deg"],
+                  }),
+                },
+              ],
+            }}
           >
+            <View className="bg-secondary rounded-full p-4">
+              <Image
+                source={icons.profile}
+                className="w-12 h-12"
+                tintColor="#161622"
+              />
+            </View>
+          </Animated.View>
+          <Text className="text-white text-lg font-psemibold mt-4">
+            Loading Profile...
+          </Text>
+          <Text className="text-gray-100 text-sm font-pregular mt-2">
+            Preparing your piano collection
+          </Text>
+        </View>
+      ) : (
+        <Animated.View
+          style={{
+            flex: 1,
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          }}
+        >
+          <ScrollView className="flex-1">
+          {/* Header */}
+          <View className="flex-row justify-between items-center px-4 py-4">
+            <Text className="text-white text-2xl font-pbold">Profile</Text>
+            <TouchableOpacity
+              onPress={() => {
+                animateButtonPress();
+                showLogoutModal();
+              }}
+              className="bg-red-500 flex-row items-center px-4 py-2 rounded-xl shadow-lg"
+              activeOpacity={0.8}
+            >
             <Image
               source={icons.logout}
               resizeMode="contain"
@@ -135,53 +390,69 @@ const Profile = () => {
         </View>
 
         {/* User Info Section */}
-        <View className="w-full flex justify-center items-center mt-6 mb-8 px-4">
-          <View className="w-24 h-24 border-4 border-secondary rounded-full flex justify-center items-center mb-4">
-            <Image
-              source={{ uri: user?.avatar }}
-              className="w-[90%] h-[90%] rounded-full"
-              resizeMode="cover"
-            />
-          </View>
+        <View className="w-full px-4 mt-6 mb-8">
+          <View className="bg-primary-400 rounded-2xl p-6 shadow-lg">
+            <View className="flex-row items-center">
+              {/* Profile Picture */}
+              <View className="w-20 h-20 border-3 border-secondary rounded-full flex justify-center items-center mr-4">
+                <Image
+                  source={{ uri: user?.avatar }}
+                  className="w-[90%] h-[90%] rounded-full"
+                  resizeMode="cover"
+                />
+              </View>
 
-          <InfoBox
-            title={user?.username || "User"}
-            containerStyles="mt-2"
-            titleStyles="text-xl font-pbold"
-            subtitle={user?.email}
-          />
-        </View>
+              {/* User Details */}
+              <View className="flex-1">
+                <Text className="text-white text-xl font-pbold mb-1">
+                  {user?.username || "User"}
+                </Text>
+                <Text className="text-gray-100 text-sm font-pregular mb-2">
+                  {user?.email}
+                </Text>
 
-        {/* Member Since Section */}
-        {user?.$createdAt && (
-          <View className="px-4 mb-6">
-            <View className="bg-primary-400 rounded-xl p-4">
-              <View className="flex-row items-center justify-center">
-                <View className="bg-secondary rounded-full p-2 mr-3">
-                  <Image
-                    source={icons.profile}
-                    className="w-5 h-5"
-                    tintColor="#161622"
-                  />
-                </View>
-                <View>
-                  <Text className="text-white text-base font-psemibold mb-1">
-                    Member Since
-                  </Text>
-                  <Text className="text-gray-100 text-sm font-pregular">
-                    {formatMemberSince(user.$createdAt)}
-                  </Text>
-                  <Text className="text-secondary text-xs font-pmedium">
-                    {calculateMembershipDuration(user.$createdAt)} with us
-                  </Text>
-                </View>
+                {/* Member Since Info */}
+                {user?.$createdAt && (
+                  <View className="flex-row items-center">
+                    <View className="bg-secondary rounded-full p-1 mr-2">
+                      <Image
+                        source={icons.profile}
+                        className="w-3 h-3"
+                        tintColor="#161622"
+                      />
+                    </View>
+                    <Text className="text-secondary text-xs font-pmedium">
+                      Member for {calculateMembershipDuration(user.$createdAt)}
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
+
+            {/* Join Date */}
+            {user?.$createdAt && (
+              <View className="mt-4 pt-4 border-t border-gray-600">
+                <Text className="text-gray-100 text-xs font-pregular">
+                  Joined {formatMemberSince(user.$createdAt)}
+                </Text>
+              </View>
+            )}
           </View>
-        )}
+        </View>
 
         {/* Stats Section */}
-        <View className="px-4 mb-4">
+        <Animated.View
+          className="px-4 mb-4"
+          style={{
+            opacity: statsFadeAnim,
+            transform: [{
+              translateY: statsFadeAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [20, 0],
+              }),
+            }],
+          }}
+        >
           <Text className="text-white text-base font-psemibold mb-3">
             Your Stats
           </Text>
@@ -204,6 +475,11 @@ const Profile = () => {
                 instrument
               </Text>
               <TouchableOpacity
+                onPress={() => {
+                  animateButtonPress();
+                  // Navigate to create screen
+                  router.push("/create");
+                }}
                 className="bg-secondary rounded-xl px-6 py-3 flex-row items-center"
                 activeOpacity={0.8}
               >
@@ -223,7 +499,26 @@ const Profile = () => {
               <View className="flex-row flex-wrap mb-3">
                 {/* Total Pianos */}
                 <View className="w-1/2 p-1">
-                  <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
+                  <Animated.View
+                    className="bg-primary-400 rounded-lg p-3 items-center shadow-md"
+                    style={{
+                      opacity: statCardAnim1,
+                      transform: [
+                        {
+                          translateY: statCardAnim1.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [30, 0],
+                          }),
+                        },
+                        {
+                          scale: statCardAnim1.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.8, 1],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
                     <View className="bg-secondary rounded-full p-1.5 mb-1.5">
                       <Image
                         source={icons.card}
@@ -237,12 +532,31 @@ const Profile = () => {
                     <Text className="text-gray-100 text-center font-pregular text-xs">
                       Total Pianos
                     </Text>
-                  </View>
+                  </Animated.View>
                 </View>
 
                 {/* Total Value */}
                 <View className="w-1/2 p-1">
-                  <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
+                  <Animated.View
+                    className="bg-primary-400 rounded-lg p-3 items-center shadow-md"
+                    style={{
+                      opacity: statCardAnim2,
+                      transform: [
+                        {
+                          translateY: statCardAnim2.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [30, 0],
+                          }),
+                        },
+                        {
+                          scale: statCardAnim2.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.8, 1],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
                     <View className="bg-green-500 rounded-full p-1.5 mb-1.5">
                       <Image
                         source={icons.upload}
@@ -256,12 +570,31 @@ const Profile = () => {
                     <Text className="text-gray-100 text-center font-pregular text-xs">
                       Total Value
                     </Text>
-                  </View>
+                  </Animated.View>
                 </View>
 
                 {/* Active Rentals */}
                 <View className="w-1/2 p-1">
-                  <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
+                  <Animated.View
+                    className="bg-primary-400 rounded-lg p-3 items-center shadow-md"
+                    style={{
+                      opacity: statCardAnim3,
+                      transform: [
+                        {
+                          translateY: statCardAnim3.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [30, 0],
+                          }),
+                        },
+                        {
+                          scale: statCardAnim3.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.8, 1],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
                     <View className="bg-blue-500 rounded-full p-1.5 mb-1.5">
                       <Image
                         source={icons.eye}
@@ -275,12 +608,31 @@ const Profile = () => {
                     <Text className="text-gray-100 text-center font-pregular text-xs">
                       Active Rentals
                     </Text>
-                  </View>
+                  </Animated.View>
                 </View>
 
                 {/* Recent Additions */}
                 <View className="w-1/2 p-1">
-                  <View className="bg-primary-400 rounded-lg p-3 items-center shadow-md">
+                  <Animated.View
+                    className="bg-primary-400 rounded-lg p-3 items-center shadow-md"
+                    style={{
+                      opacity: statCardAnim4,
+                      transform: [
+                        {
+                          translateY: statCardAnim4.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [30, 0],
+                          }),
+                        },
+                        {
+                          scale: statCardAnim4.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.8, 1],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
                     <View className="bg-purple-500 rounded-full p-1.5 mb-1.5">
                       <Image
                         source={icons.plus}
@@ -294,7 +646,7 @@ const Profile = () => {
                     <Text className="text-gray-100 text-center font-pregular text-xs">
                       Added This Month
                     </Text>
-                  </View>
+                  </Animated.View>
                 </View>
               </View>
 
@@ -344,10 +696,21 @@ const Profile = () => {
               )}
             </>
           )}
-        </View>
+        </Animated.View>
 
         {/* Category Cards */}
-        <View className="px-4 mb-6">
+        <Animated.View
+          className="px-4 mb-6"
+          style={{
+            opacity: categoryFadeAnim,
+            transform: [{
+              translateY: categoryFadeAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [30, 0],
+              }),
+            }],
+          }}
+        >
           <Text className="text-white text-base font-psemibold mb-3">
             Piano Categories
           </Text>
@@ -386,7 +749,18 @@ const Profile = () => {
               {/* Compact Horizontal Layout */}
               <View className="flex-row justify-between">
                 {/* Rentable */}
-                <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+                <Animated.View
+                  style={{
+                    flex: 1,
+                    marginHorizontal: 4,
+                    transform: [{ scale: pulseAnim }],
+                  }}
+                >
+                  <TouchableOpacity
+                    className="flex-1"
+                    activeOpacity={0.8}
+                    onPress={() => animateButtonPress()}
+                  >
                   <View
                     className="rounded-xl p-3 items-center shadow-lg h-32"
                     style={{
@@ -424,18 +798,24 @@ const Profile = () => {
                     </View>
                   </View>
                 </TouchableOpacity>
+                </Animated.View>
 
                 {/* Events */}
                 <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
-                  <View
+                  <Animated.View
                     className="rounded-xl p-3 items-center shadow-lg h-32"
-                    style={{
-                      backgroundColor: CATEGORY_COLORS.EVENTS,
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 3 },
-                      shadowOpacity: 0.3,
-                      shadowRadius: 4,
-                    }}
+                    style={[
+                      {
+                        backgroundColor: CATEGORY_COLORS.EVENTS,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 3 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 4,
+                      },
+                      {
+                        transform: [{ scale: pulseAnim }],
+                      },
+                    ]}
                   >
                     <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
                       <Image
@@ -461,20 +841,25 @@ const Profile = () => {
                         }}
                       />
                     </View>
-                  </View>
+                  </Animated.View>
                 </TouchableOpacity>
 
                 {/* On Sale */}
                 <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
-                  <View
+                  <Animated.View
                     className="rounded-xl p-3 items-center shadow-lg h-32"
-                    style={{
-                      backgroundColor: CATEGORY_COLORS.ON_SALE,
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 3 },
-                      shadowOpacity: 0.3,
-                      shadowRadius: 4,
-                    }}
+                    style={[
+                      {
+                        backgroundColor: CATEGORY_COLORS.ON_SALE,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 3 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 4,
+                      },
+                      {
+                        transform: [{ scale: pulseAnim }],
+                      },
+                    ]}
                   >
                     <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
                       <Image
@@ -500,20 +885,25 @@ const Profile = () => {
                         }}
                       />
                     </View>
-                  </View>
+                  </Animated.View>
                 </TouchableOpacity>
 
                 {/* Warehouse */}
                 <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
-                  <View
+                  <Animated.View
                     className="rounded-xl p-3 items-center shadow-lg h-32"
-                    style={{
-                      backgroundColor: CATEGORY_COLORS.WAREHOUSE,
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 3 },
-                      shadowOpacity: 0.3,
-                      shadowRadius: 4,
-                    }}
+                    style={[
+                      {
+                        backgroundColor: CATEGORY_COLORS.WAREHOUSE,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 3 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 4,
+                      },
+                      {
+                        transform: [{ scale: pulseAnim }],
+                      },
+                    ]}
                   >
                     <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
                       <Image
@@ -539,7 +929,7 @@ const Profile = () => {
                         }}
                       />
                     </View>
-                  </View>
+                  </Animated.View>
                 </TouchableOpacity>
               </View>
 
@@ -559,8 +949,10 @@ const Profile = () => {
               </View>
             </>
           )}
-        </View>
+        </Animated.View>
       </ScrollView>
+      </Animated.View>
+      )}
 
       {/* Logout Modal */}
       <Modal
