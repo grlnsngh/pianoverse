@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   Text,
@@ -168,16 +169,44 @@ const Review = () => {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-6 py-4">
-          {/* Progress Indicator */}
-          <View className="mb-6">
-            <View className="flex-row items-center justify-center mb-2">
-              <View className="w-3 h-3 bg-secondary rounded-full mr-2"></View>
-              <View className="w-8 h-1 bg-secondary rounded-full mr-2"></View>
-              <View className="w-3 h-3 bg-secondary rounded-full"></View>
+          {/* Step Progress Indicator */}
+          <View className="mb-8 px-4">
+            {/* Step Indicators with Connecting Lines */}
+            <View className="flex-row items-center justify-center mb-4">
+              {[1, 2, 3].map((step) => (
+                <View key={step} className="flex-row items-center">
+                  {/* Step Circle */}
+                  <View
+                    className={`w-8 h-8 rounded-full items-center justify-center border-2 ${
+                      step < 3
+                        ? "bg-secondary border-secondary shadow-lg"
+                        : "bg-secondary border-secondary shadow-lg animate-pulse"
+                    }`}
+                  >
+                    <Text className="font-psemibold text-xs text-black-100">
+                      {step}
+                    </Text>
+                  </View>
+
+                  {/* Connecting Line (only between steps 1-2 and 2-3) */}
+                  {step < 3 && (
+                    <View className="w-12 mx-2">
+                      <View className="h-1 bg-secondary rounded-full" />
+                    </View>
+                  )}
+                </View>
+              ))}
             </View>
-            <Text className="text-center text-gray-100 text-sm font-pmedium">
-              Step 3 of 3: Final Review
-            </Text>
+
+            {/* Step Information */}
+            <View className="text-center">
+              <Text className="text-gray-100 text-base font-psemibold mb-1">
+                Step 3 of 3
+              </Text>
+              <Text className="text-secondary text-sm font-pmedium">
+                Final Review
+              </Text>
+            </View>
           </View>
 
           {/* Basic Information Card */}
@@ -474,28 +503,54 @@ const Review = () => {
           {/* Action Buttons */}
           <View className="mb-8">
             <View className="bg-black-200 rounded-2xl p-6 shadow-lg">
-              <Text className="text-center text-gray-100 text-sm mb-4 font-pmedium">
+              <Text className="text-center text-gray-100 text-base mb-6 font-psemibold">
                 Ready to publish your piano entry?
               </Text>
 
               <View className="flex-row space-x-4">
+                {/* Edit Button */}
                 <TouchableOpacity
                   onPress={handleEdit}
-                  className="flex-1 bg-gray-600 rounded-xl py-4 items-center border border-gray-500"
+                  className="flex-1 bg-gray-600 rounded-xl py-4 items-center"
+                  activeOpacity={0.7}
                 >
                   <Text className="text-white font-psemibold text-base">
-                    ✏️ Edit
+                    Edit
                   </Text>
                 </TouchableOpacity>
 
-                <View className="flex-1">
-                  <CustomButton
-                    title="🚀 Publish"
-                    handlePress={handlePublish}
-                    isLoading={uploading}
-                  />
-                </View>
+                {/* Publish Button */}
+                <TouchableOpacity
+                  onPress={handlePublish}
+                  disabled={uploading}
+                  className={`flex-1 rounded-xl py-4 items-center ${
+                    uploading ? "bg-gray-600 opacity-50" : "bg-secondary"
+                  }`}
+                  activeOpacity={0.7}
+                >
+                  {uploading ? (
+                    <View className="flex-row items-center">
+                      <ActivityIndicator
+                        size="small"
+                        color="#fff"
+                        className="mr-2"
+                      />
+                      <Text className="text-primary font-psemibold text-base">
+                        Publishing...
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text className="text-primary font-psemibold text-base">
+                      Publish
+                    </Text>
+                  )}
+                </TouchableOpacity>
               </View>
+
+              {/* Additional Info */}
+              <Text className="text-center text-gray-400 text-xs mt-4 font-pmedium">
+                You can edit your entry later from your profile
+              </Text>
             </View>
           </View>
         </View>

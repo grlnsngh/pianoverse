@@ -18,7 +18,6 @@ import {
   View,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import { ProgressBar } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 import CustomButton from "../components/CustomButton";
@@ -151,7 +150,7 @@ const Create = () => {
     );
 
     let currentStep = 1;
-    let totalSteps = 2;
+    let totalSteps = 3;
     let stepName = "Basic Information";
 
     if (basicComplete) {
@@ -420,20 +419,65 @@ const Create = () => {
             Add Piano
           </Text>
 
-          {/* Progress Bar */}
-          <View className="mb-6">
-            <Text className="text-base text-gray-100 font-pmedium mb-2">
-              Form Progress
-            </Text>
-            <ProgressBar
-              progress={calculateProgress().progress}
-              color="#FFA001"
-              style={{ height: 8, borderRadius: 4 }}
-            />
-            <Text className="text-sm text-gray-100 mt-1">
-              Step {calculateProgress().currentStep} of{" "}
-              {calculateProgress().totalSteps}: {calculateProgress().stepName}
-            </Text>
+          {/* Step Progress Indicator */}
+          <View className="mb-8 px-4">
+            {/* Step Indicators with Connecting Lines */}
+            <View className="flex-row items-center justify-center mb-4">
+              {[1, 2, 3].map((step) => (
+                <View key={step} className="flex-row items-center">
+                  {/* Step Circle */}
+                  <View
+                    className={`w-8 h-8 rounded-full items-center justify-center border-2 ${
+                      calculateProgress().currentStep > step
+                        ? "bg-secondary border-secondary shadow-lg"
+                        : calculateProgress().currentStep === step
+                        ? "bg-secondary border-secondary shadow-lg animate-pulse"
+                        : "bg-black-200 border-gray-600"
+                    }`}
+                  >
+                    <Text
+                      className={`font-psemibold text-xs ${
+                        calculateProgress().currentStep >= step
+                          ? "text-black-100"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {step}
+                    </Text>
+                  </View>
+
+                  {/* Connecting Line (only between steps 1-2 and 2-3) */}
+                  {step < 3 && (
+                    <View className="w-12 mx-2">
+                      <View className="h-1 bg-gray-600 rounded-full">
+                        <View
+                          className="h-full bg-secondary rounded-full transition-all duration-500 ease-out"
+                          style={{
+                            width:
+                              calculateProgress().currentStep > step
+                                ? "100%"
+                                : calculateProgress().currentStep === step
+                                ? "50%"
+                                : "0%",
+                          }}
+                        />
+                      </View>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+
+            {/* Step Information */}
+            <View className="text-center">
+              <Text className="text-gray-100 text-base font-psemibold mb-1">
+                Step {calculateProgress().currentStep} of{" "}
+                {calculateProgress().totalSteps}
+              </Text>
+              <Text className="text-secondary text-sm font-pmedium">
+                {calculateProgress().stepName}
+              </Text>
+            </View>
           </View>
 
           {/* Basic Information Section */}
