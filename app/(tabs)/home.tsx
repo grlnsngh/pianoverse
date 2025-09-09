@@ -215,7 +215,7 @@ const Home = () => {
           <View className="flex-1">
             <SearchInput />
           </View>
-          <View className="w-14">
+          <View className="w-14 h-15 flex items-center justify-center">
             <FilterButton />
           </View>
         </View>

@@ -1,5 +1,5 @@
 import { icons } from "@/constants";
-import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
+import { PRIMARY_COLOR, SECONDARY_COLOR, CATEGORY_COLORS } from "@/constants/colors";
 import {
   setFilteredPianoListItems,
   setPianoFilters,
@@ -19,11 +19,8 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import {
-  Button,
-  Chip,
   Divider,
   Switch,
-  ToggleButton,
 } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "../constants/Piano";
@@ -189,25 +186,51 @@ const FilterButton = () => {
           formattedLabel) ||
       (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label === "Rentable");
 
+    const getCategoryColor = (label: string) => {
+      switch (label) {
+        case "Rentable":
+          return CATEGORY_COLORS.RENTABLE;
+        case "Events":
+          return CATEGORY_COLORS.EVENTS;
+        case "On Sale":
+          return CATEGORY_COLORS.ON_SALE;
+        case "Warehouse":
+          return CATEGORY_COLORS.WAREHOUSE;
+        default:
+          return PRIMARY_COLOR;
+      }
+    };
+
     return (
-      <Chip
-        mode="outlined"
+      <TouchableOpacity
         onPress={() => handleCategoryPress(label)}
-        selected={isSelected}
         disabled={
           (filterForm.isActiveRentals && label !== "Rentable") ||
           (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE &&
             label !== "Rentable")
         }
-        // selectedColor={filterForm.category === label ? "white" : PRIMARY_COLOR}
-        // style={{
-        //   backgroundColor:
-        //     filterForm.category === label ? SECONDARY_COLOR : "white",
-        // }}
-        // showSelectedCheck={false}
+        className={`px-3 py-1 rounded-full border ${
+          isSelected
+            ? "bg-secondary border-secondary"
+            : "bg-primary-200 border-primary-300"
+        }`}
+        style={{
+          opacity:
+            (filterForm.isActiveRentals && label !== "Rentable") ||
+            (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE &&
+              label !== "Rentable")
+              ? 0.5
+              : 1,
+        }}
       >
-        {label}
-      </Chip>
+        <Text
+          className={`text-xs font-pmedium ${
+            isSelected ? "text-primary" : "text-white"
+          }`}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
     );
   };
 
@@ -223,23 +246,19 @@ const FilterButton = () => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <View
-        style={{ height: 60, width: 60 }}
-        className="flex flex-row items-center space-x-4 
-        px-4 bg-black-100 rounded-2xl
-        border-2 border-black-200 focus:border-secondary
-        justify-center"
+    <View className="flex items-center justify-center">
+      <TouchableOpacity
+        onPress={toggleModal}
+        className="w-10 h-10 bg-primary-200 rounded-full flex items-center justify-center border border-secondary"
+        activeOpacity={0.7}
       >
-        <TouchableOpacity onPress={toggleModal}>
-          <Image
-            style={{ tintColor: "white" }}
-            source={icons.filter}
-            className="w-6 h-6"
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-      </View>
+        <Image
+          style={{ tintColor: SECONDARY_COLOR }}
+          source={icons.filter}
+          className="w-5 h-5"
+          resizeMode="contain"
+        />
+      </TouchableOpacity>
 
       <Modal
         animationType="slide"
@@ -250,181 +269,223 @@ const FilterButton = () => {
         <TouchableWithoutFeedback onPress={toggleAndResetModal}>
           <View style={styles.modalContainer}>
             <TouchableWithoutFeedback>
-              <View>
-                <View style={styles.modalContent}>
+              <View style={styles.modalContent}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 12,
+                  }}
+                >
+                  <Text style={styles.title}>Filters</Text>
+                  <TouchableOpacity onPress={toggleAndResetModal}>
+                    <Image
+                      source={icons.close}
+                      className="w-4 h-4"
+                      resizeMode="contain"
+                      style={{ tintColor: "white" }}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <Divider style={{ backgroundColor: PRIMARY_COLOR }} />
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                  className="mt-3"
+                >
+                  <Text style={styles.option}>Layout</Text>
                   <View
                     style={{
                       flexDirection: "row",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      marginBottom: 16,
+                      gap: 8,
                     }}
                   >
-                    <Text style={styles.title}>Filters</Text>
-                    <TouchableOpacity onPress={toggleAndResetModal}>
+                    <TouchableOpacity
+                      onPress={() => onLayoutButtonPress("card")}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        filterForm.layoutStatus.card === "checked"
+                          ? "bg-secondary"
+                          : "bg-primary-200"
+                      }`}
+                    >
                       <Image
-                        source={icons.close}
-                        className="w-3 h-3"
+                        source={icons.card}
+                        className="w-4 h-4"
                         resizeMode="contain"
+                        style={{
+                          tintColor:
+                            filterForm.layoutStatus.card === "checked"
+                              ? PRIMARY_COLOR
+                              : SECONDARY_COLOR,
+                        }}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => onLayoutButtonPress("list")}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        filterForm.layoutStatus.list === "checked"
+                          ? "bg-secondary"
+                          : "bg-primary-200"
+                      }`}
+                    >
+                      <Image
+                        source={icons.list}
+                        className="w-4 h-4"
+                        resizeMode="contain"
+                        style={{
+                          tintColor:
+                            filterForm.layoutStatus.list === "checked"
+                              ? PRIMARY_COLOR
+                              : SECONDARY_COLOR,
+                        }}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => onLayoutButtonPress("grid")}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        filterForm.layoutStatus.grid === "checked"
+                          ? "bg-secondary"
+                          : "bg-primary-200"
+                      }`}
+                    >
+                      <Image
+                        source={icons.grid}
+                        className="w-4 h-4"
+                        resizeMode="contain"
+                        style={{
+                          tintColor:
+                            filterForm.layoutStatus.grid === "checked"
+                              ? PRIMARY_COLOR
+                              : SECONDARY_COLOR,
+                        }}
                       />
                     </TouchableOpacity>
                   </View>
-                  <Divider />
+                </View>
+
+                <Divider style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }} />
+
+                <View className="mt-3">
+                  <Text style={styles.option}>Sort By</Text>
 
                   <View
                     style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
+                      marginTop: 8,
+                      borderWidth: 1,
+                      borderColor: isFocused ? SECONDARY_COLOR : PRIMARY_COLOR,
+                      borderRadius: 12,
                     }}
-                    className="mt-2"
+                    className="w-full h-12 px-3 rounded-xl flex flex-row items-center bg-primary-100"
                   >
-                    <Text style={styles.option}>Layout</Text>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: 10,
+                    <Dropdown
+                      data={sortByOptions}
+                      labelField="label"
+                      valueField="value"
+                      placeholder="Select item"
+                      value={filterForm.sortBy}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={() => setIsFocused(false)}
+                      onChange={(item) => {
+                        setFilterForm({ ...filterForm, sortBy: item.value });
+                        setIsFocused(false);
                       }}
-                    >
-                      <ToggleButton
-                        icon={icons.card}
-                        value="card"
-                        status={filterForm.layoutStatus.card}
-                        onPress={() => onLayoutButtonPress("card")}
-                        iconColor={PRIMARY_COLOR}
-                      />
-                      <ToggleButton
-                        icon={icons.list}
-                        value="list"
-                        status={filterForm.layoutStatus.list}
-                        onPress={() => onLayoutButtonPress("list")}
-                        iconColor={PRIMARY_COLOR}
-                      />
-                      <ToggleButton
-                        icon={icons.grid}
-                        value="grid"
-                        status={filterForm.layoutStatus.grid}
-                        onPress={() => onLayoutButtonPress("grid")}
-                        iconColor={PRIMARY_COLOR}
-                      />
-                    </View>
+                      style={{
+                        height: 40,
+                        width: "100%",
+                      }}
+                      containerStyle={{
+                        width: "90%",
+                        borderRadius: 12,
+                        left: 12,
+                      }}
+                      placeholderStyle={{ color: "gray" }}
+                      selectedTextStyle={{ color: "white" }}
+                    />
                   </View>
+                </View>
 
-                  <Divider className="mt-2" />
+                <Divider style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }} />
 
-                  <View>
-                    <Text style={styles.option} className="mt-5">
-                      Sort By
+                <Text style={styles.option} className="mt-3">
+                  Category
+                </Text>
+                <View
+                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}
+                  className="mt-2"
+                >
+                  {renderChip("Rentable")}
+                  {renderChip("Events")}
+                  {renderChip("On Sale")}
+                  {renderChip("Warehouse")}
+                </View>
+
+                <Divider style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }} />
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                  className="mt-3"
+                >
+                  <Text style={styles.option}>Active Rentals</Text>
+                  <Switch
+                    value={filterForm.isActiveRentals}
+                    onValueChange={() => {
+                      const newCategory =
+                        filterForm.category === "Rentable" ? "" : "Rentable";
+
+                      setFilterForm({
+                        ...filterForm,
+                        category: newCategory,
+                        isActiveRentals: !filterForm.isActiveRentals,
+                      });
+                    }}
+                    trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
+                    thumbColor={filterForm.isActiveRentals ? PRIMARY_COLOR : "white"}
+                  />
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                  className="mt-3"
+                >
+                  <Text style={styles.option}>Sold</Text>
+                  <Switch
+                    value={filterForm.isSold}
+                    onValueChange={() =>
+                      setFilterForm({
+                        ...filterForm,
+                        isSold: !filterForm.isSold,
+                      })
+                    }
+                    trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
+                    thumbColor={filterForm.isSold ? PRIMARY_COLOR : "white"}
+                  />
+                </View>
+
+                <View className="mt-4 flex items-center justify-center">
+                  <TouchableOpacity
+                    onPress={onShowResults}
+                    className="bg-secondary rounded-xl w-3/4 h-10 flex items-center justify-center"
+                    activeOpacity={0.7}
+                  >
+                    <Text className="text-primary font-psemibold text-base">
+                      Show Results
                     </Text>
-
-                    <View
-                      style={{
-                        marginTop: 12,
-                        borderWidth: 1,
-                        borderColor: isFocused ? SECONDARY_COLOR : "#ccc",
-                      }}
-                      className="w-full h-16 px-4 rounded-2xl flex flex-row items-center"
-                    >
-                      <Dropdown
-                        data={sortByOptions}
-                        labelField="label"
-                        valueField="value"
-                        placeholder="Select item"
-                        value={filterForm.sortBy}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                        onChange={(item) => {
-                          setFilterForm({ ...filterForm, sortBy: item.value });
-                          setIsFocused(false);
-                        }}
-                        style={{
-                          height: 60,
-                          width: "100%",
-                        }}
-                        containerStyle={{
-                          width: "90%",
-                          borderRadius: 16,
-                          left: 21,
-                        }}
-                      />
-                    </View>
-                  </View>
-
-                  <Divider className="mt-5" />
-
-                  <Text style={styles.option} className="mt-5">
-                    Category Selection
-                  </Text>
-                  <View
-                    style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}
-                    className="mt-3"
-                  >
-                    {renderChip("Rentable")}
-                    {renderChip("Events")}
-                    {renderChip("On Sale")}
-                    {renderChip("Warehouse")}
-                  </View>
-
-                  <Divider className="mt-5" />
-
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                    className="mt-2"
-                  >
-                    <Text style={styles.option}>Active rentals</Text>
-                    <Switch
-                      value={filterForm.isActiveRentals}
-                      onValueChange={() => {
-                        const newCategory =
-                          filterForm.category === "Rentable" ? "" : "Rentable";
-
-                        setFilterForm({
-                          ...filterForm,
-                          category: newCategory,
-                          isActiveRentals: !filterForm.isActiveRentals,
-                        });
-                      }}
-                    />
-                  </View>
-
-                  <Divider className="mt-1" />
-
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                    className="mt-2"
-                  >
-                    <Text style={styles.option}>Sold</Text>
-                    <Switch
-                      value={filterForm.isSold}
-                      onValueChange={() =>
-                        setFilterForm({
-                          ...filterForm,
-                          isSold: !filterForm.isSold,
-                        })
-                      }
-                    />
-                  </View>
-
-                  <View className="mt-3 flex items-center justify-center">
-                    <Button
-                      mode="contained"
-                      onPress={onShowResults}
-                      buttonColor="green"
-                      style={{ width: "70%", height: 40 }}
-                    >
-                      Show results
-                    </Button>
-                  </View>
+                  </TouchableOpacity>
                 </View>
               </View>
             </TouchableWithoutFeedback>
@@ -442,18 +503,21 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: "white",
-    padding: 20,
+    backgroundColor: PRIMARY_COLOR,
+    padding: 16,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
+    color: "white",
   },
   option: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: 14,
+    marginBottom: 4,
+    color: "white",
+    fontFamily: "Poppins-Medium",
   },
   button: {
     padding: 10,
