@@ -12,21 +12,15 @@ import {
   View,
 } from "react-native";
 import { IconButton, Menu, PaperProvider } from "react-native-paper";
+import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "../constants/Piano";
 
 interface CardItemProps {
-  item: {
-    $id: string;
-    title?: string;
-    image_url?: string;
-    users?: {
-      avatar?: string;
-    };
-    company_associated?: string;
-  };
+  item: PianoItem & { empty?: boolean };
   visibleMenuId: string | null;
   openMenu: (id: string) => void;
   closeMenu: () => void;
+  onDelete?: () => void;
 }
 
 const CardItem: React.FC<CardItemProps> = ({
@@ -34,15 +28,16 @@ const CardItem: React.FC<CardItemProps> = ({
   visibleMenuId,
   openMenu,
   closeMenu,
+  onDelete,
 }) => {
   const {
     title = "",
     image_url = "",
-    users = {},
+    users,
     company_associated = "",
     category = "",
   } = item;
-  const { avatar = "" } = users;
+  const { avatar = "" } = users || {};
   const pathname = usePathname();
 
   const handleOnClickItem = () => {
@@ -60,6 +55,7 @@ const CardItem: React.FC<CardItemProps> = ({
     try {
       await deletePianoEntry(item);
       ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
+      onDelete?.();
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert(

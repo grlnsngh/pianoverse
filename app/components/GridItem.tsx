@@ -1,3 +1,4 @@
+import { PianoItem } from "@/redux/pianos/types";
 import { CATEGORY_COLORS } from "@/constants/colors";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
@@ -17,18 +18,11 @@ import {
 import { Surface } from "react-native-paper";
 
 interface GridItemProps {
-  item: {
-    $id: string;
-    title?: string;
-    image_url?: string;
-    users?: {
-      avatar?: string;
-    };
-    company_associated?: string;
-  };
+  item: (PianoItem & { empty?: boolean })[];
   visibleMenuId: string | null;
   openMenu: (id: string) => void;
   closeMenu: () => void;
+  onDelete?: () => void;
 }
 const { width } = Dimensions.get("window");
 const numColumns = 2;
@@ -39,26 +33,28 @@ const GridItem: React.FC<GridItemProps> = ({
   visibleMenuId,
   openMenu,
   closeMenu,
+  onDelete,
 }) => {
   const pathname = usePathname();
 
-  const handleOnClickItem = (item) => {
+  const handleOnClickItem = (item: PianoItem & { empty?: boolean }) => {
     console.log("item", item);
     if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
     else router.push(`/detail/${item.$id}`);
   };
 
-  const handleOnClickEditMenu = (item) => {
+  const handleOnClickEditMenu = (item: PianoItem & { empty?: boolean }) => {
     if (pathname.startsWith("/edit")) router.setParams({ id: item.$id });
     else router.push(`/edit/${item.$id}`);
     closeMenu();
   };
 
-  const handleOnClickDeleteMenu = async (item) => {
+  const handleOnClickDeleteMenu = async (item: PianoItem & { empty?: boolean }) => {
     const title = item.title;
     try {
       await deletePianoEntry(item);
       ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
+      onDelete?.();
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert(
@@ -73,12 +69,12 @@ const GridItem: React.FC<GridItemProps> = ({
     }
   };
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item }: { item: PianoItem & { empty?: boolean } }) => {
     if (item.empty) {
       return <View style={[styles.item, styles.itemInvisible]} />;
     }
     const backgroundColor =
-      CATEGORY_COLORS[item.category.toUpperCase()] || "#6b7280";
+      (CATEGORY_COLORS as any)[item.category.toUpperCase()] || "#6b7280";
 
     return (
       <Surface elevation={5} style={styles.item} className="bg-primary-400">
@@ -139,14 +135,14 @@ const GridItem: React.FC<GridItemProps> = ({
     );
   };
 
-  const formatData = (data, numColumns) => {
+  const formatData = (data: (PianoItem & { empty?: boolean })[], numColumns: number) => {
     const numberOfFullRows = Math.floor(data.length / numColumns);
     let numberOfElementsLastRow = data.length - numberOfFullRows * numColumns;
     while (
       numberOfElementsLastRow !== numColumns &&
       numberOfElementsLastRow !== 0
     ) {
-      data.push({ title: `blank-${numberOfElementsLastRow}`, empty: true });
+      data.push({ title: `blank-${numberOfElementsLastRow}`, empty: true } as PianoItem & { empty?: boolean });
       numberOfElementsLastRow++;
     }
     return data;

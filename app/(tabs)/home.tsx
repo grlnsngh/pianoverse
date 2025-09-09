@@ -237,6 +237,7 @@ const Home = () => {
           visibleMenuId={visibleMenuId}
           openMenu={openMenu}
           closeMenu={closeMenu}
+          onDelete={() => refetch()}
         />
       ) : (
         <FlatList
@@ -250,6 +251,7 @@ const Home = () => {
                   visibleMenuId={visibleMenuId}
                   openMenu={openMenu}
                   closeMenu={closeMenu}
+                  onDelete={() => refetch()}
                 />
               );
             } else if (layoutView.list === "checked") {
@@ -259,6 +261,7 @@ const Home = () => {
                   visibleMenuId={visibleMenuId}
                   openMenu={openMenu}
                   closeMenu={closeMenu}
+                  onDelete={() => refetch()}
                 />
               );
             } else {

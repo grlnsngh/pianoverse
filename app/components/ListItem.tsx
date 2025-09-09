@@ -21,26 +21,19 @@ import {
   View,
 } from "react-native";
 import { IconButton, Menu, PaperProvider } from "react-native-paper";
+import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "../constants/Piano";
 
 interface ListItemProps {
-  item: {
-    $id: string;
-    title?: string;
-    image_url?: string;
-    users?: {
-      avatar?: string;
-    };
-    company_associated?: string;
-    rental_period_end?: string;
-    category: string;
-  };
+  item: PianoItem & { empty?: boolean };
   visibleMenuId: string | null;
   openMenu: (id: string) => void;
   closeMenu: () => void;
+  onDelete?: () => void;
 }
 
-const calculateRemainingPeriod = (end: string) => {
+const calculateRemainingPeriod = (end: Date | null | undefined) => {
+  if (!end) return { days: 0, weeks: 0, months: 0, years: 0 };
   const endDate = new Date(end);
   const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
@@ -58,6 +51,7 @@ const ListItem: React.FC<ListItemProps> = ({
   visibleMenuId,
   openMenu,
   closeMenu,
+  onDelete,
 }) => {
   const {
     title = "",
@@ -65,7 +59,7 @@ const ListItem: React.FC<ListItemProps> = ({
     users = {},
     company_associated = "",
     category = "",
-    rental_period_end = "",
+    rental_period_end,
   } = item;
   const pathname = usePathname();
 
@@ -133,6 +127,7 @@ const ListItem: React.FC<ListItemProps> = ({
     try {
       await deletePianoEntry(item);
       ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
+      onDelete?.();
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert(
