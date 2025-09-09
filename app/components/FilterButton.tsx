@@ -112,14 +112,22 @@ const FilterButton = () => {
         break;
       case SORT_BY_OPTIONS.DUE_DATE:
         // Only apply DUE_DATE sorting if category is rentable or no category selected
-        if (filterForm.category === "" || filterForm.category === "Rentable" || filterForm.category === "rentable") {
+        if (
+          filterForm.category === "" ||
+          filterForm.category === "Rentable" ||
+          filterForm.category === "rentable"
+        ) {
           filteredItems = sortItems(
             filteredItems.filter(
               (item) => item.category === "rentable" && item.rental_period_end
             ),
             (a, b) => {
-              const dateA = a.rental_period_end ? new Date(a.rental_period_end).getTime() : 0;
-              const dateB = b.rental_period_end ? new Date(b.rental_period_end).getTime() : 0;
+              const dateA = a.rental_period_end
+                ? new Date(a.rental_period_end).getTime()
+                : 0;
+              const dateB = b.rental_period_end
+                ? new Date(b.rental_period_end).getTime()
+                : 0;
               return dateB - dateA;
             }
           );
@@ -160,23 +168,27 @@ const FilterButton = () => {
 
   const handleCategoryPress = (label: string) => {
     const formattedLabel = label.replace(/\s+/g, "_").toLowerCase();
-    const isCurrentlySelected = 
-      filterForm.category === label || 
+    const isCurrentlySelected =
+      filterForm.category === label ||
       filterForm.category === formattedLabel ||
-      (filterForm.category && filterForm.category.replace(/\s+/g, "_").toLowerCase() === formattedLabel);
-    
+      (filterForm.category &&
+        filterForm.category.replace(/\s+/g, "_").toLowerCase() ===
+          formattedLabel);
+
     const newCategory = isCurrentlySelected ? "" : label;
     setFilterForm({ ...filterForm, category: newCategory });
   };
 
   const renderChip = (label: string) => {
     const formattedLabel = label.replace(/\s+/g, "_").toLowerCase();
-    const isSelected = 
-      filterForm.category === label || 
+    const isSelected =
+      filterForm.category === label ||
       filterForm.category === formattedLabel ||
-      (filterForm.category && filterForm.category.replace(/\s+/g, "_").toLowerCase() === formattedLabel) ||
+      (filterForm.category &&
+        filterForm.category.replace(/\s+/g, "_").toLowerCase() ===
+          formattedLabel) ||
       (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label === "Rentable");
-    
+
     return (
       <Chip
         mode="outlined"
@@ -184,7 +196,8 @@ const FilterButton = () => {
         selected={isSelected}
         disabled={
           (filterForm.isActiveRentals && label !== "Rentable") ||
-          (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label !== "Rentable")
+          (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE &&
+            label !== "Rentable")
         }
         // selectedColor={filterForm.category === label ? "white" : PRIMARY_COLOR}
         // style={{

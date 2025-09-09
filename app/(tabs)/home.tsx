@@ -83,7 +83,8 @@ const Home = () => {
           filteredItems = sortItems(
             filteredItems,
             (a, b) =>
-              new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime()
+              new Date(b.$createdAt).getTime() -
+              new Date(a.$createdAt).getTime()
           );
           break;
         case SORT_BY_OPTIONS.PURCHASE_DATE:
@@ -99,14 +100,22 @@ const Home = () => {
           break;
         case SORT_BY_OPTIONS.DUE_DATE:
           // Only apply DUE_DATE sorting if category is rentable or no category selected
-          if (!filters.category || filters.category === "rentable" || filters.category === "Rentable") {
+          if (
+            !filters.category ||
+            filters.category === "rentable" ||
+            filters.category === "Rentable"
+          ) {
             filteredItems = sortItems(
               filteredItems.filter(
                 (item) => item.category === "rentable" && item.rental_period_end
               ),
               (a, b) => {
-                const dateA = a.rental_period_end ? new Date(a.rental_period_end).getTime() : 0;
-                const dateB = b.rental_period_end ? new Date(b.rental_period_end).getTime() : 0;
+                const dateA = a.rental_period_end
+                  ? new Date(a.rental_period_end).getTime()
+                  : 0;
+                const dateB = b.rental_period_end
+                  ? new Date(b.rental_period_end).getTime()
+                  : 0;
                 return dateB - dateA;
               }
             );
