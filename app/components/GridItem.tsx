@@ -62,7 +62,9 @@ const GridItem: React.FC<GridItemProps> = ({
   onDelete,
 }) => {
   const pathname = usePathname();
-  const [bookmarkedItems, setBookmarkedItems] = useState<Set<string>>(new Set());
+  const [bookmarkedItems, setBookmarkedItems] = useState<Set<string>>(
+    new Set()
+  );
 
   const handleOnClickItem = (item: PianoItem & { empty?: boolean }) => {
     if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
@@ -98,7 +100,7 @@ const GridItem: React.FC<GridItemProps> = ({
   };
 
   const handleBookmark = (itemId: string) => {
-    setBookmarkedItems(prev => {
+    setBookmarkedItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(itemId)) {
         newSet.delete(itemId);
@@ -190,7 +192,7 @@ const GridItem: React.FC<GridItemProps> = ({
                     source={icons.bookmark}
                     style={[
                       styles.actionIcon,
-                      { tintColor: isBookmarked ? SECONDARY_COLOR : "#CDCDE0" }
+                      { tintColor: isBookmarked ? SECONDARY_COLOR : "#CDCDE0" },
                     ]}
                     resizeMode="contain"
                   />
@@ -252,7 +254,7 @@ const GridItem: React.FC<GridItemProps> = ({
                   <View
                     style={[
                       styles.statusDot,
-                      { backgroundColor: getStatusColor(remaining) }
+                      { backgroundColor: getStatusColor(remaining) },
                     ]}
                   />
                   <Text style={styles.statusText}>
@@ -277,7 +279,7 @@ const GridItem: React.FC<GridItemProps> = ({
                           : item.category === PIANO_CATEGORY.WAREHOUSE
                           ? CATEGORY_COLORS.WAREHOUSE
                           : SECONDARY_COLOR,
-                    }
+                    },
                   ]}
                 >
                   <Image

@@ -1,5 +1,9 @@
 import { icons, images } from "@/constants";
-import { CATEGORY_COLORS, PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
+import {
+  CATEGORY_COLORS,
+  PRIMARY_COLOR,
+  SECONDARY_COLOR,
+} from "@/constants/colors";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
 import {
@@ -271,7 +275,10 @@ const ListItem: React.FC<ListItemProps> = ({
                   {getCategoryLabel(category)}
                 </Text>
                 {company_associated && (
-                  <Text className="text-xs text-gray-100 font-pregular flex-1" numberOfLines={1}>
+                  <Text
+                    className="text-xs text-gray-100 font-pregular flex-1"
+                    numberOfLines={1}
+                  >
                     {company_associated}
                   </Text>
                 )}

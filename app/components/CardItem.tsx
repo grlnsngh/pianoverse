@@ -358,9 +358,7 @@ const CardItem: React.FC<CardItemProps> = ({
               {/* Status Badge */}
               {getStatusText() && (
                 <View className="absolute top-3 left-3">
-                  <View
-                    className="flex-row items-center bg-black/70 rounded-full px-3 py-1"
-                  >
+                  <View className="flex-row items-center bg-black/70 rounded-full px-3 py-1">
                     <View
                       className="w-2 h-2 rounded-full mr-2"
                       style={{ backgroundColor: getStatusColor() }}
