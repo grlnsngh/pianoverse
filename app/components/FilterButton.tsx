@@ -8,7 +8,7 @@ import { FiltersType, PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { differenceInDays } from "date-fns";
 import { Image } from "expo-image";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   StyleSheet,
@@ -58,6 +58,11 @@ const FilterButton = () => {
   const filterState = useSelector((state: RootState) => state.pianos.filters);
   const pianoItems = useSelector((state: RootState) => state.pianos.items);
 
+  // Sync filterForm with filterState when filterState changes
+  useEffect(() => {
+    setFilterForm(filterState);
+  }, [filterState]);
+
   const toggleAndResetModal = () => {
     setFilterForm(filterState);
     toggleModal();
@@ -106,14 +111,19 @@ const FilterButton = () => {
         });
         break;
       case SORT_BY_OPTIONS.DUE_DATE:
-        filteredItems = sortItems(
-          filteredItems.filter(
-            (item) => item.category === "rentable" && item.rental_period_end
-          ),
-          (a, b) =>
-            new Date(b.rental_period_end).getTime() -
-            new Date(a.rental_period_end).getTime()
-        );
+        // Only apply DUE_DATE sorting if category is rentable or no category selected
+        if (filterForm.category === "" || filterForm.category === "Rentable" || filterForm.category === "rentable") {
+          filteredItems = sortItems(
+            filteredItems.filter(
+              (item) => item.category === "rentable" && item.rental_period_end
+            ),
+            (a, b) => {
+              const dateA = a.rental_period_end ? new Date(a.rental_period_end).getTime() : 0;
+              const dateB = b.rental_period_end ? new Date(b.rental_period_end).getTime() : 0;
+              return dateB - dateA;
+            }
+          );
+        }
         break;
       default:
         break;
@@ -129,7 +139,8 @@ const FilterButton = () => {
       );
     }
 
-    const isRentalPeriodActive = (end: string): boolean => {
+    const isRentalPeriodActive = (end: Date | null | undefined): boolean => {
+      if (!end) return false;
       const endDate = new Date(end);
       const currentDate = new Date();
       const days = differenceInDays(endDate, currentDate);
@@ -148,32 +159,44 @@ const FilterButton = () => {
   };
 
   const handleCategoryPress = (label: string) => {
-    const newCategory = filterForm.category === label ? "" : label;
+    const formattedLabel = label.replace(/\s+/g, "_").toLowerCase();
+    const isCurrentlySelected = 
+      filterForm.category === label || 
+      filterForm.category === formattedLabel ||
+      (filterForm.category && filterForm.category.replace(/\s+/g, "_").toLowerCase() === formattedLabel);
+    
+    const newCategory = isCurrentlySelected ? "" : label;
     setFilterForm({ ...filterForm, category: newCategory });
   };
 
-  const renderChip = (label: string) => (
-    <Chip
-      mode="outlined"
-      onPress={() => handleCategoryPress(label)}
-      selected={
-        filterForm.category === label ||
-        (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label === "Rentable")
-      }
-      disabled={
-        (filterForm.isActiveRentals && label !== "Rentable") ||
-        (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label !== "Rentable")
-      }
-      // selectedColor={filterForm.category === label ? "white" : PRIMARY_COLOR}
-      // style={{
-      //   backgroundColor:
-      //     filterForm.category === label ? SECONDARY_COLOR : "white",
-      // }}
-      // showSelectedCheck={false}
-    >
-      {label}
-    </Chip>
-  );
+  const renderChip = (label: string) => {
+    const formattedLabel = label.replace(/\s+/g, "_").toLowerCase();
+    const isSelected = 
+      filterForm.category === label || 
+      filterForm.category === formattedLabel ||
+      (filterForm.category && filterForm.category.replace(/\s+/g, "_").toLowerCase() === formattedLabel) ||
+      (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label === "Rentable");
+    
+    return (
+      <Chip
+        mode="outlined"
+        onPress={() => handleCategoryPress(label)}
+        selected={isSelected}
+        disabled={
+          (filterForm.isActiveRentals && label !== "Rentable") ||
+          (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label !== "Rentable")
+        }
+        // selectedColor={filterForm.category === label ? "white" : PRIMARY_COLOR}
+        // style={{
+        //   backgroundColor:
+        //     filterForm.category === label ? SECONDARY_COLOR : "white",
+        // }}
+        // showSelectedCheck={false}
+      >
+        {label}
+      </Chip>
+    );
+  };
 
   const onLayoutButtonPress = (layout: string) => {
     setFilterForm((prevForm) => ({

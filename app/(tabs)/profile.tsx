@@ -1,6 +1,8 @@
 import { icons, images } from "@/constants";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { signOut } from "@/lib/appwrite";
+import { setPianoFilters } from "@/redux/pianos/actions";
+import { FiltersType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -16,12 +18,13 @@ import {
   Easing,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import CustomButton from "../components/CustomButton";
-import { PIANO_CATEGORY } from "../constants/Piano";
+import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
 
 const Profile = () => {
+  const dispatch = useDispatch();
   const { user, setUser, setIsLogged } = useGlobalContext();
   const [modalVisible, setModalVisible] = useState(false);
   const items = useSelector((state: RootState) => state.pianos.items);
@@ -299,6 +302,15 @@ const Profile = () => {
 
   const showLogoutModal = () => {
     setModalVisible(true);
+  };
+
+  const navigateToHomeWithFilter = (category: string) => {
+    const filters: FiltersType = {
+      ...DEFAULT_FILTERS,
+      category: category,
+    };
+    dispatch(setPianoFilters(filters));
+    router.push('/home');
   };
 
   const formatMemberSince = (dateString: string) => {
@@ -759,7 +771,10 @@ const Profile = () => {
                   <TouchableOpacity
                     className="flex-1"
                     activeOpacity={0.8}
-                    onPress={() => animateButtonPress()}
+                    onPress={() => {
+                      animateButtonPress();
+                      navigateToHomeWithFilter(PIANO_CATEGORY.RENTABLE);
+                    }}
                   >
                   <View
                     className="rounded-xl p-3 items-center shadow-lg h-32"
@@ -801,7 +816,14 @@ const Profile = () => {
                 </Animated.View>
 
                 {/* Events */}
-                <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+                <TouchableOpacity 
+                  className="flex-1 mx-1" 
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    animateButtonPress();
+                    navigateToHomeWithFilter(PIANO_CATEGORY.EVENTS);
+                  }}
+                >
                   <Animated.View
                     className="rounded-xl p-3 items-center shadow-lg h-32"
                     style={[
@@ -845,7 +867,14 @@ const Profile = () => {
                 </TouchableOpacity>
 
                 {/* On Sale */}
-                <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+                <TouchableOpacity 
+                  className="flex-1 mx-1" 
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    animateButtonPress();
+                    navigateToHomeWithFilter(PIANO_CATEGORY.ON_SALE);
+                  }}
+                >
                   <Animated.View
                     className="rounded-xl p-3 items-center shadow-lg h-32"
                     style={[
@@ -889,7 +918,14 @@ const Profile = () => {
                 </TouchableOpacity>
 
                 {/* Warehouse */}
-                <TouchableOpacity className="flex-1 mx-1" activeOpacity={0.8}>
+                <TouchableOpacity 
+                  className="flex-1 mx-1" 
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    animateButtonPress();
+                    navigateToHomeWithFilter(PIANO_CATEGORY.WAREHOUSE);
+                  }}
+                >
                   <Animated.View
                     className="rounded-xl p-3 items-center shadow-lg h-32"
                     style={[
