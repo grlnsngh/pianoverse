@@ -92,30 +92,29 @@ const Create = () => {
       }
     }
 
-    // Default form state with sample data for testing
+    // Default form state
     return {
       category: "rentable",
-      title: "Yamaha Grand Piano U3",
-      description:
-        "Beautiful Yamaha U3 grand piano in excellent condition. Perfect for concerts and professional performances.",
-      image: null, // Keep null for image
-      make: "Yamaha",
-      rentalCustomerName: "John Smith",
-      rentalCustomerAddress: "123 Music Street, Los Angeles, CA 90210",
-      rentalCustomerMobileNumber: "+1-555-0123",
+      title: "",
+      description: "",
+      image: null,
+      make: "",
+      rentalCustomerName: "",
+      rentalCustomerAddress: "",
+      rentalCustomerMobileNumber: "",
       rentalStartDate: new Date(),
-      rentalEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-      rentalPrice: 2500,
-      warehouseStoredSinceDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
-      eventPurchasePrice: 15000,
-      eventPurchaseFrom: "Piano World Store",
-      eventModelNumber: "U3-2020",
-      eventBNumber: "B-45678",
-      onSalePurchaseFrom: "Music Center Inc",
-      onSaleImportDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
-      onSalePrice: 18000,
-      companyAssociated: COMPANY_ASSOCIATED.SHAMSHERSONS,
-      dateOfPurchase: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
+      rentalEndDate: new Date(),
+      rentalPrice: 0,
+      warehouseStoredSinceDate: new Date(),
+      eventPurchasePrice: 0,
+      eventPurchaseFrom: "",
+      eventModelNumber: "",
+      eventBNumber: "",
+      onSalePurchaseFrom: "",
+      onSaleImportDate: new Date(),
+      onSalePrice: 0,
+      companyAssociated: "",
+      dateOfPurchase: new Date(),
     };
   });
 

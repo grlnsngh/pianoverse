@@ -127,31 +127,54 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
 
   return (
     <View className="bg-black-100/50 rounded-xl p-4 space-y-4">
-      <Text className="text-lg text-secondary font-psemibold mb-2">Rental Details</Text>
-      
+      <Text className="text-lg text-secondary font-psemibold mb-2">
+        Rental Details
+      </Text>
+
       {piano.rental_customer_name && (
         <View className="flex-row items-center space-x-2">
-          <Image source={icons.profile} className="w-5 h-5" tintColor="#FFA001" />
+          <Image
+            source={icons.profile}
+            className="w-5 h-5"
+            tintColor="#FFA001"
+          />
           <Text className="text-base text-gray-100 font-pmedium flex-1">
-            Customer: <Text className="text-white font-psemibold">{piano.rental_customer_name}</Text>
+            Customer:{" "}
+            <Text className="text-white font-psemibold">
+              {piano.rental_customer_name}
+            </Text>
           </Text>
         </View>
       )}
-      
+
       {piano.rental_customer_address && (
         <View className="flex-row items-start space-x-2">
-          <Image source={icons.home} className="w-5 h-5 mt-1" tintColor="#FFA001" />
+          <Image
+            source={icons.home}
+            className="w-5 h-5 mt-1"
+            tintColor="#FFA001"
+          />
           <Text className="text-base text-gray-100 font-pmedium flex-1">
-            Address: <Text className="text-white font-psemibold">{piano.rental_customer_address}</Text>
+            Address:{" "}
+            <Text className="text-white font-psemibold">
+              {piano.rental_customer_address}
+            </Text>
           </Text>
         </View>
       )}
-      
+
       {piano.rental_customer_mobile && (
         <View className="flex-row items-center space-x-2">
-          <Image source={icons.search} className="w-5 h-5" tintColor="#FFA001" />
+          <Image
+            source={icons.search}
+            className="w-5 h-5"
+            tintColor="#FFA001"
+          />
           <Text className="text-base text-gray-100 font-pmedium flex-1">
-            Mobile: <Text className="text-white font-psemibold">{piano.rental_customer_mobile}</Text>
+            Mobile:{" "}
+            <Text className="text-white font-psemibold">
+              {piano.rental_customer_mobile}
+            </Text>
           </Text>
         </View>
       )}
@@ -159,18 +182,32 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
       <View className="border-t border-gray-600 pt-4 space-y-3">
         {piano.rental_period_start && (
           <View className="flex-row items-center space-x-2">
-            <Image source={icons.play} className="w-5 h-5" tintColor="#FFA001" />
+            <Image
+              source={icons.play}
+              className="w-5 h-5"
+              tintColor="#FFA001"
+            />
             <Text className="text-base text-gray-100 font-pmedium">
-              Start: <Text className="text-white font-psemibold">{formatDate(piano.rental_period_start)}</Text>
+              Start:{" "}
+              <Text className="text-white font-psemibold">
+                {formatDate(piano.rental_period_start)}
+              </Text>
             </Text>
           </View>
         )}
-        
+
         {piano.rental_period_end && (
           <View className="flex-row items-center space-x-2">
-            <Image source={icons.close} className="w-5 h-5" tintColor="#FFA001" />
+            <Image
+              source={icons.close}
+              className="w-5 h-5"
+              tintColor="#FFA001"
+            />
             <Text className="text-base text-gray-100 font-pmedium">
-              End: <Text className="text-white font-psemibold">{formatDate(piano.rental_period_end)}</Text>
+              End:{" "}
+              <Text className="text-white font-psemibold">
+                {formatDate(piano.rental_period_end)}
+              </Text>
             </Text>
           </View>
         )}
@@ -184,17 +221,31 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
         )}
 
         <View className="flex-row items-center space-x-2">
-          <Image source={icons.bookmark} className="w-5 h-5" tintColor="#FFA001" />
+          <Image
+            source={icons.bookmark}
+            className="w-5 h-5"
+            tintColor="#FFA001"
+          />
           <Text className="text-base text-gray-100 font-pmedium">
-            Current Date: <Text className="text-white font-psemibold">{formatDate(new Date())}</Text>
+            Current Date:{" "}
+            <Text className="text-white font-psemibold">
+              {formatDate(new Date())}
+            </Text>
           </Text>
         </View>
 
         {piano.rental_price && (
           <View className="flex-row items-center space-x-2">
-            <Image source={icons.card} className="w-5 h-5" tintColor="#FFA001" />
+            <Image
+              source={icons.card}
+              className="w-5 h-5"
+              tintColor="#FFA001"
+            />
             <Text className="text-base text-gray-100 font-pmedium">
-              Price: <Text className="text-secondary font-psemibold text-lg">{piano.rental_price}</Text>
+              Price:{" "}
+              <Text className="text-secondary font-psemibold text-lg">
+                {piano.rental_price}
+              </Text>
             </Text>
           </View>
         )}
@@ -205,13 +256,22 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
 
 const WarehouseDetails = ({ piano }: { piano: PianoItem }) => (
   <View className="bg-black-100/50 rounded-xl p-4 space-y-4">
-    <Text className="text-lg text-secondary font-psemibold mb-2">Warehouse Details</Text>
-    
+    <Text className="text-lg text-secondary font-psemibold mb-2">
+      Warehouse Details
+    </Text>
+
     {piano.warehouse_since_date && (
       <View className="flex-row items-center space-x-2">
-        <Image source={icons.bookmark} className="w-5 h-5" tintColor="#FFA001" />
+        <Image
+          source={icons.bookmark}
+          className="w-5 h-5"
+          tintColor="#FFA001"
+        />
         <Text className="text-base text-gray-100 font-pmedium">
-          Since: <Text className="text-white font-psemibold">{formatDate(piano.warehouse_since_date)}</Text>
+          Since:{" "}
+          <Text className="text-white font-psemibold">
+            {formatDate(piano.warehouse_since_date)}
+          </Text>
         </Text>
       </View>
     )}
@@ -220,40 +280,54 @@ const WarehouseDetails = ({ piano }: { piano: PianoItem }) => (
 
 const EventDetails = ({ piano }: { piano: PianoItem }) => (
   <View className="bg-black-100/50 rounded-xl p-4 space-y-4">
-    <Text className="text-lg text-secondary font-psemibold mb-2">Event Details</Text>
-    
+    <Text className="text-lg text-secondary font-psemibold mb-2">
+      Event Details
+    </Text>
+
     {piano.event_purchase_price && (
       <View className="flex-row items-center space-x-2">
         <Image source={icons.card} className="w-5 h-5" tintColor="#FFA001" />
         <Text className="text-base text-gray-100 font-pmedium">
-          Purchase Price: <Text className="text-secondary font-psemibold text-lg">{piano.event_purchase_price}</Text>
+          Purchase Price:{" "}
+          <Text className="text-secondary font-psemibold text-lg">
+            {piano.event_purchase_price}
+          </Text>
         </Text>
       </View>
     )}
-    
+
     {piano.event_purchase_from && (
       <View className="flex-row items-center space-x-2">
         <Image source={icons.home} className="w-5 h-5" tintColor="#FFA001" />
         <Text className="text-base text-gray-100 font-pmedium">
-          Purchased From: <Text className="text-white font-psemibold">{piano.event_purchase_from}</Text>
+          Purchased From:{" "}
+          <Text className="text-white font-psemibold">
+            {piano.event_purchase_from}
+          </Text>
         </Text>
       </View>
     )}
-    
+
     {piano.event_model_number && (
       <View className="flex-row items-center space-x-2">
         <Image source={icons.search} className="w-5 h-5" tintColor="#FFA001" />
         <Text className="text-base text-gray-100 font-pmedium">
-          Model Number: <Text className="text-white font-psemibold">{piano.event_model_number}</Text>
+          Model Number:{" "}
+          <Text className="text-white font-psemibold">
+            {piano.event_model_number}
+          </Text>
         </Text>
       </View>
     )}
-    
+
     {piano.event_b_number && (
       <View className="flex-row items-center space-x-2">
         <Image source={icons.filter} className="w-5 h-5" tintColor="#FFA001" />
         <Text className="text-base text-gray-100 font-pmedium">
-          B Number: <Text className="text-white font-psemibold">{piano.event_b_number}</Text>
+          B Number:{" "}
+          <Text className="text-white font-psemibold">
+            {piano.event_b_number}
+          </Text>
         </Text>
       </View>
     )}
@@ -262,31 +336,46 @@ const EventDetails = ({ piano }: { piano: PianoItem }) => (
 
 const OnSaleDetails = ({ piano }: { piano: PianoItem }) => (
   <View className="bg-black-100/50 rounded-xl p-4 space-y-4">
-    <Text className="text-lg text-secondary font-psemibold mb-2">Sale Details</Text>
-    
+    <Text className="text-lg text-secondary font-psemibold mb-2">
+      Sale Details
+    </Text>
+
     {piano.on_sale_purchase_from && (
       <View className="flex-row items-center space-x-2">
         <Image source={icons.home} className="w-5 h-5" tintColor="#FFA001" />
         <Text className="text-base text-gray-100 font-pmedium">
-          Purchased From: <Text className="text-white font-psemibold">{piano.on_sale_purchase_from}</Text>
+          Purchased From:{" "}
+          <Text className="text-white font-psemibold">
+            {piano.on_sale_purchase_from}
+          </Text>
         </Text>
       </View>
     )}
-    
+
     {piano.on_sale_import_date && (
       <View className="flex-row items-center space-x-2">
-        <Image source={icons.bookmark} className="w-5 h-5" tintColor="#FFA001" />
+        <Image
+          source={icons.bookmark}
+          className="w-5 h-5"
+          tintColor="#FFA001"
+        />
         <Text className="text-base text-gray-100 font-pmedium">
-          Import Date: <Text className="text-white font-psemibold">{formatDate(piano.on_sale_import_date)}</Text>
+          Import Date:{" "}
+          <Text className="text-white font-psemibold">
+            {formatDate(piano.on_sale_import_date)}
+          </Text>
         </Text>
       </View>
     )}
-    
+
     {piano.on_sale_price && (
       <View className="flex-row items-center space-x-2">
         <Image source={icons.card} className="w-5 h-5" tintColor="#FFA001" />
         <Text className="text-base text-gray-100 font-pmedium">
-          Sale Price: <Text className="text-secondary font-psemibold text-lg">{piano.on_sale_price}</Text>
+          Sale Price:{" "}
+          <Text className="text-secondary font-psemibold text-lg">
+            {piano.on_sale_price}
+          </Text>
         </Text>
       </View>
     )}
@@ -306,7 +395,9 @@ const DetailScreen = () => {
     return (
       <SafeAreaView className="bg-primary h-full">
         <View className="flex-1 justify-center items-center">
-          <Text className="text-lg text-white font-psemibold">Piano not found</Text>
+          <Text className="text-lg text-white font-psemibold">
+            Piano not found
+          </Text>
           <CustomButton
             title="Go Back"
             handlePress={() => router.back()}
@@ -351,17 +442,17 @@ const DetailScreen = () => {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      "Delete Piano",
-      "Are you sure you want to delete this piano?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => {
+    Alert.alert("Delete Piano", "Are you sure you want to delete this piano?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
           // TODO: Implement delete functionality
           console.log("Delete piano:", id);
-        }},
-      ]
-    );
+        },
+      },
+    ]);
   };
 
   const handleShare = () => {
@@ -390,10 +481,16 @@ const DetailScreen = () => {
 
           {/* Basic Info Section */}
           <View className="bg-black-100/50 rounded-xl p-4 space-y-4">
-            <Text className="text-xl text-white font-psemibold mb-2">{title}</Text>
-            
+            <Text className="text-xl text-white font-psemibold mb-2">
+              {title}
+            </Text>
+
             <View className="flex-row items-center space-x-2">
-              <Image source={icons.card} className="w-5 h-5" tintColor="#FFA001" />
+              <Image
+                source={icons.card}
+                className="w-5 h-5"
+                tintColor="#FFA001"
+              />
               <Text className="text-base text-gray-100 font-pmedium">
                 Make: <Text className="text-white font-psemibold">{make}</Text>
               </Text>
@@ -401,33 +498,56 @@ const DetailScreen = () => {
 
             {company_associated && (
               <View className="flex-row items-center space-x-2">
-                <Image source={icons.home} className="w-5 h-5" tintColor="#FFA001" />
+                <Image
+                  source={icons.home}
+                  className="w-5 h-5"
+                  tintColor="#FFA001"
+                />
                 <Text className="text-base text-gray-100 font-pmedium">
-                  Company: <Text className="text-white font-psemibold">{company_associated}</Text>
+                  Company:{" "}
+                  <Text className="text-white font-psemibold">
+                    {company_associated}
+                  </Text>
                 </Text>
               </View>
             )}
 
             {date_of_purchase && (
               <View className="flex-row items-center space-x-2">
-                <Image source={icons.bookmark} className="w-5 h-5" tintColor="#FFA001" />
+                <Image
+                  source={icons.bookmark}
+                  className="w-5 h-5"
+                  tintColor="#FFA001"
+                />
                 <Text className="text-base text-gray-100 font-pmedium">
-                  Purchase Date: <Text className="text-white font-psemibold">{formatDate(date_of_purchase)}</Text>
+                  Purchase Date:{" "}
+                  <Text className="text-white font-psemibold">
+                    {formatDate(date_of_purchase)}
+                  </Text>
                 </Text>
               </View>
             )}
 
             <View className="flex-row items-center space-x-2">
-              <Image source={icons.eye} className="w-5 h-5" tintColor="#FFA001" />
+              <Image
+                source={icons.eye}
+                className="w-5 h-5"
+                tintColor="#FFA001"
+              />
               <Text className="text-base text-gray-100 font-pmedium">
-                {dateLabel}: <Text className="text-white font-psemibold">{dateString}</Text>
+                {dateLabel}:{" "}
+                <Text className="text-white font-psemibold">{dateString}</Text>
               </Text>
             </View>
 
             {description && (
               <View className="mt-4">
-                <Text className="text-base text-gray-100 font-pmedium mb-2">Description:</Text>
-                <Text className="text-white font-pregular leading-6">{description}</Text>
+                <Text className="text-base text-gray-100 font-pmedium mb-2">
+                  Description:
+                </Text>
+                <Text className="text-white font-pregular leading-6">
+                  {description}
+                </Text>
               </View>
             )}
           </View>
@@ -455,23 +575,35 @@ const DetailScreen = () => {
             onPress={handleEdit}
             className="flex-1 bg-secondary/20 rounded-xl py-3 flex-row justify-center items-center space-x-2"
           >
-            <Image source={icons.pencil} className="w-5 h-5" tintColor="#FFA001" />
+            <Image
+              source={icons.pencil}
+              className="w-5 h-5"
+              tintColor="#FFA001"
+            />
             <Text className="text-secondary font-psemibold">Edit</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             onPress={handleShare}
             className="flex-1 bg-secondary/20 rounded-xl py-3 flex-row justify-center items-center space-x-2"
           >
-            <Image source={icons.upload} className="w-5 h-5" tintColor="#FFA001" />
+            <Image
+              source={icons.upload}
+              className="w-5 h-5"
+              tintColor="#FFA001"
+            />
             <Text className="text-secondary font-psemibold">Share</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             onPress={handleDelete}
             className="flex-1 bg-red-500/20 rounded-xl py-3 flex-row justify-center items-center space-x-2"
           >
-            <Image source={icons.trash} className="w-5 h-5" tintColor="#FF4444" />
+            <Image
+              source={icons.trash}
+              className="w-5 h-5"
+              tintColor="#FF4444"
+            />
             <Text className="text-red-400 font-psemibold">Delete</Text>
           </TouchableOpacity>
         </View>
