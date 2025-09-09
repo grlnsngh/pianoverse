@@ -1,5 +1,9 @@
 import { icons } from "@/constants";
-import { PRIMARY_COLOR, SECONDARY_COLOR, CATEGORY_COLORS } from "@/constants/colors";
+import {
+  PRIMARY_COLOR,
+  SECONDARY_COLOR,
+  CATEGORY_COLORS,
+} from "@/constants/colors";
 import {
   setFilteredPianoListItems,
   setPianoFilters,
@@ -18,10 +22,7 @@ import {
   View,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import {
-  Divider,
-  Switch,
-} from "react-native-paper";
+import { Divider, Switch } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "../constants/Piano";
 
@@ -370,7 +371,9 @@ const FilterButton = () => {
                   </View>
                 </View>
 
-                <Divider style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }} />
+                <Divider
+                  style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }}
+                />
 
                 <View className="mt-3">
                   <Text style={styles.option}>Sort By</Text>
@@ -411,7 +414,9 @@ const FilterButton = () => {
                   </View>
                 </View>
 
-                <Divider style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }} />
+                <Divider
+                  style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }}
+                />
 
                 <Text style={styles.option} className="mt-3">
                   Category
@@ -426,7 +431,9 @@ const FilterButton = () => {
                   {renderChip("Warehouse")}
                 </View>
 
-                <Divider style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }} />
+                <Divider
+                  style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }}
+                />
 
                 <View
                   style={{
@@ -450,7 +457,9 @@ const FilterButton = () => {
                       });
                     }}
                     trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
-                    thumbColor={filterForm.isActiveRentals ? PRIMARY_COLOR : "white"}
+                    thumbColor={
+                      filterForm.isActiveRentals ? PRIMARY_COLOR : "white"
+                    }
                   />
                 </View>
 

@@ -1,9 +1,12 @@
 import { SECONDARY_COLOR } from "@/constants/colors";
 import { Image } from "expo-image";
-import { Tabs } from "expo-router";
-import React from "react";
-import { Text, View } from "react-native";
+import React, { useState } from "react";
+import { Text, View, TouchableOpacity } from "react-native";
+import { TabView, SceneMap } from "react-native-tab-view";
 import { icons } from "../../constants";
+import Home from "./home";
+import Create from "./create";
+import Profile from "./profile";
 
 const TabIcon = ({
   icon,
@@ -33,87 +36,56 @@ const TabIcon = ({
     </View>
   );
 };
+
 const TabsLayout = () => {
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    { key: "home", title: "Home" },
+    { key: "create", title: "Create" },
+    { key: "profile", title: "Profile" },
+  ]);
+
+  const renderScene = SceneMap({
+    home: Home,
+    create: Create,
+    profile: Profile,
+  });
+
+  const renderTabBar = (props: any) => (
+    <View className="flex-row bg-primary-100 border-t border-primary-200 h-20">
+      {props.navigationState.routes.map((route: any, i: number) => {
+        const isActive = index === i;
+        const icon =
+          i === 0 ? icons.home : i === 1 ? icons.plus : icons.profile;
+        const label = route.title;
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            className="flex-1 items-center justify-center"
+            onPress={() => setIndex(i)}
+          >
+            <TabIcon
+              icon={icon}
+              color={isActive ? SECONDARY_COLOR : "#CDCDE0"}
+              name={label}
+              focused={isActive}
+            />
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+
   return (
-    <>
-      <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: SECONDARY_COLOR,
-          tabBarInactiveTintColor: "#CDCDE0",
-          tabBarShowLabel: false,
-          tabBarStyle: {
-            backgroundColor: "#161622",
-            borderTopWidth: 1,
-            borderTopColor: "#232533",
-            height: 84,
-          },
-        }}
-      >
-        <Tabs.Screen
-          name="home"
-          options={{
-            title: "Home",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon
-                icon={icons.home}
-                color={color}
-                name="Home"
-                focused={focused}
-              />
-            ),
-          }}
-        />
-
-        {/* <Tabs.Screen
-          name="bookmark"
-          options={{
-            title: "Bookmark",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon
-                icon={icons.bookmark}
-                color={color}
-                name="Bookmark"
-                focused={focused}
-              />
-            ),
-          }}
-        /> */}
-
-        <Tabs.Screen
-          name="create"
-          options={{
-            title: "Create",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon
-                icon={icons.plus}
-                color={color}
-                name="Create"
-                focused={focused}
-              />
-            ),
-          }}
-        />
-
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: "Profile",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon
-                icon={icons.profile}
-                color={color}
-                name="Profile"
-                focused={focused}
-              />
-            ),
-          }}
-        />
-      </Tabs>
-    </>
+    <TabView
+      navigationState={{ index, routes }}
+      renderScene={renderScene}
+      renderTabBar={renderTabBar}
+      onIndexChange={setIndex}
+      swipeEnabled={true}
+      tabBarPosition="bottom"
+    />
   );
 };
 
