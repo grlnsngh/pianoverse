@@ -69,6 +69,16 @@ npm run reset-project
 
 This command moves the starter code to the **app-example** directory and creates a blank **app** directory for new development.
 
+## Incrementing Version
+
+To increment the app version and versionCode in app.json:
+
+```sh
+npm run increment-version
+```
+
+This script updates the version from e.g., "1.1.9" to "1.1.10" and versionCode from 20 to 21.
+
 ## Build for Android Internal Testing
 
 To build the project for Android internal testing:
