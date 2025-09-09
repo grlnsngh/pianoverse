@@ -6,7 +6,7 @@ import { Picker } from "@react-native-picker/picker";
 import { Image } from "expo-image";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -69,29 +69,54 @@ interface FormState {
 
 const Create = () => {
   const { user } = useGlobalContext();
+  const params = useLocalSearchParams();
   const [uploading, setUploading] = useState(false);
-  const [form, setForm] = useState<FormState>({
-    category: "rentable",
-    title: "",
-    description: "",
-    image: null,
-    make: "",
-    rentalCustomerName: "",
-    rentalCustomerAddress: "",
-    rentalCustomerMobileNumber: "",
-    rentalStartDate: new Date(),
-    rentalEndDate: new Date(),
-    rentalPrice: 0,
-    warehouseStoredSinceDate: new Date(),
-    eventPurchasePrice: 0,
-    eventPurchaseFrom: "",
-    eventModelNumber: "",
-    eventBNumber: "",
-    onSalePurchaseFrom: "",
-    onSaleImportDate: new Date(),
-    onSalePrice: 0,
-    companyAssociated: COMPANY_ASSOCIATED.SHAMSHERSONS,
-    dateOfPurchase: new Date(),
+  const [form, setForm] = useState<FormState>(() => {
+    // If we have formData from params (coming back from review), use it
+    if (params.formData) {
+      try {
+        const parsedForm = JSON.parse(params.formData as string);
+        // Convert date strings back to Date objects
+        return {
+          ...parsedForm,
+          dateOfPurchase: new Date(parsedForm.dateOfPurchase),
+          rentalStartDate: new Date(parsedForm.rentalStartDate),
+          rentalEndDate: new Date(parsedForm.rentalEndDate),
+          warehouseStoredSinceDate: new Date(
+            parsedForm.warehouseStoredSinceDate
+          ),
+          onSaleImportDate: new Date(parsedForm.onSaleImportDate),
+        };
+      } catch (error) {
+        console.error("Error parsing form data:", error);
+      }
+    }
+
+    // Default form state with sample data for testing
+    return {
+      category: "rentable",
+      title: "Yamaha Grand Piano U3",
+      description:
+        "Beautiful Yamaha U3 grand piano in excellent condition. Perfect for concerts and professional performances.",
+      image: null, // Keep null for image
+      make: "Yamaha",
+      rentalCustomerName: "John Smith",
+      rentalCustomerAddress: "123 Music Street, Los Angeles, CA 90210",
+      rentalCustomerMobileNumber: "+1-555-0123",
+      rentalStartDate: new Date(),
+      rentalEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      rentalPrice: 2500,
+      warehouseStoredSinceDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
+      eventPurchasePrice: 15000,
+      eventPurchaseFrom: "Piano World Store",
+      eventModelNumber: "U3-2020",
+      eventBNumber: "B-45678",
+      onSalePurchaseFrom: "Music Center Inc",
+      onSaleImportDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
+      onSalePrice: 18000,
+      companyAssociated: COMPANY_ASSOCIATED.SHAMSHERSONS,
+      dateOfPurchase: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
+    };
   });
 
   const [showRentalStartDatePicker, setShowRentalStartDatePicker] =
@@ -112,53 +137,52 @@ const Create = () => {
       form.image,
       form.make,
       form.companyAssociated,
-      form.dateOfPurchase
+      form.dateOfPurchase,
     ];
 
-    const basicComplete = basicFields.every(field => field !== null && field !== undefined && field !== '');
+    const basicComplete = basicFields.every(
+      (field) => field !== null && field !== undefined && field !== ""
+    );
 
     let currentStep = 1;
     let totalSteps = 2;
-    let stepName = 'Basic Information';
+    let stepName = "Basic Information";
 
     if (basicComplete) {
       currentStep = 2;
-      stepName = form.category === PIANO_CATEGORY.RENTABLE ? 'Rental Details' :
-                 form.category === PIANO_CATEGORY.WAREHOUSE ? 'Warehouse Details' :
-                 form.category === PIANO_CATEGORY.EVENTS ? 'Event Details' :
-                 form.category === PIANO_CATEGORY.ON_SALE ? 'Sale Details' : 'Category Details';
+      stepName =
+        form.category === PIANO_CATEGORY.RENTABLE
+          ? "Rental Details"
+          : form.category === PIANO_CATEGORY.WAREHOUSE
+          ? "Warehouse Details"
+          : form.category === PIANO_CATEGORY.EVENTS
+          ? "Event Details"
+          : form.category === PIANO_CATEGORY.ON_SALE
+          ? "Sale Details"
+          : "Category Details";
     }
 
     return {
       currentStep,
       totalSteps,
       stepName,
-      progress: currentStep / totalSteps
+      progress: currentStep / totalSteps,
     };
   };
 
-  const onDateOfPurchaseChange = (
-    event: any,
-    selectedDate?: Date
-  ) => {
+  const onDateOfPurchaseChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || form.dateOfPurchase;
     setShowDateOfPurchasePicker(false);
     setForm({ ...form, dateOfPurchase: currentDate });
   };
 
-  const onRentalStartDateChange = (
-    event: any,
-    selectedDate?: Date
-  ) => {
+  const onRentalStartDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || form.rentalStartDate;
     setShowRentalStartDatePicker(false);
     setForm({ ...form, rentalStartDate: currentDate });
   };
 
-  const onRentalEndDateChange = (
-    event: any,
-    selectedDate?: Date
-  ) => {
+  const onRentalEndDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || form.rentalEndDate;
     setShowRentalEndDatePicker(false);
     setForm({ ...form, rentalEndDate: currentDate });
@@ -217,6 +241,61 @@ const Create = () => {
         },
       });
     }
+  };
+
+  const handleReview = () => {
+    // Check if basic details are provided
+    const basicDetails = {
+      category: form.category,
+      title: form.title,
+      description: form.description,
+      image: form.image,
+      make: form.make,
+      companyAssociated: form.companyAssociated,
+      dateOfPurchase: form.dateOfPurchase,
+    };
+
+    for (const [key, value] of Object.entries(basicDetails)) {
+      if (!value) {
+        Alert.alert("Error", `Please provide a valid ${key}.`);
+        return;
+      }
+    }
+
+    // Check category-specific details
+    if (form.category === PIANO_CATEGORY.RENTABLE) {
+      if (
+        !form.rentalCustomerName.trim() ||
+        !form.rentalCustomerAddress.trim() ||
+        !form.rentalCustomerMobileNumber.trim() ||
+        form.rentalPrice <= 0
+      ) {
+        Alert.alert("Error", "Please fill all rental details.");
+        return;
+      }
+    } else if (form.category === PIANO_CATEGORY.WAREHOUSE) {
+      // Warehouse might not need additional validation beyond basic
+    } else if (form.category === PIANO_CATEGORY.EVENTS) {
+      if (
+        !form.eventPurchaseFrom.trim() ||
+        !form.eventModelNumber.trim() ||
+        !form.eventBNumber.trim()
+      ) {
+        Alert.alert("Error", "Please fill all event details.");
+        return;
+      }
+    } else if (form.category === PIANO_CATEGORY.ON_SALE) {
+      if (!form.onSalePurchaseFrom.trim() || form.onSalePrice <= 0) {
+        Alert.alert("Error", "Please fill all sale details.");
+        return;
+      }
+    }
+
+    // Navigate to review screen with form data
+    router.push({
+      pathname: "/review",
+      params: { formData: JSON.stringify(form) },
+    });
   };
 
   const handleOnSubmit = async () => {
@@ -318,7 +397,9 @@ const Create = () => {
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
         <View className="w-full flex justify-center px-4 my-6">
-          <Text className="text-2xl text-white font-psemibold mb-4">Add Piano</Text>
+          <Text className="text-2xl text-white font-psemibold mb-4">
+            Add Piano
+          </Text>
 
           {/* Progress Bar */}
           <View className="mb-6">
@@ -331,16 +412,21 @@ const Create = () => {
               style={{ height: 8, borderRadius: 4 }}
             />
             <Text className="text-sm text-gray-100 mt-1">
-              Step {calculateProgress().currentStep} of {calculateProgress().totalSteps}: {calculateProgress().stepName}
+              Step {calculateProgress().currentStep} of{" "}
+              {calculateProgress().totalSteps}: {calculateProgress().stepName}
             </Text>
           </View>
 
           {/* Basic Information Section */}
           <View className="bg-black-200 rounded-2xl p-4 mb-6">
-            <Text className="text-lg text-white font-psemibold mb-4">Basic Information</Text>
+            <Text className="text-lg text-white font-psemibold mb-4">
+              Basic Information
+            </Text>
 
             <View className="space-y-2 mb-4">
-              <Text className="text-base text-gray-100 font-pmedium">Category</Text>
+              <Text className="text-base text-gray-100 font-pmedium">
+                Category
+              </Text>
               <View className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary flex flex-row items-center">
                 <Picker
                   selectedValue={form.category}
@@ -362,7 +448,9 @@ const Create = () => {
             </View>
 
             <View className="mb-4">
-              <Text className="text-base text-gray-100 font-pmedium mb-2">Upload Image</Text>
+              <Text className="text-base text-gray-100 font-pmedium mb-2">
+                Upload Image
+              </Text>
               <TouchableOpacity onPress={openImagePicker}>
                 {form.image ? (
                   <>
@@ -430,7 +518,9 @@ const Create = () => {
               placeholder="Enter additional details..."
             />
 
-            <Text className="text-base text-gray-100 font-pmedium mb-2">Make</Text>
+            <Text className="text-base text-gray-100 font-pmedium mb-2">
+              Make
+            </Text>
             <View className="w-full px-4 py-5 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary">
               <Dropdown
                 data={pianoCompaniesMakeList}
@@ -477,7 +567,8 @@ const Create = () => {
             <View className="bg-black-200 rounded-2xl p-4 mb-6">
               <Text className="text-lg text-white font-psemibold mb-4">
                 {form.category === PIANO_CATEGORY.RENTABLE && "Rental Details"}
-                {form.category === PIANO_CATEGORY.WAREHOUSE && "Warehouse Details"}
+                {form.category === PIANO_CATEGORY.WAREHOUSE &&
+                  "Warehouse Details"}
                 {form.category === PIANO_CATEGORY.EVENTS && "Event Details"}
                 {form.category === PIANO_CATEGORY.ON_SALE && "Sale Details"}
               </Text>
@@ -622,7 +713,9 @@ const Create = () => {
                       title="Import Date"
                       value={form.onSaleImportDate.toDateString()}
                       handleChangeText={() => {}}
-                      onFocus={() => setShowWarehouseStoredSinceDatePicker(true)}
+                      onFocus={() =>
+                        setShowWarehouseStoredSinceDatePicker(true)
+                      }
                     />
                     {showWarehouseStoredSinceDatePicker && (
                       <DateTimePicker
@@ -650,10 +743,17 @@ const Create = () => {
           )}
 
           <CustomButton
-            title="Submit & Publish"
-            handlePress={handleOnSubmit}
+            title={
+              calculateProgress().currentStep === 2
+                ? "Review & Publish"
+                : "Continue Filling Form"
+            }
+            handlePress={
+              calculateProgress().currentStep === 2 ? handleReview : () => {}
+            }
             containerStyles="mt-7"
             isLoading={uploading}
+            disabled={calculateProgress().currentStep !== 2}
           />
         </View>
       </ScrollView>

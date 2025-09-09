@@ -5,7 +5,17 @@ import React from "react";
 import { Text, View } from "react-native";
 import { icons } from "../../constants";
 
-const TabIcon = ({ icon, color, name, focused }) => {
+const TabIcon = ({
+  icon,
+  color,
+  name,
+  focused,
+}: {
+  icon: any;
+  color: string;
+  name: string;
+  focused: boolean;
+}) => {
   return (
     <View className="flex items-center justify-center gap-2">
       <Image

@@ -16,6 +16,7 @@ import React, { useEffect, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
+import { useFocusEffect } from "@react-navigation/native";
 import CardItem from "../components/CardItem";
 import EmptyState from "../components/EmptyState";
 import FilterButton from "../components/FilterButton";
@@ -47,6 +48,13 @@ const Home = () => {
     await refetch();
     setRefreshing(false);
   };
+
+  // Refetch data when screen comes into focus (e.g., after publishing)
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [])
+  );
 
   const [visibleMenuId, setVisibleMenuId] = useState<string | null>(null);
 
