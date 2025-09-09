@@ -57,12 +57,14 @@ const SignIn = () => {
             value={form.email}
             handleChangeText={(e) => setForm({ ...form, email: e })}
             keyboardType="email-address"
+            autoCapitalize="none"
           />
 
           <FormField
             title="Password"
             value={form.password}
             handleChangeText={(e) => setForm({ ...form, password: e })}
+            autoCapitalize="none"
           />
 
           <CustomButton

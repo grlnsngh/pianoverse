@@ -57,6 +57,7 @@ const SignUp = () => {
             value={form.username}
             handleChangeText={(e) => setForm({ ...form, username: e })}
             otherStyles="mt-10"
+            autoCapitalize="none"
           />
 
           <FormField
@@ -65,6 +66,7 @@ const SignUp = () => {
             handleChangeText={(e) => setForm({ ...form, email: e })}
             otherStyles="mt-7"
             keyboardType="email-address"
+            autoCapitalize="none"
           />
 
           <FormField
@@ -72,6 +74,7 @@ const SignUp = () => {
             value={form.password}
             handleChangeText={(e) => setForm({ ...form, password: e })}
             otherStyles="mt-7"
+            autoCapitalize="none"
           />
 
           <CustomButton
