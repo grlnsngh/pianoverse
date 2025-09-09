@@ -1,5 +1,5 @@
-import { icons } from "@/constants";
-import { CATEGORY_COLORS } from "@/constants/colors";
+import { icons, images } from "@/constants";
+import { CATEGORY_COLORS, PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
 import {
@@ -20,7 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { IconButton, Menu, PaperProvider } from "react-native-paper";
+import { IconButton, Menu, PaperProvider, Surface } from "react-native-paper";
 import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "../constants/Piano";
 
@@ -146,36 +146,71 @@ const ListItem: React.FC<ListItemProps> = ({
     return <View style={styles.itemInvisible} />;
   }
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case PIANO_CATEGORY.RENTABLE:
+        return icons.card;
+      case PIANO_CATEGORY.EVENTS:
+        return icons.play;
+      case PIANO_CATEGORY.ON_SALE:
+        return icons.bookmark;
+      case PIANO_CATEGORY.WAREHOUSE:
+        return icons.home;
+      default:
+        return icons.card;
+    }
+  };
+
+  const getStatusColor = () => {
+    if (!rental_period_end) return SECONDARY_COLOR;
+    if (isRemainingPositive) {
+      return isLessThanOrEqualTo7Days(remaining) ? "#ef4444" : "#10b981";
+    }
+    return "#6b7280";
+  };
+
+  const getStatusText = () => {
+    if (!rental_period_end) return null;
+    if (isRemainingPositive) {
+      return `${displayRemainingTime(remaining)} remaining`;
+    }
+    return `Expired ${displayElapsedTime({
+      years: Math.abs(remaining.years),
+      months: Math.abs(remaining.months),
+      weeks: Math.abs(remaining.weeks),
+      days: Math.abs(remaining.days),
+    })} ago`;
+  };
+
   return (
     <PaperProvider>
-      <View className="flex-col items-center px-4 mb-4">
-        <View className="flex-row gap-3 items-start">
-          <View className="justify-center items-center flex-row flex-1">
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={handleOnClickItem}
-              className="w-[90px] h-[90px] rounded-lg 
-           justify-center items-center p-0.5"
-            >
-              <Image
-                source={{ uri: image_url }}
-                className="w-full h-full rounded-xl mt-3"
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
-
-            <View className="justify-center flex-1 ml-3 gap-y-1">
-              <Text
-                className="text-white font-psemibold text-sm"
-                numberOfLines={1}
-              >
-                {title}
-              </Text>
-              <Text
-                className="text-xs text-gray-100 font-pregular"
-                numberOfLines={1}
+      <View className="px-4 mb-3">
+        <Surface
+          style={styles.cardContainer}
+          elevation={2}
+          className="bg-primary-200 rounded-2xl overflow-hidden"
+        >
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={handleOnClickItem}
+            className="flex-row p-4"
+          >
+            {/* Image Section */}
+            <View className="relative">
+              <View className="w-20 h-20 rounded-xl overflow-hidden bg-primary-300">
+                <Image
+                  source={{ uri: image_url }}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                  placeholder={images.empty}
+                  placeholderContentFit="cover"
+                />
+              </View>
+              {/* Category Badge */}
+              <View
+                className="absolute -top-1 -right-1 w-6 h-6 rounded-full items-center justify-center"
                 style={{
-                  color:
+                  backgroundColor:
                     category === PIANO_CATEGORY.RENTABLE
                       ? CATEGORY_COLORS.RENTABLE
                       : category === PIANO_CATEGORY.EVENTS
@@ -184,96 +219,134 @@ const ListItem: React.FC<ListItemProps> = ({
                       ? CATEGORY_COLORS.ON_SALE
                       : category === PIANO_CATEGORY.WAREHOUSE
                       ? CATEGORY_COLORS.WAREHOUSE
-                      : "",
+                      : SECONDARY_COLOR,
                 }}
               >
-                {getCategoryLabel(category)}
+                <Image
+                  source={getCategoryIcon(category)}
+                  className="w-3 h-3"
+                  tintColor={PRIMARY_COLOR}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+
+            {/* Content Section */}
+            <View className="flex-1 ml-4 justify-center">
+              {/* Title */}
+              <Text
+                className="text-white font-psemibold text-base mb-1"
+                numberOfLines={1}
+              >
+                {title}
               </Text>
-              {company_associated && (
+
+              {/* Category and Company */}
+              <View className="flex-row items-center mb-2">
                 <Text
-                  className="text-xs text-gray-100 font-pregular"
-                  numberOfLines={1}
+                  className="text-xs font-pmedium px-2 py-1 rounded-full mr-2"
+                  style={{
+                    backgroundColor:
+                      category === PIANO_CATEGORY.RENTABLE
+                        ? `${CATEGORY_COLORS.RENTABLE}20`
+                        : category === PIANO_CATEGORY.EVENTS
+                        ? `${CATEGORY_COLORS.EVENTS}20`
+                        : category === PIANO_CATEGORY.ON_SALE
+                        ? `${CATEGORY_COLORS.ON_SALE}20`
+                        : category === PIANO_CATEGORY.WAREHOUSE
+                        ? `${CATEGORY_COLORS.WAREHOUSE}20`
+                        : `${SECONDARY_COLOR}20`,
+                    color:
+                      category === PIANO_CATEGORY.RENTABLE
+                        ? CATEGORY_COLORS.RENTABLE
+                        : category === PIANO_CATEGORY.EVENTS
+                        ? CATEGORY_COLORS.EVENTS
+                        : category === PIANO_CATEGORY.ON_SALE
+                        ? CATEGORY_COLORS.ON_SALE
+                        : category === PIANO_CATEGORY.WAREHOUSE
+                        ? CATEGORY_COLORS.WAREHOUSE
+                        : SECONDARY_COLOR,
+                  }}
                 >
-                  {company_associated}
+                  {getCategoryLabel(category)}
                 </Text>
-              )}
+                {company_associated && (
+                  <Text className="text-xs text-gray-100 font-pregular flex-1" numberOfLines={1}>
+                    {company_associated}
+                  </Text>
+                )}
+              </View>
 
-              {rental_period_end && isRemainingPositive && (
-                <Text className="text-xs text-gray-100 font-pregular">
+              {/* Status Indicator */}
+              {getStatusText() && (
+                <View className="flex-row items-center">
+                  <View
+                    className="w-2 h-2 rounded-full mr-2"
+                    style={{ backgroundColor: getStatusColor() }}
+                  />
                   <Text
-                    className={`text-white font-psemibold ${
-                      isLessThanOrEqualTo7Days(remaining) ? "text-red-500" : ""
-                    }`}
+                    className="text-xs font-pmedium"
+                    style={{ color: getStatusColor() }}
                   >
-                    {displayRemainingTime(remaining)}
+                    {getStatusText()}
                   </Text>
-                  {` remaining`}
-                </Text>
-              )}
-
-              {rental_period_end && !isRemainingPositive && (
-                <Text className="text-xs text-gray-100 font-pregular">
-                  {`Expired `}
-
-                  <Text className="text-white font-psemibold">
-                    {displayElapsedTime({
-                      years: Math.abs(remaining.years),
-                      months: Math.abs(remaining.months),
-                      weeks: Math.abs(remaining.weeks),
-                      days: Math.abs(remaining.days),
-                    })}
-                  </Text>
-                  {` ago`}
-                </Text>
+                </View>
               )}
             </View>
-          </View>
-          <View className="pt-4">
-            <View style={styles.container}>
-              <Menu
-                style={styles.menu}
-                visible={visibleMenuId === item.$id}
-                onDismiss={closeMenu}
-                anchor={
-                  <TouchableOpacity onPress={() => openMenu(item.$id)}>
-                    <Image
-                      source={icons.menu}
-                      style={styles.menuIcon}
-                      resizeMode="contain"
-                    />
-                  </TouchableOpacity>
-                }
-              >
-                <Menu.Item
-                  onPress={handleOnClickEditMenu}
-                  title="Edit"
-                  leadingIcon={() => {
-                    return (
+
+            {/* Menu Button */}
+            <View className="justify-center">
+              <View style={styles.container}>
+                <Menu
+                  style={styles.menu}
+                  visible={visibleMenuId === item.$id}
+                  onDismiss={closeMenu}
+                  anchor={
+                    <TouchableOpacity
+                      onPress={() => openMenu(item.$id)}
+                      className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
+                      activeOpacity={0.7}
+                    >
+                      <Image
+                        source={icons.menu}
+                        className="w-4 h-4"
+                        tintColor="#CDCDE0"
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
+                  }
+                >
+                  <Menu.Item
+                    onPress={handleOnClickEditMenu}
+                    title="Edit"
+                    leadingIcon={() => (
                       <IconButton
                         icon={icons.pencil}
-                        size={15}
+                        size={16}
+                        iconColor={SECONDARY_COLOR}
                         style={styles.menuItemIcon}
                       />
-                    );
-                  }}
-                />
-                <Menu.Item
-                  onPress={handleOnClickDeleteMenu}
-                  title="Delete"
-                  leadingIcon={() => {
-                    return (
+                    )}
+                    titleStyle={{ color: "#CDCDE0" }}
+                  />
+                  <Menu.Item
+                    onPress={handleOnClickDeleteMenu}
+                    title="Delete"
+                    leadingIcon={() => (
                       <IconButton
                         icon={icons.trash}
-                        size={15}
+                        size={16}
+                        iconColor="#ef4444"
                         style={styles.menuItemIcon}
                       />
-                    );
-                  }}
-                />
-              </Menu>
+                    )}
+                    titleStyle={{ color: "#CDCDE0" }}
+                  />
+                </Menu>
+              </View>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </Surface>
       </View>
     </PaperProvider>
   );
@@ -287,12 +360,25 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
   },
+  cardContainer: {
+    borderRadius: 16,
+    marginHorizontal: 0,
+  },
   menuIcon: {
     width: 20,
     height: 20,
   },
-  menu: { top: 0, right: 20, width: 120 },
-  menuItemIcon: { paddingEnd: 10 },
+  menu: {
+    top: 0,
+    right: 20,
+    width: 140,
+    backgroundColor: "#1E1E2D",
+    borderRadius: 12,
+  },
+  menuItemIcon: {
+    paddingEnd: 10,
+    margin: 0,
+  },
   itemInvisible: {
     backgroundColor: "transparent",
   },
