@@ -333,10 +333,6 @@ const EditScreen = () => {
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
         <View className="w-full flex justify-center px-4 my-6">
-          <Text className="text-2xl text-white font-psemibold mb-4">
-            Edit Piano
-          </Text>
-
           {/* Basic Information Section */}
           <View className="bg-black-200 rounded-2xl p-4 mb-6">
             <Text className="text-lg text-white font-psemibold mb-4">
