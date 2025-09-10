@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import {
@@ -10,6 +10,7 @@ import {
 import { deleteMultiplePianoEntries } from "@/lib/appwrite";
 import { icons } from "@/constants";
 import { Image } from "expo-image";
+import CustomAlertModal from "./CustomAlertModal";
 
 interface BulkOperationsBarProps {
   onRefresh: () => void;
@@ -20,56 +21,47 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
   const { selectedItems, filteredItems } = useSelector(
     (state: RootState) => state.pianos
   );
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedItems.length === 0) return;
+    setShowDeleteModal(true);
+  };
 
-    Alert.alert(
-      "Confirm Bulk Delete",
-      `Are you sure you want to delete ${selectedItems.length} piano${
-        selectedItems.length > 1 ? "s" : ""
-      }? This action cannot be undone.`,
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const itemsToDelete = filteredItems.filter((item) =>
-                selectedItems.includes(item.$id)
-              );
+  const handleConfirmDelete = async () => {
+    setShowDeleteModal(false);
+    try {
+      const itemsToDelete = filteredItems.filter((item) =>
+        selectedItems.includes(item.$id)
+      );
 
-              await deleteMultiplePianoEntries(itemsToDelete);
+      await deleteMultiplePianoEntries(itemsToDelete);
 
-              // Clear selection and exit bulk mode
-              dispatch(clearSelectedItems() as any);
-              dispatch(setBulkSelectionMode(false) as any);
+      // Clear selection and exit bulk mode
+      dispatch(clearSelectedItems() as any);
+      dispatch(setBulkSelectionMode(false) as any);
 
-              // Refresh the list
-              onRefresh();
+      // Refresh the list
+      onRefresh();
 
-              Alert.alert(
-                "Success",
-                `Successfully deleted ${selectedItems.length} piano${
-                  selectedItems.length > 1 ? "s" : ""
-                }`
-              );
-            } catch (error) {
-              Alert.alert(
-                "Error",
-                `Failed to delete items: ${
-                  error instanceof Error ? error.message : "Unknown error"
-                }`
-              );
-            }
-          },
-        },
-      ]
-    );
+      // Show success message (you might want to use a toast or another modal here)
+      console.log(
+        `Successfully deleted ${selectedItems.length} piano${
+          selectedItems.length > 1 ? "s" : ""
+        }`
+      );
+    } catch (error) {
+      // Show error message (you might want to use a toast or another modal here)
+      console.error(
+        `Failed to delete items: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
   };
 
   const handleSelectAll = () => {
@@ -129,6 +121,21 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
           <Image source={icons.close} className="w-5 h-5" tintColor="#ffffff" />
         </TouchableOpacity>
       </View>
+
+      <CustomAlertModal
+        visible={showDeleteModal}
+        title="Confirm Bulk Delete"
+        message={`Are you sure you want to delete ${
+          selectedItems.length
+        } piano${
+          selectedItems.length > 1 ? "s" : ""
+        }? This action cannot be undone.`}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        cancelText="Cancel"
+        confirmText="Delete"
+        type="destructive"
+      />
     </View>
   );
 };
