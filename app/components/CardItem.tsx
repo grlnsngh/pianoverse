@@ -58,430 +58,425 @@ const calculateRemainingPeriod = (end: Date | null | undefined) => {
   return { days, weeks, months, years };
 };
 
-const CardItem: React.FC<CardItemProps> = React.memo(({
-  item,
-  index = 0,
-  visibleMenuId,
-  openMenu,
-  closeMenu,
-  onDelete,
-}) => {
-  const {
-    title = "",
-    image_url = "",
-    users,
-    company_associated = "",
-    category = "",
-    rental_period_end,
-  } = item;
-  const { avatar = "" } = users || {};
-  const pathname = usePathname();
-  const [isBookmarked, setIsBookmarked] = useState(false);
+const CardItem: React.FC<CardItemProps> = React.memo(
+  ({ item, index = 0, visibleMenuId, openMenu, closeMenu, onDelete }) => {
+    const {
+      title = "",
+      image_url = "",
+      users,
+      company_associated = "",
+      category = "",
+      rental_period_end,
+    } = item;
+    const { avatar = "" } = users || {};
+    const pathname = usePathname();
+    const [isBookmarked, setIsBookmarked] = useState(false);
 
-  // React Native Animated values for card expansion
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const elevationAnim = useRef(new Animated.Value(4)).current;
+    // React Native Animated values for card expansion
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const elevationAnim = useRef(new Animated.Value(4)).current;
 
-  // Reanimated values for fade-in
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(20);
+    // Reanimated values for fade-in
+    const opacity = useSharedValue(0);
+    const translateY = useSharedValue(20);
 
-  // Trigger animation on mount
-  useEffect(() => {
-    const delay = index * 100; // Stagger by 100ms per item
-    opacity.value = withDelay(
-      delay,
-      withTiming(1, {
-        duration: 600,
-        easing: Easing.out(Easing.cubic),
-      })
-    );
-    translateY.value = withDelay(
-      delay,
-      withTiming(0, {
-        duration: 600,
-        easing: Easing.out(Easing.cubic),
-      })
-    );
-  }, [index]);
+    // Trigger animation on mount
+    useEffect(() => {
+      const delay = index * 100; // Stagger by 100ms per item
+      opacity.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+        })
+      );
+      translateY.value = withDelay(
+        delay,
+        withTiming(0, {
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+        })
+      );
+    }, [index]);
 
-  // Animated styles
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: opacity.value,
-      transform: [{ translateY: translateY.value }],
+    // Animated styles
+    const animatedStyle = useAnimatedStyle(() => {
+      return {
+        opacity: opacity.value,
+        transform: [{ translateY: translateY.value }],
+      };
+    });
+
+    // Handle card press animations
+    const handlePressIn = () => {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 0.95,
+          useNativeDriver: true,
+          friction: 8,
+          tension: 100,
+        }),
+        Animated.timing(elevationAnim, {
+          toValue: 8,
+          duration: 150,
+          useNativeDriver: false,
+        }),
+      ]).start();
     };
-  });
 
-  // Handle card press animations
-  const handlePressIn = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.95,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 100,
-      }),
-      Animated.timing(elevationAnim, {
-        toValue: 8,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start();
-  };
+    const handlePressOut = () => {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          friction: 8,
+          tension: 100,
+        }),
+        Animated.timing(elevationAnim, {
+          toValue: 4,
+          duration: 150,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    };
 
-  const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 100,
-      }),
-      Animated.timing(elevationAnim, {
-        toValue: 4,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start();
-  };
+    const remaining = calculateRemainingPeriod(rental_period_end);
 
-  const remaining = calculateRemainingPeriod(rental_period_end);
+    const isRemainingPositive =
+      remaining.days > 0 ||
+      remaining.weeks > 0 ||
+      remaining.months > 0 ||
+      remaining.years > 0;
 
-  const isRemainingPositive =
-    remaining.days > 0 ||
-    remaining.weeks > 0 ||
-    remaining.months > 0 ||
-    remaining.years > 0;
+    const pluralize = (value: number, unit: string) =>
+      `${value} ${unit}${value > 1 ? "s" : ""}`;
 
-  const pluralize = (value: number, unit: string) =>
-    `${value} ${unit}${value > 1 ? "s" : ""}`;
+    const displayRemainingTime = (remaining: {
+      years: number;
+      months: number;
+      weeks: number;
+      days: number;
+    }) => {
+      if (remaining.years > 0) return pluralize(remaining.years, "year");
+      if (remaining.months > 0) return pluralize(remaining.months, "month");
+      if (remaining.weeks > 0) return pluralize(remaining.weeks, "week");
+      return pluralize(remaining.days, "day");
+    };
 
-  const displayRemainingTime = (remaining: {
-    years: number;
-    months: number;
-    weeks: number;
-    days: number;
-  }) => {
-    if (remaining.years > 0) return pluralize(remaining.years, "year");
-    if (remaining.months > 0) return pluralize(remaining.months, "month");
-    if (remaining.weeks > 0) return pluralize(remaining.weeks, "week");
-    return pluralize(remaining.days, "day");
-  };
+    const isLessThanOrEqualTo7Days = (remaining: {
+      years: number;
+      months: number;
+      weeks: number;
+      days: number;
+    }) => {
+      return (
+        remaining.years === 0 &&
+        remaining.months === 0 &&
+        remaining.weeks === 0 &&
+        remaining.days <= 7
+      );
+    };
 
-  const isLessThanOrEqualTo7Days = (remaining: {
-    years: number;
-    months: number;
-    weeks: number;
-    days: number;
-  }) => {
-    return (
-      remaining.years === 0 &&
-      remaining.months === 0 &&
-      remaining.weeks === 0 &&
-      remaining.days <= 7
-    );
-  };
-
-  const getStatusColor = () => {
-    if (!rental_period_end) return SECONDARY_COLOR;
-    if (isRemainingPositive) {
-      return isLessThanOrEqualTo7Days(remaining) ? "#ef4444" : "#10b981";
-    }
-    return "#6b7280";
-  };
-
-  const getStatusText = () => {
-    if (!rental_period_end) return null;
-    if (isRemainingPositive) {
-      return `${displayRemainingTime(remaining)} remaining`;
-    }
-    return "Expired";
-  };
-
-  const handleOnClickItem = () => {
-    if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
-    else router.push(`/detail/${item.$id}`);
-  };
-
-  const handleOnClickEditMenu = () => {
-    if (pathname.startsWith("/edit")) router.setParams({ id: item.$id });
-    else router.push(`/edit/${item.$id}`);
-    closeMenu();
-  };
-
-  const handleOnClickDeleteMenu = async () => {
-    try {
-      await deletePianoEntry(item);
-      ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
-      onDelete?.();
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert(
-          "Error",
-          `Error deleting piano entry: ${title} - ${error.message}`
-        );
-      } else {
-        Alert.alert("Error", "An unknown error occurred");
+    const getStatusColor = () => {
+      if (!rental_period_end) return SECONDARY_COLOR;
+      if (isRemainingPositive) {
+        return isLessThanOrEqualTo7Days(remaining) ? "#ef4444" : "#10b981";
       }
-    } finally {
+      return "#6b7280";
+    };
+
+    const getStatusText = () => {
+      if (!rental_period_end) return null;
+      if (isRemainingPositive) {
+        return `${displayRemainingTime(remaining)} remaining`;
+      }
+      return "Expired";
+    };
+
+    const handleOnClickItem = () => {
+      if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
+      else router.push(`/detail/${item.$id}`);
+    };
+
+    const handleOnClickEditMenu = () => {
+      if (pathname.startsWith("/edit")) router.setParams({ id: item.$id });
+      else router.push(`/edit/${item.$id}`);
       closeMenu();
+    };
+
+    const handleOnClickDeleteMenu = async () => {
+      try {
+        await deletePianoEntry(item);
+        ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
+        onDelete?.();
+      } catch (error) {
+        if (error instanceof Error) {
+          Alert.alert(
+            "Error",
+            `Error deleting piano entry: ${title} - ${error.message}`
+          );
+        } else {
+          Alert.alert("Error", "An unknown error occurred");
+        }
+      } finally {
+        closeMenu();
+      }
+    };
+
+    const handleBookmark = () => {
+      setIsBookmarked(!isBookmarked);
+      ToastAndroid.show(
+        isBookmarked ? "Removed from bookmarks" : "Added to bookmarks",
+        ToastAndroid.SHORT
+      );
+    };
+
+    const getCategoryGradient = (category: string) => {
+      switch (category) {
+        case PIANO_CATEGORY.RENTABLE:
+          return ["#efeaab", "#d4c96a"];
+        case PIANO_CATEGORY.EVENTS:
+          return ["#abd8ef", "#7bb8d8"];
+        case PIANO_CATEGORY.ON_SALE:
+          return ["#eebec0", "#d89fa1"];
+        case PIANO_CATEGORY.WAREHOUSE:
+          return ["#c0eebe", "#9bd49a"];
+        default:
+          return [SECONDARY_COLOR, "#e68a00"];
+      }
+    };
+
+    if (item.empty) {
+      return <View style={styles.itemInvisible} />;
     }
-  };
 
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    ToastAndroid.show(
-      isBookmarked ? "Removed from bookmarks" : "Added to bookmarks",
-      ToastAndroid.SHORT
-    );
-  };
+    const getCategoryIcon = (category: string) => {
+      switch (category) {
+        case PIANO_CATEGORY.RENTABLE:
+          return icons.card;
+        case PIANO_CATEGORY.EVENTS:
+          return icons.play;
+        case PIANO_CATEGORY.ON_SALE:
+          return icons.bookmark;
+        case PIANO_CATEGORY.WAREHOUSE:
+          return icons.home;
+        default:
+          return icons.card;
+      }
+    };
 
-  const getCategoryGradient = (category: string) => {
-    switch (category) {
-      case PIANO_CATEGORY.RENTABLE:
-        return ["#efeaab", "#d4c96a"];
-      case PIANO_CATEGORY.EVENTS:
-        return ["#abd8ef", "#7bb8d8"];
-      case PIANO_CATEGORY.ON_SALE:
-        return ["#eebec0", "#d89fa1"];
-      case PIANO_CATEGORY.WAREHOUSE:
-        return ["#c0eebe", "#9bd49a"];
-      default:
-        return [SECONDARY_COLOR, "#e68a00"];
-    }
-  };
-
-  if (item.empty) {
-    return <View style={styles.itemInvisible} />;
-  }
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case PIANO_CATEGORY.RENTABLE:
-        return icons.card;
-      case PIANO_CATEGORY.EVENTS:
-        return icons.play;
-      case PIANO_CATEGORY.ON_SALE:
-        return icons.bookmark;
-      case PIANO_CATEGORY.WAREHOUSE:
-        return icons.home;
-      default:
-        return icons.card;
-    }
-  };
-
-  return (
-    <PaperProvider>
-      <RNAAnimated.View style={[animatedStyle, { marginBottom: 24 }]}>
-        <View className="flex-col items-center px-4">
-          <Surface
-            style={[styles.cardContainer, { elevation: elevationAnim }]}
-            className="bg-primary-200 rounded-2xl overflow-hidden w-full shadow-lg"
-          >
-            {/* Header with avatar, title, and actions */}
-            <View className="flex-row items-center p-4 pb-3">
-              <View className="relative">
-                <View className="w-12 h-12 rounded-xl overflow-hidden bg-primary-300 border-2 border-primary-400">
-                  <Image
-                    source={
-                      category === PIANO_CATEGORY.RENTABLE
-                        ? images.category_rentable
-                        : category === PIANO_CATEGORY.EVENTS
-                        ? images.category_event
-                        : category === PIANO_CATEGORY.ON_SALE
-                        ? images.category_sale
-                        : category === PIANO_CATEGORY.WAREHOUSE
-                        ? images.category_warehouse
-                        : { uri: avatar }
-                    }
-                    className="w-full h-full"
-                    resizeMode="cover"
-                    placeholder={images.empty}
-                    placeholderContentFit="cover"
-                  />
+    return (
+      <PaperProvider>
+        <RNAAnimated.View style={[animatedStyle, { marginBottom: 24 }]}>
+          <View className="flex-col items-center px-4">
+            <Surface
+              style={[styles.cardContainer, { elevation: elevationAnim }]}
+              className="bg-primary-200 rounded-2xl overflow-hidden w-full shadow-lg"
+            >
+              {/* Header with avatar, title, and actions */}
+              <View className="flex-row items-center p-4 pb-3">
+                <View className="relative">
+                  <View className="w-12 h-12 rounded-xl overflow-hidden bg-primary-300 border-2 border-primary-400">
+                    <Image
+                      source={
+                        category === PIANO_CATEGORY.RENTABLE
+                          ? images.category_rentable
+                          : category === PIANO_CATEGORY.EVENTS
+                          ? images.category_event
+                          : category === PIANO_CATEGORY.ON_SALE
+                          ? images.category_sale
+                          : category === PIANO_CATEGORY.WAREHOUSE
+                          ? images.category_warehouse
+                          : { uri: avatar }
+                      }
+                      className="w-full h-full"
+                      resizeMode="cover"
+                      placeholder={images.empty}
+                      placeholderContentFit="cover"
+                    />
+                  </View>
+                  {/* Category Badge */}
+                  <View
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center border border-white"
+                    style={{
+                      backgroundColor:
+                        category === PIANO_CATEGORY.RENTABLE
+                          ? CATEGORY_COLORS.RENTABLE
+                          : category === PIANO_CATEGORY.EVENTS
+                          ? CATEGORY_COLORS.EVENTS
+                          : category === PIANO_CATEGORY.ON_SALE
+                          ? CATEGORY_COLORS.ON_SALE
+                          : category === PIANO_CATEGORY.WAREHOUSE
+                          ? CATEGORY_COLORS.WAREHOUSE
+                          : SECONDARY_COLOR,
+                    }}
+                  >
+                    <Image
+                      source={getCategoryIcon(category)}
+                      className="w-2.5 h-2.5"
+                      tintColor={PRIMARY_COLOR}
+                      resizeMode="contain"
+                    />
+                  </View>
                 </View>
-                {/* Category Badge */}
-                <View
-                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center border border-white"
-                  style={{
-                    backgroundColor:
-                      category === PIANO_CATEGORY.RENTABLE
-                        ? CATEGORY_COLORS.RENTABLE
-                        : category === PIANO_CATEGORY.EVENTS
-                        ? CATEGORY_COLORS.EVENTS
-                        : category === PIANO_CATEGORY.ON_SALE
-                        ? CATEGORY_COLORS.ON_SALE
-                        : category === PIANO_CATEGORY.WAREHOUSE
-                        ? CATEGORY_COLORS.WAREHOUSE
-                        : SECONDARY_COLOR,
-                  }}
-                >
-                  <Image
-                    source={getCategoryIcon(category)}
-                    className="w-2.5 h-2.5"
-                    tintColor={PRIMARY_COLOR}
-                    resizeMode="contain"
-                  />
-                </View>
-              </View>
 
-              <View className="flex-1 ml-3">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1">
-                    <Text
-                      className="text-white font-psemibold text-base mb-1"
-                      numberOfLines={1}
-                    >
-                      {title}
-                    </Text>
-                    {company_associated && (
+                <View className="flex-1 ml-3">
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-1">
                       <Text
-                        className="text-xs text-gray-100 font-pregular"
+                        className="text-white font-psemibold text-base mb-1"
                         numberOfLines={1}
                       >
-                        {company_associated}
+                        {title}
                       </Text>
-                    )}
-                  </View>
+                      {company_associated && (
+                        <Text
+                          className="text-xs text-gray-100 font-pregular"
+                          numberOfLines={1}
+                        >
+                          {company_associated}
+                        </Text>
+                      )}
+                    </View>
 
-                  {/* Action Buttons */}
-                  <View className="flex-row items-center space-x-2">
-                    {/* Bookmark Button */}
-                    <TouchableOpacity
-                      onPress={handleBookmark}
-                      className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                      activeOpacity={0.7}
-                    >
-                      <Image
-                        source={icons.bookmark}
-                        className="w-4 h-4"
-                        tintColor={isBookmarked ? SECONDARY_COLOR : "#CDCDE0"}
-                        resizeMode="contain"
-                      />
-                    </TouchableOpacity>
-
-                    {/* Menu Button */}
-                    <View style={styles.container}>
-                      <Menu
-                        style={styles.menu}
-                        visible={visibleMenuId === item.$id}
-                        onDismiss={closeMenu}
-                        anchor={
-                          <TouchableOpacity
-                            onPress={() => openMenu(item.$id)}
-                            className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                            activeOpacity={0.7}
-                          >
-                            <Image
-                              source={icons.menu}
-                              className="w-4 h-4"
-                              tintColor="#CDCDE0"
-                              resizeMode="contain"
-                            />
-                          </TouchableOpacity>
-                        }
+                    {/* Action Buttons */}
+                    <View className="flex-row items-center space-x-2">
+                      {/* Bookmark Button */}
+                      <TouchableOpacity
+                        onPress={handleBookmark}
+                        className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
+                        activeOpacity={0.7}
                       >
-                        <Menu.Item
-                          onPress={handleOnClickEditMenu}
-                          title="Edit"
-                          leadingIcon={() => (
-                            <IconButton
-                              icon={icons.pencil}
-                              size={16}
-                              iconColor={SECONDARY_COLOR}
-                              style={styles.menuItemIcon}
-                            />
-                          )}
-                          titleStyle={{ color: "#CDCDE0" }}
+                        <Image
+                          source={icons.bookmark}
+                          className="w-4 h-4"
+                          tintColor={isBookmarked ? SECONDARY_COLOR : "#CDCDE0"}
+                          resizeMode="contain"
                         />
-                        <Menu.Item
-                          onPress={handleOnClickDeleteMenu}
-                          title="Delete"
-                          leadingIcon={() => (
-                            <IconButton
-                              icon={icons.trash}
-                              size={16}
-                              iconColor="#ef4444"
-                              style={styles.menuItemIcon}
-                            />
-                          )}
-                          titleStyle={{ color: "#CDCDE0" }}
-                        />
-                      </Menu>
+                      </TouchableOpacity>
+
+                      {/* Menu Button */}
+                      <View style={styles.container}>
+                        <Menu
+                          style={styles.menu}
+                          visible={visibleMenuId === item.$id}
+                          onDismiss={closeMenu}
+                          anchor={
+                            <TouchableOpacity
+                              onPress={() => openMenu(item.$id)}
+                              className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
+                              activeOpacity={0.7}
+                            >
+                              <Image
+                                source={icons.menu}
+                                className="w-4 h-4"
+                                tintColor="#CDCDE0"
+                                resizeMode="contain"
+                              />
+                            </TouchableOpacity>
+                          }
+                        >
+                          <Menu.Item
+                            onPress={handleOnClickEditMenu}
+                            title="Edit"
+                            leadingIcon={() => (
+                              <IconButton
+                                icon={icons.pencil}
+                                size={16}
+                                iconColor={SECONDARY_COLOR}
+                                style={styles.menuItemIcon}
+                              />
+                            )}
+                            titleStyle={{ color: "#CDCDE0" }}
+                          />
+                          <Menu.Item
+                            onPress={handleOnClickDeleteMenu}
+                            title="Delete"
+                            leadingIcon={() => (
+                              <IconButton
+                                icon={icons.trash}
+                                size={16}
+                                iconColor="#ef4444"
+                                style={styles.menuItemIcon}
+                              />
+                            )}
+                            titleStyle={{ color: "#CDCDE0" }}
+                          />
+                        </Menu>
+                      </View>
                     </View>
                   </View>
                 </View>
               </View>
-            </View>
 
-            {/* Main Image with Overlay */}
-            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={handleOnClickItem}
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                className="relative"
-              >
-                <View className="w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden">
-                  <Image
-                    source={{ uri: image_url }}
-                    className="w-full h-full"
-                    resizeMode="cover"
-                    placeholder={images.empty}
-                    placeholderContentFit="cover"
-                  />
+              {/* Main Image with Overlay */}
+              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={handleOnClickItem}
+                  onPressIn={handlePressIn}
+                  onPressOut={handlePressOut}
+                  className="relative"
+                >
+                  <View className="w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden">
+                    <Image
+                      source={{ uri: image_url }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                      placeholder={images.empty}
+                      placeholderContentFit="cover"
+                    />
 
-                  {/* Gradient Overlay */}
-                  <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    {/* Gradient Overlay */}
+                    <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
-                  {/* Status Badge */}
-                  {getStatusText() && (
-                    <View className="absolute top-3 left-3">
-                      <View className="flex-row items-center bg-black/70 rounded-full px-3 py-1">
-                        <View
-                          className="w-2 h-2 rounded-full mr-2"
-                          style={{ backgroundColor: getStatusColor() }}
-                        />
-                        <Text className="text-white text-xs font-pmedium">
-                          {getStatusText()}
+                    {/* Status Badge */}
+                    {getStatusText() && (
+                      <View className="absolute top-3 left-3">
+                        <View className="flex-row items-center bg-black/70 rounded-full px-3 py-1">
+                          <View
+                            className="w-2 h-2 rounded-full mr-2"
+                            style={{ backgroundColor: getStatusColor() }}
+                          />
+                          <Text className="text-white text-xs font-pmedium">
+                            {getStatusText()}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Category Label */}
+                    <View className="absolute bottom-3 left-3">
+                      <View
+                        className="px-3 py-1 rounded-full"
+                        style={{
+                          backgroundColor:
+                            category === PIANO_CATEGORY.RENTABLE
+                              ? `${CATEGORY_COLORS.RENTABLE}90`
+                              : category === PIANO_CATEGORY.EVENTS
+                              ? `${CATEGORY_COLORS.EVENTS}90`
+                              : category === PIANO_CATEGORY.ON_SALE
+                              ? `${CATEGORY_COLORS.ON_SALE}90`
+                              : category === PIANO_CATEGORY.WAREHOUSE
+                              ? `${CATEGORY_COLORS.WAREHOUSE}90`
+                              : `${SECONDARY_COLOR}90`,
+                        }}
+                      >
+                        <Text className="text-white text-xs font-psemibold">
+                          {getCategoryLabel(category)}
                         </Text>
                       </View>
                     </View>
-                  )}
-
-                  {/* Category Label */}
-                  <View className="absolute bottom-3 left-3">
-                    <View
-                      className="px-3 py-1 rounded-full"
-                      style={{
-                        backgroundColor:
-                          category === PIANO_CATEGORY.RENTABLE
-                            ? `${CATEGORY_COLORS.RENTABLE}90`
-                            : category === PIANO_CATEGORY.EVENTS
-                            ? `${CATEGORY_COLORS.EVENTS}90`
-                            : category === PIANO_CATEGORY.ON_SALE
-                            ? `${CATEGORY_COLORS.ON_SALE}90`
-                            : category === PIANO_CATEGORY.WAREHOUSE
-                            ? `${CATEGORY_COLORS.WAREHOUSE}90`
-                            : `${SECONDARY_COLOR}90`,
-                      }}
-                    >
-                      <Text className="text-white text-xs font-psemibold">
-                        {getCategoryLabel(category)}
-                      </Text>
-                    </View>
                   </View>
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
-          </Surface>
-        </View>
-      </RNAAnimated.View>
-    </PaperProvider>
-  );
-});
+                </TouchableOpacity>
+              </Animated.View>
+            </Surface>
+          </View>
+        </RNAAnimated.View>
+      </PaperProvider>
+    );
+  }
+);
 
 export default CardItem;
 

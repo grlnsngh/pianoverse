@@ -30,7 +30,10 @@ const Home = () => {
   const dispatch = useDispatch();
 
   const { user } = useGlobalContext();
-  const fetchFunction = useCallback(() => getUserPianoEntries(user.accountId), [user.accountId]);
+  const fetchFunction = useCallback(
+    () => getUserPianoEntries(user.accountId),
+    [user.accountId]
+  );
   const { data: items, refetch } = useAppwrite(fetchFunction);
 
   const [pianoItems, setPianoItems] = useState<PianoItem[]>(items);
@@ -211,33 +214,36 @@ const Home = () => {
     }
   }, [items, lastNotificationSchedule]);
 
-  const renderItem = useCallback(({ item, index }: { item: PianoItem; index: number }) => {
-    if (layoutView.card === "checked") {
-      return (
-        <CardItem
-          item={item}
-          index={index}
-          visibleMenuId={visibleMenuId}
-          openMenu={openMenu}
-          closeMenu={closeMenu}
-          onDelete={() => refetch()}
-        />
-      );
-    } else if (layoutView.list === "checked") {
-      return (
-        <ListItem
-          item={item}
-          index={index}
-          visibleMenuId={visibleMenuId}
-          openMenu={openMenu}
-          closeMenu={closeMenu}
-          onDelete={() => refetch()}
-        />
-      );
-    } else {
-      return null; // Render nothing if no view is checked
-    }
-  }, [layoutView, visibleMenuId, openMenu, closeMenu, refetch]);
+  const renderItem = useCallback(
+    ({ item, index }: { item: PianoItem; index: number }) => {
+      if (layoutView.card === "checked") {
+        return (
+          <CardItem
+            item={item}
+            index={index}
+            visibleMenuId={visibleMenuId}
+            openMenu={openMenu}
+            closeMenu={closeMenu}
+            onDelete={() => refetch()}
+          />
+        );
+      } else if (layoutView.list === "checked") {
+        return (
+          <ListItem
+            item={item}
+            index={index}
+            visibleMenuId={visibleMenuId}
+            openMenu={openMenu}
+            closeMenu={closeMenu}
+            onDelete={() => refetch()}
+          />
+        );
+      } else {
+        return null; // Render nothing if no view is checked
+      }
+    },
+    [layoutView, visibleMenuId, openMenu, closeMenu, refetch]
+  );
 
   return (
     <SafeAreaView className="bg-primary h-full">
