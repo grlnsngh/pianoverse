@@ -491,3 +491,52 @@ export async function deletePianoEntry(item: any) {
     throw new Error(errorMessage);
   }
 }
+
+/**
+ * Sends a password recovery email to the user.
+ *
+ * @param {string} email - The email address of the user requesting password reset.
+ * @returns {Promise<any>} A promise that resolves to the recovery response.
+ * @throws {Error} If there is an error during the password recovery process.
+ */
+export async function sendPasswordRecovery(email: string): Promise<any> {
+  try {
+    // For FREE plan: Use a simple web URL that redirects to your app
+    // Appwrite will send the default email with this URL
+    const resetUrl = "https://pianoverse.com/reset-password";
+
+    const recovery = await account.createRecovery(
+      email,
+      resetUrl
+    );
+
+    return recovery;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(errorMessage);
+  }
+}
+
+/**
+ * Updates a user's password using recovery tokens.
+ *
+ * @param {string} userId - The user ID from the recovery link.
+ * @param {string} secret - The secret token from the recovery link.
+ * @param {string} password - The new password.
+ * @returns {Promise<any>} A promise that resolves to the recovery response.
+ * @throws {Error} If there is an error during the password update process.
+ */
+export async function updatePassword(userId: string, secret: string, password: string): Promise<any> {
+  try {
+    const recovery = await account.updateRecovery(
+      userId,
+      secret,
+      password
+    );
+
+    return recovery;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(errorMessage);
+  }
+}

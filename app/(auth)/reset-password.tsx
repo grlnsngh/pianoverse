@@ -18,24 +18,24 @@ import { icons, images } from "@/constants";
 import { SECONDARY_COLOR, PRIMARY_COLOR } from "@/constants/colors";
 import Logo from "../components/Logo";
 import EnhancedFormField from "../components/EnhancedFormField";
-import { Link, router } from "expo-router";
+import { Link, router, useLocalSearchParams } from "expo-router";
 import CustomButton from "../components/CustomButton";
-import { getCurrentUser, signIn } from "@/lib/appwrite";
-import { useGlobalContext } from "@/context/GlobalProvider";
+import { updatePassword } from "@/lib/appwrite";
 
 const { width, height } = Dimensions.get("window");
 
-const SignIn = () => {
-  const { setUser, setIsLogged } = useGlobalContext();
+const ResetPassword = () => {
+  const { userId, secret, expire } = useLocalSearchParams();
+  const [deepLinkParams, setDeepLinkParams] = useState<{ userId?: string; secret?: string; expire?: string }>({});
 
   const [form, setForm] = useState({
-    email: "",
     password: "",
+    confirmPassword: "",
   });
   const [isSubmitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({
-    email: "",
     password: "",
+    confirmPassword: "",
   });
 
   // Animation refs
@@ -94,18 +94,33 @@ const SignIn = () => {
     decorAnimation();
   }, []);
 
-  const validateForm = () => {
-    const newErrors = { email: "", password: "" };
-    let isValid = true;
+  // Handle URL parameters from web redirect
+  useEffect(() => {
+    const getUrlParams = () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('userId');
+        const secret = urlParams.get('secret');
+        const expire = urlParams.get('expire');
+        
+        if (userId && secret) {
+          setDeepLinkParams({
+            userId: userId || undefined,
+            secret: secret || undefined,
+            expire: expire || undefined,
+          });
+        }
+      } catch (error) {
+        console.error("Error parsing URL params:", error);
+      }
+    };
 
-    // Email validation
-    if (!form.email) {
-      newErrors.email = "Email is required";
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      newErrors.email = "Please enter a valid email address";
-      isValid = false;
-    }
+    getUrlParams();
+  }, []);
+
+  const validateForm = () => {
+    const newErrors = { password: "", confirmPassword: "" };
+    let isValid = true;
 
     // Password validation
     if (!form.password) {
@@ -113,6 +128,15 @@ const SignIn = () => {
       isValid = false;
     } else if (form.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
+      isValid = false;
+    }
+
+    // Confirm password validation
+    if (!form.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+      isValid = false;
+    } else if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
       isValid = false;
     }
 
@@ -138,6 +162,15 @@ const SignIn = () => {
       return;
     }
 
+    // Use parameters from either URL or deep link
+    const finalUserId = (userId as string) || deepLinkParams.userId;
+    const finalSecret = (secret as string) || deepLinkParams.secret;
+
+    if (!finalUserId || !finalSecret) {
+      Alert.alert("Error", "Invalid reset link. Please request a new password reset.");
+      return;
+    }
+
     setSubmitting(true);
 
     // Button scale animation for successful press
@@ -148,16 +181,13 @@ const SignIn = () => {
     }).start();
 
     try {
-      await signIn(form.email, form.password);
-      const result = await getCurrentUser();
-      setUser(result);
-      setIsLogged(true);
+      await updatePassword(finalUserId, finalSecret, form.password);
 
       ToastAndroid.show(
-        "Welcome back! Successfully logged in",
-        ToastAndroid.SHORT
+        "Password updated successfully! Please sign in with your new password.",
+        ToastAndroid.LONG
       );
-      router.replace("/home");
+      router.replace("/sign-in");
     } catch (error) {
       // Reset button animation on error
       Animated.timing(buttonAnim, {
@@ -167,7 +197,7 @@ const SignIn = () => {
       }).start();
 
       if (error instanceof Error) {
-        Alert.alert("Sign In Failed", error.message);
+        Alert.alert("Reset Failed", error.message);
       } else {
         Alert.alert("Error", "An unexpected error occurred. Please try again.");
       }
@@ -242,9 +272,9 @@ const SignIn = () => {
                 },
               ]}
             >
-              <Text style={styles.welcomeTitle}>Welcome Back</Text>
+              <Text style={styles.welcomeTitle}>Reset Password</Text>
               <Text style={styles.welcomeSubtitle}>
-                Sign in to continue managing your piano inventory
+                Enter your new password below
               </Text>
             </Animated.View>
 
@@ -260,20 +290,7 @@ const SignIn = () => {
             >
               <View style={styles.formWrapper}>
                 <EnhancedFormField
-                  title="Email Address"
-                  value={form.email}
-                  handleChangeText={(e: string) => {
-                    setForm({ ...form, email: e });
-                    if (errors.email) setErrors({ ...errors, email: "" });
-                  }}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  error={errors.email}
-                  otherStyles="mb-4"
-                />
-
-                <EnhancedFormField
-                  title="Password"
+                  title="New Password"
                   value={form.password}
                   handleChangeText={(e: string) => {
                     setForm({ ...form, password: e });
@@ -282,17 +299,25 @@ const SignIn = () => {
                   autoCapitalize="none"
                   error={errors.password}
                   otherStyles="mb-4"
+                  secureTextEntry
                 />
 
-                <TouchableOpacity style={styles.forgotPassword} onPress={() => router.push('/forget-password')}>
-                  <Text style={styles.forgotPasswordText}>
-                    Forgot Password?
-                  </Text>
-                </TouchableOpacity>
+                <EnhancedFormField
+                  title="Confirm New Password"
+                  value={form.confirmPassword}
+                  handleChangeText={(e: string) => {
+                    setForm({ ...form, confirmPassword: e });
+                    if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
+                  }}
+                  autoCapitalize="none"
+                  error={errors.confirmPassword}
+                  otherStyles="mb-4"
+                  secureTextEntry
+                />
 
                 <Animated.View style={{ transform: [{ scale: buttonAnim }] }}>
                   <CustomButton
-                    title={isSubmitting ? "Signing In..." : "Sign In"}
+                    title={isSubmitting ? "Updating..." : "Update Password"}
                     handlePress={submit}
                     containerStyles="mt-8"
                     isLoading={isSubmitting}
@@ -306,9 +331,9 @@ const SignIn = () => {
                 </View>
 
                 <View style={styles.signUpContainer}>
-                  <Text style={styles.signUpText}>Don't have an account? </Text>
-                  <Link href="/sign-up" style={styles.signUpLink}>
-                    <Text style={styles.signUpLinkText}>Sign Up</Text>
+                  <Text style={styles.signUpText}>Remember your password? </Text>
+                  <Link href="/sign-in" style={styles.signUpLink}>
+                    <Text style={styles.signUpLinkText}>Sign In</Text>
                   </Link>
                 </View>
               </View>
@@ -348,8 +373,8 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     backgroundColor: SECONDARY_COLOR,
-    top: -100,
-    right: -100,
+    top: -50,
+    right: -50,
   },
   decorCircle2: {
     width: 150,
@@ -362,107 +387,80 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     backgroundColor: SECONDARY_COLOR,
-    top: height * 0.3,
-    right: -50,
+    top: height * 0.4,
+    right: width * 0.2,
   },
   contentContainer: {
     flex: 1,
+    justifyContent: "center",
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingBottom: 50,
   },
   logoContainer: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 30,
   },
   welcomeSection: {
     alignItems: "center",
     marginBottom: 40,
   },
   welcomeTitle: {
-    fontSize: 36,
-    fontWeight: "800",
+    fontSize: 28,
+    fontWeight: "bold",
     color: "#FFFFFF",
+    marginBottom: 10,
     textAlign: "center",
-    marginBottom: 12,
-    letterSpacing: -0.5,
   },
   welcomeSubtitle: {
-    fontSize: 17,
-    color: "#A1A1AA",
+    fontSize: 16,
+    color: "#D1D5DB",
     textAlign: "center",
-    lineHeight: 26,
+    lineHeight: 24,
     paddingHorizontal: 20,
-    fontWeight: "400",
   },
   formContainer: {
-    flex: 1,
-    justifyContent: "center",
+    width: "100%",
   },
   formWrapper: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderRadius: 24,
-    padding: 28,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 20,
+    padding: 25,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  errorText: {
-    color: "#EF4444",
-    fontSize: 14,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  forgotPassword: {
-    alignSelf: "flex-end",
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  forgotPasswordText: {
-    color: SECONDARY_COLOR,
-    fontSize: 14,
-    fontWeight: "500",
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 24,
+    marginVertical: 20,
   },
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
   },
   dividerText: {
-    color: "#A1A1AA",
-    paddingHorizontal: 16,
+    color: "#D1D5DB",
+    paddingHorizontal: 10,
     fontSize: 14,
   },
   signUpContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 16,
+    marginTop: 10,
   },
   signUpText: {
-    color: "#A1A1AA",
-    fontSize: 16,
+    color: "#D1D5DB",
+    fontSize: 14,
   },
   signUpLink: {
-    marginLeft: 4,
+    marginLeft: 5,
   },
   signUpLinkText: {
     color: SECONDARY_COLOR,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
   },
 });
 
-export default SignIn;
+export default ResetPassword;

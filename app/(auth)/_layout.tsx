@@ -18,6 +18,18 @@ const AuthLayout = () => {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="forget-password"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="reset-password"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
       <StatusBar backgroundColor="#161622" style="light" />
     </>
