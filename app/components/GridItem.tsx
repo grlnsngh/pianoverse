@@ -14,7 +14,7 @@ import {
 } from "date-fns";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Alert,
   Dimensions,
@@ -284,7 +284,9 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                         : () => handleOnClickItem(item)
                     }
                     onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
-                    onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
+                    onPressOut={
+                      isBulkSelectionMode ? undefined : handlePressOut
+                    }
                     style={styles.imageContainer}
                   >
                     <Image
@@ -352,17 +354,17 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                         >
                           <Image
                             source={icons.bookmark}
-                          style={[
-                            styles.actionIcon,
-                            {
-                              tintColor: isBookmarked
-                                ? SECONDARY_COLOR
-                                : "#CDCDE0",
-                            },
-                          ]}
-                          resizeMode="contain"
-                        />
-                      </TouchableOpacity>
+                            style={[
+                              styles.actionIcon,
+                              {
+                                tintColor: isBookmarked
+                                  ? SECONDARY_COLOR
+                                  : "#CDCDE0",
+                              },
+                            ]}
+                            resizeMode="contain"
+                          />
+                        </TouchableOpacity>
                       )}
 
                       {/* Menu Button (only when not in bulk mode) */}
@@ -370,57 +372,57 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                         <View style={styles.menuContainer}>
                           <Menu
                             style={styles.menu}
-                          visible={visibleMenuId === item.$id}
-                          onDismiss={closeMenu}
-                          anchor={
-                            <TouchableOpacity
-                              onPress={() => openMenu(item.$id)}
-                              style={styles.actionButton}
-                              activeOpacity={0.7}
-                            >
-                              <Image
-                                source={icons.menu}
-                                style={[
-                                  styles.actionIcon,
-                                  { tintColor: "#CDCDE0" },
-                                ]}
-                                resizeMode="contain"
-                              />
-                            </TouchableOpacity>
-                          }
-                        >
-                          <Menu.Item
-                            onPress={() => handleOnClickEditMenu(item)}
-                            title="Edit"
-                            leadingIcon={() => (
-                              <IconButton
-                                icon={icons.pencil}
-                                size={16}
-                                iconColor={SECONDARY_COLOR}
-                                style={styles.menuItemIcon}
-                              />
-                            )}
-                            titleStyle={{ color: "#CDCDE0" }}
-                          />
-                          <Menu.Item
-                            onPress={() => handleOnClickDeleteMenu(item)}
-                            title="Delete"
-                            leadingIcon={() => (
-                              <IconButton
-                                icon={icons.trash}
-                                size={16}
-                                iconColor="#ef4444"
-                                style={styles.menuItemIcon}
-                              />
-                            )}
-                            titleStyle={{ color: "#CDCDE0" }}
-                          />
-                        </Menu>
-                      </View>
-                  )}
+                            visible={visibleMenuId === item.$id}
+                            onDismiss={closeMenu}
+                            anchor={
+                              <TouchableOpacity
+                                onPress={() => openMenu(item.$id)}
+                                style={styles.actionButton}
+                                activeOpacity={0.7}
+                              >
+                                <Image
+                                  source={icons.menu}
+                                  style={[
+                                    styles.actionIcon,
+                                    { tintColor: "#CDCDE0" },
+                                  ]}
+                                  resizeMode="contain"
+                                />
+                              </TouchableOpacity>
+                            }
+                          >
+                            <Menu.Item
+                              onPress={() => handleOnClickEditMenu(item)}
+                              title="Edit"
+                              leadingIcon={() => (
+                                <IconButton
+                                  icon={icons.pencil}
+                                  size={16}
+                                  iconColor={SECONDARY_COLOR}
+                                  style={styles.menuItemIcon}
+                                />
+                              )}
+                              titleStyle={{ color: "#CDCDE0" }}
+                            />
+                            <Menu.Item
+                              onPress={() => handleOnClickDeleteMenu(item)}
+                              title="Delete"
+                              leadingIcon={() => (
+                                <IconButton
+                                  icon={icons.trash}
+                                  size={16}
+                                  iconColor="#ef4444"
+                                  style={styles.menuItemIcon}
+                                />
+                              )}
+                              titleStyle={{ color: "#CDCDE0" }}
+                            />
+                          </Menu>
+                        </View>
+                      )}
                     </View>
 
-                {/* Status Badge */}
+                    {/* Status Badge */}
                     {getStatusText(remaining) && (
                       <View style={styles.statusBadge}>
                         <View
@@ -500,47 +502,68 @@ const GridItem: React.FC<GridItemProps> = React.memo(
       }
     );
 
-    const renderItem = ({
-      item,
-      index,
-    }: {
-      item: PianoItem & { empty?: boolean };
-      index: number;
-    }) => (
-      <GridItemCard
-        item={item}
-        index={index}
-        visibleMenuId={visibleMenuId}
-        openMenu={openMenu}
-        closeMenu={closeMenu}
-        onDelete={onDelete}
-        bookmarkedItems={bookmarkedItems}
-        handleBookmark={handleBookmark}
-        handleOnClickItem={handleOnClickItem}
-        isBulkSelectionMode={isBulkSelectionMode}
-        isSelected={selectedItems.includes(item.$id)}
-        onToggleSelection={onToggleSelection}
-      />
+    const renderItem = useCallback(
+      ({
+        item,
+        index,
+      }: {
+        item: PianoItem & { empty?: boolean };
+        index: number;
+      }) => (
+        <GridItemCard
+          item={item}
+          index={index}
+          visibleMenuId={visibleMenuId}
+          openMenu={openMenu}
+          closeMenu={closeMenu}
+          onDelete={onDelete}
+          bookmarkedItems={bookmarkedItems}
+          handleBookmark={handleBookmark}
+          handleOnClickItem={handleOnClickItem}
+          isBulkSelectionMode={isBulkSelectionMode}
+          isSelected={selectedItems.includes(item.$id)}
+          onToggleSelection={onToggleSelection}
+        />
+      ),
+      [
+        visibleMenuId,
+        openMenu,
+        closeMenu,
+        onDelete,
+        bookmarkedItems,
+        handleBookmark,
+        handleOnClickItem,
+        isBulkSelectionMode,
+        selectedItems,
+        onToggleSelection,
+      ]
     );
 
-    const formatData = (
-      data: (PianoItem & { empty?: boolean })[],
-      numColumns: number
-    ) => {
-      const numberOfFullRows = Math.floor(data.length / numColumns);
-      let numberOfElementsLastRow = data.length - numberOfFullRows * numColumns;
-      while (
-        numberOfElementsLastRow !== numColumns &&
-        numberOfElementsLastRow !== 0
-      ) {
-        data.push({
-          title: `blank-${numberOfElementsLastRow}`,
-          empty: true,
-        } as PianoItem & { empty?: boolean });
-        numberOfElementsLastRow++;
-      }
-      return data;
-    };
+    const formatData = useCallback(
+      (data: (PianoItem & { empty?: boolean })[], numColumns: number) => {
+        const newData = [...data]; // Create a copy to avoid mutating the original
+        const numberOfFullRows = Math.floor(newData.length / numColumns);
+        let numberOfElementsLastRow =
+          newData.length - numberOfFullRows * numColumns;
+        while (
+          numberOfElementsLastRow !== numColumns &&
+          numberOfElementsLastRow !== 0
+        ) {
+          newData.push({
+            title: `blank-${numberOfElementsLastRow}`,
+            empty: true,
+          } as PianoItem & { empty?: boolean });
+          numberOfElementsLastRow++;
+        }
+        return newData;
+      },
+      []
+    );
+
+    const formattedData = React.useMemo(
+      () => formatData(item, numColumns),
+      [item, numColumns, formatData]
+    );
 
     return (
       <View
@@ -549,7 +572,7 @@ const GridItem: React.FC<GridItemProps> = React.memo(
         }}
       >
         <FlatList
-          data={formatData(item, numColumns)}
+          data={formattedData}
           numColumns={2}
           columnWrapperStyle={{ gap: 10, paddingHorizontal: 12 }}
           contentContainerStyle={{ gap: 10, paddingBottom: 10 }}
@@ -562,6 +585,21 @@ const GridItem: React.FC<GridItemProps> = React.memo(
         />
       </View>
     );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison to prevent unnecessary re-renders
+    if (prevProps.item !== nextProps.item) return false;
+    if (prevProps.visibleMenuId !== nextProps.visibleMenuId) return false;
+    if (prevProps.isBulkSelectionMode !== nextProps.isBulkSelectionMode)
+      return false;
+    const prevSelected = prevProps.selectedItems || [];
+    const nextSelected = nextProps.selectedItems || [];
+    if (prevSelected.length !== nextSelected.length) return false;
+    // Check if selectedItems arrays are the same
+    for (let i = 0; i < prevSelected.length; i++) {
+      if (prevSelected[i] !== nextSelected[i]) return false;
+    }
+    return true;
   }
 );
 

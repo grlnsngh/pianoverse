@@ -45,6 +45,7 @@ interface CardItemProps {
   isBulkSelectionMode?: boolean;
   isSelected?: boolean;
   onToggleSelection?: (id: string) => void;
+  isGridView?: boolean;
 }
 
 const calculateRemainingPeriod = (end: Date | null | undefined) => {
@@ -72,6 +73,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
     isBulkSelectionMode = false,
     isSelected = false,
     onToggleSelection,
+    isGridView = false,
   }) => {
     const {
       title = "",
@@ -280,14 +282,39 @@ const CardItem: React.FC<CardItemProps> = React.memo(
 
     return (
       <PaperProvider>
-        <RNAAnimated.View style={[animatedStyle, { marginBottom: 24 }]}>
-          <View className="flex-col items-center px-4">
+        <RNAAnimated.View
+          style={[
+            animatedStyle,
+            isGridView ? styles.gridContainer : { marginBottom: 24 },
+          ]}
+        >
+          <View
+            className={
+              isGridView
+                ? "flex-col items-center"
+                : "flex-col items-center px-4"
+            }
+          >
             <Surface
-              style={[styles.cardContainer, { elevation: elevationAnim }]}
-              className="bg-primary-200 rounded-2xl overflow-hidden w-full shadow-lg"
+              style={[
+                styles.cardContainer,
+                { elevation: elevationAnim },
+                isGridView && styles.gridCard,
+              ]}
+              className={
+                isGridView
+                  ? "bg-primary-200 rounded-2xl overflow-hidden shadow-lg"
+                  : "bg-primary-200 rounded-2xl overflow-hidden w-full shadow-lg"
+              }
             >
               {/* Header with avatar, title, and actions */}
-              <View className="flex-row items-center p-4 pb-3">
+              <View
+                className={
+                  isGridView
+                    ? "flex-row items-center p-3 pb-2"
+                    : "flex-row items-center p-4 pb-3"
+                }
+              >
                 <View className="relative">
                   <View className="w-12 h-12 rounded-xl overflow-hidden bg-primary-300 border-2 border-primary-400">
                     <Image
@@ -390,7 +417,9 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                           <Image
                             source={icons.bookmark}
                             className="w-4 h-4"
-                            tintColor={isBookmarked ? SECONDARY_COLOR : "#CDCDE0"}
+                            tintColor={
+                              isBookmarked ? SECONDARY_COLOR : "#CDCDE0"
+                            }
                             resizeMode="contain"
                           />
                         </TouchableOpacity>
@@ -465,7 +494,13 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                   onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
                   className="relative"
                 >
-                  <View className="w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden">
+                  <View
+                    className={
+                      isGridView
+                        ? "w-full aspect-square bg-primary-300 overflow-hidden"
+                        : "w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden"
+                    }
+                  >
                     <Image
                       source={{ uri: image_url }}
                       className="w-full h-full"
@@ -517,6 +552,23 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                   </View>
                 </TouchableOpacity>
               </Animated.View>
+
+              {/* Content section for grid view */}
+              {isGridView && (
+                <View className="p-2">
+                  <Text
+                    className="text-white font-psemibold text-xs mb-1"
+                    numberOfLines={2}
+                  >
+                    {title}
+                  </Text>
+                  {getStatusText() && (
+                    <Text className="text-xs text-gray-100 font-pregular">
+                      {getStatusText()}
+                    </Text>
+                  )}
+                </View>
+              )}
             </Surface>
           </View>
         </RNAAnimated.View>
@@ -533,18 +585,27 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
   },
+  gridContainer: {
+    marginBottom: 12,
+    width: "100%",
+  },
   cardContainer: {
-    borderRadius: 20,
+    borderRadius: 16,
     marginHorizontal: 0,
     width: "100%",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  gridCard: {
+    width: "100%",
+    marginHorizontal: 0,
+    borderRadius: 16,
   },
   menuIcon: {
     width: 20,

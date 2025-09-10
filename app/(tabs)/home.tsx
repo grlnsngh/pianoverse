@@ -16,20 +16,27 @@ import { differenceInDays } from "date-fns";
 import { SORT_BY_OPTIONS } from "../constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
-import React, { useCallback, useEffect, useState } from "react";
-import { FlatList, RefreshControl, Text, View, TouchableOpacity } from "react-native";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
+import {
+  FlatList,
+  RefreshControl,
+  Text,
+  View,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import CardItem from "../components/CardItem";
 import EmptyState from "../components/EmptyState";
 import FilterButton from "../components/FilterButton";
-import GridItem from "../components/GridItem";
 import ListItem from "../components/ListItem";
 import SearchInput from "../components/SearchInput";
 import BulkOperationsBar from "../components/BulkOperationsBar";
 import { scheduleAllRentalNotifications } from "../services/notifications";
 import NotificationTest from "../components/NotificationTest";
+import { usePathname } from "expo-router";
+import { router } from "expo-router";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -56,6 +63,8 @@ const Home = () => {
   const [lastNotificationSchedule, setLastNotificationSchedule] =
     useState<string>("");
   const [showNotificationTest, setShowNotificationTest] = useState(false);
+  const [layoutKey, setLayoutKey] = useState<string>("card");
+  const [layoutCounter, setLayoutCounter] = useState<number>(0);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -85,18 +94,36 @@ const Home = () => {
     if (selectedItems.length === filteredPianoReduxItems.length) {
       dispatch(clearSelectedItems() as any);
     } else {
-      const allIds = filteredPianoReduxItems.map(item => item.$id);
+      const allIds = filteredPianoReduxItems.map((item) => item.$id);
       dispatch(selectAllItems(allIds) as any);
     }
   };
 
-  const [visibleMenuId, setVisibleMenuId] = useState<string | null>(null);
+  const formatData = useCallback((data: PianoItem[], numColumns: number) => {
+    const newData = [...data];
+    const numberOfFullRows = Math.floor(newData.length / numColumns);
+    let numberOfElementsLastRow =
+      newData.length - numberOfFullRows * numColumns;
+    while (
+      numberOfElementsLastRow !== numColumns &&
+      numberOfElementsLastRow !== 0
+    ) {
+      newData.push({
+        $id: `blank-${numberOfElementsLastRow}`,
+        title: `blank-${numberOfElementsLastRow}`,
+        empty: true,
+      } as PianoItem & { empty?: boolean });
+      numberOfElementsLastRow++;
+    }
+    return newData;
+  }, []);
 
-  const openMenu = (menuId: string) => setVisibleMenuId(menuId);
-  const closeMenu = () => setVisibleMenuId(null);
-  const filter: string = useSelector(
-    (state: RootState) => state.pianos.filters.category
-  );
+  const displayData = useMemo(() => {
+    if (layoutView.grid === "checked") {
+      return formatData(filteredPianoReduxItems, 2);
+    }
+    return filteredPianoReduxItems;
+  }, [layoutView.grid, filteredPianoReduxItems, formatData]);
 
   const applyFilters = useCallback(() => {
     let filteredItems: PianoItem[] = items.slice();
@@ -245,41 +272,93 @@ const Home = () => {
     }
   }, [filters]); // Only depend on filters, not items
 
+  // Update layout key when layout changes
+  useEffect(() => {
+    const newKey =
+      layoutView.grid === "checked"
+        ? "grid"
+        : layoutView.list === "checked"
+        ? "list"
+        : "card";
+    setLayoutKey(newKey);
+    setLayoutCounter((prev) => prev + 1);
+  }, [layoutView]);
+
+  const [visibleMenuId, setVisibleMenuId] = useState<string | null>(null);
+  const openMenu = (menuId: string) => setVisibleMenuId(menuId);
+  const closeMenu = () => setVisibleMenuId(null);
+  const pathname = usePathname();
+
   const renderItem = useCallback(
-    ({ item, index }: { item: PianoItem; index: number }) => {
+    ({
+      item,
+      index,
+    }: {
+      item: PianoItem | (PianoItem & { empty?: boolean });
+      index: number;
+    }) => {
+      if ((item as any).empty) {
+        return <View style={{ flex: 1, margin: 4 }} />;
+      }
+
       if (layoutView.card === "checked") {
         return (
           <CardItem
-            item={item}
+            item={item as PianoItem}
             index={index}
             visibleMenuId={visibleMenuId}
             openMenu={openMenu}
             closeMenu={closeMenu}
             onDelete={() => refetch()}
             isBulkSelectionMode={isBulkSelectionMode}
-            isSelected={selectedItems.includes(item.$id)}
+            isSelected={selectedItems.includes((item as PianoItem).$id)}
             onToggleSelection={handleToggleItemSelection}
+            isGridView={false}
           />
         );
       } else if (layoutView.list === "checked") {
         return (
           <ListItem
-            item={item}
+            item={item as PianoItem}
             index={index}
             visibleMenuId={visibleMenuId}
             openMenu={openMenu}
             closeMenu={closeMenu}
             onDelete={() => refetch()}
             isBulkSelectionMode={isBulkSelectionMode}
-            isSelected={selectedItems.includes(item.$id)}
+            isSelected={selectedItems.includes((item as PianoItem).$id)}
             onToggleSelection={handleToggleItemSelection}
           />
         );
+      } else if (layoutView.grid === "checked") {
+        return (
+          <CardItem
+            item={item as PianoItem}
+            index={index}
+            visibleMenuId={visibleMenuId}
+            openMenu={openMenu}
+            closeMenu={closeMenu}
+            onDelete={() => refetch()}
+            isBulkSelectionMode={isBulkSelectionMode}
+            isSelected={selectedItems.includes((item as PianoItem).$id)}
+            onToggleSelection={handleToggleItemSelection}
+            isGridView={true}
+          />
+        );
       } else {
-        return null; // Render nothing if no view is checked
+        return null;
       }
     },
-    [layoutView, visibleMenuId, openMenu, closeMenu, refetch, isBulkSelectionMode, selectedItems, handleToggleItemSelection]
+    [
+      layoutView,
+      visibleMenuId,
+      openMenu,
+      closeMenu,
+      refetch,
+      isBulkSelectionMode,
+      selectedItems,
+      handleToggleItemSelection,
+    ]
   );
 
   return (
@@ -337,20 +416,34 @@ const Home = () => {
       <BulkOperationsBar onRefresh={onRefresh} />
 
       {layoutView.grid === "checked" ? (
-        <GridItem
-          item={filteredPianoReduxItems}
-          visibleMenuId={visibleMenuId}
-          openMenu={openMenu}
-          closeMenu={closeMenu}
-          onDelete={() => refetch()}
-          isBulkSelectionMode={isBulkSelectionMode}
-          selectedItems={selectedItems}
-          onToggleSelection={handleToggleItemSelection}
+        <FlatList
+          key={`grid-${layoutKey}`}
+          data={displayData}
+          keyExtractor={(item) => item.$id || item.title}
+          numColumns={2}
+          columnWrapperStyle={{ gap: 8, paddingHorizontal: 8 }}
+          contentContainerStyle={{ gap: 8, paddingBottom: 10 }}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          removeClippedSubviews={true}
+          renderItem={renderItem}
+          ListEmptyComponent={() => (
+            <EmptyState
+              title="No Pianos Found"
+              subtitle="No Pianos created yet"
+            />
+          )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       ) : (
         <FlatList
+          key={`list-${layoutKey}`}
           data={filteredPianoReduxItems}
           keyExtractor={(item) => item.$id}
+          numColumns={1}
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={10}
