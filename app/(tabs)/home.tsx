@@ -36,7 +36,6 @@ const Home = () => {
   );
   const { data: items, refetch } = useAppwrite(fetchFunction);
 
-  const [pianoItems, setPianoItems] = useState<PianoItem[]>(items);
   const filteredPianoReduxItems: PianoItem[] = useSelector(
     (state: RootState) => state.pianos.filteredItems
   );
@@ -173,10 +172,6 @@ const Home = () => {
   }, [items, filters, dispatch]);
 
   useEffect(() => {
-    setPianoItems(filteredPianoReduxItems);
-  }, [filter, filteredPianoReduxItems]);
-
-  useEffect(() => {
     if (filters.category || filters.isActiveRentals || filters.isSold) {
       applyFilters();
     }
@@ -278,10 +273,10 @@ const Home = () => {
 
         <View className="flex flex-row justify-end mr-1 my-3">
           <Text className="font-pmedium text-sm text-gray-100">
-            {pianoItems.length === 0
+            {filteredPianoReduxItems.length === 0
               ? "No Pianos"
-              : `${pianoItems.length} ${
-                  pianoItems.length === 1 ? "Piano" : "Pianos"
+              : `${filteredPianoReduxItems.length} ${
+                  filteredPianoReduxItems.length === 1 ? "Piano" : "Pianos"
                 }`}
           </Text>
         </View>
@@ -289,7 +284,7 @@ const Home = () => {
 
       {layoutView.grid === "checked" ? (
         <GridItem
-          item={pianoItems}
+          item={filteredPianoReduxItems}
           visibleMenuId={visibleMenuId}
           openMenu={openMenu}
           closeMenu={closeMenu}
@@ -297,7 +292,7 @@ const Home = () => {
         />
       ) : (
         <FlatList
-          data={pianoItems}
+          data={filteredPianoReduxItems}
           keyExtractor={(item) => item.$id}
           initialNumToRender={10}
           maxToRenderPerBatch={10}

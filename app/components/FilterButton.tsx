@@ -4,13 +4,9 @@ import {
   SECONDARY_COLOR,
   CATEGORY_COLORS,
 } from "@/constants/colors";
-import {
-  setFilteredPianoListItems,
-  setPianoFilters,
-} from "@/redux/pianos/actions";
-import { FiltersType, PianoItem } from "@/redux/pianos/types";
+import { setPianoFilters } from "@/redux/pianos/actions";
+import { FiltersType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
-import { differenceInDays } from "date-fns";
 import { Image } from "expo-image";
 import React, { useState, useEffect } from "react";
 import {
@@ -90,7 +86,6 @@ const FilterButton = () => {
   };
 
   const filterState = useSelector((state: RootState) => state.pianos.filters);
-  const pianoItems = useSelector((state: RootState) => state.pianos.items);
 
   // Sync filterForm with filterState when filterState changes
   useEffect(() => {
@@ -137,97 +132,6 @@ const FilterButton = () => {
 
   const onShowResults = () => {
     dispatch(setPianoFilters(filterForm));
-    let filteredItems: PianoItem[] = pianoItems.slice();
-
-    const sortItems = (
-      items: PianoItem[],
-      compareFn: (a: PianoItem, b: PianoItem) => number
-    ) => {
-      return items.sort(compareFn);
-    };
-
-    switch (filterForm.sortBy) {
-      case SORT_BY_OPTIONS.TITLE_ASC:
-        filteredItems = sortItems(filteredItems, (a, b) =>
-          a.title.localeCompare(b.title)
-        );
-        break;
-      case SORT_BY_OPTIONS.TITLE_DES:
-        filteredItems = sortItems(filteredItems, (a, b) =>
-          b.title.localeCompare(a.title)
-        );
-        break;
-      case SORT_BY_OPTIONS.LATEST_ADDED:
-        filteredItems = sortItems(
-          filteredItems,
-          (a, b) =>
-            new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime()
-        );
-        break;
-      case SORT_BY_OPTIONS.PURCHASE_DATE:
-        filteredItems = sortItems(filteredItems, (a, b) => {
-          const dateA = a.date_of_purchase
-            ? new Date(a.date_of_purchase).getTime()
-            : new Date(0).getTime();
-          const dateB = b.date_of_purchase
-            ? new Date(b.date_of_purchase).getTime()
-            : new Date(0).getTime();
-          return dateB - dateA;
-        });
-        break;
-      case SORT_BY_OPTIONS.DUE_DATE:
-        // Only apply DUE_DATE sorting if category is rentable or no category selected
-        if (
-          filterForm.category === "" ||
-          filterForm.category === "Rentable" ||
-          filterForm.category === "rentable"
-        ) {
-          filteredItems = sortItems(
-            filteredItems.filter(
-              (item) => item.category === "rentable" && item.rental_period_end
-            ),
-            (a, b) => {
-              const dateA = a.rental_period_end
-                ? new Date(a.rental_period_end).getTime()
-                : 0;
-              const dateB = b.rental_period_end
-                ? new Date(b.rental_period_end).getTime()
-                : 0;
-              return dateB - dateA;
-            }
-          );
-        }
-        break;
-      default:
-        break;
-    }
-
-    if (filterForm.category) {
-      const formattedFilter = filterForm.category
-        .replace(/\s+/g, "_")
-        .toLowerCase();
-
-      filteredItems = filteredItems.filter(
-        (item) => item.category === formattedFilter
-      );
-    }
-
-    const isRentalPeriodActive = (end: Date | null | undefined): boolean => {
-      if (!end) return false;
-      const endDate = new Date(end);
-      const currentDate = new Date();
-      const days = differenceInDays(endDate, currentDate);
-
-      return days > -1;
-    };
-
-    if (filterForm.isActiveRentals) {
-      filteredItems = filteredItems.filter((item) =>
-        isRentalPeriodActive(item.rental_period_end)
-      );
-    }
-
-    dispatch(setFilteredPianoListItems(filteredItems));
     toggleModal();
   };
 
