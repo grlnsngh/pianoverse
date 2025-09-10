@@ -2,23 +2,46 @@ import { images } from "@/constants";
 import { SECONDARY_COLOR } from "@/constants/colors";
 import { Image } from "expo-image";
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 
 const Logo = () => {
   return (
-    <View className="flex-row align-center gap-2">
+    <View style={styles.container}>
       <Image
         source={images.piano}
-        className="w-10 h-10"
-        resizeMode="contain"
+        style={styles.icon}
+        contentFit="contain"
         tintColor={SECONDARY_COLOR}
       />
-      <Text className="text-5xl text-white font-bold text-center">
+      <Text style={styles.title}>
         Piano
-        <Text className="text-secondary-200">verse</Text>
+        <Text style={styles.subtitle}>verse</Text>
       </Text>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  icon: {
+    width: 44,
+    height: 44,
+  },
+  title: {
+    fontSize: 42,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    textAlign: 'center',
+    letterSpacing: -1,
+  },
+  subtitle: {
+    color: SECONDARY_COLOR,
+    fontWeight: '800',
+  },
+});
 
 export default Logo;
