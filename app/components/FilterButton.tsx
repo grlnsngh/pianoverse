@@ -20,6 +20,9 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  Animated,
+  PanResponder,
+  Dimensions,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { Divider, Switch } from "react-native-paper";
@@ -29,6 +32,10 @@ import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "../constants/Piano";
 const FilterButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const slideAnim = useState(new Animated.Value(0))[0];
+  const backdropOpacity = useState(new Animated.Value(0))[0];
+
+  const { height: screenHeight } = Dimensions.get("window");
 
   const sortByOptions = [
     {
@@ -50,7 +57,36 @@ const FilterButton = () => {
   const [filterForm, setFilterForm] = useState<FiltersType>(DEFAULT_FILTERS);
 
   const toggleModal = () => {
-    setModalVisible(!modalVisible);
+    if (modalVisible) {
+      // Close animation
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropOpacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setModalVisible(false));
+    } else {
+      setModalVisible(true);
+      // Open animation
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
   };
 
   const filterState = useSelector((state: RootState) => state.pianos.filters);
@@ -65,6 +101,37 @@ const FilterButton = () => {
     setFilterForm(filterState);
     toggleModal();
   };
+
+  // Pan responder for drag-to-close functionality
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onPanResponderMove: (evt, gestureState) => {
+      if (gestureState.dy > 0) {
+        // Only allow downward drag
+        const newY = Math.max(0, gestureState.dy / screenHeight);
+        slideAnim.setValue(1 - newY * 0.5);
+        backdropOpacity.setValue(1 - newY);
+      }
+    },
+    onPanResponderRelease: (evt, gestureState) => {
+      if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+        // Close if dragged down enough or with enough velocity
+        toggleModal();
+      } else {
+        // Snap back to open position
+        Animated.parallel([
+          Animated.spring(slideAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+          }),
+          Animated.spring(backdropOpacity, {
+            toValue: 1,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+    },
+  });
 
   const dispatch = useDispatch();
 
@@ -262,244 +329,261 @@ const FilterButton = () => {
       </TouchableOpacity>
 
       <Modal
-        animationType="slide"
+        animationType="none"
         transparent={true}
         visible={modalVisible}
         onRequestClose={toggleAndResetModal}
       >
-        <TouchableWithoutFeedback onPress={toggleAndResetModal}>
-          <View style={styles.modalContainer}>
-            <TouchableWithoutFeedback>
-              <View style={styles.modalContent}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 12,
-                  }}
-                >
-                  <Text style={styles.title}>Filters</Text>
-                  <TouchableOpacity onPress={toggleAndResetModal}>
-                    <Image
-                      source={icons.close}
-                      className="w-4 h-4"
-                      resizeMode="contain"
-                      style={{ tintColor: "white" }}
-                    />
-                  </TouchableOpacity>
-                </View>
-                <Divider style={{ backgroundColor: PRIMARY_COLOR }} />
+        <Animated.View
+          style={[styles.modalContainer, { opacity: backdropOpacity }]}
+        >
+          <TouchableWithoutFeedback onPress={toggleAndResetModal}>
+            <View style={{ flex: 1 }} />
+          </TouchableWithoutFeedback>
 
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                  className="mt-3"
+          <Animated.View
+            style={[
+              styles.modalContent,
+              {
+                transform: [
+                  {
+                    translateY: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [screenHeight, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+            {...panResponder.panHandlers}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 12,
+              }}
+            >
+              <Text style={styles.title}>Filters</Text>
+              <TouchableOpacity onPress={toggleAndResetModal}>
+                <Image
+                  source={icons.close}
+                  className="w-4 h-4"
+                  resizeMode="contain"
+                  style={{ tintColor: "white" }}
+                />
+              </TouchableOpacity>
+            </View>
+            <Divider style={{ backgroundColor: PRIMARY_COLOR }} />
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+              className="mt-3"
+            >
+              <Text style={styles.option}>Layout</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => onLayoutButtonPress("card")}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    filterForm.layoutStatus.card === "checked"
+                      ? "bg-secondary"
+                      : "bg-primary-200"
+                  }`}
                 >
-                  <Text style={styles.option}>Layout</Text>
-                  <View
+                  <Image
+                    source={icons.card}
+                    className="w-4 h-4"
+                    resizeMode="contain"
                     style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <TouchableOpacity
-                      onPress={() => onLayoutButtonPress("card")}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      tintColor:
                         filterForm.layoutStatus.card === "checked"
-                          ? "bg-secondary"
-                          : "bg-primary-200"
-                      }`}
-                    >
-                      <Image
-                        source={icons.card}
-                        className="w-4 h-4"
-                        resizeMode="contain"
-                        style={{
-                          tintColor:
-                            filterForm.layoutStatus.card === "checked"
-                              ? PRIMARY_COLOR
-                              : SECONDARY_COLOR,
-                        }}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => onLayoutButtonPress("list")}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        filterForm.layoutStatus.list === "checked"
-                          ? "bg-secondary"
-                          : "bg-primary-200"
-                      }`}
-                    >
-                      <Image
-                        source={icons.list}
-                        className="w-4 h-4"
-                        resizeMode="contain"
-                        style={{
-                          tintColor:
-                            filterForm.layoutStatus.list === "checked"
-                              ? PRIMARY_COLOR
-                              : SECONDARY_COLOR,
-                        }}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => onLayoutButtonPress("grid")}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        filterForm.layoutStatus.grid === "checked"
-                          ? "bg-secondary"
-                          : "bg-primary-200"
-                      }`}
-                    >
-                      <Image
-                        source={icons.grid}
-                        className="w-4 h-4"
-                        resizeMode="contain"
-                        style={{
-                          tintColor:
-                            filterForm.layoutStatus.grid === "checked"
-                              ? PRIMARY_COLOR
-                              : SECONDARY_COLOR,
-                        }}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <Divider
-                  style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }}
-                />
-
-                <View className="mt-3">
-                  <Text style={styles.option}>Sort By</Text>
-
-                  <View
+                          ? PRIMARY_COLOR
+                          : SECONDARY_COLOR,
+                    }}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => onLayoutButtonPress("list")}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    filterForm.layoutStatus.list === "checked"
+                      ? "bg-secondary"
+                      : "bg-primary-200"
+                  }`}
+                >
+                  <Image
+                    source={icons.list}
+                    className="w-4 h-4"
+                    resizeMode="contain"
                     style={{
-                      marginTop: 8,
-                      borderWidth: 1,
-                      borderColor: isFocused ? SECONDARY_COLOR : PRIMARY_COLOR,
-                      borderRadius: 12,
+                      tintColor:
+                        filterForm.layoutStatus.list === "checked"
+                          ? PRIMARY_COLOR
+                          : SECONDARY_COLOR,
                     }}
-                    className="w-full h-12 px-3 rounded-xl flex flex-row items-center bg-primary-100"
-                  >
-                    <Dropdown
-                      data={sortByOptions}
-                      labelField="label"
-                      valueField="value"
-                      placeholder="Select item"
-                      value={filterForm.sortBy}
-                      onFocus={() => setIsFocused(true)}
-                      onBlur={() => setIsFocused(false)}
-                      onChange={(item) => {
-                        setFilterForm({ ...filterForm, sortBy: item.value });
-                        setIsFocused(false);
-                      }}
-                      style={{
-                        height: 40,
-                        width: "100%",
-                      }}
-                      containerStyle={{
-                        width: "90%",
-                        borderRadius: 12,
-                        left: 12,
-                      }}
-                      placeholderStyle={{ color: "gray" }}
-                      selectedTextStyle={{ color: "white" }}
-                    />
-                  </View>
-                </View>
-
-                <Divider
-                  style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }}
-                />
-
-                <Text style={styles.option} className="mt-3">
-                  Category
-                </Text>
-                <View
-                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}
-                  className="mt-2"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => onLayoutButtonPress("grid")}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    filterForm.layoutStatus.grid === "checked"
+                      ? "bg-secondary"
+                      : "bg-primary-200"
+                  }`}
                 >
-                  {renderChip("Rentable")}
-                  {renderChip("Events")}
-                  {renderChip("On Sale")}
-                  {renderChip("Warehouse")}
-                </View>
-
-                <Divider
-                  style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }}
-                />
-
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                  className="mt-3"
-                >
-                  <Text style={styles.option}>Active Rentals</Text>
-                  <Switch
-                    value={filterForm.isActiveRentals}
-                    onValueChange={() => {
-                      const newCategory =
-                        filterForm.category === "Rentable" ? "" : "Rentable";
-
-                      setFilterForm({
-                        ...filterForm,
-                        category: newCategory,
-                        isActiveRentals: !filterForm.isActiveRentals,
-                      });
+                  <Image
+                    source={icons.grid}
+                    className="w-4 h-4"
+                    resizeMode="contain"
+                    style={{
+                      tintColor:
+                        filterForm.layoutStatus.grid === "checked"
+                          ? PRIMARY_COLOR
+                          : SECONDARY_COLOR,
                     }}
-                    trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
-                    thumbColor={
-                      filterForm.isActiveRentals ? PRIMARY_COLOR : "white"
-                    }
                   />
-                </View>
-
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                  className="mt-3"
-                >
-                  <Text style={styles.option}>Sold</Text>
-                  <Switch
-                    value={filterForm.isSold}
-                    onValueChange={() =>
-                      setFilterForm({
-                        ...filterForm,
-                        isSold: !filterForm.isSold,
-                      })
-                    }
-                    trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
-                    thumbColor={filterForm.isSold ? PRIMARY_COLOR : "white"}
-                  />
-                </View>
-
-                <View className="mt-4 flex items-center justify-center">
-                  <TouchableOpacity
-                    onPress={onShowResults}
-                    className="bg-secondary rounded-xl w-3/4 h-10 flex items-center justify-center"
-                    activeOpacity={0.7}
-                  >
-                    <Text className="text-primary font-psemibold text-base">
-                      Show Results
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
               </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
+            </View>
+
+            <Divider
+              style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }}
+            />
+
+            <View className="mt-3">
+              <Text style={styles.option}>Sort By</Text>
+
+              <View
+                style={{
+                  marginTop: 8,
+                  borderWidth: 1,
+                  borderColor: isFocused ? SECONDARY_COLOR : PRIMARY_COLOR,
+                  borderRadius: 12,
+                }}
+                className="w-full h-12 px-3 rounded-xl flex flex-row items-center bg-primary-100"
+              >
+                <Dropdown
+                  data={sortByOptions}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="Select item"
+                  value={filterForm.sortBy}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  onChange={(item) => {
+                    setFilterForm({ ...filterForm, sortBy: item.value });
+                    setIsFocused(false);
+                  }}
+                  style={{
+                    height: 40,
+                    width: "100%",
+                  }}
+                  containerStyle={{
+                    width: "90%",
+                    borderRadius: 12,
+                    left: 12,
+                  }}
+                  placeholderStyle={{ color: "gray" }}
+                  selectedTextStyle={{ color: "white" }}
+                />
+              </View>
+            </View>
+
+            <Divider
+              style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }}
+            />
+
+            <Text style={styles.option} className="mt-3">
+              Category
+            </Text>
+            <View
+              style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}
+              className="mt-2"
+            >
+              {renderChip("Rentable")}
+              {renderChip("Events")}
+              {renderChip("On Sale")}
+              {renderChip("Warehouse")}
+            </View>
+
+            <Divider
+              style={{ backgroundColor: PRIMARY_COLOR, marginTop: 12 }}
+            />
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+              className="mt-3"
+            >
+              <Text style={styles.option}>Active Rentals</Text>
+              <Switch
+                value={filterForm.isActiveRentals}
+                onValueChange={() => {
+                  const newCategory =
+                    filterForm.category === "Rentable" ? "" : "Rentable";
+
+                  setFilterForm({
+                    ...filterForm,
+                    category: newCategory,
+                    isActiveRentals: !filterForm.isActiveRentals,
+                  });
+                }}
+                trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
+                thumbColor={
+                  filterForm.isActiveRentals ? PRIMARY_COLOR : "white"
+                }
+              />
+            </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+              className="mt-3"
+            >
+              <Text style={styles.option}>Sold</Text>
+              <Switch
+                value={filterForm.isSold}
+                onValueChange={() =>
+                  setFilterForm({
+                    ...filterForm,
+                    isSold: !filterForm.isSold,
+                  })
+                }
+                trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
+                thumbColor={filterForm.isSold ? PRIMARY_COLOR : "white"}
+              />
+            </View>
+
+            <View className="mt-4 flex items-center justify-center">
+              <TouchableOpacity
+                onPress={onShowResults}
+                className="bg-secondary rounded-xl w-3/4 h-10 flex items-center justify-center"
+                activeOpacity={0.7}
+              >
+                <Text className="text-primary font-psemibold text-base">
+                  Show Results
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </Animated.View>
       </Modal>
     </View>
   );
