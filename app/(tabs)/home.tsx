@@ -56,13 +56,14 @@ const Home = () => {
   };
 
   // Refetch data when screen comes into focus (e.g., after publishing)
-  useFocusEffect(
-    React.useCallback(() => {
-      refetch();
-      // Note: Notification scheduling is handled in the main useEffect below
-      // to prevent duplicate scheduling and infinite console logs
-    }, [])
-  );
+  // Removed automatic refetch to prevent duplicate fetches when navigating from profile
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     refetch();
+  //     // Note: Notification scheduling is handled in the main useEffect below
+  //     // to prevent duplicate scheduling and infinite console logs
+  //   }, [])
+  // );
 
   const [visibleMenuId, setVisibleMenuId] = useState<string | null>(null);
 
@@ -171,16 +172,11 @@ const Home = () => {
     dispatch(setFilteredPianoListItems(filteredItems));
   }, [items, filters, dispatch]);
 
-  useEffect(() => {
-    if (filters.category || filters.isActiveRentals || filters.isSold) {
-      applyFilters();
-    }
-  }, [filters, items]);
-
-  //set items in redux store on successful fetch API call
+  // Combined effect to handle both data loading and filtering
+  // This prevents duplicate filtering when both items and filters change
   useEffect(() => {
     if (items && items.length > 0) {
-      //this will set the items in redux store - original items
+      // Set items in redux store - original items
       dispatch(setPianoListItems(items));
 
       // Schedule notifications for rental due dates
@@ -199,15 +195,30 @@ const Home = () => {
         console.log("Skipping notification scheduling (recently scheduled)");
       }
 
-      // Apply filters if any are set
+      // Apply filters if any are set - only do this once when data is loaded
       if (filters.category || filters.isActiveRentals || filters.isSold) {
         applyFilters();
       } else {
-        //this will be used to show items according to filter on home screen
+        // No filters set, show all items
         dispatch(setFilteredPianoListItems(items));
       }
     }
-  }, [items, lastNotificationSchedule]);
+  }, [items, lastNotificationSchedule]); // Removed filters from dependencies to prevent duplicate calls
+
+  // Separate effect for filter changes only (when items are already loaded)
+  useEffect(() => {
+    // Only run filtering if we have items and this is a filter change (not initial data load)
+    if (
+      items &&
+      items.length > 0 &&
+      (filters.category || filters.isActiveRentals || filters.isSold)
+    ) {
+      applyFilters();
+    } else if (items && items.length > 0) {
+      // No filters set, show all items
+      dispatch(setFilteredPianoListItems(items));
+    }
+  }, [filters]); // Only depend on filters, not items
 
   const renderItem = useCallback(
     ({ item, index }: { item: PianoItem; index: number }) => {

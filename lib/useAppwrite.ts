@@ -1,30 +1,40 @@
-import { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { useState, useEffect, useRef } from "react";
+import { Alert } from "react-native";
 
-const useAppwrite = (fn) => {
-    const [data, setData] = useState([])
-    const [isLoading, setIsLoading] = useState(true)
+const useAppwrite = (fn: () => Promise<any>) => {
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const hasFetchedRef = useRef(false);
 
-    const fetchData = async () => {
-        setIsLoading(true)
-        try {
-            const response = await fn()
-            setData(response)
+  const fetchData = async () => {
+    // Prevent duplicate fetches
+    if (hasFetchedRef.current) return;
 
-        } catch (error) {
-            Alert.alert('Error', error.message)
-        } finally {
-            setIsLoading(false)
-        }
+    setIsLoading(true);
+    try {
+      const response = await fn();
+      setData(response);
+      hasFetchedRef.current = true;
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    useEffect(() => {
-        fetchData();
-    }, [])
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-    const refetch = () => fetchData()
+  const refetch = () => {
+    hasFetchedRef.current = false;
+    fetchData();
+  };
 
-    return { data, isLoading, refetch }
+  return { data, isLoading, refetch };
 };
 
 export default useAppwrite;
