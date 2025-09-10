@@ -503,7 +503,7 @@ export async function sendPasswordRecovery(email: string): Promise<any> {
   try {
     // For FREE plan: Use a simple web URL that redirects to your app
     // Appwrite will send the default email with this URL
-    const resetUrl = "https://pianoverse.com/reset-password";
+    const resetUrl = "https://grlnsngh.github.io/pianoverse/reset-password.html";
 
     const recovery = await account.createRecovery(
       email,
