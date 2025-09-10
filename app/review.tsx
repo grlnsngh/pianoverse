@@ -79,6 +79,11 @@ const Review = () => {
   }, [navigation]);
 
   const handlePublish = async () => {
+    if (!user || !user.accountId) {
+      Alert.alert("Error", "You must be logged in to publish a piano entry.");
+      return;
+    }
+
     const basicDetails = {
       users: user.$id,
       category: form.category,

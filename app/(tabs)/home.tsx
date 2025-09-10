@@ -42,10 +42,12 @@ const Home = () => {
   const dispatch = useDispatch();
 
   const { user } = useGlobalContext();
-  const fetchFunction = useCallback(
-    () => getUserPianoEntries(user.accountId),
-    [user.accountId]
-  );
+  const fetchFunction = useCallback(() => {
+    if (!user || !user.accountId) {
+      return Promise.resolve([]);
+    }
+    return getUserPianoEntries(user.accountId);
+  }, [user]);
   const { data: items, refetch } = useAppwrite(fetchFunction);
 
   const filteredPianoReduxItems: PianoItem[] = useSelector(

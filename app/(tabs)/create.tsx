@@ -317,6 +317,11 @@ const Create = () => {
   };
 
   const handleOnSubmit = async () => {
+    if (!user || !user.accountId) {
+      Alert.alert("Error", "You must be logged in to create a piano entry.");
+      return;
+    }
+
     const basicDetails = {
       users: user.$id,
       category: form.category,

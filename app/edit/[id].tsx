@@ -164,28 +164,19 @@ const EditScreen = () => {
     setImageError(false);
   }, [form.image]);
 
-  const onDateOfPurchaseChange = (
-    event: any,
-    selectedDate?: Date
-  ) => {
+  const onDateOfPurchaseChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || form.dateOfPurchase;
     setShowDateOfPurchasePicker(false);
     setForm({ ...form, dateOfPurchase: currentDate });
   };
 
-  const onRentalStartDateChange = (
-    event: any,
-    selectedDate?: Date
-  ) => {
+  const onRentalStartDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || form.rentalStartDate;
     setShowRentalStartDatePicker(false);
     setForm({ ...form, rentalStartDate: currentDate });
   };
 
-  const onRentalEndDateChange = (
-    event: any,
-    selectedDate?: Date
-  ) => {
+  const onRentalEndDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || form.rentalEndDate;
     setShowRentalEndDatePicker(false);
     setForm({ ...form, rentalEndDate: currentDate });
@@ -262,6 +253,11 @@ const EditScreen = () => {
   const user = useSelector((state: RootState) => state.users.user);
 
   const handleOnSubmit = async () => {
+    if (!user || !user.accountId) {
+      Alert.alert("Error", "You must be logged in to update a piano entry.");
+      return;
+    }
+
     const basicDetails = {
       users: user.$id,
       category: form.category,
@@ -676,7 +672,9 @@ const EditScreen = () => {
                       title="Import Date"
                       value={form.onSaleImportDate.toDateString()}
                       handleChangeText={() => {}}
-                      onFocus={() => setShowWarehouseStoredSinceDatePicker(true)}
+                      onFocus={() =>
+                        setShowWarehouseStoredSinceDatePicker(true)
+                      }
                     />
                     {showWarehouseStoredSinceDatePicker && (
                       <DateTimePicker
