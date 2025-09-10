@@ -23,6 +23,7 @@ import FilterButton from "../components/FilterButton";
 import GridItem from "../components/GridItem";
 import ListItem from "../components/ListItem";
 import SearchInput from "../components/SearchInput";
+import { scheduleAllRentalNotifications } from "../services/notifications";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -42,6 +43,8 @@ const Home = () => {
   const filters = useSelector((state: RootState) => state.pianos.filters);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [lastNotificationSchedule, setLastNotificationSchedule] =
+    useState<string>("");
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -53,6 +56,8 @@ const Home = () => {
   useFocusEffect(
     React.useCallback(() => {
       refetch();
+      // Note: Notification scheduling is handled in the main useEffect below
+      // to prevent duplicate scheduling and infinite console logs
     }, [])
   );
 
@@ -175,9 +180,25 @@ const Home = () => {
 
   //set items in redux store on successful fetch API call
   useEffect(() => {
-    if (items.length > 0) {
+    if (items && items.length > 0) {
       //this will set the items in redux store - original items
       dispatch(setPianoListItems(items));
+
+      // Schedule notifications for rental due dates
+      // Only schedule if we haven't scheduled for this data recently
+      const currentTime = Date.now();
+      const timeSinceLastSchedule =
+        currentTime - (parseInt(lastNotificationSchedule) || 0);
+
+      // Only schedule if it's been more than 30 seconds since last schedule
+      // This prevents excessive scheduling while still allowing updates
+      if (timeSinceLastSchedule > 30000) {
+        console.log(`🔄 Scheduling notifications for ${items.length} items`);
+        scheduleAllRentalNotifications(items);
+        setLastNotificationSchedule(currentTime.toString());
+      } else {
+        console.log("ℹ️ Skipping notification scheduling (recently scheduled)");
+      }
 
       // Apply filters if any are set
       if (filters.category || filters.isActiveRentals || filters.isSold) {
@@ -187,7 +208,7 @@ const Home = () => {
         dispatch(setFilteredPianoListItems(items));
       }
     }
-  }, [items]);
+  }, [items, lastNotificationSchedule]);
 
   return (
     <SafeAreaView className="bg-primary h-full">

@@ -28,6 +28,7 @@ import {
   PIANO_CATEGORY,
   pianoCompaniesMakeList,
 } from "../constants/Piano";
+import { scheduleRentalDueNotification } from "../services/notifications";
 
 interface ImageAsset {
   uri: string;
@@ -372,7 +373,16 @@ const Create = () => {
 
     try {
       setUploading(true);
-      await createPianoEntry(finalDetails);
+      const createdPiano = await createPianoEntry(finalDetails);
+
+      // Schedule notification if it's a rentable piano with due date
+      if (
+        finalDetails.category === PIANO_CATEGORY.RENTABLE &&
+        form.rentalEndDate
+      ) {
+        await scheduleRentalDueNotification(createdPiano);
+      }
+
       router.push("/home");
       ToastAndroid.show(
         "Piano entry created successfully.",
