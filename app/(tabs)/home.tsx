@@ -266,11 +266,12 @@ const Home = () => {
         <FlatList
           data={pianoItems}
           keyExtractor={(item) => item.$id}
-          renderItem={({ item }) => {
+          renderItem={({ item, index }) => {
             if (layoutView.card === "checked") {
               return (
                 <CardItem
                   item={item}
+                  index={index}
                   visibleMenuId={visibleMenuId}
                   openMenu={openMenu}
                   closeMenu={closeMenu}
@@ -281,6 +282,7 @@ const Home = () => {
               return (
                 <ListItem
                   item={item}
+                  index={index}
                   visibleMenuId={visibleMenuId}
                   openMenu={openMenu}
                   closeMenu={closeMenu}

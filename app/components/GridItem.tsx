@@ -14,7 +14,7 @@ import {
 } from "date-fns";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -26,6 +26,13 @@ import {
   View,
 } from "react-native";
 import { IconButton, Menu, PaperProvider, Surface } from "react-native-paper";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  withDelay,
+  Easing,
+} from "react-native-reanimated";
 import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "../constants/Piano";
 
@@ -147,7 +154,13 @@ const GridItem: React.FC<GridItemProps> = ({
     return "Expired";
   };
 
-  const renderItem = ({ item }: { item: PianoItem & { empty?: boolean } }) => {
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: PianoItem & { empty?: boolean };
+    index: number;
+  }) => {
     if (item.empty) {
       return <View style={[styles.item, styles.itemInvisible]} />;
     }
@@ -155,9 +168,40 @@ const GridItem: React.FC<GridItemProps> = ({
     const remaining = calculateRemainingPeriod(item.rental_period_end);
     const isBookmarked = bookmarkedItems.has(item.$id);
 
+    // Animation values for each item
+    const opacity = useSharedValue(0);
+    const translateY = useSharedValue(20);
+
+    // Trigger animation on mount with staggered delay
+    useEffect(() => {
+      const delay = index * 100; // Stagger by 100ms per item
+      opacity.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+        })
+      );
+      translateY.value = withDelay(
+        delay,
+        withTiming(0, {
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+        })
+      );
+    }, [index]);
+
+    // Animated styles
+    const animatedStyle = useAnimatedStyle(() => {
+      return {
+        opacity: opacity.value,
+        transform: [{ translateY: translateY.value }],
+      };
+    });
+
     return (
       <PaperProvider>
-        <View style={styles.gridItemContainer}>
+        <Animated.View style={[styles.gridItemContainer, animatedStyle]}>
           <Surface
             style={styles.item}
             elevation={4}
@@ -321,7 +365,7 @@ const GridItem: React.FC<GridItemProps> = ({
               )}
             </View>
           </Surface>
-        </View>
+        </Animated.View>
       </PaperProvider>
     );
   };
@@ -356,7 +400,7 @@ const GridItem: React.FC<GridItemProps> = ({
         numColumns={2}
         columnWrapperStyle={{ gap: 10, paddingHorizontal: 12 }}
         contentContainerStyle={{ gap: 10, paddingBottom: 10 }}
-        renderItem={renderItem}
+        renderItem={({ item, index }) => renderItem({ item, index })}
         keyExtractor={(item) => item.$id}
       />
     </View>

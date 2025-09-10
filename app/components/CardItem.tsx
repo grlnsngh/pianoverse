@@ -14,7 +14,7 @@ import {
 } from "date-fns";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   StyleSheet,
@@ -24,11 +24,19 @@ import {
   View,
 } from "react-native";
 import { IconButton, Menu, PaperProvider, Surface } from "react-native-paper";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  withDelay,
+  Easing,
+} from "react-native-reanimated";
 import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "../constants/Piano";
 
 interface CardItemProps {
   item: PianoItem & { empty?: boolean };
+  index?: number;
   visibleMenuId: string | null;
   openMenu: (id: string) => void;
   closeMenu: () => void;
@@ -51,6 +59,7 @@ const calculateRemainingPeriod = (end: Date | null | undefined) => {
 
 const CardItem: React.FC<CardItemProps> = ({
   item,
+  index = 0,
   visibleMenuId,
   openMenu,
   closeMenu,
@@ -67,6 +76,37 @@ const CardItem: React.FC<CardItemProps> = ({
   const { avatar = "" } = users || {};
   const pathname = usePathname();
   const [isBookmarked, setIsBookmarked] = useState(false);
+
+  // Animation values
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(20);
+
+  // Trigger animation on mount
+  useEffect(() => {
+    const delay = index * 100; // Stagger by 100ms per item
+    opacity.value = withDelay(
+      delay,
+      withTiming(1, {
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+      })
+    );
+    translateY.value = withDelay(
+      delay,
+      withTiming(0, {
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+      })
+    );
+  }, [index]);
+
+  // Animated styles
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [{ translateY: translateY.value }],
+    };
+  });
 
   const remaining = calculateRemainingPeriod(rental_period_end);
 
@@ -195,207 +235,209 @@ const CardItem: React.FC<CardItemProps> = ({
 
   return (
     <PaperProvider>
-      <View className="flex-col items-center px-4 mb-6">
-        <Surface
-          style={styles.cardContainer}
-          elevation={4}
-          className="bg-primary-200 rounded-2xl overflow-hidden w-full shadow-lg"
-        >
-          {/* Header with avatar, title, and actions */}
-          <View className="flex-row items-center p-4 pb-3">
-            <View className="relative">
-              <View className="w-12 h-12 rounded-xl overflow-hidden bg-primary-300 border-2 border-primary-400">
+      <Animated.View style={[animatedStyle, { marginBottom: 24 }]}>
+        <View className="flex-col items-center px-4">
+          <Surface
+            style={styles.cardContainer}
+            elevation={4}
+            className="bg-primary-200 rounded-2xl overflow-hidden w-full shadow-lg"
+          >
+            {/* Header with avatar, title, and actions */}
+            <View className="flex-row items-center p-4 pb-3">
+              <View className="relative">
+                <View className="w-12 h-12 rounded-xl overflow-hidden bg-primary-300 border-2 border-primary-400">
+                  <Image
+                    source={
+                      category === PIANO_CATEGORY.RENTABLE
+                        ? images.category_rentable
+                        : category === PIANO_CATEGORY.EVENTS
+                        ? images.category_event
+                        : category === PIANO_CATEGORY.ON_SALE
+                        ? images.category_sale
+                        : category === PIANO_CATEGORY.WAREHOUSE
+                        ? images.category_warehouse
+                        : { uri: avatar }
+                    }
+                    className="w-full h-full"
+                    resizeMode="cover"
+                    placeholder={images.empty}
+                    placeholderContentFit="cover"
+                  />
+                </View>
+                {/* Category Badge */}
+                <View
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center border border-white"
+                  style={{
+                    backgroundColor:
+                      category === PIANO_CATEGORY.RENTABLE
+                        ? CATEGORY_COLORS.RENTABLE
+                        : category === PIANO_CATEGORY.EVENTS
+                        ? CATEGORY_COLORS.EVENTS
+                        : category === PIANO_CATEGORY.ON_SALE
+                        ? CATEGORY_COLORS.ON_SALE
+                        : category === PIANO_CATEGORY.WAREHOUSE
+                        ? CATEGORY_COLORS.WAREHOUSE
+                        : SECONDARY_COLOR,
+                  }}
+                >
+                  <Image
+                    source={getCategoryIcon(category)}
+                    className="w-2.5 h-2.5"
+                    tintColor={PRIMARY_COLOR}
+                    resizeMode="contain"
+                  />
+                </View>
+              </View>
+
+              <View className="flex-1 ml-3">
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <Text
+                      className="text-white font-psemibold text-base mb-1"
+                      numberOfLines={1}
+                    >
+                      {title}
+                    </Text>
+                    {company_associated && (
+                      <Text
+                        className="text-xs text-gray-100 font-pregular"
+                        numberOfLines={1}
+                      >
+                        {company_associated}
+                      </Text>
+                    )}
+                  </View>
+
+                  {/* Action Buttons */}
+                  <View className="flex-row items-center space-x-2">
+                    {/* Bookmark Button */}
+                    <TouchableOpacity
+                      onPress={handleBookmark}
+                      className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
+                      activeOpacity={0.7}
+                    >
+                      <Image
+                        source={icons.bookmark}
+                        className="w-4 h-4"
+                        tintColor={isBookmarked ? SECONDARY_COLOR : "#CDCDE0"}
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
+
+                    {/* Menu Button */}
+                    <View style={styles.container}>
+                      <Menu
+                        style={styles.menu}
+                        visible={visibleMenuId === item.$id}
+                        onDismiss={closeMenu}
+                        anchor={
+                          <TouchableOpacity
+                            onPress={() => openMenu(item.$id)}
+                            className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
+                            activeOpacity={0.7}
+                          >
+                            <Image
+                              source={icons.menu}
+                              className="w-4 h-4"
+                              tintColor="#CDCDE0"
+                              resizeMode="contain"
+                            />
+                          </TouchableOpacity>
+                        }
+                      >
+                        <Menu.Item
+                          onPress={handleOnClickEditMenu}
+                          title="Edit"
+                          leadingIcon={() => (
+                            <IconButton
+                              icon={icons.pencil}
+                              size={16}
+                              iconColor={SECONDARY_COLOR}
+                              style={styles.menuItemIcon}
+                            />
+                          )}
+                          titleStyle={{ color: "#CDCDE0" }}
+                        />
+                        <Menu.Item
+                          onPress={handleOnClickDeleteMenu}
+                          title="Delete"
+                          leadingIcon={() => (
+                            <IconButton
+                              icon={icons.trash}
+                              size={16}
+                              iconColor="#ef4444"
+                              style={styles.menuItemIcon}
+                            />
+                          )}
+                          titleStyle={{ color: "#CDCDE0" }}
+                        />
+                      </Menu>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Main Image with Overlay */}
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={handleOnClickItem}
+              className="relative"
+            >
+              <View className="w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden">
                 <Image
-                  source={
-                    category === PIANO_CATEGORY.RENTABLE
-                      ? images.category_rentable
-                      : category === PIANO_CATEGORY.EVENTS
-                      ? images.category_event
-                      : category === PIANO_CATEGORY.ON_SALE
-                      ? images.category_sale
-                      : category === PIANO_CATEGORY.WAREHOUSE
-                      ? images.category_warehouse
-                      : { uri: avatar }
-                  }
+                  source={{ uri: image_url }}
                   className="w-full h-full"
                   resizeMode="cover"
                   placeholder={images.empty}
                   placeholderContentFit="cover"
                 />
-              </View>
-              {/* Category Badge */}
-              <View
-                className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center border border-white"
-                style={{
-                  backgroundColor:
-                    category === PIANO_CATEGORY.RENTABLE
-                      ? CATEGORY_COLORS.RENTABLE
-                      : category === PIANO_CATEGORY.EVENTS
-                      ? CATEGORY_COLORS.EVENTS
-                      : category === PIANO_CATEGORY.ON_SALE
-                      ? CATEGORY_COLORS.ON_SALE
-                      : category === PIANO_CATEGORY.WAREHOUSE
-                      ? CATEGORY_COLORS.WAREHOUSE
-                      : SECONDARY_COLOR,
-                }}
-              >
-                <Image
-                  source={getCategoryIcon(category)}
-                  className="w-2.5 h-2.5"
-                  tintColor={PRIMARY_COLOR}
-                  resizeMode="contain"
-                />
-              </View>
-            </View>
 
-            <View className="flex-1 ml-3">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-1">
-                  <Text
-                    className="text-white font-psemibold text-base mb-1"
-                    numberOfLines={1}
-                  >
-                    {title}
-                  </Text>
-                  {company_associated && (
-                    <Text
-                      className="text-xs text-gray-100 font-pregular"
-                      numberOfLines={1}
-                    >
-                      {company_associated}
-                    </Text>
-                  )}
-                </View>
+                {/* Gradient Overlay */}
+                <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
-                {/* Action Buttons */}
-                <View className="flex-row items-center space-x-2">
-                  {/* Bookmark Button */}
-                  <TouchableOpacity
-                    onPress={handleBookmark}
-                    className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                    activeOpacity={0.7}
-                  >
-                    <Image
-                      source={icons.bookmark}
-                      className="w-4 h-4"
-                      tintColor={isBookmarked ? SECONDARY_COLOR : "#CDCDE0"}
-                      resizeMode="contain"
-                    />
-                  </TouchableOpacity>
-
-                  {/* Menu Button */}
-                  <View style={styles.container}>
-                    <Menu
-                      style={styles.menu}
-                      visible={visibleMenuId === item.$id}
-                      onDismiss={closeMenu}
-                      anchor={
-                        <TouchableOpacity
-                          onPress={() => openMenu(item.$id)}
-                          className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                          activeOpacity={0.7}
-                        >
-                          <Image
-                            source={icons.menu}
-                            className="w-4 h-4"
-                            tintColor="#CDCDE0"
-                            resizeMode="contain"
-                          />
-                        </TouchableOpacity>
-                      }
-                    >
-                      <Menu.Item
-                        onPress={handleOnClickEditMenu}
-                        title="Edit"
-                        leadingIcon={() => (
-                          <IconButton
-                            icon={icons.pencil}
-                            size={16}
-                            iconColor={SECONDARY_COLOR}
-                            style={styles.menuItemIcon}
-                          />
-                        )}
-                        titleStyle={{ color: "#CDCDE0" }}
+                {/* Status Badge */}
+                {getStatusText() && (
+                  <View className="absolute top-3 left-3">
+                    <View className="flex-row items-center bg-black/70 rounded-full px-3 py-1">
+                      <View
+                        className="w-2 h-2 rounded-full mr-2"
+                        style={{ backgroundColor: getStatusColor() }}
                       />
-                      <Menu.Item
-                        onPress={handleOnClickDeleteMenu}
-                        title="Delete"
-                        leadingIcon={() => (
-                          <IconButton
-                            icon={icons.trash}
-                            size={16}
-                            iconColor="#ef4444"
-                            style={styles.menuItemIcon}
-                          />
-                        )}
-                        titleStyle={{ color: "#CDCDE0" }}
-                      />
-                    </Menu>
+                      <Text className="text-white text-xs font-pmedium">
+                        {getStatusText()}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </View>
-            </View>
-          </View>
+                )}
 
-          {/* Main Image with Overlay */}
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={handleOnClickItem}
-            className="relative"
-          >
-            <View className="w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden">
-              <Image
-                source={{ uri: image_url }}
-                className="w-full h-full"
-                resizeMode="cover"
-                placeholder={images.empty}
-                placeholderContentFit="cover"
-              />
-
-              {/* Gradient Overlay */}
-              <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-
-              {/* Status Badge */}
-              {getStatusText() && (
-                <View className="absolute top-3 left-3">
-                  <View className="flex-row items-center bg-black/70 rounded-full px-3 py-1">
-                    <View
-                      className="w-2 h-2 rounded-full mr-2"
-                      style={{ backgroundColor: getStatusColor() }}
-                    />
-                    <Text className="text-white text-xs font-pmedium">
-                      {getStatusText()}
+                {/* Category Label */}
+                <View className="absolute bottom-3 left-3">
+                  <View
+                    className="px-3 py-1 rounded-full"
+                    style={{
+                      backgroundColor:
+                        category === PIANO_CATEGORY.RENTABLE
+                          ? `${CATEGORY_COLORS.RENTABLE}90`
+                          : category === PIANO_CATEGORY.EVENTS
+                          ? `${CATEGORY_COLORS.EVENTS}90`
+                          : category === PIANO_CATEGORY.ON_SALE
+                          ? `${CATEGORY_COLORS.ON_SALE}90`
+                          : category === PIANO_CATEGORY.WAREHOUSE
+                          ? `${CATEGORY_COLORS.WAREHOUSE}90`
+                          : `${SECONDARY_COLOR}90`,
+                    }}
+                  >
+                    <Text className="text-white text-xs font-psemibold">
+                      {getCategoryLabel(category)}
                     </Text>
                   </View>
                 </View>
-              )}
-
-              {/* Category Label */}
-              <View className="absolute bottom-3 left-3">
-                <View
-                  className="px-3 py-1 rounded-full"
-                  style={{
-                    backgroundColor:
-                      category === PIANO_CATEGORY.RENTABLE
-                        ? `${CATEGORY_COLORS.RENTABLE}90`
-                        : category === PIANO_CATEGORY.EVENTS
-                        ? `${CATEGORY_COLORS.EVENTS}90`
-                        : category === PIANO_CATEGORY.ON_SALE
-                        ? `${CATEGORY_COLORS.ON_SALE}90`
-                        : category === PIANO_CATEGORY.WAREHOUSE
-                        ? `${CATEGORY_COLORS.WAREHOUSE}90`
-                        : `${SECONDARY_COLOR}90`,
-                  }}
-                >
-                  <Text className="text-white text-xs font-psemibold">
-                    {getCategoryLabel(category)}
-                  </Text>
-                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        </Surface>
-      </View>
+            </TouchableOpacity>
+          </Surface>
+        </View>
+      </Animated.View>
     </PaperProvider>
   );
 };
