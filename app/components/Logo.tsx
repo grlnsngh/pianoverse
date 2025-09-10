@@ -23,8 +23,8 @@ const Logo = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   icon: {
@@ -33,14 +33,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 42,
-    color: '#FFFFFF',
-    fontWeight: '800',
-    textAlign: 'center',
+    color: "#FFFFFF",
+    fontWeight: "800",
+    textAlign: "center",
     letterSpacing: -1,
   },
   subtitle: {
     color: SECONDARY_COLOR,
-    fontWeight: '800',
+    fontWeight: "800",
   },
 });
 

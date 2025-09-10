@@ -1,15 +1,15 @@
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  Alert, 
+import {
+  View,
+  Text,
+  ScrollView,
+  Alert,
   ToastAndroid,
   Animated,
   Dimensions,
   StyleSheet,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,7 +23,7 @@ import CustomButton from "../components/CustomButton";
 import { getCurrentUser, signIn } from "@/lib/appwrite";
 import { useGlobalContext } from "@/context/GlobalProvider";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const SignIn = () => {
   const { setUser, setIsLogged } = useGlobalContext();
@@ -90,7 +90,7 @@ const SignIn = () => {
         ])
       ).start();
     };
-    
+
     decorAnimation();
   }, []);
 
@@ -139,7 +139,7 @@ const SignIn = () => {
     }
 
     setSubmitting(true);
-    
+
     // Button scale animation for successful press
     Animated.timing(buttonAnim, {
       toValue: 0.98,
@@ -153,7 +153,10 @@ const SignIn = () => {
       setUser(result);
       setIsLogged(true);
 
-      ToastAndroid.show("Welcome back! Successfully logged in", ToastAndroid.SHORT);
+      ToastAndroid.show(
+        "Welcome back! Successfully logged in",
+        ToastAndroid.SHORT
+      );
       router.replace("/home");
     } catch (error) {
       // Reset button animation on error
@@ -162,7 +165,7 @@ const SignIn = () => {
         duration: 100,
         useNativeDriver: true,
       }).start();
-      
+
       if (error instanceof Error) {
         Alert.alert("Sign In Failed", error.message);
       } else {
@@ -181,20 +184,20 @@ const SignIn = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           {/* Background decorative elements */}
-          <Animated.View 
+          <Animated.View
             style={[
               styles.backgroundDecor,
-              { transform: [{ scale: decorAnim }] }
+              { transform: [{ scale: decorAnim }] },
             ]}
           >
             <View style={[styles.decorCircle, styles.decorCircle1]} />
@@ -204,7 +207,7 @@ const SignIn = () => {
 
           <View style={styles.contentContainer}>
             {/* Animated Logo */}
-            <Animated.View 
+            <Animated.View
               style={[
                 styles.logoContainer,
                 {
@@ -230,7 +233,7 @@ const SignIn = () => {
             </Animated.View>
 
             {/* Welcome Section */}
-            <Animated.View 
+            <Animated.View
               style={[
                 styles.welcomeSection,
                 {
@@ -246,7 +249,7 @@ const SignIn = () => {
             </Animated.View>
 
             {/* Form Section */}
-            <Animated.View 
+            <Animated.View
               style={[
                 styles.formContainer,
                 {
@@ -282,7 +285,9 @@ const SignIn = () => {
                 />
 
                 <TouchableOpacity style={styles.forgotPassword}>
-                  <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                  <Text style={styles.forgotPasswordText}>
+                    Forgot Password?
+                  </Text>
                 </TouchableOpacity>
 
                 <Animated.View style={{ transform: [{ scale: buttonAnim }] }}>
@@ -301,9 +306,7 @@ const SignIn = () => {
                 </View>
 
                 <View style={styles.signUpContainer}>
-                  <Text style={styles.signUpText}>
-                    Don't have an account?{" "}
-                  </Text>
+                  <Text style={styles.signUpText}>Don't have an account? </Text>
                   <Link href="/sign-up" style={styles.signUpLink}>
                     <Text style={styles.signUpLinkText}>Sign Up</Text>
                   </Link>
@@ -330,14 +333,14 @@ const styles = StyleSheet.create({
     minHeight: height,
   },
   backgroundDecor: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
   },
   decorCircle: {
-    position: 'absolute',
+    position: "absolute",
     borderRadius: 100,
     opacity: 0.1,
   },
@@ -369,40 +372,40 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   logoContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   welcomeSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   welcomeTitle: {
     fontSize: 36,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    fontWeight: "800",
+    color: "#FFFFFF",
+    textAlign: "center",
     marginBottom: 12,
     letterSpacing: -0.5,
   },
   welcomeSubtitle: {
     fontSize: 17,
-    color: '#A1A1AA',
-    textAlign: 'center',
+    color: "#A1A1AA",
+    textAlign: "center",
     lineHeight: 26,
     paddingHorizontal: 20,
-    fontWeight: '400',
+    fontWeight: "400",
   },
   formContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   formWrapper: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: 24,
     padding: 28,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    shadowColor: '#000',
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 8,
@@ -412,44 +415,44 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   errorText: {
-    color: '#EF4444',
+    color: "#EF4444",
     fontSize: 14,
     marginTop: 4,
     marginLeft: 4,
   },
   forgotPassword: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginTop: 12,
     marginBottom: 8,
   },
   forgotPasswordText: {
     color: SECONDARY_COLOR,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 24,
   },
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   dividerText: {
-    color: '#A1A1AA',
+    color: "#A1A1AA",
     paddingHorizontal: 16,
     fontSize: 14,
   },
   signUpContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 16,
   },
   signUpText: {
-    color: '#A1A1AA',
+    color: "#A1A1AA",
     fontSize: 16,
   },
   signUpLink: {
@@ -458,7 +461,7 @@ const styles = StyleSheet.create({
   signUpLinkText: {
     color: SECONDARY_COLOR,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 
