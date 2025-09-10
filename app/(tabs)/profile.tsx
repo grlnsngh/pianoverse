@@ -16,9 +16,11 @@ import {
   ScrollView,
   Animated,
   Easing,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
+import { PieChart } from "react-native-chart-kit";
 import CustomButton from "../components/CustomButton";
 import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
@@ -282,6 +284,38 @@ const Profile = () => {
   const eventsCount = filterItemsByCategory(PIANO_CATEGORY.EVENTS);
   const onSaleCount = filterItemsByCategory(PIANO_CATEGORY.ON_SALE);
   const warehouseCount = filterItemsByCategory(PIANO_CATEGORY.WAREHOUSE);
+
+  // Prepare pie chart data
+  const pieChartData = [
+    {
+      name: "Rentable",
+      count: rentableCount,
+      color: CATEGORY_COLORS.RENTABLE,
+      legendFontColor: "#FFF",
+      legendFontSize: 12,
+    },
+    {
+      name: "Events",
+      count: eventsCount,
+      color: CATEGORY_COLORS.EVENTS,
+      legendFontColor: "#FFF",
+      legendFontSize: 12,
+    },
+    {
+      name: "On Sale",
+      count: onSaleCount,
+      color: CATEGORY_COLORS.ON_SALE,
+      legendFontColor: "#FFF",
+      legendFontSize: 12,
+    },
+    {
+      name: "Storage",
+      count: warehouseCount,
+      color: CATEGORY_COLORS.WAREHOUSE,
+      legendFontColor: "#FFF",
+      legendFontSize: 12,
+    },
+  ].filter(item => item.count > 0); // Only show categories with items
 
   const totalValue = calculateTotalValue();
   const activeRentals = calculateActiveRentals();
@@ -767,18 +801,54 @@ const Profile = () => {
                 </View>
               ) : (
                 <>
-                  {/* Compact Horizontal Layout */}
-                  <View className="flex-row justify-between">
-                    {/* Rentable */}
-                    <Animated.View
-                      style={{
-                        flex: 1,
-                        marginHorizontal: 4,
-                        transform: [{ scale: pulseAnim }],
-                      }}
-                    >
+                  {/* Pie Chart Visualization */}
+                  <View className="bg-primary-400 rounded-xl p-4 mb-4">
+                    <Text className="text-white text-sm font-psemibold mb-3 text-center">
+                      Category Distribution
+                    </Text>
+                    <View className="items-center">
+                      <PieChart
+                        data={pieChartData}
+                        width={Dimensions.get('window').width - 80}
+                        height={180}
+                        chartConfig={{
+                          backgroundColor: '#161622',
+                          backgroundGradientFrom: '#161622',
+                          backgroundGradientTo: '#161622',
+                          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                        }}
+                        accessor="count"
+                        backgroundColor="transparent"
+                        paddingLeft="15"
+                        absolute={false}
+                        hasLegend={false}
+                      />
+                    </View>
+                    {/* Custom Legend */}
+                    <View className="flex-row flex-wrap justify-center mt-3">
+                      {pieChartData.map((item, index) => (
+                        <View key={index} className="flex-row items-center mr-4 mb-2">
+                          <View
+                            className="w-3 h-3 rounded-full mr-2"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <Text className="text-white text-xs font-pregular">
+                            {item.name} ({item.count})
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* Quick Action Buttons */}
+                  <View className="mb-4">
+                    <Text className="text-white text-sm font-psemibold mb-3">
+                      Quick Filters
+                    </Text>
+                    <View className="flex-row flex-wrap">
                       <TouchableOpacity
-                        className="flex-1"
+                        className="bg-primary-400 rounded-lg px-4 py-3 mr-2 mb-2 flex-row items-center"
                         activeOpacity={0.8}
                         onPress={() => {
                           animateButtonPress();
@@ -786,207 +856,76 @@ const Profile = () => {
                         }}
                       >
                         <View
-                          className="rounded-xl p-3 items-center shadow-lg h-32"
-                          style={{
-                            backgroundColor: CATEGORY_COLORS.RENTABLE,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 3 },
-                            shadowOpacity: 0.3,
-                            shadowRadius: 4,
-                          }}
-                        >
-                          <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
-                            <Image
-                              source={images.category_rentable}
-                              className="w-6 h-6 rounded-md"
-                              resizeMode="cover"
-                            />
-                          </View>
-                          <Text className="text-primary text-lg font-pbold mb-0.5">
-                            {rentableCount}
-                          </Text>
-                          <Text className="text-primary font-psemibold text-xs opacity-80">
-                            Rentable
-                          </Text>
-                          {/* Progress bar */}
-                          <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
-                            <View
-                              className="bg-primary rounded-full h-1"
-                              style={{
-                                width:
-                                  items.length > 0
-                                    ? `${(rentableCount / items.length) * 100}%`
-                                    : "0%",
-                              }}
-                            />
-                          </View>
-                        </View>
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: CATEGORY_COLORS.RENTABLE }}
+                        />
+                        <Text className="text-white text-xs font-psemibold">
+                          Rentable ({rentableCount})
+                        </Text>
                       </TouchableOpacity>
-                    </Animated.View>
 
-                    {/* Events */}
-                    <TouchableOpacity
-                      className="flex-1 mx-1"
-                      activeOpacity={0.8}
-                      onPress={() => {
-                        animateButtonPress();
-                        navigateToHomeWithFilter(PIANO_CATEGORY.EVENTS);
-                      }}
-                    >
-                      <Animated.View
-                        className="rounded-xl p-3 items-center shadow-lg h-32"
-                        style={[
-                          {
-                            backgroundColor: CATEGORY_COLORS.EVENTS,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 3 },
-                            shadowOpacity: 0.3,
-                            shadowRadius: 4,
-                          },
-                          {
-                            transform: [{ scale: pulseAnim }],
-                          },
-                        ]}
+                      <TouchableOpacity
+                        className="bg-primary-400 rounded-lg px-4 py-3 mr-2 mb-2 flex-row items-center"
+                        activeOpacity={0.8}
+                        onPress={() => {
+                          animateButtonPress();
+                          navigateToHomeWithFilter(PIANO_CATEGORY.EVENTS);
+                        }}
                       >
-                        <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
-                          <Image
-                            source={images.category_event}
-                            className="w-6 h-6 rounded-md"
-                            resizeMode="cover"
-                          />
-                        </View>
-                        <Text className="text-primary text-lg font-pbold mb-0.5">
-                          {eventsCount}
+                        <View
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: CATEGORY_COLORS.EVENTS }}
+                        />
+                        <Text className="text-white text-xs font-psemibold">
+                          Events ({eventsCount})
                         </Text>
-                        <Text className="text-primary font-psemibold text-xs opacity-80">
-                          Events
-                        </Text>
-                        <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
-                          <View
-                            className="bg-primary rounded-full h-1"
-                            style={{
-                              width:
-                                items.length > 0
-                                  ? `${(eventsCount / items.length) * 100}%`
-                                  : "0%",
-                            }}
-                          />
-                        </View>
-                      </Animated.View>
-                    </TouchableOpacity>
+                      </TouchableOpacity>
 
-                    {/* On Sale */}
-                    <TouchableOpacity
-                      className="flex-1 mx-1"
-                      activeOpacity={0.8}
-                      onPress={() => {
-                        animateButtonPress();
-                        navigateToHomeWithFilter(PIANO_CATEGORY.ON_SALE);
-                      }}
-                    >
-                      <Animated.View
-                        className="rounded-xl p-3 items-center shadow-lg h-32"
-                        style={[
-                          {
-                            backgroundColor: CATEGORY_COLORS.ON_SALE,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 3 },
-                            shadowOpacity: 0.3,
-                            shadowRadius: 4,
-                          },
-                          {
-                            transform: [{ scale: pulseAnim }],
-                          },
-                        ]}
+                      <TouchableOpacity
+                        className="bg-primary-400 rounded-lg px-4 py-3 mr-2 mb-2 flex-row items-center"
+                        activeOpacity={0.8}
+                        onPress={() => {
+                          animateButtonPress();
+                          navigateToHomeWithFilter(PIANO_CATEGORY.ON_SALE);
+                        }}
                       >
-                        <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
-                          <Image
-                            source={images.category_sale}
-                            className="w-6 h-6 rounded-md"
-                            resizeMode="cover"
-                          />
-                        </View>
-                        <Text className="text-primary text-lg font-pbold mb-0.5">
-                          {onSaleCount}
+                        <View
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: CATEGORY_COLORS.ON_SALE }}
+                        />
+                        <Text className="text-white text-xs font-psemibold">
+                          On Sale ({onSaleCount})
                         </Text>
-                        <Text className="text-primary font-psemibold text-xs opacity-80">
-                          On Sale
-                        </Text>
-                        <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
-                          <View
-                            className="bg-primary rounded-full h-1"
-                            style={{
-                              width:
-                                items.length > 0
-                                  ? `${(onSaleCount / items.length) * 100}%`
-                                  : "0%",
-                            }}
-                          />
-                        </View>
-                      </Animated.View>
-                    </TouchableOpacity>
+                      </TouchableOpacity>
 
-                    {/* Warehouse */}
-                    <TouchableOpacity
-                      className="flex-1 mx-1"
-                      activeOpacity={0.8}
-                      onPress={() => {
-                        animateButtonPress();
-                        navigateToHomeWithFilter(PIANO_CATEGORY.WAREHOUSE);
-                      }}
-                    >
-                      <Animated.View
-                        className="rounded-xl p-3 items-center shadow-lg h-32"
-                        style={[
-                          {
-                            backgroundColor: CATEGORY_COLORS.WAREHOUSE,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 3 },
-                            shadowOpacity: 0.3,
-                            shadowRadius: 4,
-                          },
-                          {
-                            transform: [{ scale: pulseAnim }],
-                          },
-                        ]}
+                      <TouchableOpacity
+                        className="bg-primary-400 rounded-lg px-4 py-3 mr-2 mb-2 flex-row items-center"
+                        activeOpacity={0.8}
+                        onPress={() => {
+                          animateButtonPress();
+                          navigateToHomeWithFilter(PIANO_CATEGORY.WAREHOUSE);
+                        }}
                       >
-                        <View className="bg-white bg-opacity-20 rounded-full p-2 mb-2">
-                          <Image
-                            source={images.category_warehouse}
-                            className="w-6 h-6 rounded-md"
-                            resizeMode="cover"
-                          />
-                        </View>
-                        <Text className="text-primary text-lg font-pbold mb-0.5">
-                          {warehouseCount}
+                        <View
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: CATEGORY_COLORS.WAREHOUSE }}
+                        />
+                        <Text className="text-white text-xs font-psemibold">
+                          Storage ({warehouseCount})
                         </Text>
-                        <Text className="text-primary font-psemibold text-xs opacity-80 text-center leading-tight">
-                          Storage
-                        </Text>
-                        <View className="w-full bg-white bg-opacity-20 rounded-full h-1 mt-2">
-                          <View
-                            className="bg-primary rounded-full h-1"
-                            style={{
-                              width:
-                                items.length > 0
-                                  ? `${(warehouseCount / items.length) * 100}%`
-                                  : "0%",
-                            }}
-                          />
-                        </View>
-                      </Animated.View>
-                    </TouchableOpacity>
+                      </TouchableOpacity>
+                    </View>
                   </View>
 
-                  {/* Category Summary */}
-                  <View className="mt-4 bg-primary-400 rounded-lg p-3">
+                  {/* Category Summary Stats */}
+                  <View className="bg-primary-400 rounded-lg p-3">
                     <View className="flex-row justify-between items-center">
                       <Text className="text-white text-sm font-psemibold">
-                        Category Distribution
+                        Total Pianos
                       </Text>
                       <View className="flex-row items-center">
-                        <Text className="text-gray-100 text-xs mr-2">
-                          Total: {items.length}
+                        <Text className="text-secondary text-base font-pbold mr-2">
+                          {items.length}
                         </Text>
                         <View className="w-2 h-2 bg-secondary rounded-full"></View>
                       </View>
