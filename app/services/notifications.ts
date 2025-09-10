@@ -339,3 +339,83 @@ export const getNotificationStatus = async () => {
     return null;
   }
 };
+
+// Test function to show a sample notification immediately
+export const showTestNotification = async () => {
+  try {
+    console.log("🔔 Creating test notification...");
+
+    // Schedule notification for 30 seconds from now
+    const testDate = new Date(Date.now() + 30 * 1000); // 30 seconds from now
+
+    const notificationId = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "🎹 Test Notification - Pianoverse",
+        body: "This is a test notification to verify the notification system is working! Your rental reminder system is ready.",
+        data: {
+          type: "test_notification",
+          test: true,
+        },
+        sound: "default",
+      },
+      trigger: {
+        date: testDate,
+        channelId: Platform.OS === "android" ? "rental-reminders" : undefined,
+      },
+    });
+
+    console.log(`✅ Test notification scheduled! ID: ${notificationId}`);
+    console.log(
+      `⏰ Notification will appear at: ${testDate.toLocaleTimeString()}`
+    );
+    console.log("📱 Check your device in 30 seconds to see the notification!");
+
+    return {
+      success: true,
+      notificationId,
+      scheduledTime: testDate.toISOString(),
+    };
+  } catch (error) {
+    console.error("❌ Error creating test notification:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+};
+
+// Test function to show notification immediately (no delay)
+export const showImmediateTestNotification = async () => {
+  try {
+    console.log("🚀 Creating immediate test notification...");
+
+    const notificationId = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "🎹 Immediate Test - Pianoverse",
+        body: "This notification appeared immediately! Your notification system is working perfectly.",
+        data: {
+          type: "immediate_test",
+          test: true,
+        },
+        sound: "default",
+      },
+      trigger: null, // null trigger = show immediately
+    });
+
+    console.log(`✅ Immediate test notification sent! ID: ${notificationId}`);
+    console.log(
+      "📱 Check your device now - the notification should appear immediately!"
+    );
+
+    return {
+      success: true,
+      notificationId,
+    };
+  } catch (error) {
+    console.error("❌ Error creating immediate test notification:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+};

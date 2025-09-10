@@ -4,6 +4,8 @@ import {
   cancelAllNotifications,
   getNotificationStatus,
   cleanupExpiredNotifications,
+  showTestNotification,
+  showImmediateTestNotification,
 } from "../services/notifications";
 
 // Test function to verify notification system
@@ -78,10 +80,17 @@ export const checkNotificationStatus = async () => {
   return status;
 };
 
+// Export test functions
+export { showTestNotification, showImmediateTestNotification };
+
 // Export for use in development
 if (__DEV__) {
   // @ts-ignore
   global.testNotifications = testNotificationSystem;
   // @ts-ignore
   global.checkNotificationStatus = checkNotificationStatus;
+  // @ts-ignore
+  global.showTestNotification = showTestNotification;
+  // @ts-ignore
+  global.showImmediateTestNotification = showImmediateTestNotification;
 }

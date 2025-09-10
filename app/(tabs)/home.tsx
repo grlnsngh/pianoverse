@@ -24,6 +24,7 @@ import GridItem from "../components/GridItem";
 import ListItem from "../components/ListItem";
 import SearchInput from "../components/SearchInput";
 import { scheduleAllRentalNotifications } from "../services/notifications";
+import NotificationTest from "../components/NotificationTest";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -45,6 +46,7 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [lastNotificationSchedule, setLastNotificationSchedule] =
     useState<string>("");
+  const [showNotificationTest, setShowNotificationTest] = useState(false);
 
   const onRefresh = async () => {
     setRefreshing(true);
