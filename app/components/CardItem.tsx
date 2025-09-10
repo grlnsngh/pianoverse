@@ -45,6 +45,7 @@ interface CardItemProps {
   isBulkSelectionMode?: boolean;
   isSelected?: boolean;
   onToggleSelection?: (id: string) => void;
+  onEnterBulkSelection?: (id: string) => void;
   isGridView?: boolean;
 }
 
@@ -73,6 +74,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
     isBulkSelectionMode = false,
     isSelected = false,
     onToggleSelection,
+    onEnterBulkSelection,
     isGridView = false,
   }) => {
     const {
@@ -485,6 +487,11 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                     isBulkSelectionMode
                       ? () => onToggleSelection?.(item.$id)
                       : handleOnClickItem
+                  }
+                  onLongPress={
+                    !isBulkSelectionMode
+                      ? () => onEnterBulkSelection?.(item.$id)
+                      : undefined
                   }
                   onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
                   onPressOut={isBulkSelectionMode ? undefined : handlePressOut}

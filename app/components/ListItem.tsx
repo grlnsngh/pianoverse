@@ -46,6 +46,7 @@ interface ListItemProps {
   isBulkSelectionMode?: boolean;
   isSelected?: boolean;
   onToggleSelection?: (id: string) => void;
+  onEnterBulkSelection?: (id: string) => void;
 }
 
 const calculateRemainingPeriod = (end: Date | null | undefined) => {
@@ -73,6 +74,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(
     isBulkSelectionMode = false,
     isSelected = false,
     onToggleSelection,
+    onEnterBulkSelection,
   }) => {
     const {
       title = "",
@@ -286,6 +288,11 @@ const ListItem: React.FC<ListItemProps> = React.memo(
                     isBulkSelectionMode
                       ? () => onToggleSelection?.(item.$id)
                       : handleOnClickItem
+                  }
+                  onLongPress={
+                    !isBulkSelectionMode
+                      ? () => onEnterBulkSelection?.(item.$id)
+                      : undefined
                   }
                   onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
                   onPressOut={isBulkSelectionMode ? undefined : handlePressOut}

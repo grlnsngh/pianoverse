@@ -82,20 +82,17 @@ const Home = () => {
   //   }, [])
   // );
 
-  const handleToggleBulkSelection = () => {
-    dispatch(setBulkSelectionMode(!isBulkSelectionMode) as any);
-  };
-
   const handleToggleItemSelection = (itemId: string) => {
     dispatch(toggleItemSelection(itemId) as any);
   };
 
-  const handleSelectAll = () => {
-    if (selectedItems.length === filteredPianoReduxItems.length) {
-      dispatch(clearSelectedItems() as any);
-    } else {
-      const allIds = filteredPianoReduxItems.map((item) => item.$id);
-      dispatch(selectAllItems(allIds) as any);
+  const handleEnterBulkSelection = (itemId: string) => {
+    // Enter bulk selection mode and select the long-pressed item
+    if (!isBulkSelectionMode) {
+      dispatch(setBulkSelectionMode(true) as any);
+    }
+    if (!selectedItems.includes(itemId)) {
+      dispatch(toggleItemSelection(itemId) as any);
     }
   };
 
@@ -313,6 +310,7 @@ const Home = () => {
             isBulkSelectionMode={isBulkSelectionMode}
             isSelected={selectedItems.includes((item as PianoItem).$id)}
             onToggleSelection={handleToggleItemSelection}
+            onEnterBulkSelection={handleEnterBulkSelection}
             isGridView={false}
           />
         );
@@ -328,6 +326,7 @@ const Home = () => {
             isBulkSelectionMode={isBulkSelectionMode}
             isSelected={selectedItems.includes((item as PianoItem).$id)}
             onToggleSelection={handleToggleItemSelection}
+            onEnterBulkSelection={handleEnterBulkSelection}
           />
         );
       } else if (layoutView.grid === "checked") {
@@ -342,6 +341,7 @@ const Home = () => {
             isBulkSelectionMode={isBulkSelectionMode}
             isSelected={selectedItems.includes((item as PianoItem).$id)}
             onToggleSelection={handleToggleItemSelection}
+            onEnterBulkSelection={handleEnterBulkSelection}
             isGridView={true}
           />
         );
@@ -358,6 +358,7 @@ const Home = () => {
       isBulkSelectionMode,
       selectedItems,
       handleToggleItemSelection,
+      handleEnterBulkSelection,
     ]
   );
 
@@ -374,15 +375,6 @@ const Home = () => {
             </Text>
           </View>
           <View className="flex-row items-center mt-1.5">
-            <TouchableOpacity
-              onPress={handleToggleBulkSelection}
-              className="mr-3 px-3 py-2 rounded-lg bg-secondary"
-              activeOpacity={0.8}
-            >
-              <Text className="text-primary font-psemibold text-sm">
-                {isBulkSelectionMode ? "Cancel" : "Select"}
-              </Text>
-            </TouchableOpacity>
             <Image
               source={images.piano}
               className="w-10 h-10"
