@@ -155,103 +155,103 @@ const GridItem: React.FC<GridItemProps> = ({
     });
   };
 
-interface GridItemCardProps {
-  item: PianoItem & { empty?: boolean };
-  index: number;
-  visibleMenuId: string | null;
-  openMenu: (id: string) => void;
-  closeMenu: () => void;
-  onDelete?: () => void;
-  bookmarkedItems: Set<string>;
-  handleBookmark: (itemId: string) => void;
-  handleOnClickItem: (item: PianoItem) => void;
-}
-
-const GridItemCard: React.FC<GridItemCardProps> = ({
-  item,
-  index,
-  visibleMenuId,
-  openMenu,
-  closeMenu,
-  onDelete,
-  bookmarkedItems,
-  handleBookmark,
-  handleOnClickItem,
-}) => {
-  // React Native Animated values for card expansion
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const elevationAnim = useRef(new Animated.Value(4)).current;
-
-  // Reanimated values for fade-in
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(20);
-
-  // Trigger animation on mount with staggered delay
-  useEffect(() => {
-    const delay = index * 100; // Stagger by 100ms per item
-    opacity.value = withDelay(
-      delay,
-      withTiming(1, {
-        duration: 600,
-        easing: Easing.out(Easing.cubic),
-      })
-    );
-    translateY.value = withDelay(
-      delay,
-      withTiming(0, {
-        duration: 600,
-        easing: Easing.out(Easing.cubic),
-      })
-    );
-  }, [index]);
-
-  // Animated styles
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: opacity.value,
-      transform: [{ translateY: translateY.value }],
-    };
-  });
-
-  // Handle card press animations
-  const handlePressIn = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.95,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 100,
-      }),
-      Animated.timing(elevationAnim, {
-        toValue: 8,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 100,
-      }),
-      Animated.timing(elevationAnim, {
-        toValue: 4,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start();
-  };
-
-  if (item.empty) {
-    return <View style={[styles.item, styles.itemInvisible]} />;
+  interface GridItemCardProps {
+    item: PianoItem & { empty?: boolean };
+    index: number;
+    visibleMenuId: string | null;
+    openMenu: (id: string) => void;
+    closeMenu: () => void;
+    onDelete?: () => void;
+    bookmarkedItems: Set<string>;
+    handleBookmark: (itemId: string) => void;
+    handleOnClickItem: (item: PianoItem) => void;
   }
 
-  const remaining = calculateRemainingPeriod(item.rental_period_end);
-  const isBookmarked = bookmarkedItems.has(item.$id);
+  const GridItemCard: React.FC<GridItemCardProps> = ({
+    item,
+    index,
+    visibleMenuId,
+    openMenu,
+    closeMenu,
+    onDelete,
+    bookmarkedItems,
+    handleBookmark,
+    handleOnClickItem,
+  }) => {
+    // React Native Animated values for card expansion
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const elevationAnim = useRef(new Animated.Value(4)).current;
+
+    // Reanimated values for fade-in
+    const opacity = useSharedValue(0);
+    const translateY = useSharedValue(20);
+
+    // Trigger animation on mount with staggered delay
+    useEffect(() => {
+      const delay = index * 100; // Stagger by 100ms per item
+      opacity.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+        })
+      );
+      translateY.value = withDelay(
+        delay,
+        withTiming(0, {
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+        })
+      );
+    }, [index]);
+
+    // Animated styles
+    const animatedStyle = useAnimatedStyle(() => {
+      return {
+        opacity: opacity.value,
+        transform: [{ translateY: translateY.value }],
+      };
+    });
+
+    // Handle card press animations
+    const handlePressIn = () => {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 0.95,
+          useNativeDriver: true,
+          friction: 8,
+          tension: 100,
+        }),
+        Animated.timing(elevationAnim, {
+          toValue: 8,
+          duration: 150,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          friction: 8,
+          tension: 100,
+        }),
+        Animated.timing(elevationAnim, {
+          toValue: 4,
+          duration: 150,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    };
+
+    if (item.empty) {
+      return <View style={[styles.item, styles.itemInvisible]} />;
+    }
+
+    const remaining = calculateRemainingPeriod(item.rental_period_end);
+    const isBookmarked = bookmarkedItems.has(item.$id);
 
     return (
       <PaperProvider>
@@ -269,128 +269,133 @@ const GridItemCard: React.FC<GridItemCardProps> = ({
                 onPressOut={handlePressOut}
                 style={styles.imageContainer}
               >
-              <Image
-                source={{ uri: item.image_url }}
-                style={styles.image}
-                resizeMode="cover"
-                placeholder={images.empty}
-                placeholderContentFit="cover"
-              />
+                <Image
+                  source={{ uri: item.image_url }}
+                  style={styles.image}
+                  resizeMode="cover"
+                  placeholder={images.empty}
+                  placeholderContentFit="cover"
+                />
 
-              {/* Gradient Overlay */}
-              <View style={styles.imageOverlay} />
+                {/* Gradient Overlay */}
+                <View style={styles.imageOverlay} />
 
-              {/* Top Action Buttons */}
-              <View style={styles.topActions}>
-                {/* Bookmark Button */}
-                <TouchableOpacity
-                  onPress={() => handleBookmark(item.$id)}
-                  style={styles.actionButton}
-                  activeOpacity={0.7}
-                >
-                  <Image
-                    source={icons.bookmark}
-                    style={[
-                      styles.actionIcon,
-                      { tintColor: isBookmarked ? SECONDARY_COLOR : "#CDCDE0" },
-                    ]}
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-
-                {/* Menu Button */}
-                <View style={styles.menuContainer}>
-                  <Menu
-                    style={styles.menu}
-                    visible={visibleMenuId === item.$id}
-                    onDismiss={closeMenu}
-                    anchor={
-                      <TouchableOpacity
-                        onPress={() => openMenu(item.$id)}
-                        style={styles.actionButton}
-                        activeOpacity={0.7}
-                      >
-                        <Image
-                          source={icons.menu}
-                          style={[styles.actionIcon, { tintColor: "#CDCDE0" }]}
-                          resizeMode="contain"
-                        />
-                      </TouchableOpacity>
-                    }
+                {/* Top Action Buttons */}
+                <View style={styles.topActions}>
+                  {/* Bookmark Button */}
+                  <TouchableOpacity
+                    onPress={() => handleBookmark(item.$id)}
+                    style={styles.actionButton}
+                    activeOpacity={0.7}
                   >
-                    <Menu.Item
-                      onPress={() => handleOnClickEditMenu(item)}
-                      title="Edit"
-                      leadingIcon={() => (
-                        <IconButton
-                          icon={icons.pencil}
-                          size={16}
-                          iconColor={SECONDARY_COLOR}
-                          style={styles.menuItemIcon}
-                        />
-                      )}
-                      titleStyle={{ color: "#CDCDE0" }}
+                    <Image
+                      source={icons.bookmark}
+                      style={[
+                        styles.actionIcon,
+                        {
+                          tintColor: isBookmarked ? SECONDARY_COLOR : "#CDCDE0",
+                        },
+                      ]}
+                      resizeMode="contain"
                     />
-                    <Menu.Item
-                      onPress={() => handleOnClickDeleteMenu(item)}
-                      title="Delete"
-                      leadingIcon={() => (
-                        <IconButton
-                          icon={icons.trash}
-                          size={16}
-                          iconColor="#ef4444"
-                          style={styles.menuItemIcon}
-                        />
-                      )}
-                      titleStyle={{ color: "#CDCDE0" }}
-                    />
-                  </Menu>
-                </View>
-              </View>
+                  </TouchableOpacity>
 
-              {/* Status Badge */}
-              {getStatusText(remaining) && (
-                <View style={styles.statusBadge}>
+                  {/* Menu Button */}
+                  <View style={styles.menuContainer}>
+                    <Menu
+                      style={styles.menu}
+                      visible={visibleMenuId === item.$id}
+                      onDismiss={closeMenu}
+                      anchor={
+                        <TouchableOpacity
+                          onPress={() => openMenu(item.$id)}
+                          style={styles.actionButton}
+                          activeOpacity={0.7}
+                        >
+                          <Image
+                            source={icons.menu}
+                            style={[
+                              styles.actionIcon,
+                              { tintColor: "#CDCDE0" },
+                            ]}
+                            resizeMode="contain"
+                          />
+                        </TouchableOpacity>
+                      }
+                    >
+                      <Menu.Item
+                        onPress={() => handleOnClickEditMenu(item)}
+                        title="Edit"
+                        leadingIcon={() => (
+                          <IconButton
+                            icon={icons.pencil}
+                            size={16}
+                            iconColor={SECONDARY_COLOR}
+                            style={styles.menuItemIcon}
+                          />
+                        )}
+                        titleStyle={{ color: "#CDCDE0" }}
+                      />
+                      <Menu.Item
+                        onPress={() => handleOnClickDeleteMenu(item)}
+                        title="Delete"
+                        leadingIcon={() => (
+                          <IconButton
+                            icon={icons.trash}
+                            size={16}
+                            iconColor="#ef4444"
+                            style={styles.menuItemIcon}
+                          />
+                        )}
+                        titleStyle={{ color: "#CDCDE0" }}
+                      />
+                    </Menu>
+                  </View>
+                </View>
+
+                {/* Status Badge */}
+                {getStatusText(remaining) && (
+                  <View style={styles.statusBadge}>
+                    <View
+                      style={[
+                        styles.statusDot,
+                        { backgroundColor: getStatusColor(remaining) },
+                      ]}
+                    />
+                    <Text style={styles.statusText}>
+                      {getStatusText(remaining)}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Category Badge */}
+                <View style={styles.categoryBadge}>
                   <View
                     style={[
-                      styles.statusDot,
-                      { backgroundColor: getStatusColor(remaining) },
+                      styles.categoryIconContainer,
+                      {
+                        backgroundColor:
+                          item.category === PIANO_CATEGORY.RENTABLE
+                            ? CATEGORY_COLORS.RENTABLE
+                            : item.category === PIANO_CATEGORY.EVENTS
+                            ? CATEGORY_COLORS.EVENTS
+                            : item.category === PIANO_CATEGORY.ON_SALE
+                            ? CATEGORY_COLORS.ON_SALE
+                            : item.category === PIANO_CATEGORY.WAREHOUSE
+                            ? CATEGORY_COLORS.WAREHOUSE
+                            : SECONDARY_COLOR,
+                      },
                     ]}
-                  />
-                  <Text style={styles.statusText}>
-                    {getStatusText(remaining)}
-                  </Text>
+                  >
+                    <Image
+                      source={getCategoryIcon(item.category)}
+                      style={styles.categoryIcon}
+                      tintColor={PRIMARY_COLOR}
+                      resizeMode="contain"
+                    />
+                  </View>
                 </View>
-              )}
-
-              {/* Category Badge */}
-              <View style={styles.categoryBadge}>
-                <View
-                  style={[
-                    styles.categoryIconContainer,
-                    {
-                      backgroundColor:
-                        item.category === PIANO_CATEGORY.RENTABLE
-                          ? CATEGORY_COLORS.RENTABLE
-                          : item.category === PIANO_CATEGORY.EVENTS
-                          ? CATEGORY_COLORS.EVENTS
-                          : item.category === PIANO_CATEGORY.ON_SALE
-                          ? CATEGORY_COLORS.ON_SALE
-                          : item.category === PIANO_CATEGORY.WAREHOUSE
-                          ? CATEGORY_COLORS.WAREHOUSE
-                          : SECONDARY_COLOR,
-                    },
-                  ]}
-                >
-                  <Image
-                    source={getCategoryIcon(item.category)}
-                    style={styles.categoryIcon}
-                    tintColor={PRIMARY_COLOR}
-                    resizeMode="contain"
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
             </Animated.View>
 
             {/* Content Section */}

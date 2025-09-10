@@ -280,68 +280,22 @@ const ListItem: React.FC<ListItemProps> = ({
                 onPressOut={handlePressOut}
                 className="flex-row p-4"
               >
-              {/* Image Section */}
-              <View className="relative">
-                <View className="w-20 h-20 rounded-xl overflow-hidden bg-primary-300">
-                  <Image
-                    source={{ uri: image_url }}
-                    className="w-full h-full"
-                    resizeMode="cover"
-                    placeholder={images.empty}
-                    placeholderContentFit="cover"
-                  />
-                </View>
-                {/* Category Badge */}
-                <View
-                  className="absolute -top-1 -right-1 w-6 h-6 rounded-full items-center justify-center"
-                  style={{
-                    backgroundColor:
-                      category === PIANO_CATEGORY.RENTABLE
-                        ? CATEGORY_COLORS.RENTABLE
-                        : category === PIANO_CATEGORY.EVENTS
-                        ? CATEGORY_COLORS.EVENTS
-                        : category === PIANO_CATEGORY.ON_SALE
-                        ? CATEGORY_COLORS.ON_SALE
-                        : category === PIANO_CATEGORY.WAREHOUSE
-                        ? CATEGORY_COLORS.WAREHOUSE
-                        : SECONDARY_COLOR,
-                  }}
-                >
-                  <Image
-                    source={getCategoryIcon(category)}
-                    className="w-3 h-3"
-                    tintColor={PRIMARY_COLOR}
-                    resizeMode="contain"
-                  />
-                </View>
-              </View>
-
-              {/* Content Section */}
-              <View className="flex-1 ml-4 justify-center">
-                {/* Title */}
-                <Text
-                  className="text-white font-psemibold text-base mb-1"
-                  numberOfLines={1}
-                >
-                  {title}
-                </Text>
-
-                {/* Category and Company */}
-                <View className="flex-row items-center mb-2">
-                  <Text
-                    className="text-xs font-pmedium px-2 py-1 rounded-full mr-2"
+                {/* Image Section */}
+                <View className="relative">
+                  <View className="w-20 h-20 rounded-xl overflow-hidden bg-primary-300">
+                    <Image
+                      source={{ uri: image_url }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                      placeholder={images.empty}
+                      placeholderContentFit="cover"
+                    />
+                  </View>
+                  {/* Category Badge */}
+                  <View
+                    className="absolute -top-1 -right-1 w-6 h-6 rounded-full items-center justify-center"
                     style={{
                       backgroundColor:
-                        category === PIANO_CATEGORY.RENTABLE
-                          ? `${CATEGORY_COLORS.RENTABLE}20`
-                          : category === PIANO_CATEGORY.EVENTS
-                          ? `${CATEGORY_COLORS.EVENTS}20`
-                          : category === PIANO_CATEGORY.ON_SALE
-                          ? `${CATEGORY_COLORS.ON_SALE}20`
-                          : category === PIANO_CATEGORY.WAREHOUSE
-                          ? `${CATEGORY_COLORS.WAREHOUSE}20`
-                          : `${SECONDARY_COLOR}20`,
-                      color:
                         category === PIANO_CATEGORY.RENTABLE
                           ? CATEGORY_COLORS.RENTABLE
                           : category === PIANO_CATEGORY.EVENTS
@@ -353,87 +307,133 @@ const ListItem: React.FC<ListItemProps> = ({
                           : SECONDARY_COLOR,
                     }}
                   >
-                    {getCategoryLabel(category)}
+                    <Image
+                      source={getCategoryIcon(category)}
+                      className="w-3 h-3"
+                      tintColor={PRIMARY_COLOR}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </View>
+
+                {/* Content Section */}
+                <View className="flex-1 ml-4 justify-center">
+                  {/* Title */}
+                  <Text
+                    className="text-white font-psemibold text-base mb-1"
+                    numberOfLines={1}
+                  >
+                    {title}
                   </Text>
-                  {company_associated && (
+
+                  {/* Category and Company */}
+                  <View className="flex-row items-center mb-2">
                     <Text
-                      className="text-xs text-gray-100 font-pregular flex-1"
-                      numberOfLines={1}
+                      className="text-xs font-pmedium px-2 py-1 rounded-full mr-2"
+                      style={{
+                        backgroundColor:
+                          category === PIANO_CATEGORY.RENTABLE
+                            ? `${CATEGORY_COLORS.RENTABLE}20`
+                            : category === PIANO_CATEGORY.EVENTS
+                            ? `${CATEGORY_COLORS.EVENTS}20`
+                            : category === PIANO_CATEGORY.ON_SALE
+                            ? `${CATEGORY_COLORS.ON_SALE}20`
+                            : category === PIANO_CATEGORY.WAREHOUSE
+                            ? `${CATEGORY_COLORS.WAREHOUSE}20`
+                            : `${SECONDARY_COLOR}20`,
+                        color:
+                          category === PIANO_CATEGORY.RENTABLE
+                            ? CATEGORY_COLORS.RENTABLE
+                            : category === PIANO_CATEGORY.EVENTS
+                            ? CATEGORY_COLORS.EVENTS
+                            : category === PIANO_CATEGORY.ON_SALE
+                            ? CATEGORY_COLORS.ON_SALE
+                            : category === PIANO_CATEGORY.WAREHOUSE
+                            ? CATEGORY_COLORS.WAREHOUSE
+                            : SECONDARY_COLOR,
+                      }}
                     >
-                      {company_associated}
+                      {getCategoryLabel(category)}
                     </Text>
+                    {company_associated && (
+                      <Text
+                        className="text-xs text-gray-100 font-pregular flex-1"
+                        numberOfLines={1}
+                      >
+                        {company_associated}
+                      </Text>
+                    )}
+                  </View>
+
+                  {/* Status Indicator */}
+                  {getStatusText() && (
+                    <View className="flex-row items-center">
+                      <View
+                        className="w-2 h-2 rounded-full mr-2"
+                        style={{ backgroundColor: getStatusColor() }}
+                      />
+                      <Text
+                        className="text-xs font-pmedium"
+                        style={{ color: getStatusColor() }}
+                      >
+                        {getStatusText()}
+                      </Text>
+                    </View>
                   )}
                 </View>
 
-                {/* Status Indicator */}
-                {getStatusText() && (
-                  <View className="flex-row items-center">
-                    <View
-                      className="w-2 h-2 rounded-full mr-2"
-                      style={{ backgroundColor: getStatusColor() }}
-                    />
-                    <Text
-                      className="text-xs font-pmedium"
-                      style={{ color: getStatusColor() }}
+                {/* Menu Button */}
+                <View className="justify-center">
+                  <View style={styles.container}>
+                    <Menu
+                      style={styles.menu}
+                      visible={visibleMenuId === item.$id}
+                      onDismiss={closeMenu}
+                      anchor={
+                        <TouchableOpacity
+                          onPress={() => openMenu(item.$id)}
+                          className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
+                          activeOpacity={0.7}
+                        >
+                          <Image
+                            source={icons.menu}
+                            className="w-4 h-4"
+                            tintColor="#CDCDE0"
+                            resizeMode="contain"
+                          />
+                        </TouchableOpacity>
+                      }
                     >
-                      {getStatusText()}
-                    </Text>
+                      <Menu.Item
+                        onPress={handleOnClickEditMenu}
+                        title="Edit"
+                        leadingIcon={() => (
+                          <IconButton
+                            icon={icons.pencil}
+                            size={16}
+                            iconColor={SECONDARY_COLOR}
+                            style={styles.menuItemIcon}
+                          />
+                        )}
+                        titleStyle={{ color: "#CDCDE0" }}
+                      />
+                      <Menu.Item
+                        onPress={handleOnClickDeleteMenu}
+                        title="Delete"
+                        leadingIcon={() => (
+                          <IconButton
+                            icon={icons.trash}
+                            size={16}
+                            iconColor="#ef4444"
+                            style={styles.menuItemIcon}
+                          />
+                        )}
+                        titleStyle={{ color: "#CDCDE0" }}
+                      />
+                    </Menu>
                   </View>
-                )}
-              </View>
-
-              {/* Menu Button */}
-              <View className="justify-center">
-                <View style={styles.container}>
-                  <Menu
-                    style={styles.menu}
-                    visible={visibleMenuId === item.$id}
-                    onDismiss={closeMenu}
-                    anchor={
-                      <TouchableOpacity
-                        onPress={() => openMenu(item.$id)}
-                        className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                        activeOpacity={0.7}
-                      >
-                        <Image
-                          source={icons.menu}
-                          className="w-4 h-4"
-                          tintColor="#CDCDE0"
-                          resizeMode="contain"
-                        />
-                      </TouchableOpacity>
-                    }
-                  >
-                    <Menu.Item
-                      onPress={handleOnClickEditMenu}
-                      title="Edit"
-                      leadingIcon={() => (
-                        <IconButton
-                          icon={icons.pencil}
-                          size={16}
-                          iconColor={SECONDARY_COLOR}
-                          style={styles.menuItemIcon}
-                        />
-                      )}
-                      titleStyle={{ color: "#CDCDE0" }}
-                    />
-                    <Menu.Item
-                      onPress={handleOnClickDeleteMenu}
-                      title="Delete"
-                      leadingIcon={() => (
-                        <IconButton
-                          icon={icons.trash}
-                          size={16}
-                          iconColor="#ef4444"
-                          style={styles.menuItemIcon}
-                        />
-                      )}
-                      titleStyle={{ color: "#CDCDE0" }}
-                    />
-                  </Menu>
                 </View>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
             </Animated.View>
           </Surface>
         </View>

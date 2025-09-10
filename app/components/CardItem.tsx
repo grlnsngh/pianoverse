@@ -424,57 +424,57 @@ const CardItem: React.FC<CardItemProps> = ({
                 onPressOut={handlePressOut}
                 className="relative"
               >
-              <View className="w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden">
-                <Image
-                  source={{ uri: image_url }}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                  placeholder={images.empty}
-                  placeholderContentFit="cover"
-                />
+                <View className="w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden">
+                  <Image
+                    source={{ uri: image_url }}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                    placeholder={images.empty}
+                    placeholderContentFit="cover"
+                  />
 
-                {/* Gradient Overlay */}
-                <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  {/* Gradient Overlay */}
+                  <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
-                {/* Status Badge */}
-                {getStatusText() && (
-                  <View className="absolute top-3 left-3">
-                    <View className="flex-row items-center bg-black/70 rounded-full px-3 py-1">
-                      <View
-                        className="w-2 h-2 rounded-full mr-2"
-                        style={{ backgroundColor: getStatusColor() }}
-                      />
-                      <Text className="text-white text-xs font-pmedium">
-                        {getStatusText()}
+                  {/* Status Badge */}
+                  {getStatusText() && (
+                    <View className="absolute top-3 left-3">
+                      <View className="flex-row items-center bg-black/70 rounded-full px-3 py-1">
+                        <View
+                          className="w-2 h-2 rounded-full mr-2"
+                          style={{ backgroundColor: getStatusColor() }}
+                        />
+                        <Text className="text-white text-xs font-pmedium">
+                          {getStatusText()}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Category Label */}
+                  <View className="absolute bottom-3 left-3">
+                    <View
+                      className="px-3 py-1 rounded-full"
+                      style={{
+                        backgroundColor:
+                          category === PIANO_CATEGORY.RENTABLE
+                            ? `${CATEGORY_COLORS.RENTABLE}90`
+                            : category === PIANO_CATEGORY.EVENTS
+                            ? `${CATEGORY_COLORS.EVENTS}90`
+                            : category === PIANO_CATEGORY.ON_SALE
+                            ? `${CATEGORY_COLORS.ON_SALE}90`
+                            : category === PIANO_CATEGORY.WAREHOUSE
+                            ? `${CATEGORY_COLORS.WAREHOUSE}90`
+                            : `${SECONDARY_COLOR}90`,
+                      }}
+                    >
+                      <Text className="text-white text-xs font-psemibold">
+                        {getCategoryLabel(category)}
                       </Text>
                     </View>
                   </View>
-                )}
-
-                {/* Category Label */}
-                <View className="absolute bottom-3 left-3">
-                  <View
-                    className="px-3 py-1 rounded-full"
-                    style={{
-                      backgroundColor:
-                        category === PIANO_CATEGORY.RENTABLE
-                          ? `${CATEGORY_COLORS.RENTABLE}90`
-                          : category === PIANO_CATEGORY.EVENTS
-                          ? `${CATEGORY_COLORS.EVENTS}90`
-                          : category === PIANO_CATEGORY.ON_SALE
-                          ? `${CATEGORY_COLORS.ON_SALE}90`
-                          : category === PIANO_CATEGORY.WAREHOUSE
-                          ? `${CATEGORY_COLORS.WAREHOUSE}90`
-                          : `${SECONDARY_COLOR}90`,
-                    }}
-                  >
-                    <Text className="text-white text-xs font-psemibold">
-                      {getCategoryLabel(category)}
-                    </Text>
-                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
             </Animated.View>
           </Surface>
         </View>
