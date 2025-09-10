@@ -1120,50 +1120,6 @@ const Profile = () => {
                       </TouchableOpacity>
                     </View>
                   </Animated.View>
-
-                  {/* Enhanced Category Summary Stats */}
-                  <Animated.View
-                    className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl p-4 shadow-lg border border-primary-300/30"
-                    style={{
-                      opacity: categoryFadeAnim,
-                      transform: [
-                        {
-                          translateY: categoryFadeAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [20, 0],
-                          }),
-                        },
-                      ],
-                    }}
-                  >
-                    <View className="flex-row justify-between items-center">
-                      <View className="flex-row items-center">
-                        <View className="bg-secondary/20 rounded-full p-2 mr-3">
-                          <Image
-                            source={icons.card}
-                            className="w-5 h-5"
-                            tintColor="#FFA001"
-                          />
-                        </View>
-                        <View>
-                          <Text className="text-white text-lg font-psemibold">
-                            Total Pianos
-                          </Text>
-                          <Text className="text-white/70 text-sm font-pregular">
-                            All Categories
-                          </Text>
-                        </View>
-                      </View>
-                      <View className="flex-row items-center">
-                        <View className="bg-secondary rounded-full px-4 py-2 mr-3">
-                          <Text className="text-primary text-lg font-pbold">
-                            {items.length}
-                          </Text>
-                        </View>
-                        <View className="w-3 h-3 bg-secondary rounded-full"></View>
-                      </View>
-                    </View>
-                  </Animated.View>
                 </>
               )}
             </Animated.View>
