@@ -14,7 +14,7 @@ import {
 } from "date-fns";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Alert,
   StyleSheet,
@@ -22,9 +22,10 @@ import {
   ToastAndroid,
   TouchableOpacity,
   View,
+  Animated,
 } from "react-native";
 import { IconButton, Menu, PaperProvider, Surface } from "react-native-paper";
-import Animated, {
+import RNAAnimated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -77,7 +78,11 @@ const CardItem: React.FC<CardItemProps> = ({
   const pathname = usePathname();
   const [isBookmarked, setIsBookmarked] = useState(false);
 
-  // Animation values
+  // React Native Animated values for card expansion
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const elevationAnim = useRef(new Animated.Value(4)).current;
+
+  // Reanimated values for fade-in
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(20);
 
@@ -107,6 +112,39 @@ const CardItem: React.FC<CardItemProps> = ({
       transform: [{ translateY: translateY.value }],
     };
   });
+
+  // Handle card press animations
+  const handlePressIn = () => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 100,
+      }),
+      Animated.timing(elevationAnim, {
+        toValue: 8,
+        duration: 150,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 100,
+      }),
+      Animated.timing(elevationAnim, {
+        toValue: 4,
+        duration: 150,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
 
   const remaining = calculateRemainingPeriod(rental_period_end);
 
@@ -235,11 +273,10 @@ const CardItem: React.FC<CardItemProps> = ({
 
   return (
     <PaperProvider>
-      <Animated.View style={[animatedStyle, { marginBottom: 24 }]}>
+      <RNAAnimated.View style={[animatedStyle, { marginBottom: 24 }]}>
         <View className="flex-col items-center px-4">
           <Surface
-            style={styles.cardContainer}
-            elevation={4}
+            style={[styles.cardContainer, { elevation: elevationAnim }]}
             className="bg-primary-200 rounded-2xl overflow-hidden w-full shadow-lg"
           >
             {/* Header with avatar, title, and actions */}
@@ -379,11 +416,14 @@ const CardItem: React.FC<CardItemProps> = ({
             </View>
 
             {/* Main Image with Overlay */}
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={handleOnClickItem}
-              className="relative"
-            >
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={handleOnClickItem}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                className="relative"
+              >
               <View className="w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden">
                 <Image
                   source={{ uri: image_url }}
@@ -435,9 +475,10 @@ const CardItem: React.FC<CardItemProps> = ({
                 </View>
               </View>
             </TouchableOpacity>
+            </Animated.View>
           </Surface>
         </View>
-      </Animated.View>
+      </RNAAnimated.View>
     </PaperProvider>
   );
 };

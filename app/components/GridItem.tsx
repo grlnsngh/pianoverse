@@ -14,7 +14,7 @@ import {
 } from "date-fns";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Alert,
   Dimensions,
@@ -24,9 +24,10 @@ import {
   ToastAndroid,
   TouchableOpacity,
   View,
+  Animated,
 } from "react-native";
 import { IconButton, Menu, PaperProvider, Surface } from "react-native-paper";
-import Animated, {
+import RNAAnimated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -59,6 +60,40 @@ const calculateRemainingPeriod = (end: Date | null | undefined) => {
   const years = differenceInYears(endDate, currentDate);
 
   return { days, weeks, months, years };
+};
+
+const getCategoryIcon = (category: string) => {
+  switch (category) {
+    case PIANO_CATEGORY.RENTABLE:
+      return icons.card;
+    case PIANO_CATEGORY.EVENTS:
+      return icons.play;
+    case PIANO_CATEGORY.ON_SALE:
+      return icons.bookmark;
+    case PIANO_CATEGORY.WAREHOUSE:
+      return icons.home;
+    default:
+      return icons.card;
+  }
+};
+
+const getStatusColor = (remaining: any) => {
+  if (!remaining || remaining.days === 0) return SECONDARY_COLOR;
+  if (remaining.days > 0) {
+    return remaining.days <= 7 ? "#ef4444" : "#10b981";
+  }
+  return "#6b7280";
+};
+
+const getStatusText = (remaining: any) => {
+  if (!remaining || remaining.days === 0) return null;
+  if (remaining.days > 0) {
+    if (remaining.days <= 7) return `${remaining.days}d left`;
+    if (remaining.weeks > 0) return `${remaining.weeks}w left`;
+    if (remaining.months > 0) return `${remaining.months}mo left`;
+    return "Active";
+  }
+  return "Expired";
 };
 
 const GridItem: React.FC<GridItemProps> = ({
@@ -120,99 +155,120 @@ const GridItem: React.FC<GridItemProps> = ({
     });
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case PIANO_CATEGORY.RENTABLE:
-        return icons.card;
-      case PIANO_CATEGORY.EVENTS:
-        return icons.play;
-      case PIANO_CATEGORY.ON_SALE:
-        return icons.bookmark;
-      case PIANO_CATEGORY.WAREHOUSE:
-        return icons.home;
-      default:
-        return icons.card;
-    }
+interface GridItemCardProps {
+  item: PianoItem & { empty?: boolean };
+  index: number;
+  visibleMenuId: string | null;
+  openMenu: (id: string) => void;
+  closeMenu: () => void;
+  onDelete?: () => void;
+  bookmarkedItems: Set<string>;
+  handleBookmark: (itemId: string) => void;
+  handleOnClickItem: (item: PianoItem) => void;
+}
+
+const GridItemCard: React.FC<GridItemCardProps> = ({
+  item,
+  index,
+  visibleMenuId,
+  openMenu,
+  closeMenu,
+  onDelete,
+  bookmarkedItems,
+  handleBookmark,
+  handleOnClickItem,
+}) => {
+  // React Native Animated values for card expansion
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const elevationAnim = useRef(new Animated.Value(4)).current;
+
+  // Reanimated values for fade-in
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(20);
+
+  // Trigger animation on mount with staggered delay
+  useEffect(() => {
+    const delay = index * 100; // Stagger by 100ms per item
+    opacity.value = withDelay(
+      delay,
+      withTiming(1, {
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+      })
+    );
+    translateY.value = withDelay(
+      delay,
+      withTiming(0, {
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+      })
+    );
+  }, [index]);
+
+  // Animated styles
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [{ translateY: translateY.value }],
+    };
+  });
+
+  // Handle card press animations
+  const handlePressIn = () => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 100,
+      }),
+      Animated.timing(elevationAnim, {
+        toValue: 8,
+        duration: 150,
+        useNativeDriver: false,
+      }),
+    ]).start();
   };
 
-  const getStatusColor = (remaining: any) => {
-    if (!remaining || remaining.days === 0) return SECONDARY_COLOR;
-    if (remaining.days > 0) {
-      return remaining.days <= 7 ? "#ef4444" : "#10b981";
-    }
-    return "#6b7280";
+  const handlePressOut = () => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 100,
+      }),
+      Animated.timing(elevationAnim, {
+        toValue: 4,
+        duration: 150,
+        useNativeDriver: false,
+      }),
+    ]).start();
   };
 
-  const getStatusText = (remaining: any) => {
-    if (!remaining || remaining.days === 0) return null;
-    if (remaining.days > 0) {
-      if (remaining.days <= 7) return `${remaining.days}d left`;
-      if (remaining.weeks > 0) return `${remaining.weeks}w left`;
-      if (remaining.months > 0) return `${remaining.months}mo left`;
-      return "Active";
-    }
-    return "Expired";
-  };
+  if (item.empty) {
+    return <View style={[styles.item, styles.itemInvisible]} />;
+  }
 
-  const renderItem = ({
-    item,
-    index,
-  }: {
-    item: PianoItem & { empty?: boolean };
-    index: number;
-  }) => {
-    if (item.empty) {
-      return <View style={[styles.item, styles.itemInvisible]} />;
-    }
-
-    const remaining = calculateRemainingPeriod(item.rental_period_end);
-    const isBookmarked = bookmarkedItems.has(item.$id);
-
-    // Animation values for each item
-    const opacity = useSharedValue(0);
-    const translateY = useSharedValue(20);
-
-    // Trigger animation on mount with staggered delay
-    useEffect(() => {
-      const delay = index * 100; // Stagger by 100ms per item
-      opacity.value = withDelay(
-        delay,
-        withTiming(1, {
-          duration: 600,
-          easing: Easing.out(Easing.cubic),
-        })
-      );
-      translateY.value = withDelay(
-        delay,
-        withTiming(0, {
-          duration: 600,
-          easing: Easing.out(Easing.cubic),
-        })
-      );
-    }, [index]);
-
-    // Animated styles
-    const animatedStyle = useAnimatedStyle(() => {
-      return {
-        opacity: opacity.value,
-        transform: [{ translateY: translateY.value }],
-      };
-    });
+  const remaining = calculateRemainingPeriod(item.rental_period_end);
+  const isBookmarked = bookmarkedItems.has(item.$id);
 
     return (
       <PaperProvider>
-        <Animated.View style={[styles.gridItemContainer, animatedStyle]}>
+        <RNAAnimated.View style={[styles.gridItemContainer, animatedStyle]}>
           <Surface
-            style={styles.item}
-            elevation={4}
+            style={[styles.item, { elevation: elevationAnim }]}
             className="bg-primary-200 rounded-2xl overflow-hidden"
           >
             {/* Image Section with Overlay */}
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() => handleOnClickItem(item)}
-              style={styles.imageContainer}
-            >
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => handleOnClickItem(item)}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                style={styles.imageContainer}
+              >
               <Image
                 source={{ uri: item.image_url }}
                 style={styles.image}
@@ -335,6 +391,7 @@ const GridItem: React.FC<GridItemProps> = ({
                 </View>
               </View>
             </TouchableOpacity>
+            </Animated.View>
 
             {/* Content Section */}
             <View style={styles.contentContainer}>
@@ -365,10 +422,30 @@ const GridItem: React.FC<GridItemProps> = ({
               )}
             </View>
           </Surface>
-        </Animated.View>
+        </RNAAnimated.View>
       </PaperProvider>
     );
   };
+
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: PianoItem & { empty?: boolean };
+    index: number;
+  }) => (
+    <GridItemCard
+      item={item}
+      index={index}
+      visibleMenuId={visibleMenuId}
+      openMenu={openMenu}
+      closeMenu={closeMenu}
+      onDelete={onDelete}
+      bookmarkedItems={bookmarkedItems}
+      handleBookmark={handleBookmark}
+      handleOnClickItem={handleOnClickItem}
+    />
+  );
 
   const formatData = (
     data: (PianoItem & { empty?: boolean })[],
