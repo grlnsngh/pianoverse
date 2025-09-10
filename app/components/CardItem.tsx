@@ -42,6 +42,9 @@ interface CardItemProps {
   openMenu: (id: string) => void;
   closeMenu: () => void;
   onDelete?: () => void;
+  isBulkSelectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: (id: string) => void;
 }
 
 const calculateRemainingPeriod = (end: Date | null | undefined) => {
@@ -59,7 +62,17 @@ const calculateRemainingPeriod = (end: Date | null | undefined) => {
 };
 
 const CardItem: React.FC<CardItemProps> = React.memo(
-  ({ item, index = 0, visibleMenuId, openMenu, closeMenu, onDelete }) => {
+  ({
+    item,
+    index = 0,
+    visibleMenuId,
+    openMenu,
+    closeMenu,
+    onDelete,
+    isBulkSelectionMode = false,
+    isSelected = false,
+    onToggleSelection,
+  }) => {
     const {
       title = "",
       image_url = "",
@@ -341,69 +354,99 @@ const CardItem: React.FC<CardItemProps> = React.memo(
 
                     {/* Action Buttons */}
                     <View className="flex-row items-center space-x-2">
-                      {/* Bookmark Button */}
-                      <TouchableOpacity
-                        onPress={handleBookmark}
-                        className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                        activeOpacity={0.7}
-                      >
-                        <Image
-                          source={icons.bookmark}
-                          className="w-4 h-4"
-                          tintColor={isBookmarked ? SECONDARY_COLOR : "#CDCDE0"}
-                          resizeMode="contain"
-                        />
-                      </TouchableOpacity>
-
-                      {/* Menu Button */}
-                      <View style={styles.container}>
-                        <Menu
-                          style={styles.menu}
-                          visible={visibleMenuId === item.$id}
-                          onDismiss={closeMenu}
-                          anchor={
-                            <TouchableOpacity
-                              onPress={() => openMenu(item.$id)}
-                              className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                              activeOpacity={0.7}
-                            >
+                      {/* Selection Checkbox (only in bulk mode) */}
+                      {isBulkSelectionMode && (
+                        <TouchableOpacity
+                          onPress={() => onToggleSelection?.(item.$id)}
+                          className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center mr-2"
+                          activeOpacity={0.7}
+                        >
+                          <View
+                            className={`w-5 h-5 rounded border-2 items-center justify-center ${
+                              isSelected
+                                ? "bg-secondary border-secondary"
+                                : "border-gray-400"
+                            }`}
+                          >
+                            {isSelected && (
                               <Image
-                                source={icons.menu}
-                                className="w-4 h-4"
-                                tintColor="#CDCDE0"
+                                source={icons.close}
+                                className="w-3 h-3"
+                                tintColor="#161622"
                                 resizeMode="contain"
                               />
-                            </TouchableOpacity>
-                          }
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                      )}
+
+                      {/* Bookmark Button (only when not in bulk mode) */}
+                      {!isBulkSelectionMode && (
+                        <TouchableOpacity
+                          onPress={handleBookmark}
+                          className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
+                          activeOpacity={0.7}
                         >
-                          <Menu.Item
-                            onPress={handleOnClickEditMenu}
-                            title="Edit"
-                            leadingIcon={() => (
-                              <IconButton
-                                icon={icons.pencil}
-                                size={16}
-                                iconColor={SECONDARY_COLOR}
-                                style={styles.menuItemIcon}
-                              />
-                            )}
-                            titleStyle={{ color: "#CDCDE0" }}
+                          <Image
+                            source={icons.bookmark}
+                            className="w-4 h-4"
+                            tintColor={isBookmarked ? SECONDARY_COLOR : "#CDCDE0"}
+                            resizeMode="contain"
                           />
-                          <Menu.Item
-                            onPress={handleOnClickDeleteMenu}
-                            title="Delete"
-                            leadingIcon={() => (
-                              <IconButton
-                                icon={icons.trash}
-                                size={16}
-                                iconColor="#ef4444"
-                                style={styles.menuItemIcon}
-                              />
-                            )}
-                            titleStyle={{ color: "#CDCDE0" }}
-                          />
-                        </Menu>
-                      </View>
+                        </TouchableOpacity>
+                      )}
+
+                      {/* Menu Button (only when not in bulk mode) */}
+                      {!isBulkSelectionMode && (
+                        <View style={styles.container}>
+                          <Menu
+                            style={styles.menu}
+                            visible={visibleMenuId === item.$id}
+                            onDismiss={closeMenu}
+                            anchor={
+                              <TouchableOpacity
+                                onPress={() => openMenu(item.$id)}
+                                className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
+                                activeOpacity={0.7}
+                              >
+                                <Image
+                                  source={icons.menu}
+                                  className="w-4 h-4"
+                                  tintColor="#CDCDE0"
+                                  resizeMode="contain"
+                                />
+                              </TouchableOpacity>
+                            }
+                          >
+                            <Menu.Item
+                              onPress={handleOnClickEditMenu}
+                              title="Edit"
+                              leadingIcon={() => (
+                                <IconButton
+                                  icon={icons.pencil}
+                                  size={16}
+                                  iconColor={SECONDARY_COLOR}
+                                  style={styles.menuItemIcon}
+                                />
+                              )}
+                              titleStyle={{ color: "#CDCDE0" }}
+                            />
+                            <Menu.Item
+                              onPress={handleOnClickDeleteMenu}
+                              title="Delete"
+                              leadingIcon={() => (
+                                <IconButton
+                                  icon={icons.trash}
+                                  size={16}
+                                  iconColor="#ef4444"
+                                  style={styles.menuItemIcon}
+                                />
+                              )}
+                              titleStyle={{ color: "#CDCDE0" }}
+                            />
+                          </Menu>
+                        </View>
+                      )}
                     </View>
                   </View>
                 </View>
@@ -413,9 +456,13 @@ const CardItem: React.FC<CardItemProps> = React.memo(
               <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
                 <TouchableOpacity
                   activeOpacity={0.9}
-                  onPress={handleOnClickItem}
-                  onPressIn={handlePressIn}
-                  onPressOut={handlePressOut}
+                  onPress={
+                    isBulkSelectionMode
+                      ? () => onToggleSelection?.(item.$id)
+                      : handleOnClickItem
+                  }
+                  onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
+                  onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
                   className="relative"
                 >
                   <View className="w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden">

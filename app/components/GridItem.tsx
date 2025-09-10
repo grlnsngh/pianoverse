@@ -43,6 +43,9 @@ interface GridItemProps {
   openMenu: (id: string) => void;
   closeMenu: () => void;
   onDelete?: () => void;
+  isBulkSelectionMode?: boolean;
+  selectedItems?: string[];
+  onToggleSelection?: (id: string) => void;
 }
 const { width } = Dimensions.get("window");
 const numColumns = 2;
@@ -97,7 +100,16 @@ const getStatusText = (remaining: any) => {
 };
 
 const GridItem: React.FC<GridItemProps> = React.memo(
-  ({ item, visibleMenuId, openMenu, closeMenu, onDelete }) => {
+  ({
+    item,
+    visibleMenuId,
+    openMenu,
+    closeMenu,
+    onDelete,
+    isBulkSelectionMode = false,
+    selectedItems = [],
+    onToggleSelection,
+  }) => {
     const pathname = usePathname();
     const [bookmarkedItems, setBookmarkedItems] = useState<Set<string>>(
       new Set()
@@ -160,6 +172,9 @@ const GridItem: React.FC<GridItemProps> = React.memo(
       bookmarkedItems: Set<string>;
       handleBookmark: (itemId: string) => void;
       handleOnClickItem: (item: PianoItem) => void;
+      isBulkSelectionMode?: boolean;
+      isSelected?: boolean;
+      onToggleSelection?: (id: string) => void;
     }
 
     const GridItemCard: React.FC<GridItemCardProps> = React.memo(
@@ -173,6 +188,9 @@ const GridItem: React.FC<GridItemProps> = React.memo(
         bookmarkedItems,
         handleBookmark,
         handleOnClickItem,
+        isBulkSelectionMode = false,
+        isSelected = false,
+        onToggleSelection,
       }) => {
         // React Native Animated values for card expansion
         const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -260,9 +278,13 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                 <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
                   <TouchableOpacity
                     activeOpacity={0.9}
-                    onPress={() => handleOnClickItem(item)}
-                    onPressIn={handlePressIn}
-                    onPressOut={handlePressOut}
+                    onPress={
+                      isBulkSelectionMode
+                        ? () => onToggleSelection?.(item.$id)
+                        : () => handleOnClickItem(item)
+                    }
+                    onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
+                    onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
                     style={styles.imageContainer}
                   >
                     <Image
@@ -278,14 +300,58 @@ const GridItem: React.FC<GridItemProps> = React.memo(
 
                     {/* Top Action Buttons */}
                     <View style={styles.topActions}>
-                      {/* Bookmark Button */}
-                      <TouchableOpacity
-                        onPress={() => handleBookmark(item.$id)}
-                        style={styles.actionButton}
-                        activeOpacity={0.7}
-                      >
-                        <Image
-                          source={icons.bookmark}
+                      {/* Selection Checkbox (only in bulk mode) */}
+                      {isBulkSelectionMode && (
+                        <TouchableOpacity
+                          onPress={() => onToggleSelection?.(item.$id)}
+                          style={[
+                            styles.actionButton,
+                            {
+                              backgroundColor: isSelected
+                                ? SECONDARY_COLOR
+                                : "rgba(0, 0, 0, 0.6)",
+                            },
+                          ]}
+                          activeOpacity={0.7}
+                        >
+                          <View
+                            style={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: 8,
+                              borderWidth: 2,
+                              borderColor: "white",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              backgroundColor: isSelected
+                                ? "#161622"
+                                : "transparent",
+                            }}
+                          >
+                            {isSelected && (
+                              <Image
+                                source={icons.close}
+                                style={{
+                                  width: 10,
+                                  height: 10,
+                                  tintColor: "white",
+                                }}
+                                resizeMode="contain"
+                              />
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                      )}
+
+                      {/* Bookmark Button (only when not in bulk mode) */}
+                      {!isBulkSelectionMode && (
+                        <TouchableOpacity
+                          onPress={() => handleBookmark(item.$id)}
+                          style={styles.actionButton}
+                          activeOpacity={0.7}
+                        >
+                          <Image
+                            source={icons.bookmark}
                           style={[
                             styles.actionIcon,
                             {
@@ -297,11 +363,13 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                           resizeMode="contain"
                         />
                       </TouchableOpacity>
+                      )}
 
-                      {/* Menu Button */}
-                      <View style={styles.menuContainer}>
-                        <Menu
-                          style={styles.menu}
+                      {/* Menu Button (only when not in bulk mode) */}
+                      {!isBulkSelectionMode && (
+                        <View style={styles.menuContainer}>
+                          <Menu
+                            style={styles.menu}
                           visible={visibleMenuId === item.$id}
                           onDismiss={closeMenu}
                           anchor={
@@ -349,9 +417,10 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                           />
                         </Menu>
                       </View>
+                  )}
                     </View>
 
-                    {/* Status Badge */}
+                {/* Status Badge */}
                     {getStatusText(remaining) && (
                       <View style={styles.statusBadge}>
                         <View
@@ -448,6 +517,9 @@ const GridItem: React.FC<GridItemProps> = React.memo(
         bookmarkedItems={bookmarkedItems}
         handleBookmark={handleBookmark}
         handleOnClickItem={handleOnClickItem}
+        isBulkSelectionMode={isBulkSelectionMode}
+        isSelected={selectedItems.includes(item.$id)}
+        onToggleSelection={onToggleSelection}
       />
     );
 

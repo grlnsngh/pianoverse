@@ -43,6 +43,9 @@ interface ListItemProps {
   openMenu: (id: string) => void;
   closeMenu: () => void;
   onDelete?: () => void;
+  isBulkSelectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: (id: string) => void;
 }
 
 const calculateRemainingPeriod = (end: Date | null | undefined) => {
@@ -60,7 +63,17 @@ const calculateRemainingPeriod = (end: Date | null | undefined) => {
 };
 
 const ListItem: React.FC<ListItemProps> = React.memo(
-  ({ item, index = 0, visibleMenuId, openMenu, closeMenu, onDelete }) => {
+  ({
+    item,
+    index = 0,
+    visibleMenuId,
+    openMenu,
+    closeMenu,
+    onDelete,
+    isBulkSelectionMode = false,
+    isSelected = false,
+    onToggleSelection,
+  }) => {
     const {
       title = "",
       image_url = "",
@@ -269,9 +282,13 @@ const ListItem: React.FC<ListItemProps> = React.memo(
               <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
                 <TouchableOpacity
                   activeOpacity={0.9}
-                  onPress={handleOnClickItem}
-                  onPressIn={handlePressIn}
-                  onPressOut={handlePressOut}
+                  onPress={
+                    isBulkSelectionMode
+                      ? () => onToggleSelection?.(item.$id)
+                      : handleOnClickItem
+                  }
+                  onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
+                  onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
                   className="flex-row p-4"
                 >
                   {/* Image Section */}
@@ -377,55 +394,84 @@ const ListItem: React.FC<ListItemProps> = React.memo(
                   </View>
 
                   {/* Menu Button */}
-                  <View className="justify-center">
-                    <View style={styles.container}>
-                      <Menu
-                        style={styles.menu}
-                        visible={visibleMenuId === item.$id}
-                        onDismiss={closeMenu}
-                        anchor={
-                          <TouchableOpacity
-                            onPress={() => openMenu(item.$id)}
-                            className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                            activeOpacity={0.7}
-                          >
+                  <View className="justify-center flex-row items-center">
+                    {/* Selection Checkbox (only in bulk mode) */}
+                    {isBulkSelectionMode && (
+                      <TouchableOpacity
+                        onPress={() => onToggleSelection?.(item.$id)}
+                        className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center mr-2"
+                        activeOpacity={0.7}
+                      >
+                        <View
+                          className={`w-5 h-5 rounded border-2 items-center justify-center ${
+                            isSelected
+                              ? "bg-secondary border-secondary"
+                              : "border-gray-400"
+                          }`}
+                        >
+                          {isSelected && (
                             <Image
-                              source={icons.menu}
-                              className="w-4 h-4"
-                              tintColor="#CDCDE0"
+                              source={icons.close}
+                              className="w-3 h-3"
+                              tintColor="#161622"
                               resizeMode="contain"
                             />
-                          </TouchableOpacity>
-                        }
-                      >
-                        <Menu.Item
-                          onPress={handleOnClickEditMenu}
-                          title="Edit"
-                          leadingIcon={() => (
-                            <IconButton
-                              icon={icons.pencil}
-                              size={16}
-                              iconColor={SECONDARY_COLOR}
-                              style={styles.menuItemIcon}
-                            />
                           )}
-                          titleStyle={{ color: "#CDCDE0" }}
-                        />
-                        <Menu.Item
-                          onPress={handleOnClickDeleteMenu}
-                          title="Delete"
-                          leadingIcon={() => (
-                            <IconButton
-                              icon={icons.trash}
-                              size={16}
-                              iconColor="#ef4444"
-                              style={styles.menuItemIcon}
-                            />
-                          )}
-                          titleStyle={{ color: "#CDCDE0" }}
-                        />
-                      </Menu>
-                    </View>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+
+                    {/* Menu Button (only when not in bulk mode) */}
+                    {!isBulkSelectionMode && (
+                      <View style={styles.container}>
+                        <Menu
+                          style={styles.menu}
+                          visible={visibleMenuId === item.$id}
+                          onDismiss={closeMenu}
+                          anchor={
+                            <TouchableOpacity
+                              onPress={() => openMenu(item.$id)}
+                              className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
+                              activeOpacity={0.7}
+                            >
+                              <Image
+                                source={icons.menu}
+                                className="w-4 h-4"
+                                tintColor="#CDCDE0"
+                                resizeMode="contain"
+                              />
+                            </TouchableOpacity>
+                          }
+                        >
+                          <Menu.Item
+                            onPress={handleOnClickEditMenu}
+                            title="Edit"
+                            leadingIcon={() => (
+                              <IconButton
+                                icon={icons.pencil}
+                                size={16}
+                                iconColor={SECONDARY_COLOR}
+                                style={styles.menuItemIcon}
+                              />
+                            )}
+                            titleStyle={{ color: "#CDCDE0" }}
+                          />
+                          <Menu.Item
+                            onPress={handleOnClickDeleteMenu}
+                            title="Delete"
+                            leadingIcon={() => (
+                              <IconButton
+                                icon={icons.trash}
+                                size={16}
+                                iconColor="#ef4444"
+                                style={styles.menuItemIcon}
+                              />
+                            )}
+                            titleStyle={{ color: "#CDCDE0" }}
+                          />
+                        </Menu>
+                      </View>
+                    )}
                   </View>
                 </TouchableOpacity>
               </Animated.View>

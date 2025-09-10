@@ -275,22 +275,18 @@ export async function getFilePreview(fileId) {
 /**
  * Creates a new piano entry in the database.
  *
- * @param {Object} pianoData - The data for the piano entry.
- * @param {string} pianoData.name - The name of the piano.
- * @param {string} pianoData.type - The type of the piano.
- * @param {string} pianoData.manufacturer - The manufacturer of the piano.
- * @param {string} pianoData.image - The image file of the piano.
+ * @param {PianoItemFormStateType} pianoData - The data for the piano entry.
  * @returns {Promise<Object>} The response from the database after creating the document.
  * @throws {Error} If there is an error creating the piano entry.
  */
-export async function createPianoEntry(pianoData) {
+export async function createPianoEntry(pianoData: PianoItemFormStateType) {
   try {
     const imageUrl = await uploadFile(pianoData);
     const response = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.pianoCollectionId,
       ID.unique(),
-      { ...pianoData, image_url: imageUrl }
+      { ...pianoData, image_url: imageUrl || "" }
     );
     return response;
   } catch (error) {
@@ -316,12 +312,11 @@ export async function updatePianoEntry(
   try {
     let imageUrl = pianoData?.image_url || "";
 
-    // Check if image_url is a local file path
-    if (imageUrl.startsWith("file://")) {
-      imageUrl = await uploadFile(pianoData);
-    }
-
-    const response = await databases.updateDocument(
+        // Check if image_url is a local file path
+        if (imageUrl.startsWith("file://")) {
+          const uploadedUrl = await uploadFile(pianoData);
+          imageUrl = uploadedUrl ? String(uploadedUrl) : imageUrl;
+        }    const response = await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.pianoCollectionId,
       documentId,
@@ -375,6 +370,97 @@ export async function deleteFileByUrl(url: string): Promise<void> {
 }
 
 /**
+ * Deletes multiple piano entries from the database and their associated files from storage.
+ *
+ * @param {object[]} items - Array of piano entry objects to be deleted.
+ * @returns {Promise<void>} - Resolves when all piano entries and their associated files are successfully deleted.
+ * @throws {Error} - Throws an error if any deletion fails.
+ */
+export async function deleteMultiplePianoEntries(items: any[]): Promise<void> {
+  try {
+    const deletePromises = items.map(async (item) => {
+      try {
+        // Delete the associated file if the image URL exists
+        if (item.image_url) {
+          await deleteFileByUrl(item.image_url);
+        }
+
+        // Delete the piano entry from the database
+        await databases.deleteDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.pianoCollectionId,
+          item.$id
+        );
+
+        return { success: true, id: item.$id };
+      } catch (error) {
+        console.error(`Failed to delete item ${item.$id}:`, error);
+        return { success: false, id: item.$id, error };
+      }
+    });
+
+    const results = await Promise.all(deletePromises);
+    const failedDeletes = results.filter(result => !result.success);
+
+    if (failedDeletes.length > 0) {
+      throw new Error(`Failed to delete ${failedDeletes.length} out of ${items.length} items`);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error in bulk delete:", errorMessage);
+    throw new Error(`Bulk delete failed: ${errorMessage}`);
+  }
+}
+
+/**
+ * Updates multiple piano entries in the database.
+ *
+ * @param {Array<{id: string, data: Partial<PianoItemFormStateType>}>} updates - Array of update objects with id and data.
+ * @returns {Promise<void>} - Resolves when all updates are completed.
+ * @throws {Error} - Throws an error if any update fails.
+ */
+export async function updateMultiplePianoEntries(
+  updates: Array<{ id: string; data: Partial<PianoItemFormStateType> }>
+): Promise<void> {
+  try {
+    const updatePromises = updates.map(async ({ id, data }) => {
+      try {
+        let imageUrl = data?.image_url || "";
+
+        // Check if image_url is a local file path
+        if (imageUrl.startsWith("file://")) {
+          const uploadedUrl = await uploadFile({ ...data, image_url: imageUrl });
+          imageUrl = uploadedUrl ? String(uploadedUrl) : imageUrl;
+        }
+
+        await databases.updateDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.pianoCollectionId,
+          id,
+          { ...data, image_url: imageUrl }
+        );
+
+        return { success: true, id };
+      } catch (error) {
+        console.error(`Failed to update item ${id}:`, error);
+        return { success: false, id, error };
+      }
+    });
+
+    const results = await Promise.all(updatePromises);
+    const failedUpdates = results.filter(result => !result.success);
+
+    if (failedUpdates.length > 0) {
+      throw new Error(`Failed to update ${failedUpdates.length} out of ${updates.length} items`);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error in bulk update:", errorMessage);
+    throw new Error(`Bulk update failed: ${errorMessage}`);
+  }
+}
+
+/**
  * Deletes a piano entry from the database and its associated file from the storage.
  *
  * @param {object} item - The piano entry object to be deleted.
@@ -384,7 +470,7 @@ export async function deleteFileByUrl(url: string): Promise<void> {
  * @throws {Error} - Throws an error if the deletion fails.
  * @see {@link deleteFileByUrl}
  */
-export async function deletePianoEntry(item) {
+export async function deletePianoEntry(item: any) {
   try {
     // Delete the associated file if the image URL exists
     if (item.image_url) {

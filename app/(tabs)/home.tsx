@@ -6,6 +6,10 @@ import useAppwrite from "@/lib/useAppwrite";
 import {
   setFilteredPianoListItems,
   setPianoListItems,
+  setBulkSelectionMode,
+  toggleItemSelection,
+  selectAllItems,
+  clearSelectedItems,
 } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { differenceInDays } from "date-fns";
@@ -13,7 +17,7 @@ import { SORT_BY_OPTIONS } from "../constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
 import React, { useCallback, useEffect, useState } from "react";
-import { FlatList, RefreshControl, Text, View } from "react-native";
+import { FlatList, RefreshControl, Text, View, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
@@ -23,6 +27,7 @@ import FilterButton from "../components/FilterButton";
 import GridItem from "../components/GridItem";
 import ListItem from "../components/ListItem";
 import SearchInput from "../components/SearchInput";
+import BulkOperationsBar from "../components/BulkOperationsBar";
 import { scheduleAllRentalNotifications } from "../services/notifications";
 import NotificationTest from "../components/NotificationTest";
 
@@ -38,6 +43,9 @@ const Home = () => {
 
   const filteredPianoReduxItems: PianoItem[] = useSelector(
     (state: RootState) => state.pianos.filteredItems
+  );
+  const { selectedItems, isBulkSelectionMode } = useSelector(
+    (state: RootState) => state.pianos
   );
   const layoutView = useSelector(
     (state: RootState) => state.pianos.filters.layoutStatus
@@ -64,6 +72,23 @@ const Home = () => {
   //     // to prevent duplicate scheduling and infinite console logs
   //   }, [])
   // );
+
+  const handleToggleBulkSelection = () => {
+    dispatch(setBulkSelectionMode(!isBulkSelectionMode) as any);
+  };
+
+  const handleToggleItemSelection = (itemId: string) => {
+    dispatch(toggleItemSelection(itemId) as any);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.length === filteredPianoReduxItems.length) {
+      dispatch(clearSelectedItems() as any);
+    } else {
+      const allIds = filteredPianoReduxItems.map(item => item.$id);
+      dispatch(selectAllItems(allIds) as any);
+    }
+  };
 
   const [visibleMenuId, setVisibleMenuId] = useState<string | null>(null);
 
@@ -169,7 +194,7 @@ const Home = () => {
       );
     }
 
-    dispatch(setFilteredPianoListItems(filteredItems));
+    dispatch(setFilteredPianoListItems(filteredItems) as any);
   }, [items, filters, dispatch]);
 
   // Combined effect to handle both data loading and filtering
@@ -177,7 +202,7 @@ const Home = () => {
   useEffect(() => {
     if (items && items.length > 0) {
       // Set items in redux store - original items
-      dispatch(setPianoListItems(items));
+      dispatch(setPianoListItems(items) as any);
 
       // Schedule notifications for rental due dates
       // Only schedule if we haven't scheduled for this data recently
@@ -200,7 +225,7 @@ const Home = () => {
         applyFilters();
       } else {
         // No filters set, show all items
-        dispatch(setFilteredPianoListItems(items));
+        dispatch(setFilteredPianoListItems(items) as any);
       }
     }
   }, [items, lastNotificationSchedule]); // Removed filters from dependencies to prevent duplicate calls
@@ -216,7 +241,7 @@ const Home = () => {
       applyFilters();
     } else if (items && items.length > 0) {
       // No filters set, show all items
-      dispatch(setFilteredPianoListItems(items));
+      dispatch(setFilteredPianoListItems(items) as any);
     }
   }, [filters]); // Only depend on filters, not items
 
@@ -231,6 +256,9 @@ const Home = () => {
             openMenu={openMenu}
             closeMenu={closeMenu}
             onDelete={() => refetch()}
+            isBulkSelectionMode={isBulkSelectionMode}
+            isSelected={selectedItems.includes(item.$id)}
+            onToggleSelection={handleToggleItemSelection}
           />
         );
       } else if (layoutView.list === "checked") {
@@ -242,13 +270,16 @@ const Home = () => {
             openMenu={openMenu}
             closeMenu={closeMenu}
             onDelete={() => refetch()}
+            isBulkSelectionMode={isBulkSelectionMode}
+            isSelected={selectedItems.includes(item.$id)}
+            onToggleSelection={handleToggleItemSelection}
           />
         );
       } else {
         return null; // Render nothing if no view is checked
       }
     },
-    [layoutView, visibleMenuId, openMenu, closeMenu, refetch]
+    [layoutView, visibleMenuId, openMenu, closeMenu, refetch, isBulkSelectionMode, selectedItems, handleToggleItemSelection]
   );
 
   return (
@@ -263,7 +294,16 @@ const Home = () => {
               {user?.username}
             </Text>
           </View>
-          <View className="mt-1.5">
+          <View className="flex-row items-center mt-1.5">
+            <TouchableOpacity
+              onPress={handleToggleBulkSelection}
+              className="mr-3 px-3 py-2 rounded-lg bg-secondary"
+              activeOpacity={0.8}
+            >
+              <Text className="text-primary font-psemibold text-sm">
+                {isBulkSelectionMode ? "Cancel" : "Select"}
+              </Text>
+            </TouchableOpacity>
             <Image
               source={images.piano}
               className="w-10 h-10"
@@ -293,6 +333,9 @@ const Home = () => {
         </View>
       </View>
 
+      {/* Bulk Operations Bar */}
+      <BulkOperationsBar onRefresh={onRefresh} />
+
       {layoutView.grid === "checked" ? (
         <GridItem
           item={filteredPianoReduxItems}
@@ -300,6 +343,9 @@ const Home = () => {
           openMenu={openMenu}
           closeMenu={closeMenu}
           onDelete={() => refetch()}
+          isBulkSelectionMode={isBulkSelectionMode}
+          selectedItems={selectedItems}
+          onToggleSelection={handleToggleItemSelection}
         />
       ) : (
         <FlatList
