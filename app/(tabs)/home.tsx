@@ -12,7 +12,7 @@ import { differenceInDays } from "date-fns";
 import { SORT_BY_OPTIONS } from "../constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,9 +30,8 @@ const Home = () => {
   const dispatch = useDispatch();
 
   const { user } = useGlobalContext();
-  const { data: items, refetch } = useAppwrite(() =>
-    getUserPianoEntries(user.accountId)
-  );
+  const fetchFunction = useCallback(() => getUserPianoEntries(user.accountId), [user.accountId]);
+  const { data: items, refetch } = useAppwrite(fetchFunction);
 
   const [pianoItems, setPianoItems] = useState<PianoItem[]>(items);
   const filteredPianoReduxItems: PianoItem[] = useSelector(
@@ -71,7 +70,7 @@ const Home = () => {
     (state: RootState) => state.pianos.filters.category
   );
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filteredItems: PianoItem[] = items.slice();
 
     // Apply sorting first
@@ -168,7 +167,7 @@ const Home = () => {
     }
 
     dispatch(setFilteredPianoListItems(filteredItems));
-  };
+  }, [items, filters, dispatch]);
 
   useEffect(() => {
     setPianoItems(filteredPianoReduxItems);
@@ -195,11 +194,11 @@ const Home = () => {
       // Only schedule if it's been more than 30 seconds since last schedule
       // This prevents excessive scheduling while still allowing updates
       if (timeSinceLastSchedule > 30000) {
-        console.log(`🔄 Scheduling notifications for ${items.length} items`);
+        console.log(`Scheduling notifications for ${items.length} items`);
         scheduleAllRentalNotifications(items);
         setLastNotificationSchedule(currentTime.toString());
       } else {
-        console.log("ℹ️ Skipping notification scheduling (recently scheduled)");
+        console.log("Skipping notification scheduling (recently scheduled)");
       }
 
       // Apply filters if any are set
@@ -211,6 +210,34 @@ const Home = () => {
       }
     }
   }, [items, lastNotificationSchedule]);
+
+  const renderItem = useCallback(({ item, index }: { item: PianoItem; index: number }) => {
+    if (layoutView.card === "checked") {
+      return (
+        <CardItem
+          item={item}
+          index={index}
+          visibleMenuId={visibleMenuId}
+          openMenu={openMenu}
+          closeMenu={closeMenu}
+          onDelete={() => refetch()}
+        />
+      );
+    } else if (layoutView.list === "checked") {
+      return (
+        <ListItem
+          item={item}
+          index={index}
+          visibleMenuId={visibleMenuId}
+          openMenu={openMenu}
+          closeMenu={closeMenu}
+          onDelete={() => refetch()}
+        />
+      );
+    } else {
+      return null; // Render nothing if no view is checked
+    }
+  }, [layoutView, visibleMenuId, openMenu, closeMenu, refetch]);
 
   return (
     <SafeAreaView className="bg-primary h-full">
@@ -266,33 +293,11 @@ const Home = () => {
         <FlatList
           data={pianoItems}
           keyExtractor={(item) => item.$id}
-          renderItem={({ item, index }) => {
-            if (layoutView.card === "checked") {
-              return (
-                <CardItem
-                  item={item}
-                  index={index}
-                  visibleMenuId={visibleMenuId}
-                  openMenu={openMenu}
-                  closeMenu={closeMenu}
-                  onDelete={() => refetch()}
-                />
-              );
-            } else if (layoutView.list === "checked") {
-              return (
-                <ListItem
-                  item={item}
-                  index={index}
-                  visibleMenuId={visibleMenuId}
-                  openMenu={openMenu}
-                  closeMenu={closeMenu}
-                  onDelete={() => refetch()}
-                />
-              );
-            } else {
-              return null; // Render nothing if no view is checked
-            }
-          }}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          removeClippedSubviews={true}
+          renderItem={renderItem}
           ListEmptyComponent={() => (
             <EmptyState
               title="No Pianos Found"

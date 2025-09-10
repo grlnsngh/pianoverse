@@ -96,7 +96,7 @@ const getStatusText = (remaining: any) => {
   return "Expired";
 };
 
-const GridItem: React.FC<GridItemProps> = ({
+const GridItem: React.FC<GridItemProps> = React.memo(({
   item,
   visibleMenuId,
   openMenu,
@@ -167,7 +167,7 @@ const GridItem: React.FC<GridItemProps> = ({
     handleOnClickItem: (item: PianoItem) => void;
   }
 
-  const GridItemCard: React.FC<GridItemCardProps> = ({
+  const GridItemCard: React.FC<GridItemCardProps> = React.memo(({
     item,
     index,
     visibleMenuId,
@@ -430,7 +430,7 @@ const GridItem: React.FC<GridItemProps> = ({
         </RNAAnimated.View>
       </PaperProvider>
     );
-  };
+  });
 
   const renderItem = ({
     item,
@@ -482,12 +482,16 @@ const GridItem: React.FC<GridItemProps> = ({
         numColumns={2}
         columnWrapperStyle={{ gap: 10, paddingHorizontal: 12 }}
         contentContainerStyle={{ gap: 10, paddingBottom: 10 }}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        removeClippedSubviews={true}
         renderItem={({ item, index }) => renderItem({ item, index })}
         keyExtractor={(item) => item.$id}
       />
     </View>
   );
-};
+});
 
 export default GridItem;
 

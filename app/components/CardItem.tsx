@@ -58,7 +58,7 @@ const calculateRemainingPeriod = (end: Date | null | undefined) => {
   return { days, weeks, months, years };
 };
 
-const CardItem: React.FC<CardItemProps> = ({
+const CardItem: React.FC<CardItemProps> = React.memo(({
   item,
   index = 0,
   visibleMenuId,
@@ -481,7 +481,7 @@ const CardItem: React.FC<CardItemProps> = ({
       </RNAAnimated.View>
     </PaperProvider>
   );
-};
+});
 
 export default CardItem;
 

@@ -59,7 +59,7 @@ const calculateRemainingPeriod = (end: Date | null | undefined) => {
   return { days, weeks, months, years };
 };
 
-const ListItem: React.FC<ListItemProps> = ({
+const ListItem: React.FC<ListItemProps> = React.memo(({
   item,
   index = 0,
   visibleMenuId,
@@ -440,7 +440,7 @@ const ListItem: React.FC<ListItemProps> = ({
       </RNAAnimated.View>
     </PaperProvider>
   );
-};
+});
 
 export default ListItem;
 
