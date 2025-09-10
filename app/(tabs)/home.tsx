@@ -421,8 +421,8 @@ const Home = () => {
           data={displayData}
           keyExtractor={(item) => item.$id || item.title}
           numColumns={2}
-          columnWrapperStyle={{ gap: 8, paddingHorizontal: 8 }}
-          contentContainerStyle={{ gap: 8, paddingBottom: 10 }}
+          columnWrapperStyle={{ gap: 12, paddingHorizontal: 12 }}
+          contentContainerStyle={{ gap: 12, paddingBottom: 20, paddingTop: 8 }}
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={10}
