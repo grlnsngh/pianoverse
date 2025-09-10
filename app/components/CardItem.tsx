@@ -647,53 +647,33 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                           </Text>
                         </TouchableOpacity>
 
-                        <View style={styles.container}>
-                          <Menu
-                            style={styles.menu}
-                            visible={visibleMenuId === item.$id}
-                            onDismiss={closeMenu}
-                            anchor={
-                              <TouchableOpacity
-                                onPress={() => openMenu(item.$id)}
-                                className="w-8 h-8 rounded-full bg-primary-200 items-center justify-center ml-1"
-                                activeOpacity={0.7}
-                              >
-                                <Image
-                                  source={icons.menu}
-                                  className="w-3.5 h-3.5"
-                                  tintColor="#CDCDE0"
-                                  resizeMode="contain"
-                                />
-                              </TouchableOpacity>
-                            }
+                        {/* Inline Action Buttons for Grid View */}
+                        <View className="flex-row items-center ml-1">
+                          <TouchableOpacity
+                            onPress={handleOnClickEditMenu}
+                            className="w-8 h-8 rounded-full bg-primary-200 items-center justify-center mr-1"
+                            activeOpacity={0.7}
                           >
-                            <Menu.Item
-                              onPress={handleOnClickEditMenu}
-                              title="Edit"
-                              leadingIcon={() => (
-                                <IconButton
-                                  icon={icons.pencil}
-                                  size={16}
-                                  iconColor={SECONDARY_COLOR}
-                                  style={styles.menuItemIcon}
-                                />
-                              )}
-                              titleStyle={{ color: "#CDCDE0" }}
+                            <Image
+                              source={icons.pencil}
+                              className="w-3.5 h-3.5"
+                              tintColor={SECONDARY_COLOR}
+                              resizeMode="contain"
                             />
-                            <Menu.Item
-                              onPress={handleOnClickDeleteMenu}
-                              title="Delete"
-                              leadingIcon={() => (
-                                <IconButton
-                                  icon={icons.trash}
-                                  size={16}
-                                  iconColor="#ef4444"
-                                  style={styles.menuItemIcon}
-                                />
-                              )}
-                              titleStyle={{ color: "#CDCDE0" }}
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            onPress={handleOnClickDeleteMenu}
+                            className="w-8 h-8 rounded-full bg-primary-200 items-center justify-center"
+                            activeOpacity={0.7}
+                          >
+                            <Image
+                              source={icons.trash}
+                              className="w-3.5 h-3.5"
+                              tintColor="#ef4444"
+                              resizeMode="contain"
                             />
-                          </Menu>
+                          </TouchableOpacity>
                         </View>
                       </View>
                     )}
