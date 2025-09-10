@@ -50,6 +50,9 @@ const Profile = () => {
   const loadingAnim = useRef(new Animated.Value(0)).current;
   const [isLoading, setIsLoading] = useState(true);
 
+  // Progress bar animation
+  const progressAnim = useRef(new Animated.Value(0)).current;
+
   // Simulate data loading (replace with actual data fetching)
   useEffect(() => {
     const loadProfileData = async () => {
@@ -91,6 +94,13 @@ const Profile = () => {
             delay: 600,
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
+          }),
+          Animated.timing(progressAnim, {
+            toValue: 1,
+            duration: 1500,
+            delay: 800,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
           }),
           Animated.stagger(200, [
             Animated.timing(statCardAnim1, {
@@ -191,6 +201,13 @@ const Profile = () => {
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
+        Animated.timing(progressAnim, {
+          toValue: 1,
+          duration: 1500,
+          delay: 800,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
         Animated.stagger(200, [
           Animated.timing(statCardAnim1, {
             toValue: 1,
@@ -285,37 +302,50 @@ const Profile = () => {
   const onSaleCount = filterItemsByCategory(PIANO_CATEGORY.ON_SALE);
   const warehouseCount = filterItemsByCategory(PIANO_CATEGORY.WAREHOUSE);
 
-  // Prepare pie chart data
+  // Prepare pie chart data with percentages
+  const totalItems = rentableCount + eventsCount + onSaleCount + warehouseCount;
   const pieChartData = [
     {
       name: "Rentable",
       count: rentableCount,
+      percentage:
+        totalItems > 0 ? Math.round((rentableCount / totalItems) * 100) : 0,
       color: CATEGORY_COLORS.RENTABLE,
       legendFontColor: "#FFF",
       legendFontSize: 12,
+      icon: images.category_rentable,
     },
     {
       name: "Events",
       count: eventsCount,
+      percentage:
+        totalItems > 0 ? Math.round((eventsCount / totalItems) * 100) : 0,
       color: CATEGORY_COLORS.EVENTS,
       legendFontColor: "#FFF",
       legendFontSize: 12,
+      icon: images.category_event,
     },
     {
       name: "On Sale",
       count: onSaleCount,
+      percentage:
+        totalItems > 0 ? Math.round((onSaleCount / totalItems) * 100) : 0,
       color: CATEGORY_COLORS.ON_SALE,
       legendFontColor: "#FFF",
       legendFontSize: 12,
+      icon: images.category_sale,
     },
     {
       name: "Storage",
       count: warehouseCount,
+      percentage:
+        totalItems > 0 ? Math.round((warehouseCount / totalItems) * 100) : 0,
       color: CATEGORY_COLORS.WAREHOUSE,
       legendFontColor: "#FFF",
       legendFontSize: 12,
+      icon: images.category_warehouse,
     },
-  ].filter(item => item.count > 0); // Only show categories with items
+  ].filter((item) => item.count > 0); // Only show categories with items
 
   const totalValue = calculateTotalValue();
   const activeRentals = calculateActiveRentals();
@@ -801,136 +831,339 @@ const Profile = () => {
                 </View>
               ) : (
                 <>
-                  {/* Pie Chart Visualization */}
-                  <View className="bg-primary-400 rounded-xl p-4 mb-4">
-                    <Text className="text-white text-sm font-psemibold mb-3 text-center">
-                      Category Distribution
-                    </Text>
-                    <View className="items-center">
-                      <PieChart
-                        data={pieChartData}
-                        width={Dimensions.get('window').width - 80}
-                        height={180}
-                        chartConfig={{
-                          backgroundColor: '#161622',
-                          backgroundGradientFrom: '#161622',
-                          backgroundGradientTo: '#161622',
-                          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                        }}
-                        accessor="count"
-                        backgroundColor="transparent"
-                        paddingLeft="15"
-                        absolute={false}
-                        hasLegend={false}
-                      />
+                  {/* Enhanced Category Visualization */}
+                  <Animated.View
+                    className="bg-gradient-to-br from-primary-400 to-primary-500 rounded-xl p-4 mb-4 shadow-lg"
+                    style={{
+                      opacity: categoryFadeAnim,
+                      transform: [
+                        {
+                          translateY: categoryFadeAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [50, 0],
+                          }),
+                        },
+                        {
+                          scale: categoryFadeAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.9, 1],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
+                    <View className="flex-row items-center justify-between mb-4">
+                      <Text className="text-white text-lg font-psemibold">
+                        Category Distribution
+                      </Text>
+                      <View className="bg-secondary/20 rounded-full px-3 py-1">
+                        <Text className="text-secondary text-xs font-pbold">
+                          {totalItems} Items
+                        </Text>
+                      </View>
                     </View>
-                    {/* Custom Legend */}
-                    <View className="flex-row flex-wrap justify-center mt-3">
-                      {pieChartData.map((item, index) => (
-                        <View key={index} className="flex-row items-center mr-4 mb-2">
+
+                    {/* Pie Chart with Enhanced Styling */}
+                    <View className="items-center mb-4">
+                      <View className="relative">
+                        <PieChart
+                          data={pieChartData}
+                          width={Dimensions.get("window").width - 80}
+                          height={200}
+                          chartConfig={{
+                            backgroundColor: "transparent",
+                            backgroundGradientFrom: "transparent",
+                            backgroundGradientTo: "transparent",
+                            color: (opacity = 1) =>
+                              `rgba(255, 255, 255, ${opacity})`,
+                            labelColor: (opacity = 1) =>
+                              `rgba(255, 255, 255, ${opacity})`,
+                          }}
+                          accessor="count"
+                          backgroundColor="transparent"
+                          paddingLeft="15"
+                          absolute={false}
+                          hasLegend={false}
+                          center={[0, 0]}
+                        />
+                      </View>
+                    </View>
+
+                    {/* Enhanced Legend with Progress Bars */}
+                    <View className="space-y-3">
+                      {pieChartData.length > 0 ? (
+                        pieChartData.map((item, index) => (
                           <View
-                            className="w-3 h-3 rounded-full mr-2"
-                            style={{ backgroundColor: item.color }}
+                            key={index}
+                            className="bg-primary-300/30 rounded-lg p-3"
+                          >
+                            <View className="flex-row items-center justify-between mb-2">
+                              <View className="flex-row items-center">
+                                <Image
+                                  source={item.icon}
+                                  className="w-5 h-5 mr-2"
+                                  tintColor={item.color}
+                                />
+                                <Text className="text-white text-sm font-psemibold">
+                                  {item.name}
+                                </Text>
+                              </View>
+                              <View className="flex-row items-center">
+                                <Text className="text-secondary text-sm font-pbold mr-1">
+                                  {item.percentage}%
+                                </Text>
+                                <Text className="text-white/70 text-xs">
+                                  ({item.count})
+                                </Text>
+                              </View>
+                            </View>
+                            {/* Progress Bar */}
+                            <View className="bg-primary-300/50 rounded-full h-2">
+                              <Animated.View
+                                className="h-2 rounded-full"
+                                style={{
+                                  width: progressAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: ["0%", `${item.percentage}%`],
+                                  }),
+                                  backgroundColor: item.color,
+                                }}
+                              />
+                            </View>
+                          </View>
+                        ))
+                      ) : (
+                        <View className="bg-primary-300/30 rounded-lg p-4 items-center">
+                          <Image
+                            source={icons.card}
+                            className="w-8 h-8 mb-2"
+                            tintColor="#FFA001"
                           />
-                          <Text className="text-white text-xs font-pregular">
-                            {item.name} ({item.count})
+                          <Text className="text-white/70 text-sm font-pregular text-center">
+                            No pianos found. Add some pianos to see category
+                            distribution.
                           </Text>
                         </View>
-                      ))}
+                      )}
                     </View>
-                  </View>
+                  </Animated.View>
 
-                  {/* Quick Action Buttons */}
-                  <View className="mb-4">
-                    <Text className="text-white text-sm font-psemibold mb-3">
-                      Quick Filters
-                    </Text>
-                    <View className="flex-row flex-wrap">
+                  {/* Enhanced Quick Actions */}
+                  <Animated.View
+                    className="mb-4"
+                    style={{
+                      opacity: categoryFadeAnim,
+                      transform: [
+                        {
+                          translateY: categoryFadeAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [30, 0],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
+                    <View className="flex-row items-center justify-between mb-4">
+                      <Text className="text-white text-lg font-psemibold">
+                        Quick Filters
+                      </Text>
                       <TouchableOpacity
-                        className="bg-primary-400 rounded-lg px-4 py-3 mr-2 mb-2 flex-row items-center"
+                        className="bg-secondary/20 rounded-full px-4 py-2 flex-row items-center"
                         activeOpacity={0.8}
                         onPress={() => {
                           animateButtonPress();
-                          navigateToHomeWithFilter(PIANO_CATEGORY.RENTABLE);
+                          const filters: FiltersType = { ...DEFAULT_FILTERS };
+                          dispatch(setPianoFilters(filters));
+                          router.push("/home");
                         }}
                       >
-                        <View
-                          className="w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: CATEGORY_COLORS.RENTABLE }}
-                        />
-                        <Text className="text-white text-xs font-psemibold">
-                          Rentable ({rentableCount})
+                        <Text className="text-secondary text-sm font-psemibold mr-2">
+                          View All
                         </Text>
+                        <Image
+                          source={icons.grid}
+                          className="w-4 h-4"
+                          tintColor="#FFA001"
+                        />
                       </TouchableOpacity>
+                    </View>
 
+                    <View className="flex-row flex-wrap">
+                      {/* Rentable Category Button */}
+                      <Animated.View
+                        style={{
+                          transform: [{ scale: pulseAnim }],
+                        }}
+                      >
+                        <TouchableOpacity
+                          className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl px-4 py-4 mr-3 mb-3 flex-row items-center shadow-lg border border-primary-300/30"
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            animateButtonPress();
+                            navigateToHomeWithFilter(PIANO_CATEGORY.RENTABLE);
+                          }}
+                        >
+                          <Image
+                            source={images.category_rentable}
+                            className="w-6 h-6 mr-3"
+                            tintColor={CATEGORY_COLORS.RENTABLE}
+                          />
+                          <View>
+                            <Text className="text-white text-sm font-psemibold">
+                              Rentable
+                            </Text>
+                            <Text className="text-white/70 text-xs">
+                              {rentableCount} items
+                            </Text>
+                          </View>
+                          <View className="ml-3">
+                            <Image
+                              source={icons.rightArrow}
+                              className="w-4 h-4"
+                              tintColor="#FFA001"
+                            />
+                          </View>
+                        </TouchableOpacity>
+                      </Animated.View>
+
+                      {/* Events Category Button */}
                       <TouchableOpacity
-                        className="bg-primary-400 rounded-lg px-4 py-3 mr-2 mb-2 flex-row items-center"
+                        className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl px-4 py-4 mr-3 mb-3 flex-row items-center shadow-lg border border-primary-300/30"
                         activeOpacity={0.8}
                         onPress={() => {
                           animateButtonPress();
                           navigateToHomeWithFilter(PIANO_CATEGORY.EVENTS);
                         }}
                       >
-                        <View
-                          className="w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: CATEGORY_COLORS.EVENTS }}
+                        <Image
+                          source={images.category_event}
+                          className="w-6 h-6 mr-3"
+                          tintColor={CATEGORY_COLORS.EVENTS}
                         />
-                        <Text className="text-white text-xs font-psemibold">
-                          Events ({eventsCount})
-                        </Text>
+                        <View>
+                          <Text className="text-white text-sm font-psemibold">
+                            Events
+                          </Text>
+                          <Text className="text-white/70 text-xs">
+                            {eventsCount} items
+                          </Text>
+                        </View>
+                        <View className="ml-3">
+                          <Image
+                            source={icons.rightArrow}
+                            className="w-4 h-4"
+                            tintColor="#FFA001"
+                          />
+                        </View>
                       </TouchableOpacity>
 
+                      {/* On Sale Category Button */}
                       <TouchableOpacity
-                        className="bg-primary-400 rounded-lg px-4 py-3 mr-2 mb-2 flex-row items-center"
+                        className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl px-4 py-4 mr-3 mb-3 flex-row items-center shadow-lg border border-primary-300/30"
                         activeOpacity={0.8}
                         onPress={() => {
                           animateButtonPress();
                           navigateToHomeWithFilter(PIANO_CATEGORY.ON_SALE);
                         }}
                       >
-                        <View
-                          className="w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: CATEGORY_COLORS.ON_SALE }}
+                        <Image
+                          source={images.category_sale}
+                          className="w-6 h-6 mr-3"
+                          tintColor={CATEGORY_COLORS.ON_SALE}
                         />
-                        <Text className="text-white text-xs font-psemibold">
-                          On Sale ({onSaleCount})
-                        </Text>
+                        <View>
+                          <Text className="text-white text-sm font-psemibold">
+                            On Sale
+                          </Text>
+                          <Text className="text-white/70 text-xs">
+                            {onSaleCount} items
+                          </Text>
+                        </View>
+                        <View className="ml-3">
+                          <Image
+                            source={icons.rightArrow}
+                            className="w-4 h-4"
+                            tintColor="#FFA001"
+                          />
+                        </View>
                       </TouchableOpacity>
 
+                      {/* Storage Category Button */}
                       <TouchableOpacity
-                        className="bg-primary-400 rounded-lg px-4 py-3 mr-2 mb-2 flex-row items-center"
+                        className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl px-4 py-4 mr-3 mb-3 flex-row items-center shadow-lg border border-primary-300/30"
                         activeOpacity={0.8}
                         onPress={() => {
                           animateButtonPress();
                           navigateToHomeWithFilter(PIANO_CATEGORY.WAREHOUSE);
                         }}
                       >
-                        <View
-                          className="w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: CATEGORY_COLORS.WAREHOUSE }}
+                        <Image
+                          source={images.category_warehouse}
+                          className="w-6 h-6 mr-3"
+                          tintColor={CATEGORY_COLORS.WAREHOUSE}
                         />
-                        <Text className="text-white text-xs font-psemibold">
-                          Storage ({warehouseCount})
-                        </Text>
+                        <View>
+                          <Text className="text-white text-sm font-psemibold">
+                            Storage
+                          </Text>
+                          <Text className="text-white/70 text-xs">
+                            {warehouseCount} items
+                          </Text>
+                        </View>
+                        <View className="ml-3">
+                          <Image
+                            source={icons.rightArrow}
+                            className="w-4 h-4"
+                            tintColor="#FFA001"
+                          />
+                        </View>
                       </TouchableOpacity>
                     </View>
-                  </View>
+                  </Animated.View>
 
-                  {/* Category Summary Stats */}
-                  <View className="bg-primary-400 rounded-lg p-3">
+                  {/* Enhanced Category Summary Stats */}
+                  <Animated.View
+                    className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl p-4 shadow-lg border border-primary-300/30"
+                    style={{
+                      opacity: categoryFadeAnim,
+                      transform: [
+                        {
+                          translateY: categoryFadeAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [20, 0],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
                     <View className="flex-row justify-between items-center">
-                      <Text className="text-white text-sm font-psemibold">
-                        Total Pianos
-                      </Text>
                       <View className="flex-row items-center">
-                        <Text className="text-secondary text-base font-pbold mr-2">
-                          {items.length}
-                        </Text>
-                        <View className="w-2 h-2 bg-secondary rounded-full"></View>
+                        <View className="bg-secondary/20 rounded-full p-2 mr-3">
+                          <Image
+                            source={icons.card}
+                            className="w-5 h-5"
+                            tintColor="#FFA001"
+                          />
+                        </View>
+                        <View>
+                          <Text className="text-white text-lg font-psemibold">
+                            Total Pianos
+                          </Text>
+                          <Text className="text-white/70 text-sm font-pregular">
+                            All Categories
+                          </Text>
+                        </View>
+                      </View>
+                      <View className="flex-row items-center">
+                        <View className="bg-secondary rounded-full px-4 py-2 mr-3">
+                          <Text className="text-primary text-lg font-pbold">
+                            {items.length}
+                          </Text>
+                        </View>
+                        <View className="w-3 h-3 bg-secondary rounded-full"></View>
                       </View>
                     </View>
-                  </View>
+                  </Animated.View>
                 </>
               )}
             </Animated.View>
