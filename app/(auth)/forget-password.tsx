@@ -42,44 +42,44 @@ const ForgetPassword = () => {
   const decorAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Start animations when component mounts
+    // Start animations when component mounts - FAST and SNAPPY
     Animated.sequence([
       Animated.timing(logoAnim, {
         toValue: 1,
-        duration: 1000,
+        duration: 400, // Reduced from 1000ms to 400ms
         useNativeDriver: true,
       }),
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 800,
+          duration: 300, // Reduced from 800ms to 300ms
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: 0,
-          duration: 800,
+          duration: 350, // Reduced from 800ms to 350ms
           useNativeDriver: true,
         }),
         Animated.timing(formAnim, {
           toValue: 0,
-          duration: 900,
+          duration: 400, // Reduced from 900ms to 400ms
           useNativeDriver: true,
         }),
       ]),
     ]).start();
 
-    // Start decorative animation loop
+    // Start decorative animation loop - faster cycle
     const decorAnimation = () => {
       Animated.loop(
         Animated.sequence([
           Animated.timing(decorAnim, {
-            toValue: 1.1,
-            duration: 3000,
+            toValue: 1.05, // Reduced intensity for better performance
+            duration: 1500, // Reduced from 3000ms to 1500ms
             useNativeDriver: true,
           }),
           Animated.timing(decorAnim, {
             toValue: 1,
-            duration: 3000,
+            duration: 1500, // Reduced from 3000ms to 1500ms
             useNativeDriver: true,
           }),
         ])
