@@ -1134,45 +1134,46 @@ const Profile = () => {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
-          <View className="bg-white rounded-2xl p-6 mx-4 w-full max-w-sm shadow-2xl">
-            <View className="items-center mb-4">
-              <View className="bg-red-100 p-3 rounded-full mb-3">
+        <View className="flex-1 justify-center items-center bg-black/60">
+          <Animated.View className="bg-primary-100 rounded-3xl p-8 mx-6 w-full max-w-sm shadow-2xl border border-primary-200">
+            <View className="items-center mb-6">
+              <View className="bg-secondary-100/20 p-4 rounded-full mb-4 border border-secondary-100/30">
                 <Image
                   source={icons.logout}
                   resizeMode="contain"
-                  className="w-8 h-8"
-                  tintColor="#ef4444"
+                  className="w-10 h-10"
+                  tintColor="#FF9C01"
                 />
               </View>
-              <Text className="text-xl font-pbold text-center mb-2 text-primary">
+              <Text className="text-2xl font-pbold text-center mb-3 text-white">
                 Sign Out
               </Text>
-              <Text className="text-base font-pregular text-center text-gray-600">
-                Are you sure you want to sign out of your account?
+              <Text className="text-base font-pregular text-center text-gray-100 leading-6">
+                Are you sure you want to sign out of your account? You'll need
+                to sign in again to access your pianos.
               </Text>
             </View>
-            <View className="flex-row justify-between mt-6">
+            <View className="flex-row justify-between mt-8 space-x-3">
               <TouchableOpacity
                 onPress={handleCancelLogout}
-                className="bg-gray-100 rounded-xl py-3 px-6 flex-1 mr-2 border border-gray-200"
+                className="bg-primary-200/50 rounded-2xl py-4 px-6 flex-1 border border-primary-300/30"
                 activeOpacity={0.7}
               >
-                <Text className="text-gray-700 font-psemibold text-center">
+                <Text className="text-gray-100 font-psemibold text-center">
                   Cancel
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleConfirmLogout}
-                className="bg-red-500 rounded-xl py-3 px-6 flex-1 ml-2 shadow-lg"
+                className="bg-secondary-100 rounded-2xl py-4 px-6 flex-1 shadow-lg border border-secondary-200/50"
                 activeOpacity={0.8}
               >
-                <Text className="text-white font-psemibold text-center">
+                <Text className="text-primary-100 font-psemibold text-center">
                   Sign Out
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Animated.View>
         </View>
       </Modal>
     </SafeAreaView>
