@@ -14,7 +14,13 @@ import {
 } from "date-fns";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   Alert,
   StyleSheet,
@@ -125,7 +131,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
     });
 
     // Handle card press animations
-    const handlePressIn = () => {
+    const handlePressIn = useCallback(() => {
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 0.95,
@@ -139,9 +145,9 @@ const CardItem: React.FC<CardItemProps> = React.memo(
           useNativeDriver: false,
         }),
       ]).start();
-    };
+    }, [scaleAnim, elevationAnim]);
 
-    const handlePressOut = () => {
+    const handlePressOut = useCallback(() => {
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
@@ -155,73 +161,98 @@ const CardItem: React.FC<CardItemProps> = React.memo(
           useNativeDriver: false,
         }),
       ]).start();
-    };
+    }, [scaleAnim, elevationAnim]);
 
-    const remaining = calculateRemainingPeriod(rental_period_end);
+    const remaining = useMemo(
+      () => calculateRemainingPeriod(rental_period_end),
+      [rental_period_end]
+    );
 
-    const isRemainingPositive =
-      remaining.days > 0 ||
-      remaining.weeks > 0 ||
-      remaining.months > 0 ||
-      remaining.years > 0;
+    const isRemainingPositive = useMemo(
+      () =>
+        remaining.days > 0 ||
+        remaining.weeks > 0 ||
+        remaining.months > 0 ||
+        remaining.years > 0,
+      [remaining]
+    );
 
-    const pluralize = (value: number, unit: string) =>
-      `${value} ${unit}${value > 1 ? "s" : ""}`;
+    const pluralize = useCallback(
+      (value: number, unit: string) =>
+        `${value} ${unit}${value > 1 ? "s" : ""}`,
+      []
+    );
 
-    const displayRemainingTime = (remaining: {
-      years: number;
-      months: number;
-      weeks: number;
-      days: number;
-    }) => {
-      if (remaining.years > 0) return pluralize(remaining.years, "year");
-      if (remaining.months > 0) return pluralize(remaining.months, "month");
-      if (remaining.weeks > 0) return pluralize(remaining.weeks, "week");
-      return pluralize(remaining.days, "day");
-    };
+    const displayRemainingTime = useCallback(
+      (remaining: {
+        years: number;
+        months: number;
+        weeks: number;
+        days: number;
+      }) => {
+        if (remaining.years > 0) return pluralize(remaining.years, "year");
+        if (remaining.months > 0) return pluralize(remaining.months, "month");
+        if (remaining.weeks > 0) return pluralize(remaining.weeks, "week");
+        return pluralize(remaining.days, "day");
+      },
+      [pluralize]
+    );
 
-    const isLessThanOrEqualTo7Days = (remaining: {
-      years: number;
-      months: number;
-      weeks: number;
-      days: number;
-    }) => {
-      return (
-        remaining.years === 0 &&
-        remaining.months === 0 &&
-        remaining.weeks === 0 &&
-        remaining.days <= 7
-      );
-    };
+    const isLessThanOrEqualTo7Days = useCallback(
+      (remaining: {
+        years: number;
+        months: number;
+        weeks: number;
+        days: number;
+      }) => {
+        return (
+          remaining.years === 0 &&
+          remaining.months === 0 &&
+          remaining.weeks === 0 &&
+          remaining.days <= 7
+        );
+      },
+      []
+    );
 
-    const getStatusColor = () => {
+    const getStatusColor = useCallback(() => {
       if (!rental_period_end) return SECONDARY_COLOR;
       if (isRemainingPositive) {
         return isLessThanOrEqualTo7Days(remaining) ? "#ef4444" : "#10b981";
       }
       return "#6b7280";
-    };
+    }, [
+      rental_period_end,
+      isRemainingPositive,
+      remaining,
+      isLessThanOrEqualTo7Days,
+    ]);
 
-    const getStatusText = () => {
+    const getStatusText = useCallback(() => {
       if (!rental_period_end) return null;
       if (isRemainingPositive) {
         return `${displayRemainingTime(remaining)} remaining`;
       }
       return "Expired";
-    };
+    }, [
+      rental_period_end,
+      isRemainingPositive,
+      remaining,
+      displayRemainingTime,
+    ]);
 
-    const handleOnClickItem = () => {
+    const handleOnClickItem = useCallback(() => {
       if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
       else router.push(`/detail/${item.$id}`);
-    };
+    }, [pathname, item.$id]);
 
-    const handleOnClickEditMenu = () => {
+    const handleOnClickEditMenu = useCallback(() => {
       if (pathname.startsWith("/edit")) router.setParams({ id: item.$id });
       else router.push(`/edit/${item.$id}`);
       closeMenu();
-    };
+    }, [pathname, item.$id, closeMenu]);
 
-    const handleOnClickDeleteMenu = async () => {
+    const handleOnClickDeleteMenu = useCallback(async () => {
       try {
         await deletePianoEntry(item);
         ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
@@ -238,17 +269,17 @@ const CardItem: React.FC<CardItemProps> = React.memo(
       } finally {
         closeMenu();
       }
-    };
+    }, [item, title, onDelete, closeMenu]);
 
-    const handleBookmark = () => {
+    const handleBookmark = useCallback(() => {
       setIsBookmarked(!isBookmarked);
       ToastAndroid.show(
         isBookmarked ? "Removed from bookmarks" : "Added to bookmarks",
         ToastAndroid.SHORT
       );
-    };
+    }, [isBookmarked]);
 
-    const getCategoryGradient = (category: string) => {
+    const getCategoryGradient = useCallback((category: string) => {
       switch (category) {
         case PIANO_CATEGORY.RENTABLE:
           return ["#efeaab", "#d4c96a"];
@@ -261,13 +292,13 @@ const CardItem: React.FC<CardItemProps> = React.memo(
         default:
           return [SECONDARY_COLOR, "#e68a00"];
       }
-    };
+    }, []);
 
     if (item.empty) {
       return <View style={styles.itemInvisible} />;
     }
 
-    const getCategoryIcon = (category: string) => {
+    const getCategoryIcon = useCallback((category: string) => {
       switch (category) {
         case PIANO_CATEGORY.RENTABLE:
           return icons.card;
@@ -280,7 +311,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
         default:
           return icons.card;
       }
-    };
+    }, []);
 
     return (
       <PaperProvider>
