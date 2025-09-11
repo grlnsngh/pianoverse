@@ -15,6 +15,27 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Cross-platform:** Runs seamlessly on iOS, Android, and web.
 - **Category Management:** Efficiently manage pianos across different categories.
 - **Real-time Updates:** Keep your inventory updated in real time with Appwrite backend.
+- **Password Reset:** Secure password recovery system with web-based interface.
+
+## 🌐 GitHub Pages Deployment
+
+This project includes a **password reset system** that utilizes GitHub Pages for hosting the web interface. Two URLs are hosted on GitHub Pages:
+
+### Live URLs:
+- **Main Site:** https://grlnsngh.github.io/pianoverse/
+- **Password Reset:** https://grlnsngh.github.io/pianoverse/reset-password.html
+
+### How It Works:
+1. Users can request password reset from the mobile app
+2. Appwrite sends an email with a secure reset link
+3. Users click the link to open the web-based password reset interface
+4. After successfully resetting their password, users are redirected back to the app
+
+### Deployment Details:
+- **Hosting:** GitHub Pages (Free)
+- **Backend:** Appwrite Cloud
+- **Framework:** Plain HTML/JavaScript for maximum compatibility
+- **Security:** Appwrite handles all authentication and token validation
 
 ## Getting Started
 
