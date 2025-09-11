@@ -6,6 +6,7 @@ import {
   showImmediateTestNotification,
   checkNotificationStatus,
 } from "../utils/notificationTest";
+import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
 
 const NotificationTest = () => {
   const handleTestNotification = async () => {
@@ -101,7 +102,7 @@ const NotificationTest = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0f0f23",
+    backgroundColor: PRIMARY_COLOR,
   },
   content: {
     flex: 1,
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   button: {
-    backgroundColor: "#FF9C01",
+    backgroundColor: SECONDARY_COLOR,
     padding: 20,
     borderRadius: 10,
     marginBottom: 20,
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   buttonText: {
-    color: "#fff",
+    color: PRIMARY_COLOR,
     fontSize: 18,
     fontWeight: "bold",
     textAlign: "center",
