@@ -131,11 +131,19 @@ const FilterButton = () => {
   const dispatch = useDispatch();
 
   const onShowResults = () => {
-    dispatch(setPianoFilters(filterForm));
+    dispatch(setPianoFilters(filterForm) as any);
     toggleModal();
   };
 
   const handleCategoryPress = (label: string) => {
+    // Prevent changing category if DUE_DATE sorting is selected
+    if (
+      filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE &&
+      label !== "Rentable"
+    ) {
+      return; // Don't allow changing category when DUE_DATE is selected
+    }
+
     const formattedLabel = label.replace(/\s+/g, "_").toLowerCase();
     const isCurrentlySelected =
       filterForm.category === label ||
@@ -386,7 +394,18 @@ const FilterButton = () => {
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => setIsFocused(false)}
                   onChange={(item) => {
-                    setFilterForm({ ...filterForm, sortBy: item.value });
+                    let newCategory = filterForm.category;
+
+                    // If DUE_DATE is selected, automatically filter to rentable items
+                    if (item.value === SORT_BY_OPTIONS.DUE_DATE) {
+                      newCategory = "Rentable";
+                    }
+
+                    setFilterForm({
+                      ...filterForm,
+                      sortBy: item.value,
+                      category: newCategory,
+                    });
                     setIsFocused(false);
                   }}
                   style={{

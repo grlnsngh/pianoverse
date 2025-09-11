@@ -373,7 +373,7 @@ const Profile = () => {
       ...DEFAULT_FILTERS,
       category: category,
     };
-    dispatch(setPianoFilters(filters));
+    dispatch(setPianoFilters(filters) as any);
     router.push("/home");
   };
 
@@ -973,7 +973,7 @@ const Profile = () => {
                         onPress={() => {
                           animateButtonPress();
                           const filters: FiltersType = { ...DEFAULT_FILTERS };
-                          dispatch(setPianoFilters(filters));
+                          dispatch(setPianoFilters(filters) as any);
                           router.push("/home");
                         }}
                       >

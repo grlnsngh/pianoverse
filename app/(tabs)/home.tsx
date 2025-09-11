@@ -125,7 +125,9 @@ const Home = () => {
   }, [layoutView.grid, filteredPianoReduxItems, formatData]);
 
   const applyFilters = useCallback(() => {
+    console.log("🔍 Applying filters:", filters);
     let filteredItems: PianoItem[] = items.slice();
+    console.log("📊 Original items count:", filteredItems.length);
 
     // Apply sorting first
     if (filters.sortBy) {
@@ -138,13 +140,19 @@ const Home = () => {
 
       switch (filters.sortBy) {
         case SORT_BY_OPTIONS.TITLE_ASC:
-          filteredItems = sortItems(filteredItems, (a, b) =>
-            a.title.localeCompare(b.title)
+          filteredItems = smartSortTitles(filteredItems, true);
+          console.log("🔤 Sorted by title A-Z (smart sorting)");
+          console.log(
+            "📝 First few titles:",
+            filteredItems.slice(0, 5).map((item) => item.title)
           );
           break;
         case SORT_BY_OPTIONS.TITLE_DES:
-          filteredItems = sortItems(filteredItems, (a, b) =>
-            b.title.localeCompare(a.title)
+          filteredItems = smartSortTitles(filteredItems, false);
+          console.log("🔤 Sorted by title Z-A (smart sorting)");
+          console.log(
+            "📝 First few titles:",
+            filteredItems.slice(0, 5).map((item) => item.title)
           );
           break;
         case SORT_BY_OPTIONS.LATEST_ADDED:
@@ -154,6 +162,7 @@ const Home = () => {
               new Date(b.$createdAt).getTime() -
               new Date(a.$createdAt).getTime()
           );
+          console.log("🕒 Sorted by latest added");
           break;
         case SORT_BY_OPTIONS.PURCHASE_DATE:
           filteredItems = sortItems(filteredItems, (a, b) => {
@@ -165,18 +174,17 @@ const Home = () => {
               : new Date(0).getTime();
             return dateB - dateA;
           });
+          console.log("💰 Sorted by purchase date");
           break;
         case SORT_BY_OPTIONS.DUE_DATE:
-          // Only apply DUE_DATE sorting if category is rentable or no category selected
-          if (
-            !filters.category ||
-            filters.category === "rentable" ||
-            filters.category === "Rentable"
-          ) {
-            filteredItems = sortItems(
-              filteredItems.filter(
-                (item) => item.category === "rentable" && item.rental_period_end
-              ),
+          // Filter to only rentable items with rental_period_end, then sort by due date
+          const rentableItemsWithDueDate = filteredItems.filter(
+            (item) => item.category === "rentable" && item.rental_period_end
+          );
+
+          if (rentableItemsWithDueDate.length > 0) {
+            const sortedRentableItems = sortItems(
+              rentableItemsWithDueDate,
               (a, b) => {
                 const dateA = a.rental_period_end
                   ? new Date(a.rental_period_end).getTime()
@@ -184,12 +192,23 @@ const Home = () => {
                 const dateB = b.rental_period_end
                   ? new Date(b.rental_period_end).getTime()
                   : 0;
-                return dateB - dateA;
+                return dateA - dateB; // Sort by earliest due date first
               }
             );
+
+            // Replace the filtered items with sorted rentable items
+            filteredItems = sortedRentableItems;
+            console.log("📅 Sorted by due date (earliest first)");
+          } else {
+            // If no rentable items with due dates, keep original items
+            filteredItems = filteredItems.filter(
+              (item) => item.category === "rentable"
+            );
+            console.log("📅 No rentable items with due dates found");
           }
           break;
         default:
+          console.log("⚠️ Unknown sort option:", filters.sortBy);
           break;
       }
     }
@@ -201,25 +220,50 @@ const Home = () => {
         .toLowerCase();
 
       filteredItems = filteredItems.filter(
-        (item) => item.category === formattedFilter
+        (item) => item.category.toLowerCase() === formattedFilter
+      );
+      console.log(
+        "🏷️ Filtered by category:",
+        filters.category,
+        "- Results:",
+        filteredItems.length
       );
     }
 
     // Apply active rentals filter
     if (filters.isActiveRentals) {
-      const isRentalPeriodActive = (end: Date | null | undefined): boolean => {
+      const isRentalPeriodActive = (
+        end: Date | string | null | undefined
+      ): boolean => {
         if (!end) return false;
         const endDate = new Date(end);
         const currentDate = new Date();
-        const days = differenceInDays(endDate, currentDate);
-        return days > -1;
+
+        // Check if the date is valid
+        if (isNaN(endDate.getTime())) return false;
+
+        // Set current date to start of day for accurate comparison
+        currentDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+
+        const days = Math.ceil(
+          (endDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        return days >= 0; // Include today as active
       };
 
-      filteredItems = filteredItems.filter((item) =>
-        isRentalPeriodActive(item.rental_period_end)
+      filteredItems = filteredItems.filter(
+        (item) =>
+          item.category === "rentable" &&
+          isRentalPeriodActive(item.rental_period_end)
+      );
+      console.log(
+        "🏠 Filtered by active rentals - Results:",
+        filteredItems.length
       );
     }
 
+    console.log("✅ Final filtered results:", filteredItems.length);
     dispatch(setFilteredPianoListItems(filteredItems) as any);
   }, [items, filters, dispatch]);
 
@@ -247,7 +291,12 @@ const Home = () => {
       }
 
       // Apply filters if any are set - only do this once when data is loaded
-      if (filters.category || filters.isActiveRentals || filters.isSold) {
+      if (
+        filters.category ||
+        filters.isActiveRentals ||
+        filters.isSold ||
+        filters.sortBy
+      ) {
         applyFilters();
       } else {
         // No filters set, show all items
@@ -262,7 +311,10 @@ const Home = () => {
     if (
       items &&
       items.length > 0 &&
-      (filters.category || filters.isActiveRentals || filters.isSold)
+      (filters.category ||
+        filters.isActiveRentals ||
+        filters.isSold ||
+        filters.sortBy)
     ) {
       applyFilters();
     } else if (items && items.length > 0) {
@@ -287,6 +339,110 @@ const Home = () => {
   const openMenu = (menuId: string) => setVisibleMenuId(menuId);
   const closeMenu = () => setVisibleMenuId(null);
   const pathname = usePathname();
+
+  // Improved sorting function that handles numbers more intuitively
+  const smartSortTitles = useCallback(
+    (items: PianoItem[], ascending: boolean = true): PianoItem[] => {
+      return [...items].sort((a, b) => {
+        const titleA = a.title || "";
+        const titleB = b.title || "";
+
+        // Extract leading numbers
+        const numMatchA = titleA.match(/^(\d+)/);
+        const numMatchB = titleB.match(/^(\d+)/);
+
+        const numA = numMatchA ? parseFloat(numMatchA[1]) : null;
+        const numB = numMatchB ? parseFloat(numMatchB[1]) : null;
+
+        // If both have leading numbers, sort numerically
+        if (numA !== null && numB !== null) {
+          const numCompare = numA - numB;
+          if (numCompare !== 0) return ascending ? numCompare : -numCompare;
+
+          // If numbers are equal, compare the rest of the string
+          const restA = titleA.replace(/^(\d+)/, "");
+          const restB = titleB.replace(/^(\d+)/, "");
+          return ascending
+            ? restA.localeCompare(restB)
+            : restB.localeCompare(restA);
+        }
+
+        // If only one has leading number, numbers come first
+        if (numA !== null && numB === null) return ascending ? -1 : 1;
+        if (numA === null && numB !== null) return ascending ? 1 : -1;
+
+        // Both are text, use localeCompare
+        return ascending
+          ? titleA.localeCompare(titleB)
+          : titleB.localeCompare(titleA);
+      });
+    },
+    []
+  );
+
+  const testSorting = useCallback(() => {
+    // Simple test data for demonstration
+    const testTitles = ["10", "6", "ABC", "2nd Piano", "Apple Piano"];
+
+    console.log("🧪 Current Test Data:", testTitles);
+
+    console.log("\n🔤 Testing A-Z sorting (localeCompare):");
+    const sortedAZ = [...testTitles].sort((a, b) => a.localeCompare(b));
+    console.log("A-Z result:", sortedAZ);
+
+    console.log("\n🔤 Testing Z-A sorting (localeCompare):");
+    const sortedZA = [...testTitles].sort((a, b) => b.localeCompare(a));
+    console.log("Z-A result:", sortedZA);
+
+    // Test numeric sorting
+    console.log("\n🔢 Testing Numeric-Aware A-Z sorting:");
+    const sortedNumericAZ = [...testTitles].sort((a, b) => {
+      const numA = parseFloat(a);
+      const numB = parseFloat(b);
+
+      // If both start with numbers, sort numerically
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+
+      // If one starts with number and other doesn't, numbers first
+      if (!isNaN(numA) && isNaN(numB)) return -1;
+      if (isNaN(numA) && !isNaN(numB)) return 1;
+
+      // Both are text, use localeCompare
+      return a.localeCompare(b);
+    });
+    console.log("Numeric-aware A-Z result:", sortedNumericAZ);
+
+    console.log("\n🎯 Testing IMPROVED Smart A-Z sorting:");
+    const sortedSmartAZ = [...testTitles].sort((a, b) => {
+      // Extract leading numbers
+      const numMatchA = a.match(/^(\d+)/);
+      const numMatchB = b.match(/^(\d+)/);
+
+      const numA = numMatchA ? parseFloat(numMatchA[1]) : null;
+      const numB = numMatchB ? parseFloat(numMatchB[1]) : null;
+
+      // If both have leading numbers, sort numerically
+      if (numA !== null && numB !== null) {
+        const numCompare = numA - numB;
+        if (numCompare !== 0) return numCompare;
+
+        // If numbers are equal, compare the rest of the string
+        const restA = a.replace(/^(\d+)/, "");
+        const restB = b.replace(/^(\d+)/, "");
+        return restA.localeCompare(restB);
+      }
+
+      // If only one has leading number, numbers come first
+      if (numA !== null && numB === null) return -1;
+      if (numA === null && numB !== null) return 1;
+
+      // Both are text, use localeCompare
+      return a.localeCompare(b);
+    });
+    console.log("Smart A-Z result:", sortedSmartAZ);
+  }, []);
 
   const renderItem = useCallback(
     ({
