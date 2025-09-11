@@ -26,7 +26,11 @@ const { width, height } = Dimensions.get("window");
 
 const ResetPassword = () => {
   const { userId, secret, expire } = useLocalSearchParams();
-  const [deepLinkParams, setDeepLinkParams] = useState<{ userId?: string; secret?: string; expire?: string }>({});
+  const [deepLinkParams, setDeepLinkParams] = useState<{
+    userId?: string;
+    secret?: string;
+    expire?: string;
+  }>({});
 
   const [form, setForm] = useState({
     password: "",
@@ -99,10 +103,10 @@ const ResetPassword = () => {
     const getUrlParams = () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('userId');
-        const secret = urlParams.get('secret');
-        const expire = urlParams.get('expire');
-        
+        const userId = urlParams.get("userId");
+        const secret = urlParams.get("secret");
+        const expire = urlParams.get("expire");
+
         if (userId && secret) {
           setDeepLinkParams({
             userId: userId || undefined,
@@ -167,7 +171,10 @@ const ResetPassword = () => {
     const finalSecret = (secret as string) || deepLinkParams.secret;
 
     if (!finalUserId || !finalSecret) {
-      Alert.alert("Error", "Invalid reset link. Please request a new password reset.");
+      Alert.alert(
+        "Error",
+        "Invalid reset link. Please request a new password reset."
+      );
       return;
     }
 
@@ -307,7 +314,8 @@ const ResetPassword = () => {
                   value={form.confirmPassword}
                   handleChangeText={(e: string) => {
                     setForm({ ...form, confirmPassword: e });
-                    if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
+                    if (errors.confirmPassword)
+                      setErrors({ ...errors, confirmPassword: "" });
                   }}
                   autoCapitalize="none"
                   error={errors.confirmPassword}
@@ -331,7 +339,9 @@ const ResetPassword = () => {
                 </View>
 
                 <View style={styles.signUpContainer}>
-                  <Text style={styles.signUpText}>Remember your password? </Text>
+                  <Text style={styles.signUpText}>
+                    Remember your password?{" "}
+                  </Text>
                   <Link href="/sign-in" style={styles.signUpLink}>
                     <Text style={styles.signUpLinkText}>Sign In</Text>
                   </Link>

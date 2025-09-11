@@ -312,11 +312,12 @@ export async function updatePianoEntry(
   try {
     let imageUrl = pianoData?.image_url || "";
 
-        // Check if image_url is a local file path
-        if (imageUrl.startsWith("file://")) {
-          const uploadedUrl = await uploadFile(pianoData);
-          imageUrl = uploadedUrl ? String(uploadedUrl) : imageUrl;
-        }    const response = await databases.updateDocument(
+    // Check if image_url is a local file path
+    if (imageUrl.startsWith("file://")) {
+      const uploadedUrl = await uploadFile(pianoData);
+      imageUrl = uploadedUrl ? String(uploadedUrl) : imageUrl;
+    }
+    const response = await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.pianoCollectionId,
       documentId,
@@ -400,10 +401,12 @@ export async function deleteMultiplePianoEntries(items: any[]): Promise<void> {
     });
 
     const results = await Promise.all(deletePromises);
-    const failedDeletes = results.filter(result => !result.success);
+    const failedDeletes = results.filter((result) => !result.success);
 
     if (failedDeletes.length > 0) {
-      throw new Error(`Failed to delete ${failedDeletes.length} out of ${items.length} items`);
+      throw new Error(
+        `Failed to delete ${failedDeletes.length} out of ${items.length} items`
+      );
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -429,7 +432,10 @@ export async function updateMultiplePianoEntries(
 
         // Check if image_url is a local file path
         if (imageUrl.startsWith("file://")) {
-          const uploadedUrl = await uploadFile({ ...data, image_url: imageUrl });
+          const uploadedUrl = await uploadFile({
+            ...data,
+            image_url: imageUrl,
+          });
           imageUrl = uploadedUrl ? String(uploadedUrl) : imageUrl;
         }
 
@@ -448,10 +454,12 @@ export async function updateMultiplePianoEntries(
     });
 
     const results = await Promise.all(updatePromises);
-    const failedUpdates = results.filter(result => !result.success);
+    const failedUpdates = results.filter((result) => !result.success);
 
     if (failedUpdates.length > 0) {
-      throw new Error(`Failed to update ${failedUpdates.length} out of ${updates.length} items`);
+      throw new Error(
+        `Failed to update ${failedUpdates.length} out of ${updates.length} items`
+      );
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -503,12 +511,10 @@ export async function sendPasswordRecovery(email: string): Promise<any> {
   try {
     // For FREE plan: Use a simple web URL that redirects to your app
     // Appwrite will send the default email with this URL
-    const resetUrl = "https://grlnsngh.github.io/pianoverse/reset-password.html";
+    const resetUrl =
+      "https://grlnsngh.github.io/pianoverse/reset-password.html";
 
-    const recovery = await account.createRecovery(
-      email,
-      resetUrl
-    );
+    const recovery = await account.createRecovery(email, resetUrl);
 
     return recovery;
   } catch (error) {
@@ -526,13 +532,13 @@ export async function sendPasswordRecovery(email: string): Promise<any> {
  * @returns {Promise<any>} A promise that resolves to the recovery response.
  * @throws {Error} If there is an error during the password update process.
  */
-export async function updatePassword(userId: string, secret: string, password: string): Promise<any> {
+export async function updatePassword(
+  userId: string,
+  secret: string,
+  password: string
+): Promise<any> {
   try {
-    const recovery = await account.updateRecovery(
-      userId,
-      secret,
-      password
-    );
+    const recovery = await account.updateRecovery(userId, secret, password);
 
     return recovery;
   } catch (error) {

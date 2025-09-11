@@ -284,7 +284,10 @@ const SignIn = () => {
                   otherStyles="mb-4"
                 />
 
-                <TouchableOpacity style={styles.forgotPassword} onPress={() => router.push('/forget-password')}>
+                <TouchableOpacity
+                  style={styles.forgotPassword}
+                  onPress={() => router.push("/forget-password")}
+                >
                   <Text style={styles.forgotPasswordText}>
                     Forgot Password?
                   </Text>

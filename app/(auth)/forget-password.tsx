@@ -227,7 +227,8 @@ const ForgetPassword = () => {
             >
               <Text style={styles.welcomeTitle}>Forgot Password?</Text>
               <Text style={styles.welcomeSubtitle}>
-                Enter your email address and we'll send you a link to reset your password
+                Enter your email address and we'll send you a link to reset your
+                password
               </Text>
             </Animated.View>
 
@@ -271,7 +272,9 @@ const ForgetPassword = () => {
                 </View>
 
                 <View style={styles.signUpContainer}>
-                  <Text style={styles.signUpText}>Remember your password? </Text>
+                  <Text style={styles.signUpText}>
+                    Remember your password?{" "}
+                  </Text>
                   <Link href="/sign-in" style={styles.signUpLink}>
                     <Text style={styles.signUpLinkText}>Sign In</Text>
                   </Link>
