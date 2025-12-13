@@ -538,7 +538,7 @@ const Profile = () => {
                     tintColor="#FFA001"
                   />
                   <Text className="text-secondary font-psemibold text-base ml-2">
-                    Export All Pianos to CSV
+                    Download Piano List
                   </Text>
                 </TouchableOpacity>
               </View>
