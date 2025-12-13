@@ -37,8 +37,6 @@ import { scheduleAllRentalNotifications } from "../services/notifications";
 import NotificationTest from "../components/NotificationTest";
 import { usePathname } from "expo-router";
 import { router } from "expo-router";
-import { exportPianosToCSV } from "@/utils/csvExport";
-import icons from "@/constants/icons";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -98,10 +96,6 @@ const Home = () => {
     if (!selectedItems.includes(itemId)) {
       dispatch(toggleItemSelection(itemId) as any);
     }
-  };
-
-  const handleExportCSV = async () => {
-    await exportPianosToCSV(filteredPianoReduxItems);
   };
 
   const formatData = useCallback((data: PianoItem[], numColumns: number) => {
@@ -566,26 +560,6 @@ const Home = () => {
                 }`}
           </Text>
         </View>
-
-        {/* Export CSV Button */}
-        {filteredPianoReduxItems.length > 0 && (
-          <View className="mb-3">
-            <TouchableOpacity
-              onPress={handleExportCSV}
-              className="bg-secondary/20 rounded-xl py-3 px-4 flex-row items-center justify-center space-x-2 border border-secondary/40"
-              activeOpacity={0.7}
-            >
-              <Image
-                source={icons.upload}
-                className="w-5 h-5"
-                tintColor="#FFA001"
-              />
-              <Text className="text-secondary font-psemibold text-base">
-                Export to CSV
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
       </View>
 
       {/* Bulk Operations Bar */}

@@ -24,6 +24,7 @@ import { PieChart } from "react-native-chart-kit";
 import CustomButton from "../components/CustomButton";
 import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
+import { exportPianosToCSV } from "@/utils/csvExport";
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -368,6 +369,10 @@ const Profile = () => {
     setModalVisible(true);
   };
 
+  const handleExportCSV = async () => {
+    await exportPianosToCSV(items);
+  };
+
   const navigateToHomeWithFilter = (category: string) => {
     const filters: FiltersType = {
       ...DEFAULT_FILTERS,
@@ -518,6 +523,26 @@ const Profile = () => {
                 )}
               </View>
             </View>
+
+            {/* Export CSV Button */}
+            {items.length > 0 && (
+              <View className="px-4 mb-4">
+                <TouchableOpacity
+                  onPress={handleExportCSV}
+                  className="bg-secondary/20 rounded-xl py-4 px-4 flex-row items-center justify-center space-x-2 border border-secondary/40"
+                  activeOpacity={0.7}
+                >
+                  <Image
+                    source={icons.upload}
+                    className="w-5 h-5"
+                    tintColor="#FFA001"
+                  />
+                  <Text className="text-secondary font-psemibold text-base ml-2">
+                    Export All Pianos to CSV
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* Stats Section */}
             <Animated.View
