@@ -115,8 +115,13 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
     : "";
   const end = rental_period_end ? formatRentalDate(rental_period_end) : "";
 
-  const totalDuration = calculateDifference(start, end);
-  const remaining = calculateRemainingPeriod(end);
+  const totalDuration =
+    start && end
+      ? calculateDifference(start, end)
+      : { days: 0, weeks: 0, months: 0, years: 0 };
+  const remaining = end
+    ? calculateRemainingPeriod(end)
+    : { days: 0, weeks: 0, months: 0, years: 0 };
   const isRemainingPositive =
     remaining.days > 0 ||
     remaining.weeks > 0 ||
@@ -294,14 +299,17 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
           </View>
 
           {/* Price */}
-          {piano.rental_price && (
+          {piano.rental_price !== null && piano.rental_price !== undefined && (
             <View className="border-t border-gray-700 pt-4">
               <View className="bg-secondary/10 rounded-lg p-4">
                 <Text className="text-sm text-gray-400 font-pmedium mb-1">
                   Rental Price
                 </Text>
                 <Text className="text-3xl text-secondary font-pbold">
-                  ₹{piano.rental_price.toLocaleString()}
+                  {piano.rental_price !== null &&
+                  piano.rental_price !== undefined
+                    ? `₹${piano.rental_price.toLocaleString()}`
+                    : "N/A"}
                 </Text>
               </View>
             </View>
@@ -377,11 +385,12 @@ const EventDetails = ({ piano }: { piano: PianoItem }) => {
             <Text className="text-lg text-white font-psemibold">
               Event Details
             </Text>
-            {piano.event_purchase_price && (
-              <Text className="text-sm text-gray-400 font-pregular">
-                ₹{piano.event_purchase_price.toLocaleString()}
-              </Text>
-            )}
+            {piano.event_purchase_price !== null &&
+              piano.event_purchase_price !== undefined && (
+                <Text className="text-sm text-gray-400 font-pregular">
+                  {`₹${piano.event_purchase_price.toLocaleString()}`}
+                </Text>
+              )}
           </View>
         </View>
         <Image
@@ -393,16 +402,17 @@ const EventDetails = ({ piano }: { piano: PianoItem }) => {
 
       {isExpanded && (
         <View className="p-4 space-y-4">
-          {piano.event_purchase_price && (
-            <View className="bg-purple-500/10 rounded-lg p-4">
-              <Text className="text-sm text-gray-400 font-pmedium mb-1">
-                Purchase Price
-              </Text>
-              <Text className="text-2xl text-purple-400 font-pbold">
-                ₹{piano.event_purchase_price.toLocaleString()}
-              </Text>
-            </View>
-          )}
+          {piano.event_purchase_price !== null &&
+            piano.event_purchase_price !== undefined && (
+              <View className="bg-purple-500/10 rounded-lg p-4">
+                <Text className="text-sm text-gray-400 font-pmedium mb-1">
+                  Purchase Price
+                </Text>
+                <Text className="text-2xl text-purple-400 font-pbold">
+                  {`₹${piano.event_purchase_price.toLocaleString()}`}
+                </Text>
+              </View>
+            )}
 
           <View className="space-y-3">
             {piano.event_purchase_from && (
@@ -465,11 +475,12 @@ const OnSaleDetails = ({ piano }: { piano: PianoItem }) => {
             <Text className="text-lg text-white font-psemibold">
               Sale Information
             </Text>
-            {piano.on_sale_price && (
-              <Text className="text-sm text-green-400 font-psemibold">
-                ₹{piano.on_sale_price.toLocaleString()}
-              </Text>
-            )}
+            {piano.on_sale_price !== null &&
+              piano.on_sale_price !== undefined && (
+                <Text className="text-sm text-green-400 font-psemibold">
+                  {`₹${piano.on_sale_price.toLocaleString()}`}
+                </Text>
+              )}
           </View>
         </View>
         <Image
@@ -481,16 +492,17 @@ const OnSaleDetails = ({ piano }: { piano: PianoItem }) => {
 
       {isExpanded && (
         <View className="p-4 space-y-4">
-          {piano.on_sale_price && (
-            <View className="bg-green-500/10 rounded-lg p-4">
-              <Text className="text-sm text-gray-400 font-pmedium mb-1">
-                Sale Price
-              </Text>
-              <Text className="text-2xl text-green-400 font-pbold">
-                ₹{piano.on_sale_price.toLocaleString()}
-              </Text>
-            </View>
-          )}
+          {piano.on_sale_price !== null &&
+            piano.on_sale_price !== undefined && (
+              <View className="bg-green-500/10 rounded-lg p-4">
+                <Text className="text-sm text-gray-400 font-pmedium mb-1">
+                  Sale Price
+                </Text>
+                <Text className="text-2xl text-green-400 font-pbold">
+                  {`₹${piano.on_sale_price.toLocaleString()}`}
+                </Text>
+              </View>
+            )}
 
           <View className="space-y-3">
             {piano.on_sale_purchase_from && (
@@ -637,7 +649,9 @@ const DetailScreen = () => {
 
           {/* Title & Make */}
           <View className="bg-black-100/50 rounded-2xl p-5">
-            <Text className="text-2xl text-white font-pbold mb-3">{title}</Text>
+            <Text className="text-2xl text-white font-pbold mb-3">
+              {title || "Untitled Piano"}
+            </Text>
 
             <View className="flex-row items-center space-x-2 mb-3">
               <View className="w-10 h-10 bg-secondary/20 rounded-full items-center justify-center">
@@ -650,7 +664,7 @@ const DetailScreen = () => {
               <View className="flex-1">
                 <Text className="text-xs text-gray-400 font-pmedium">Make</Text>
                 <Text className="text-base text-white font-psemibold">
-                  {make}
+                  {make || "Unknown"}
                 </Text>
               </View>
             </View>
