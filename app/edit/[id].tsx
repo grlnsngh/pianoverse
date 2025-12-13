@@ -73,10 +73,51 @@ interface FormState {
 const EditScreen = () => {
   const { id } = useLocalSearchParams();
   const pianosList = useSelector((state: RootState) => state.pianos.items);
+  const navigation = useNavigation();
 
   const filteredPiano: PianoItem | undefined = pianosList.find(
     (piano) => piano.$id === id
   );
+
+  const [uploading, setUploading] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [existingImageError, setExistingImageError] = useState(false);
+
+  const [form, setForm] = useState<FormState>({
+    category: filteredPiano?.category || "",
+    title: filteredPiano?.title || "",
+    description: filteredPiano?.description || "",
+    companyAssociated: filteredPiano?.company_associated || "",
+    image: null,
+    make: filteredPiano?.make || "",
+    rentalCustomerName: filteredPiano?.rental_customer_name || "",
+    rentalCustomerAddress: filteredPiano?.rental_customer_address || "",
+    rentalCustomerMobileNumber: filteredPiano?.rental_customer_mobile || "",
+    rentalStartDate: addHoursToDate(filteredPiano?.rental_period_start),
+    rentalEndDate: addHoursToDate(filteredPiano?.rental_period_end),
+    rentalPrice: filteredPiano?.rental_price || 0,
+    warehouseStoredSinceDate: addHoursToDate(
+      filteredPiano?.warehouse_since_date
+    ),
+    eventPurchasePrice: filteredPiano?.event_purchase_price || 0,
+    eventPurchaseFrom: filteredPiano?.event_purchase_from || "",
+    eventModelNumber: filteredPiano?.event_model_number || "",
+    eventBNumber: filteredPiano?.event_b_number || "",
+    onSalePurchaseFrom: filteredPiano?.on_sale_purchase_from || "",
+    onSaleImportDate: addHoursToDate(filteredPiano?.on_sale_import_date),
+    onSalePrice: filteredPiano?.on_sale_price || 0,
+    dateOfPurchase: addHoursToDate(filteredPiano?.date_of_purchase),
+  });
+
+  const [showRentalStartDatePicker, setShowRentalStartDatePicker] =
+    useState(false);
+  const [showRentalEndDatePicker, setShowRentalEndDatePicker] = useState(false);
+  const [
+    showWarehouseStoredSinceDatePicker,
+    setShowWarehouseStoredSinceDatePicker,
+  ] = useState(false);
+  const [showDateOfPurchasePicker, setShowDateOfPurchasePicker] =
+    useState(false);
 
   useEffect(() => {
     navigation.setOptions({
@@ -87,6 +128,11 @@ const EditScreen = () => {
       title: `Edit Piano`,
     });
   }, [id]);
+
+  // Reset image error when image changes
+  useEffect(() => {
+    setImageError(false);
+  }, [form.image]);
 
   if (!filteredPiano) {
     return (
@@ -119,50 +165,6 @@ const EditScreen = () => {
     on_sale_price,
     date_of_purchase,
   } = filteredPiano;
-
-  const navigation = useNavigation();
-  const [uploading, setUploading] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [existingImageError, setExistingImageError] = useState(false);
-
-  const [form, setForm] = useState<FormState>({
-    category: category,
-    title: title,
-    description: description || "",
-    companyAssociated: company_associated || "",
-    image: null,
-    make: make,
-    rentalCustomerName: rental_customer_name || "",
-    rentalCustomerAddress: rental_customer_address || "",
-    rentalCustomerMobileNumber: rental_customer_mobile || "",
-    rentalStartDate: addHoursToDate(rental_period_start),
-    rentalEndDate: addHoursToDate(rental_period_end),
-    rentalPrice: rental_price || 0,
-    warehouseStoredSinceDate: addHoursToDate(warehouse_since_date),
-    eventPurchasePrice: event_purchase_price || 0,
-    eventPurchaseFrom: event_purchase_from || "",
-    eventModelNumber: event_model_number || "",
-    eventBNumber: event_b_number || "",
-    onSalePurchaseFrom: on_sale_purchase_from || "",
-    onSaleImportDate: addHoursToDate(on_sale_import_date),
-    onSalePrice: on_sale_price || 0,
-    dateOfPurchase: addHoursToDate(date_of_purchase),
-  });
-
-  const [showRentalStartDatePicker, setShowRentalStartDatePicker] =
-    useState(false);
-  const [showRentalEndDatePicker, setShowRentalEndDatePicker] = useState(false);
-  const [
-    showWarehouseStoredSinceDatePicker,
-    setShowWarehouseStoredSinceDatePicker,
-  ] = useState(false);
-  const [showDateOfPurchasePicker, setShowDateOfPurchasePicker] =
-    useState(false);
-
-  // Reset image error when image changes
-  useEffect(() => {
-    setImageError(false);
-  }, [form.image]);
 
   const onDateOfPurchaseChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || form.dateOfPurchase;
