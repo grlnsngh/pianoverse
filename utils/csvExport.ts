@@ -273,17 +273,20 @@ export const exportPianosToCSV = async (pianos: PianoItem[]): Promise<void> => {
       try {
         // Get file info to get content URI
         const contentUri = await FileSystem.getContentUriAsync(fileUri);
-        
+
         // Try to open with intent launcher for spreadsheet apps
         await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
           data: contentUri,
           flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
           type: "text/csv",
         });
-        
+
         console.log("Opened CSV with spreadsheet app");
       } catch (intentError) {
-        console.log("Intent launcher failed, falling back to share:", intentError);
+        console.log(
+          "Intent launcher failed, falling back to share:",
+          intentError
+        );
         // If direct opening fails, use share as fallback
         await Sharing.shareAsync(fileUri, {
           mimeType: "text/csv",
