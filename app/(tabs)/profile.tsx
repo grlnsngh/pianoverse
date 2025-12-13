@@ -38,21 +38,9 @@ const Profile = () => {
   const statsFadeAnim = useRef(new Animated.Value(0)).current;
   const categoryFadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Category card pulse animation
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-
-  // Individual stat card animations
-  const statCardAnim1 = useRef(new Animated.Value(0)).current;
-  const statCardAnim2 = useRef(new Animated.Value(0)).current;
-  const statCardAnim3 = useRef(new Animated.Value(0)).current;
-  const statCardAnim4 = useRef(new Animated.Value(0)).current;
-
   // Loading animation
   const loadingAnim = useRef(new Animated.Value(0)).current;
   const [isLoading, setIsLoading] = useState(true);
-
-  // Progress bar animation
-  const progressAnim = useRef(new Animated.Value(0)).current;
 
   // Simulate data loading (replace with actual data fetching)
   useEffect(() => {
@@ -96,39 +84,6 @@ const Profile = () => {
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),
-          Animated.timing(progressAnim, {
-            toValue: 1,
-            duration: 1500,
-            delay: 800,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: false,
-          }),
-          Animated.stagger(200, [
-            Animated.timing(statCardAnim1, {
-              toValue: 1,
-              duration: 600,
-              easing: Easing.out(Easing.cubic),
-              useNativeDriver: true,
-            }),
-            Animated.timing(statCardAnim2, {
-              toValue: 1,
-              duration: 600,
-              easing: Easing.out(Easing.cubic),
-              useNativeDriver: true,
-            }),
-            Animated.timing(statCardAnim3, {
-              toValue: 1,
-              duration: 600,
-              easing: Easing.out(Easing.cubic),
-              useNativeDriver: true,
-            }),
-            Animated.timing(statCardAnim4, {
-              toValue: 1,
-              duration: 600,
-              easing: Easing.out(Easing.cubic),
-              useNativeDriver: true,
-            }),
-          ]),
         ]).start();
 
         return () => loadingAnimation.stop();
@@ -139,28 +94,6 @@ const Profile = () => {
     };
 
     loadProfileData();
-  }, []);
-
-  useEffect(() => {
-    const pulseAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 2000,
-          easing: Easing.inOut(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 2000,
-          easing: Easing.inOut(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    pulseAnimation.start();
-
-    return () => pulseAnimation.stop();
   }, []);
 
   // Loading animation
@@ -202,39 +135,6 @@ const Profile = () => {
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
-        Animated.timing(progressAnim, {
-          toValue: 1,
-          duration: 1500,
-          delay: 800,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: false,
-        }),
-        Animated.stagger(200, [
-          Animated.timing(statCardAnim1, {
-            toValue: 1,
-            duration: 600,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-          Animated.timing(statCardAnim2, {
-            toValue: 1,
-            duration: 600,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-          Animated.timing(statCardAnim3, {
-            toValue: 1,
-            duration: 600,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-          Animated.timing(statCardAnim4, {
-            toValue: 1,
-            duration: 600,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-        ]),
       ]).start();
     }, 500); // Reduced from 2000ms to 500ms
 
@@ -546,7 +446,7 @@ const Profile = () => {
 
             {/* Stats Section */}
             <Animated.View
-              className="px-4 mb-4"
+              className="px-4 mb-6"
               style={{
                 opacity: statsFadeAnim,
                 transform: [
@@ -559,252 +459,152 @@ const Profile = () => {
                 ],
               }}
             >
-              <Text className="text-white text-base font-psemibold mb-3">
-                Your Stats
+              <Text className="text-white text-xl font-pbold mb-4">
+                Overview
               </Text>
 
               {items.length === 0 ? (
                 /* Empty State for No Pianos */
-                <View className="bg-primary-400 rounded-xl p-6 items-center">
-                  <View className="bg-secondary bg-opacity-20 rounded-full p-4 mb-4">
+                <View className="bg-black-100/50 rounded-2xl p-8 items-center">
+                  <View className="bg-secondary/20 rounded-full p-6 mb-4">
                     <Image
                       source={icons.card}
-                      className="w-12 h-12"
-                      tintColor="#FF9C01"
+                      className="w-16 h-16"
+                      tintColor="#FFA001"
                     />
                   </View>
-                  <Text className="text-white text-lg font-psemibold mb-2">
+                  <Text className="text-white text-xl font-pbold mb-2">
                     No Pianos Yet
                   </Text>
-                  <Text className="text-gray-100 text-center text-sm font-pregular mb-4">
-                    Start building your piano collection by adding your first
+                  <Text className="text-gray-400 text-center text-base font-pregular mb-6 px-4">
+                    Start managing your piano inventory by adding your first
                     instrument
                   </Text>
                   <TouchableOpacity
                     onPress={() => {
                       animateButtonPress();
-                      // Navigate to create screen
                       router.push("/create");
                     }}
-                    className="bg-secondary rounded-xl px-6 py-3 flex-row items-center"
+                    className="bg-secondary rounded-xl px-8 py-4 flex-row items-center shadow-lg"
                     activeOpacity={0.8}
                   >
                     <Image
                       source={icons.plus}
-                      className="w-5 h-5 mr-2"
+                      className="w-6 h-6 mr-2"
                       tintColor="#161622"
                     />
-                    <Text className="text-primary font-psemibold">
-                      Add First Piano
+                    <Text className="text-primary font-pbold text-base">
+                      Add Your First Piano
                     </Text>
                   </TouchableOpacity>
                 </View>
               ) : (
                 <>
-                  {/* Main Stats Grid */}
-                  <View className="flex-row flex-wrap mb-3">
-                    {/* Total Pianos */}
-                    <View className="w-1/2 p-1">
-                      <Animated.View
-                        className="bg-primary-400 rounded-lg p-3 items-center shadow-md"
-                        style={{
-                          opacity: statCardAnim1,
-                          transform: [
-                            {
-                              translateY: statCardAnim1.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [30, 0],
-                              }),
-                            },
-                            {
-                              scale: statCardAnim1.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [0.8, 1],
-                              }),
-                            },
-                          ],
-                        }}
-                      >
-                        <View className="bg-secondary rounded-full p-1.5 mb-1.5">
-                          <Image
-                            source={icons.card}
-                            className="w-4 h-4"
-                            tintColor="#161622"
-                          />
-                        </View>
-                        <Text className="text-white text-center text-lg font-pbold">
+                  {/* Quick Stats - Simplified */}
+                  <View className="bg-black-100/50 rounded-2xl p-5 mb-4">
+                    <View className="flex-row items-center justify-between mb-6">
+                      <View className="flex-1 items-center">
+                        <Text className="text-4xl font-pbold text-secondary mb-1">
                           {items?.length || 0}
                         </Text>
-                        <Text className="text-gray-100 text-center font-pregular text-xs">
+                        <Text className="text-gray-400 text-sm font-pmedium">
                           Total Pianos
                         </Text>
-                      </Animated.View>
-                    </View>
+                      </View>
 
-                    {/* Total Value */}
-                    <View className="w-1/2 p-1">
-                      <Animated.View
-                        className="bg-primary-400 rounded-lg p-3 items-center shadow-md"
-                        style={{
-                          opacity: statCardAnim2,
-                          transform: [
-                            {
-                              translateY: statCardAnim2.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [30, 0],
-                              }),
-                            },
-                            {
-                              scale: statCardAnim2.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [0.8, 1],
-                              }),
-                            },
-                          ],
-                        }}
-                      >
-                        <View className="bg-green-500 rounded-full p-1.5 mb-1.5">
-                          <Image
-                            source={icons.upload}
-                            className="w-4 h-4"
-                            tintColor="#ffffff"
-                          />
-                        </View>
-                        <Text className="text-white text-center text-base font-pbold">
-                          ${totalValue.toLocaleString()}
-                        </Text>
-                        <Text className="text-gray-100 text-center font-pregular text-xs">
-                          Total Value
-                        </Text>
-                      </Animated.View>
-                    </View>
+                      <View className="w-px h-16 bg-gray-700 mx-4" />
 
-                    {/* Active Rentals */}
-                    <View className="w-1/2 p-1">
-                      <Animated.View
-                        className="bg-primary-400 rounded-lg p-3 items-center shadow-md"
-                        style={{
-                          opacity: statCardAnim3,
-                          transform: [
-                            {
-                              translateY: statCardAnim3.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [30, 0],
-                              }),
-                            },
-                            {
-                              scale: statCardAnim3.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [0.8, 1],
-                              }),
-                            },
-                          ],
-                        }}
-                      >
-                        <View className="bg-blue-500 rounded-full p-1.5 mb-1.5">
-                          <Image
-                            source={icons.eye}
-                            className="w-4 h-4"
-                            tintColor="#ffffff"
-                          />
-                        </View>
-                        <Text className="text-white text-center text-lg font-pbold">
+                      <View className="flex-1 items-center">
+                        <Text className="text-4xl font-pbold text-green-400 mb-1">
                           {activeRentals}
                         </Text>
-                        <Text className="text-gray-100 text-center font-pregular text-xs">
-                          Active Rentals
+                        <Text className="text-gray-400 text-sm font-pmedium">
+                          Currently Rented
                         </Text>
-                      </Animated.View>
+                      </View>
                     </View>
 
-                    {/* Recent Additions */}
-                    <View className="w-1/2 p-1">
-                      <Animated.View
-                        className="bg-primary-400 rounded-lg p-3 items-center shadow-md"
-                        style={{
-                          opacity: statCardAnim4,
-                          transform: [
-                            {
-                              translateY: statCardAnim4.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [30, 0],
-                              }),
-                            },
-                            {
-                              scale: statCardAnim4.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [0.8, 1],
-                              }),
-                            },
-                          ],
-                        }}
-                      >
-                        <View className="bg-purple-500 rounded-full p-1.5 mb-1.5">
-                          <Image
-                            source={icons.plus}
-                            className="w-4 h-4"
-                            tintColor="#ffffff"
-                          />
-                        </View>
-                        <Text className="text-white text-center text-lg font-pbold">
-                          {recentAdditions}
+                    {/* Recent Activity */}
+                    {recentAdditions > 0 && (
+                      <View className="pt-4 border-t border-gray-700">
+                        <Text className="text-gray-400 text-xs font-pmedium mb-2">
+                          THIS MONTH
                         </Text>
-                        <Text className="text-gray-100 text-center font-pregular text-xs">
-                          Added This Month
+                        <Text className="text-white text-base font-psemibold">
+                          {recentAdditions} piano
+                          {recentAdditions !== 1 ? "s" : ""} added recently
                         </Text>
-                      </Animated.View>
-                    </View>
+                      </View>
+                    )}
                   </View>
 
-                  {/* Additional Stats Row */}
-                  {soldThisMonth === 0 ? (
-                    <View className="bg-primary-400 rounded-lg p-4 mb-3">
-                      <View className="flex-row items-center">
-                        <View className="bg-gray-500 rounded-full p-2 mr-3">
-                          <Image
-                            source={icons.trash}
-                            className="w-5 h-5"
-                            tintColor="#ffffff"
-                          />
+                  {/* Category Breakdown - Simplified */}
+                  <View className="space-y-3">
+                    <Text className="text-white text-lg font-pbold mb-1">
+                      By Category
+                    </Text>
+
+                    {pieChartData.map((item, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() =>
+                          navigateToHomeWithFilter(
+                            item.name === "Rented Out"
+                              ? "Rentable"
+                              : item.name === "Storage"
+                              ? "Warehouse"
+                              : item.name === "Events"
+                              ? "Events"
+                              : "On Sale"
+                          )
+                        }
+                        className="bg-black-100/50 rounded-xl p-4 flex-row items-center justify-between"
+                        activeOpacity={0.7}
+                      >
+                        <View className="flex-row items-center flex-1">
+                          <View
+                            className="w-12 h-12 rounded-full items-center justify-center mr-4"
+                            style={{ backgroundColor: `${item.color}20` }}
+                          >
+                            <Image
+                              source={item.icon}
+                              className="w-6 h-6"
+                              tintColor={item.color}
+                            />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-white text-base font-psemibold mb-1">
+                              {item.name}
+                            </Text>
+                            <View className="flex-row items-center">
+                              <View className="bg-gray-700 rounded-full h-2 flex-1 mr-3">
+                                <View
+                                  className="h-2 rounded-full"
+                                  style={{
+                                    width: `${item.percentage}%`,
+                                    backgroundColor: item.color,
+                                  }}
+                                />
+                              </View>
+                              <Text className="text-gray-400 text-sm font-pmedium w-12">
+                                {item.percentage}%
+                              </Text>
+                            </View>
+                          </View>
+                          <View className="items-end ml-2">
+                            <Text className="text-2xl font-pbold text-white">
+                              {item.count}
+                            </Text>
+                          </View>
                         </View>
-                        <View className="flex-1">
-                          <Text className="text-white text-sm font-psemibold mb-1">
-                            No Sales This Month
-                          </Text>
-                          <Text className="text-gray-100 font-pregular text-xs">
-                            Your sales activity will appear here once you start
-                            selling pianos
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  ) : (
-                    <View className="bg-primary-400 rounded-lg p-3 mb-3">
-                      <View className="flex-row justify-between items-center">
-                        <View className="flex-1">
-                          <Text className="text-white text-sm font-psemibold mb-0.5">
-                            This Month
-                          </Text>
-                          <Text className="text-gray-100 font-pregular text-xs">
-                            Sales & Activity
-                          </Text>
-                        </View>
-                        <View className="items-end">
-                          <Text className="text-secondary text-base font-pbold">
-                            {soldThisMonth}
-                          </Text>
-                          <Text className="text-gray-100 font-pregular text-xs">
-                            Pianos Sold
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  )}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </>
               )}
             </Animated.View>
 
-            {/* Category Cards */}
+            {/* Quick Actions */}
             <Animated.View
               className="px-4 mb-6"
               style={{
@@ -819,333 +619,107 @@ const Profile = () => {
                 ],
               }}
             >
-              <Text className="text-white text-base font-psemibold mb-3">
-                Piano Categories
+              <Text className="text-white text-lg font-pbold mb-4">
+                Quick Actions
               </Text>
 
               {items.length === 0 ? (
-                /* Empty State for No Categories */
-                <View className="bg-primary-400 rounded-xl p-6 items-center">
-                  <View className="bg-secondary bg-opacity-20 rounded-full p-4 mb-4">
-                    <Image
-                      source={icons.grid}
-                      className="w-12 h-12"
-                      tintColor="#FF9C01"
-                    />
-                  </View>
-                  <Text className="text-white text-lg font-psemibold mb-2">
-                    No Categories Yet
+                <View className="bg-black-100/50 rounded-xl p-6 items-center">
+                  <Text className="text-gray-400 text-center text-sm font-pregular">
+                    Actions will appear here once you add pianos
                   </Text>
-                  <Text className="text-gray-100 text-center text-sm font-pregular mb-4">
-                    Add your first piano to see category breakdowns and track
-                    your inventory
-                  </Text>
-                  <TouchableOpacity
-                    className="bg-secondary rounded-xl px-6 py-3 flex-row items-center"
-                    activeOpacity={0.8}
-                  >
-                    <Image
-                      source={icons.plus}
-                      className="w-5 h-5 mr-2"
-                      tintColor="#161622"
-                    />
-                    <Text className="text-primary font-psemibold">
-                      Add Piano
-                    </Text>
-                  </TouchableOpacity>
                 </View>
               ) : (
-                <>
-                  {/* Enhanced Category Visualization */}
-                  <Animated.View
-                    className="bg-gradient-to-br from-primary-400 to-primary-500 rounded-xl p-4 mb-4 shadow-lg"
-                    style={{
-                      opacity: categoryFadeAnim,
-                      transform: [
-                        {
-                          translateY: categoryFadeAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [50, 0],
-                          }),
-                        },
-                        {
-                          scale: categoryFadeAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0.9, 1],
-                          }),
-                        },
-                      ],
-                    }}
+                <View className="space-y-3">
+                  <TouchableOpacity
+                    onPress={() => router.push("/home")}
+                    className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
+                    activeOpacity={0.7}
                   >
-                    <View className="flex-row items-center justify-between mb-4">
-                      <Text className="text-white text-lg font-psemibold">
-                        Category Distribution
-                      </Text>
-                      <View className="bg-secondary/20 rounded-full px-3 py-1">
-                        <Text className="text-secondary text-xs font-pbold">
-                          {totalItems} Items
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Pie Chart with Enhanced Styling */}
-                    <View className="items-center mb-4">
-                      <View className="relative">
-                        <PieChart
-                          data={pieChartData}
-                          width={Dimensions.get("window").width - 80}
-                          height={200}
-                          chartConfig={{
-                            backgroundColor: "transparent",
-                            backgroundGradientFrom: "transparent",
-                            backgroundGradientTo: "transparent",
-                            color: (opacity = 1) =>
-                              `rgba(255, 255, 255, ${opacity})`,
-                            labelColor: (opacity = 1) =>
-                              `rgba(255, 255, 255, ${opacity})`,
-                          }}
-                          accessor="count"
-                          backgroundColor="transparent"
-                          paddingLeft="15"
-                          absolute={false}
-                          hasLegend={false}
-                          center={[0, 0]}
-                        />
-                      </View>
-                    </View>
-
-                    {/* Enhanced Legend with Progress Bars */}
-                    <View className="space-y-3">
-                      {pieChartData.length > 0 ? (
-                        pieChartData.map((item, index) => (
-                          <View
-                            key={index}
-                            className="bg-primary-300/30 rounded-lg p-3"
-                          >
-                            <View className="flex-row items-center justify-between mb-2">
-                              <View className="flex-row items-center">
-                                <Image
-                                  source={item.icon}
-                                  className="w-5 h-5 mr-2"
-                                  tintColor={item.color}
-                                />
-                                <Text className="text-white text-sm font-psemibold">
-                                  {item.name}
-                                </Text>
-                              </View>
-                              <View className="flex-row items-center">
-                                <Text className="text-secondary text-sm font-pbold mr-1">
-                                  {item.percentage}%
-                                </Text>
-                                <Text className="text-white/70 text-xs">
-                                  ({item.count})
-                                </Text>
-                              </View>
-                            </View>
-                            {/* Progress Bar */}
-                            <View className="bg-primary-300/50 rounded-full h-2">
-                              <Animated.View
-                                className="h-2 rounded-full"
-                                style={{
-                                  width: progressAnim.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: ["0%", `${item.percentage}%`],
-                                  }),
-                                  backgroundColor: item.color,
-                                }}
-                              />
-                            </View>
-                          </View>
-                        ))
-                      ) : (
-                        <View className="bg-primary-300/30 rounded-lg p-4 items-center">
-                          <Image
-                            source={icons.card}
-                            className="w-8 h-8 mb-2"
-                            tintColor="#FFA001"
-                          />
-                          <Text className="text-white/70 text-sm font-pregular text-center">
-                            No pianos found. Add some pianos to see category
-                            distribution.
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  </Animated.View>
-
-                  {/* Enhanced Quick Actions */}
-                  <Animated.View
-                    className="mb-4"
-                    style={{
-                      opacity: categoryFadeAnim,
-                      transform: [
-                        {
-                          translateY: categoryFadeAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [30, 0],
-                          }),
-                        },
-                      ],
-                    }}
-                  >
-                    <View className="flex-row items-center justify-between mb-4">
-                      <Text className="text-white text-lg font-psemibold">
-                        Quick Filters
-                      </Text>
-                      <TouchableOpacity
-                        className="bg-secondary/20 rounded-full px-4 py-2 flex-row items-center"
-                        activeOpacity={0.8}
-                        onPress={() => {
-                          animateButtonPress();
-                          const filters: FiltersType = { ...DEFAULT_FILTERS };
-                          dispatch(setPianoFilters(filters) as any);
-                          router.push("/home");
-                        }}
-                      >
-                        <Text className="text-secondary text-sm font-psemibold mr-2">
-                          View All
-                        </Text>
+                    <View className="flex-row items-center">
+                      <View className="w-10 h-10 bg-secondary/20 rounded-full items-center justify-center mr-3">
                         <Image
-                          source={icons.grid}
-                          className="w-4 h-4"
+                          source={icons.eye}
+                          className="w-5 h-5"
                           tintColor="#FFA001"
                         />
-                      </TouchableOpacity>
+                      </View>
+                      <Text className="text-white text-base font-psemibold">
+                        View All Pianos
+                      </Text>
                     </View>
+                    <Image
+                      source={icons.rightArrow}
+                      className="w-5 h-5"
+                      tintColor="#FFA001"
+                    />
+                  </TouchableOpacity>
 
-                    <View className="flex-row flex-wrap">
-                      {/* Rentable Category Button */}
-                      <Animated.View
-                        style={{
-                          transform: [{ scale: pulseAnim }],
-                        }}
-                      >
-                        <TouchableOpacity
-                          className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl px-4 py-4 mr-3 mb-3 flex-row items-center shadow-lg border border-primary-300/30"
-                          activeOpacity={0.8}
-                          onPress={() => {
-                            animateButtonPress();
-                            navigateToHomeWithFilter(PIANO_CATEGORY.RENTABLE);
-                          }}
-                        >
-                          <Image
-                            source={images.category_rentable}
-                            className="w-6 h-6 mr-3"
-                            tintColor={CATEGORY_COLORS.RENTABLE}
-                          />
-                          <View>
-                            <Text className="text-white text-sm font-psemibold">
-                              Rentable
-                            </Text>
-                            <Text className="text-white/70 text-xs">
-                              {rentableCount} items
-                            </Text>
-                          </View>
-                          <View className="ml-3">
-                            <Image
-                              source={icons.rightArrow}
-                              className="w-4 h-4"
-                              tintColor="#FFA001"
-                            />
-                          </View>
-                        </TouchableOpacity>
-                      </Animated.View>
-
-                      {/* Events Category Button */}
-                      <TouchableOpacity
-                        className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl px-4 py-4 mr-3 mb-3 flex-row items-center shadow-lg border border-primary-300/30"
-                        activeOpacity={0.8}
-                        onPress={() => {
-                          animateButtonPress();
-                          navigateToHomeWithFilter(PIANO_CATEGORY.EVENTS);
-                        }}
-                      >
+                  <TouchableOpacity
+                    onPress={() => router.push("/create")}
+                    className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
+                    activeOpacity={0.7}
+                  >
+                    <View className="flex-row items-center">
+                      <View className="w-10 h-10 bg-secondary/20 rounded-full items-center justify-center mr-3">
                         <Image
-                          source={images.category_event}
-                          className="w-6 h-6 mr-3"
-                          tintColor={CATEGORY_COLORS.EVENTS}
+                          source={icons.plus}
+                          className="w-5 h-5"
+                          tintColor="#FFA001"
                         />
-                        <View>
-                          <Text className="text-white text-sm font-psemibold">
-                            Events
-                          </Text>
-                          <Text className="text-white/70 text-xs">
-                            {eventsCount} items
-                          </Text>
-                        </View>
-                        <View className="ml-3">
-                          <Image
-                            source={icons.rightArrow}
-                            className="w-4 h-4"
-                            tintColor="#FFA001"
-                          />
-                        </View>
-                      </TouchableOpacity>
-
-                      {/* On Sale Category Button */}
-                      <TouchableOpacity
-                        className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl px-4 py-4 mr-3 mb-3 flex-row items-center shadow-lg border border-primary-300/30"
-                        activeOpacity={0.8}
-                        onPress={() => {
-                          animateButtonPress();
-                          navigateToHomeWithFilter(PIANO_CATEGORY.ON_SALE);
-                        }}
-                      >
-                        <Image
-                          source={images.category_sale}
-                          className="w-6 h-6 mr-3"
-                          tintColor={CATEGORY_COLORS.ON_SALE}
-                        />
-                        <View>
-                          <Text className="text-white text-sm font-psemibold">
-                            On Sale
-                          </Text>
-                          <Text className="text-white/70 text-xs">
-                            {onSaleCount} items
-                          </Text>
-                        </View>
-                        <View className="ml-3">
-                          <Image
-                            source={icons.rightArrow}
-                            className="w-4 h-4"
-                            tintColor="#FFA001"
-                          />
-                        </View>
-                      </TouchableOpacity>
-
-                      {/* Storage Category Button */}
-                      <TouchableOpacity
-                        className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl px-4 py-4 mr-3 mb-3 flex-row items-center shadow-lg border border-primary-300/30"
-                        activeOpacity={0.8}
-                        onPress={() => {
-                          animateButtonPress();
-                          navigateToHomeWithFilter(PIANO_CATEGORY.WAREHOUSE);
-                        }}
-                      >
-                        <Image
-                          source={images.category_warehouse}
-                          className="w-6 h-6 mr-3"
-                          tintColor={CATEGORY_COLORS.WAREHOUSE}
-                        />
-                        <View>
-                          <Text className="text-white text-sm font-psemibold">
-                            Storage
-                          </Text>
-                          <Text className="text-white/70 text-xs">
-                            {warehouseCount} items
-                          </Text>
-                        </View>
-                        <View className="ml-3">
-                          <Image
-                            source={icons.rightArrow}
-                            className="w-4 h-4"
-                            tintColor="#FFA001"
-                          />
-                        </View>
-                      </TouchableOpacity>
+                      </View>
+                      <Text className="text-white text-base font-psemibold">
+                        Add New Piano
+                      </Text>
                     </View>
-                  </Animated.View>
-                </>
+                    <Image
+                      source={icons.rightArrow}
+                      className="w-5 h-5"
+                      tintColor="#FFA001"
+                    />
+                  </TouchableOpacity>
+
+                  {activeRentals > 0 && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        const filters: FiltersType = {
+                          ...DEFAULT_FILTERS,
+                          category: "Rentable",
+                          isActiveRentals: true,
+                        };
+                        dispatch(setPianoFilters(filters) as any);
+                        router.push("/home");
+                      }}
+                      className="bg-green-500/20 border border-green-500/40 rounded-xl p-4 flex-row items-center justify-between"
+                      activeOpacity={0.7}
+                    >
+                      <View className="flex-row items-center">
+                        <View className="w-10 h-10 bg-green-500/20 rounded-full items-center justify-center mr-3">
+                          <Image
+                            source={icons.bookmark}
+                            className="w-5 h-5"
+                            tintColor="#22C55E"
+                          />
+                        </View>
+                        <Text className="text-white text-base font-psemibold">
+                          Active Rentals
+                        </Text>
+                      </View>
+                      <View className="flex-row items-center">
+                        <View className="bg-green-500 rounded-full px-3 py-1 mr-2">
+                          <Text className="text-white text-sm font-pbold">
+                            {activeRentals}
+                          </Text>
+                        </View>
+                        <Image
+                          source={icons.rightArrow}
+                          className="w-5 h-5"
+                          tintColor="#22C55E"
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                </View>
               )}
             </Animated.View>
           </ScrollView>
