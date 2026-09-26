@@ -39,7 +39,7 @@ jest.mock("react-native-tab-view", () => {
 });
 
 import React from "react";
-import { FlatList, ToastAndroid } from "react-native";
+import { FlatList } from "react-native";
 import { act } from "react-test-renderer";
 import { router, useLocalSearchParams } from "expo-router";
 import TabsLayout from "@/app/(tabs)/_layout";
@@ -65,7 +65,6 @@ beforeEach(() => {
   fakeBackend.reset();
   captureAlerts();
   jest.spyOn(console, "log").mockImplementation(() => {});
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
 });
 
 afterEach(() => {

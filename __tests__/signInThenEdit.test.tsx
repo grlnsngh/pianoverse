@@ -18,7 +18,6 @@ jest.mock("expo-notifications", () =>
 );
 
 import React from "react";
-import { ToastAndroid } from "react-native";
 import { act } from "react-test-renderer";
 import EditScreen from "@/app/edit/[id]";
 import GlobalProvider, { useGlobalContext } from "@/context/GlobalProvider";
@@ -40,7 +39,6 @@ const CaptureContext = () => {
 
 it("lets a user who just signed in save their changes", async () => {
   const alerts = captureAlerts();
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
   jest.spyOn(console, "log").mockImplementation(() => {});
   const piano = makePiano({ title: "Yamaha U1" });
   fakeBackend.documents.set(piano.$id, { ...piano });

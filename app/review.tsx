@@ -11,7 +11,6 @@ import {
   Alert,
   ScrollView,
   Text,
-  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -20,6 +19,7 @@ import CustomButton from "./components/CustomButton";
 import { COMPANY_ASSOCIATED, PIANO_CATEGORY } from "./constants/Piano";
 import { toStoredDate } from "@/utils/dates";
 import { scheduleRentalDueNotification } from "./services/notifications";
+import { showToast } from "@/utils/toast";
 
 interface ReviewParams {
   formData?: string;
@@ -148,10 +148,7 @@ const Review = () => {
       // Go back to the tabs, so Back can't return here and publish again
       if (router.canGoBack()) router.back();
       else router.replace("/home");
-      ToastAndroid.show(
-        "Piano entry created successfully.",
-        ToastAndroid.SHORT
-      );
+      showToast("Piano entry created successfully.");
     } catch (error) {
       const errorMessage = (error as Error).message;
       Alert.alert("Error while uploading", errorMessage);

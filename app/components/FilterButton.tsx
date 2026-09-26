@@ -472,28 +472,6 @@ const FilterButton = () => {
               />
             </View>
 
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-              className="mt-3"
-            >
-              <Text style={styles.option}>Sold</Text>
-              <Switch
-                value={filterForm.isSold}
-                onValueChange={() =>
-                  setFilterForm({
-                    ...filterForm,
-                    isSold: !filterForm.isSold,
-                  })
-                }
-                trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
-                thumbColor={filterForm.isSold ? PRIMARY_COLOR : "white"}
-              />
-            </View>
-
             <View className="mt-4 flex items-center justify-center">
               <TouchableOpacity
                 onPress={onShowResults}

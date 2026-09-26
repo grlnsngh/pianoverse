@@ -23,7 +23,6 @@ jest.mock("@/context/GlobalProvider", () => ({
 }));
 
 import React from "react";
-import { ToastAndroid } from "react-native";
 import { act } from "react-test-renderer";
 import { addDays, format } from "date-fns";
 import CardItem from "@/app/components/CardItem";
@@ -62,7 +61,6 @@ const rental = (end: string, overrides: Partial<PianoItem> = {}) =>
 beforeEach(() => {
   jest.clearAllMocks();
   fakeBackend.reset();
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
 });
 
 afterEach(() => {

@@ -3,7 +3,6 @@ import {
   Text,
   ScrollView,
   Alert,
-  ToastAndroid,
   Animated,
   Dimensions,
   StyleSheet,
@@ -22,6 +21,7 @@ import CustomButton from "../components/CustomButton";
 import { Link, router } from "expo-router";
 import { createUser } from "@/lib/appwrite";
 import { useGlobalContext } from "@/context/GlobalProvider";
+import { showToast } from "@/utils/toast";
 
 const { width, height } = Dimensions.get("window");
 
@@ -163,10 +163,7 @@ const SignUp = () => {
       setUser(result);
       setIsLogged(true);
       router.replace("/home");
-      ToastAndroid.show(
-        "Welcome! Account created successfully",
-        ToastAndroid.SHORT
-      );
+      showToast("Welcome! Account created successfully");
     } catch (error) {
       // Reset button animation on error
       Animated.timing(buttonAnim, {

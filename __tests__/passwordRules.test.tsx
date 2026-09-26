@@ -17,7 +17,6 @@ jest.mock("expo-router", () => {
 import fs from "fs";
 import path from "path";
 import React from "react";
-import { ToastAndroid } from "react-native";
 import { act, ReactTestRenderer } from "react-test-renderer";
 import SignUp from "@/app/(auth)/sign-up";
 import ResetPassword from "@/app/(auth)/reset-password";
@@ -48,7 +47,6 @@ const typeInto = (renderer: ReactTestRenderer, title: string, text: string) =>
 beforeEach(() => {
   jest.clearAllMocks();
   captureAlerts();
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
 });
 
 afterEach(() => {

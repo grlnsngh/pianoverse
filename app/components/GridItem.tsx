@@ -20,7 +20,6 @@ import {
   FlatList,
   StyleSheet,
   Text,
-  ToastAndroid,
   TouchableOpacity,
   View,
   Animated,
@@ -35,6 +34,7 @@ import RNAAnimated, {
 } from "react-native-reanimated";
 import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "../constants/Piano";
+import { showToast } from "@/utils/toast";
 
 interface GridItemProps {
   item: (PianoItem & { empty?: boolean })[];
@@ -125,10 +125,10 @@ const GridItem: React.FC<GridItemProps> = React.memo(
         const newSet = new Set(prev);
         if (newSet.has(itemId)) {
           newSet.delete(itemId);
-          ToastAndroid.show("Removed from bookmarks", ToastAndroid.SHORT);
+          showToast("Removed from bookmarks");
         } else {
           newSet.add(itemId);
-          ToastAndroid.show("Added to bookmarks", ToastAndroid.SHORT);
+          showToast("Added to bookmarks");
         }
         return newSet;
       });

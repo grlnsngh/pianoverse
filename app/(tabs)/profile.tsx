@@ -193,14 +193,6 @@ const Profile = () => {
       .length;
   };
 
-  const calculateSoldThisMonth = () => {
-    const thisMonth = new Date();
-    thisMonth.setDate(1);
-    return items.filter(
-      (item) => item.sold_date && new Date(item.sold_date) >= thisMonth
-    ).length;
-  };
-
   const rentableCount = filterItemsByCategory(PIANO_CATEGORY.RENTABLE);
   const eventsCount = filterItemsByCategory(PIANO_CATEGORY.EVENTS);
   const onSaleCount = filterItemsByCategory(PIANO_CATEGORY.ON_SALE);
@@ -254,7 +246,6 @@ const Profile = () => {
   const totalValue = calculateTotalValue();
   const activeRentals = calculateActiveRentals();
   const recentAdditions = calculateRecentAdditions();
-  const soldThisMonth = calculateSoldThisMonth();
 
   const handleConfirmLogout = async () => {
     setModalVisible(false);

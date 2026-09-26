@@ -3,7 +3,6 @@ import {
   Text,
   ScrollView,
   Alert,
-  ToastAndroid,
   Animated,
   Dimensions,
   StyleSheet,
@@ -21,6 +20,7 @@ import EnhancedFormField from "../components/EnhancedFormField";
 import { Link, router } from "expo-router";
 import CustomButton from "../components/CustomButton";
 import { sendPasswordRecovery } from "@/lib/appwrite";
+import { showToast } from "@/utils/toast";
 
 const { width, height } = Dimensions.get("window");
 
@@ -136,9 +136,9 @@ const ForgetPassword = () => {
     try {
       await sendPasswordRecovery(form.email);
 
-      ToastAndroid.show(
+      showToast(
         "Password reset email sent! Please check your inbox.",
-        ToastAndroid.LONG
+        "long"
       );
       router.replace("/sign-in");
     } catch (error) {

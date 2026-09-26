@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, View, Text, ToastAndroid, TouchableOpacity } from "react-native";
+import { Alert, View, Text, TouchableOpacity } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import {
@@ -13,6 +13,7 @@ import { cancelRentalNotification } from "../services/notifications";
 import { icons } from "@/constants";
 import { Image } from "expo-image";
 import CustomAlertModal from "./CustomAlertModal";
+import { showToast } from "@/utils/toast";
 
 interface BulkOperationsBarProps {
   onRefresh: () => void;
@@ -49,9 +50,8 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
       // Clear selection and exit bulk mode
       dispatch(clearSelectedItems() as any);
       dispatch(setBulkSelectionMode(false) as any);
-      ToastAndroid.show(
-        `Deleted ${deletedIds.length} piano${deletedIds.length === 1 ? "" : "s"}`,
-        ToastAndroid.SHORT
+      showToast(
+        `Deleted ${deletedIds.length} piano${deletedIds.length === 1 ? "" : "s"}`
       );
     } else {
       // The pianos that could not be deleted stay selected to try again

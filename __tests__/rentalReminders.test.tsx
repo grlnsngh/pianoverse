@@ -28,7 +28,6 @@ jest.mock("@react-native-community/datetimepicker", () => {
 });
 
 import React from "react";
-import { ToastAndroid } from "react-native";
 import { act, ReactTestRenderer } from "react-test-renderer";
 import { addDays, format } from "date-fns";
 import { router, useLocalSearchParams } from "expo-router";
@@ -78,7 +77,6 @@ beforeEach(() => {
   fakeNotifications.reset();
   fakeBackend.reset();
   jest.spyOn(console, "log").mockImplementation(() => {});
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
 });
 
 afterEach(() => {

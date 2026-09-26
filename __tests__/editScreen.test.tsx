@@ -23,7 +23,6 @@ jest.mock("expo-image-manipulator", () => ({
 }));
 
 import React from "react";
-import { ToastAndroid } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import EditScreen from "@/app/edit/[id]";
@@ -56,7 +55,6 @@ beforeEach(() => {
     uri: "file:///old.jpg",
   });
   alerts = captureAlerts();
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
 });
 
 afterEach(() => {

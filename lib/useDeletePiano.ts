@@ -1,10 +1,11 @@
 import { useCallback } from "react";
-import { Alert, Platform, ToastAndroid } from "react-native";
+import { Alert, Platform } from "react-native";
 import { useDispatch } from "react-redux";
 import { cancelRentalNotification } from "@/app/services/notifications";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { removePianoItems } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
+import { showToast } from "@/utils/toast";
 
 /**
  * Returns a function that asks the user to confirm, then deletes the piano
@@ -32,10 +33,7 @@ const useDeletePiano = () => {
         await cancelRentalNotification(item.$id);
         onDeleted?.();
         dispatch(removePianoItems([item.$id]) as any);
-        ToastAndroid.show(
-          `Deleted ${item.title} successfully`,
-          ToastAndroid.SHORT
-        );
+        showToast(`Deleted ${item.title} successfully`);
       };
 
       const message = `Are you sure you want to delete "${item.title}"? This cannot be undone.`;

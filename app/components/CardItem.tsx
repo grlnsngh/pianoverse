@@ -19,7 +19,6 @@ import React, {
 import {
   StyleSheet,
   Text,
-  ToastAndroid,
   TouchableOpacity,
   View,
   Animated,
@@ -34,6 +33,7 @@ import RNAAnimated, {
 } from "react-native-reanimated";
 import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "../constants/Piano";
+import { showToast } from "@/utils/toast";
 
 interface CardItemProps {
   item: PianoItem & { empty?: boolean };
@@ -229,9 +229,8 @@ const CardItem: React.FC<CardItemProps> = React.memo(
 
     const handleBookmark = useCallback(() => {
       setIsBookmarked(!isBookmarked);
-      ToastAndroid.show(
-        isBookmarked ? "Removed from bookmarks" : "Added to bookmarks",
-        ToastAndroid.SHORT
+      showToast(
+        isBookmarked ? "Removed from bookmarks" : "Added to bookmarks"
       );
     }, [isBookmarked]);
 

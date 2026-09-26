@@ -26,7 +26,6 @@ jest.mock("@/context/GlobalProvider", () => {
 });
 
 import React from "react";
-import { ToastAndroid } from "react-native";
 import { act } from "react-test-renderer";
 import { addDays, format } from "date-fns";
 import { router } from "expo-router";
@@ -45,6 +44,7 @@ import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
   captureAlerts,
+  captureToasts,
   createTestStore,
   pressText,
   queryAllByText,
@@ -85,7 +85,6 @@ beforeEach(() => {
   jest.spyOn(console, "log").mockImplementation(() => {});
   jest.spyOn(console, "warn").mockImplementation(() => {});
   jest.spyOn(console, "error").mockImplementation(() => {});
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -152,6 +151,7 @@ describe("bulk selection", () => {
   it("deletes the selected pianos and their reminders, then leaves selection mode", async () => {
     const pianos = [piano("a"), piano("b"), piano("c")];
     await scheduleAllRentalNotifications(pianos);
+    const toasts = captureToasts();
     const { testStore, renderer, onRefresh } = renderBar(pianos, ["a", "b"]);
 
     await deleteSelected(renderer);
@@ -162,7 +162,7 @@ describe("bulk selection", () => {
     expect(fakeNotifications.rentalReminders("b")).toEqual([]);
     expect(fakeNotifications.rentalReminders("c")).not.toEqual([]);
     expect(testStore.getState().pianos.isBulkSelectionMode).toBe(false);
-    expect(ToastAndroid.show).toHaveBeenCalledWith("Deleted 2 pianos", expect.anything());
+    expect(toasts).toEqual(["Deleted 2 pianos"]);
     expect(onRefresh).toHaveBeenCalled();
   });
 

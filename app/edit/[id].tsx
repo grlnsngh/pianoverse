@@ -21,7 +21,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -38,6 +37,7 @@ import {
   pianoCompaniesMakeList,
 } from "../constants/Piano";
 import { scheduleRentalDueNotification } from "../services/notifications";
+import { showToast } from "@/utils/toast";
 
 interface ImageAsset {
   uri: string;
@@ -344,7 +344,7 @@ const EditScreen = () => {
       dispatch(updatePianoItem(toPianoItem(updatedPiano)) as any);
       if (router.canGoBack()) router.back();
       else router.replace("/home");
-      ToastAndroid.show("Piano entry updated successfully", ToastAndroid.SHORT);
+      showToast("Piano entry updated successfully");
     } catch (error) {
       const errorMessage = (error as Error).message;
       Alert.alert("Error while uploading", errorMessage);

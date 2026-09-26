@@ -13,6 +13,7 @@ import pianoReducer from "@/redux/pianos/reducer";
 import userReducer from "@/redux/users/reducers";
 import { DEFAULT_FILTERS } from "@/app/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
+import { setToastListener } from "@/utils/toast";
 
 export const createTestStore = ({
   user = null,
@@ -141,4 +142,11 @@ export const captureAlerts = () => {
       await flushPromises();
     },
   };
+};
+
+/** Collects messages passed to showToast (tests run as iOS). */
+export const captureToasts = () => {
+  const messages: string[] = [];
+  setToastListener((message) => messages.push(message));
+  return messages;
 };

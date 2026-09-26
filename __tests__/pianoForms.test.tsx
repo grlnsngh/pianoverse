@@ -32,7 +32,6 @@ jest.mock("@react-native-community/datetimepicker", () => {
 });
 
 import React from "react";
-import { ToastAndroid } from "react-native";
 import { act, ReactTestRenderer } from "react-test-renderer";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -83,7 +82,6 @@ const chooseCategory = (renderer: ReactTestRenderer, category: string) =>
 beforeEach(() => {
   jest.clearAllMocks();
   fakeBackend.reset();
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
 });
 
 afterEach(() => {
