@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import CustomButton from "./components/CustomButton";
 import { COMPANY_ASSOCIATED, PIANO_CATEGORY } from "./constants/Piano";
+import { toStoredDate } from "@/utils/dates";
 
 interface ReviewParams {
   formData?: string;
@@ -93,7 +94,7 @@ const Review = () => {
       image_url: form.image,
       creator: user.accountId,
       company_associated: form.companyAssociated,
-      date_of_purchase: form.dateOfPurchase,
+      date_of_purchase: toStoredDate(new Date(form.dateOfPurchase)),
     };
 
     let finalDetails = { ...basicDetails };
@@ -103,14 +104,16 @@ const Review = () => {
         rental_customer_name: form.rentalCustomerName,
         rental_customer_address: form.rentalCustomerAddress,
         rental_customer_mobile: form.rentalCustomerMobileNumber,
-        rental_period_start: form.rentalStartDate,
-        rental_period_end: form.rentalEndDate,
+        rental_period_start: toStoredDate(new Date(form.rentalStartDate)),
+        rental_period_end: toStoredDate(new Date(form.rentalEndDate)),
         rental_price: form.rentalPrice,
       };
       finalDetails = { ...finalDetails, ...rentalDetails };
     } else if (form.category === PIANO_CATEGORY.WAREHOUSE) {
       const warehouseDetails = {
-        warehouse_since_date: form.warehouseStoredSinceDate,
+        warehouse_since_date: toStoredDate(
+          new Date(form.warehouseStoredSinceDate)
+        ),
       };
       finalDetails = { ...finalDetails, ...warehouseDetails };
     } else if (form.category === PIANO_CATEGORY.EVENTS) {
@@ -124,7 +127,7 @@ const Review = () => {
     } else if (form.category === PIANO_CATEGORY.ON_SALE) {
       const onSaleDetails = {
         on_sale_purchase_from: form.onSalePurchaseFrom,
-        on_sale_import_date: form.onSaleImportDate,
+        on_sale_import_date: toStoredDate(new Date(form.onSaleImportDate)),
         on_sale_price: form.onSalePrice,
       };
       finalDetails = { ...finalDetails, ...onSaleDetails };

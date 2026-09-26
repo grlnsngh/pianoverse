@@ -197,9 +197,9 @@ describe("Edit screen", () => {
     await pressText(renderer.root, "Save Changes");
 
     expect(alerts.titles()).toEqual([]);
-    expect(
-      new Date(fakeBackend.documents.get("piano-1")?.on_sale_import_date).toDateString()
-    ).toBe(importDate.toDateString());
+    expect(fakeBackend.documents.get("piano-1")?.on_sale_import_date).toBe(
+      "2025-12-24"
+    );
   });
 
   it("saves a decimal price", async () => {

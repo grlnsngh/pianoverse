@@ -25,6 +25,7 @@ import CustomButton from "../components/CustomButton";
 import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
 import { exportPianosToCSV } from "@/utils/csvExport";
+import { isRentalActive } from "@/utils/dates";
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -178,8 +179,7 @@ const Profile = () => {
     return items.filter(
       (item) =>
         item.category === PIANO_CATEGORY.RENTABLE &&
-        item.rental_period_end &&
-        new Date(item.rental_period_end) > new Date()
+        isRentalActive(item.rental_period_end)
     ).length;
   };
 

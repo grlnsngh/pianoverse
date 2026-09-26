@@ -17,6 +17,8 @@
     "testMatch": [
       "**/__tests__/**/*.test.[jt]s?(x)"
     ],
+    "globalSetup": "<rootDir>/__tests__/helpers/globalSetup.js",
+    "testTimeout": 30000,
     "transform": {
       "\\.(png|jpg|jpeg|gif|webp)$": "<rootDir>/__tests__/helpers/assetTransformer.js"
     },

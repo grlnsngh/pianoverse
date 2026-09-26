@@ -12,7 +12,7 @@ import {
   clearSelectedItems,
 } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
-import { differenceInDays } from "date-fns";
+import { isRentalActive, parseStoredDate } from "@/utils/dates";
 import { SORT_BY_OPTIONS } from "../constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
@@ -169,12 +169,8 @@ const Home = () => {
           break;
         case SORT_BY_OPTIONS.PURCHASE_DATE:
           filteredItems = sortItems(filteredItems, (a, b) => {
-            const dateA = a.date_of_purchase
-              ? new Date(a.date_of_purchase).getTime()
-              : new Date(0).getTime();
-            const dateB = b.date_of_purchase
-              ? new Date(b.date_of_purchase).getTime()
-              : new Date(0).getTime();
+            const dateA = parseStoredDate(a.date_of_purchase)?.getTime() ?? 0;
+            const dateB = parseStoredDate(b.date_of_purchase)?.getTime() ?? 0;
             return dateB - dateA;
           });
           console.log("💰 Sorted by purchase date");
@@ -189,12 +185,10 @@ const Home = () => {
             const sortedRentableItems = sortItems(
               rentableItemsWithDueDate,
               (a, b) => {
-                const dateA = a.rental_period_end
-                  ? new Date(a.rental_period_end).getTime()
-                  : 0;
-                const dateB = b.rental_period_end
-                  ? new Date(b.rental_period_end).getTime()
-                  : 0;
+                const dateA =
+                  parseStoredDate(a.rental_period_end)?.getTime() ?? 0;
+                const dateB =
+                  parseStoredDate(b.rental_period_end)?.getTime() ?? 0;
                 return dateA - dateB; // Sort by earliest due date first
               }
             );
@@ -235,30 +229,10 @@ const Home = () => {
 
     // Apply active rentals filter
     if (filters.isActiveRentals) {
-      const isRentalPeriodActive = (
-        end: Date | string | null | undefined
-      ): boolean => {
-        if (!end) return false;
-        const endDate = new Date(end);
-        const currentDate = new Date();
-
-        // Check if the date is valid
-        if (isNaN(endDate.getTime())) return false;
-
-        // Set current date to start of day for accurate comparison
-        currentDate.setHours(0, 0, 0, 0);
-        endDate.setHours(0, 0, 0, 0);
-
-        const days = Math.ceil(
-          (endDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        return days >= 0; // Include today as active
-      };
-
       filteredItems = filteredItems.filter(
         (item) =>
           item.category === "rentable" &&
-          isRentalPeriodActive(item.rental_period_end)
+          isRentalActive(item.rental_period_end)
       );
       console.log(
         "🏠 Filtered by active rentals - Results:",

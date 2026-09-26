@@ -3,7 +3,7 @@ import { SECONDARY_COLOR } from "@/constants/colors";
 import { PianoEntryInput, updatePianoEntry } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
-import { addHoursToDate } from "@/utils/ObjectManipulation";
+import { parseStoredDate, toStoredDate } from "@/utils/dates";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { Image } from "expo-image";
@@ -95,20 +95,23 @@ const EditScreen = () => {
     rentalCustomerName: filteredPiano?.rental_customer_name || "",
     rentalCustomerAddress: filteredPiano?.rental_customer_address || "",
     rentalCustomerMobileNumber: filteredPiano?.rental_customer_mobile || "",
-    rentalStartDate: addHoursToDate(filteredPiano?.rental_period_start),
-    rentalEndDate: addHoursToDate(filteredPiano?.rental_period_end),
+    rentalStartDate:
+      parseStoredDate(filteredPiano?.rental_period_start) ?? new Date(),
+    rentalEndDate:
+      parseStoredDate(filteredPiano?.rental_period_end) ?? new Date(),
     rentalPrice: filteredPiano?.rental_price || 0,
-    warehouseStoredSinceDate: addHoursToDate(
-      filteredPiano?.warehouse_since_date
-    ),
+    warehouseStoredSinceDate:
+      parseStoredDate(filteredPiano?.warehouse_since_date) ?? new Date(),
     eventPurchasePrice: filteredPiano?.event_purchase_price || 0,
     eventPurchaseFrom: filteredPiano?.event_purchase_from || "",
     eventModelNumber: filteredPiano?.event_model_number || "",
     eventBNumber: filteredPiano?.event_b_number || "",
     onSalePurchaseFrom: filteredPiano?.on_sale_purchase_from || "",
-    onSaleImportDate: addHoursToDate(filteredPiano?.on_sale_import_date),
+    onSaleImportDate:
+      parseStoredDate(filteredPiano?.on_sale_import_date) ?? new Date(),
     onSalePrice: filteredPiano?.on_sale_price || 0,
-    dateOfPurchase: addHoursToDate(filteredPiano?.date_of_purchase),
+    dateOfPurchase:
+      parseStoredDate(filteredPiano?.date_of_purchase) ?? new Date(),
   });
 
   const [showRentalStartDatePicker, setShowRentalStartDatePicker] =
@@ -277,7 +280,7 @@ const EditScreen = () => {
       company_associated: form.companyAssociated,
       image_url: form.image ?? image_url,
       creator: user.accountId,
-      date_of_purchase: form.dateOfPurchase.toDateString(),
+      date_of_purchase: toStoredDate(form.dateOfPurchase),
     };
 
     // Check if all basic details are provided
@@ -295,14 +298,14 @@ const EditScreen = () => {
         rental_customer_name: form.rentalCustomerName,
         rental_customer_address: form.rentalCustomerAddress,
         rental_customer_mobile: form.rentalCustomerMobileNumber,
-        rental_period_start: form.rentalStartDate.toDateString(),
-        rental_period_end: form.rentalEndDate.toDateString(),
+        rental_period_start: toStoredDate(form.rentalStartDate),
+        rental_period_end: toStoredDate(form.rentalEndDate),
         rental_price: form.rentalPrice,
       };
       finalDetails = { ...finalDetails, ...rentalDetails };
     } else if (form.category === PIANO_CATEGORY.WAREHOUSE) {
       const warehouseDetails = {
-        warehouse_since_date: form.warehouseStoredSinceDate.toDateString(),
+        warehouse_since_date: toStoredDate(form.warehouseStoredSinceDate),
       };
       finalDetails = { ...finalDetails, ...warehouseDetails };
     } else if (form.category === PIANO_CATEGORY.EVENTS) {
@@ -316,7 +319,7 @@ const EditScreen = () => {
     } else if (form.category === PIANO_CATEGORY.ON_SALE) {
       const onSaleDetails = {
         on_sale_purchase_from: form.onSalePurchaseFrom,
-        on_sale_import_date: form.onSaleImportDate.toDateString(),
+        on_sale_import_date: toStoredDate(form.onSaleImportDate),
         on_sale_price: form.onSalePrice,
       };
       finalDetails = { ...finalDetails, ...onSaleDetails };

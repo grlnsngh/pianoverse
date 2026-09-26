@@ -8,12 +8,11 @@ import {
   printCategoryLabel,
 } from "@/utils/ObjectManipulation";
 import {
-  differenceInDays,
-  differenceInMonths,
-  differenceInWeeks,
-  differenceInYears,
-  format,
-} from "date-fns";
+  getRemainingPeriod,
+  getRentalState,
+  parseStoredDate,
+  periodBetween,
+} from "@/utils/dates";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useNavigation, router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -23,38 +22,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { PIANO_CATEGORY } from "../constants/Piano";
 import CustomButton from "../components/CustomButton";
 import icons from "../../constants/icons";
-
-const calculateDifference = (start: string, end: string) => {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  const days = differenceInDays(endDate, startDate);
-  const weeks = differenceInWeeks(endDate, startDate);
-  const months = differenceInMonths(endDate, startDate);
-  const years = differenceInYears(endDate, startDate);
-
-  return { days, weeks, months, years };
-};
-
-const formatRentalDate = (date: Date | string) => {
-  if (date instanceof Date) {
-    return format(date, "yyyy-MM-dd");
-  }
-  return date;
-};
-
-const calculateRemainingPeriod = (end: string) => {
-  const endDate = new Date(end);
-  const currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0);
-
-  const days = differenceInDays(endDate, currentDate);
-  const weeks = differenceInWeeks(endDate, currentDate);
-  const months = differenceInMonths(endDate, currentDate);
-  const years = differenceInYears(endDate, currentDate);
-
-  return { days, weeks, months, years };
-};
 
 const isLessThanOrEqualTo7Days = (remaining: {
   years: number;
@@ -111,24 +78,39 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const { rental_period_start, rental_period_end } = piano;
 
-  const start = rental_period_start
-    ? formatRentalDate(rental_period_start)
-    : "";
-  const end = rental_period_end ? formatRentalDate(rental_period_end) : "";
+  const start = parseStoredDate(rental_period_start);
+  const end = parseStoredDate(rental_period_end);
 
   const totalDuration =
     start && end
-      ? calculateDifference(start, end)
+      ? periodBetween(start, end)
       : { days: 0, weeks: 0, months: 0, years: 0 };
-  const remaining = end
-    ? calculateRemainingPeriod(end)
-    : { days: 0, weeks: 0, months: 0, years: 0 };
-  const isRemainingPositive =
-    remaining.days > 0 ||
-    remaining.weeks > 0 ||
-    remaining.months > 0 ||
-    remaining.years > 0;
-  const isExpiringSoon = isLessThanOrEqualTo7Days(remaining);
+  const remaining = getRemainingPeriod(rental_period_end);
+  const rentalState = getRentalState(rental_period_end);
+  const isExpiringSoon =
+    rentalState === "due_today" ||
+    rentalState === "ended" ||
+    (rentalState === "active" && isLessThanOrEqualTo7Days(remaining));
+
+  const rentalStatusTitle =
+    rentalState === "ended"
+      ? "Rental Ended"
+      : rentalState === "due_today"
+      ? "Due Today"
+      : isExpiringSoon
+      ? "Expiring Soon!"
+      : "Active Rental";
+  const rentalStatusText =
+    rentalState === "ended"
+      ? `Ended ${displayRemainingTime({
+          days: -remaining.days,
+          weeks: -remaining.weeks,
+          months: -remaining.months,
+          years: -remaining.years,
+        })} ago`
+      : rentalState === "due_today"
+      ? "The rental ends today"
+      : `${displayRemainingTime(remaining)} remaining`;
 
   return (
     <View className="bg-black-100/50 rounded-xl overflow-hidden">
@@ -171,7 +153,7 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
       {isExpanded && (
         <View className="p-4 space-y-4">
           {/* Rental Period Alert */}
-          {isRemainingPositive && (
+          {rentalState && (
             <View
               className={`p-3 rounded-lg ${
                 isExpiringSoon
@@ -191,10 +173,10 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
                       isExpiringSoon ? "text-red-400" : "text-secondary"
                     }`}
                   >
-                    {isExpiringSoon ? "Expiring Soon!" : "Active Rental"}
+                    {rentalStatusTitle}
                   </Text>
                   <Text className="text-white font-psemibold">
-                    {displayRemainingTime(remaining)} remaining
+                    {rentalStatusText}
                   </Text>
                 </View>
               </View>

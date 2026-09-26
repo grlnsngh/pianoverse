@@ -27,7 +27,6 @@ import { ToastAndroid } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import EditScreen from "@/app/edit/[id]";
-import { addHoursToDate } from "@/utils/ObjectManipulation";
 import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
@@ -101,8 +100,8 @@ it("keeps the sale details of an On Sale piano when it is saved", async () => {
   expect(fakeBackend.documents.get("piano-1")).toMatchObject({
     on_sale_purchase_from: "Kolkata Imports",
     on_sale_price: 250000,
-    // Same date handling as every other date on this screen, not "today"
-    on_sale_import_date: addHoursToDate(importDate).toDateString(),
+    // The stored day, not "today"
+    on_sale_import_date: "2026-03-10",
   });
 });
 

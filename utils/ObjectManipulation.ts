@@ -1,6 +1,7 @@
 import { categoryOptions, PIANO_CATEGORY } from "@/app/constants/Piano";
 import { SECONDARY_COLOR } from "@/constants/colors";
 import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
+import { parseStoredDate } from "./dates";
 
 /**
  * Finds and returns the label for a given category value.
@@ -26,16 +27,14 @@ export const printCategoryLabel = (category: string | undefined): string => {
 export const formatDate = (
   dateInput: Date | string | undefined | null
 ): string => {
-  if (!dateInput) return "N/A";
-
-  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  const date = parseStoredDate(dateInput);
+  if (!date) return "N/A";
 
   return date.toLocaleDateString(undefined, {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
-    timeZone: "UTC",
   });
 };
 
@@ -182,22 +181,6 @@ export const createButtonConfig = (form, value, label) => ({
       ? { backgroundColor: SECONDARY_COLOR }
       : {},
 });
-
-/**
- * Adds a specified number of hours to a given date.
- *
- * @param {string | Date | null} [inputDate] - The date to which hours will be added. If not provided or null, the current date and time will be used.
- * @param {number} [hoursToAdd=12] - The number of hours to add to the date. Defaults to 12 hours if not specified.
- * @returns {Date} - The new date with the added hours.
- */
-export const addHoursToDate = (
-  inputDate?: string | Date | null,
-  hoursToAdd: number = 12
-): Date => {
-  const date = inputDate ? new Date(inputDate) : new Date();
-  date.setHours(date.getHours() + hoursToAdd);
-  return date;
-};
 
 /**
  * Retrieves the label for a given category value.
