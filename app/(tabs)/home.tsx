@@ -48,7 +48,12 @@ const Home = () => {
     }
     return getUserPianoEntries(user.accountId);
   }, [user]);
-  const { data: items, isLoading, refetch } = useAppwrite(fetchFunction);
+  const {
+    data: items,
+    isLoading,
+    error: loadError,
+    refetch,
+  } = useAppwrite(fetchFunction);
 
   const pianoReduxItems: PianoItem[] = useSelector(
     (state: RootState) => state.pianos.items
@@ -245,13 +250,15 @@ const Home = () => {
   // Store the fetched items in redux once loading has finished. An empty
   // result is stored too, so deleting the last piano clears the list.
   useEffect(() => {
-    if (isLoading) return;
+    // After a failed load (e.g. offline) keep what we have, including the
+    // reminders, rather than treating it as an empty list
+    if (isLoading || loadError || !user) return;
     dispatch(setPianoListItems(items) as any);
 
     // Keep rental reminders in line with the loaded pianos. This also removes
     // reminders for pianos that were deleted or are no longer rented.
     scheduleAllRentalNotifications(items);
-  }, [items, isLoading]);
+  }, [items, isLoading, loadError, user]);
 
   // Re-apply sorting and filters whenever the stored items or the filters
   // change (including pianos deleted from other screens)

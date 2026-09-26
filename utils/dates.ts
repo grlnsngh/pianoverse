@@ -20,8 +20,18 @@ export interface Period {
 const NO_PERIOD: Period = { days: 0, weeks: 0, months: 0, years: 0 };
 
 const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 /**
@@ -58,7 +68,11 @@ export const parseStoredDate = (value: StoredDate): Date | null => {
     date.getUTCSeconds() === 0 &&
     date.getUTCMilliseconds() === 0;
   if (isMidnightUtc) {
-    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    return new Date(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate()
+    );
   }
   return startOfDay(date);
 };

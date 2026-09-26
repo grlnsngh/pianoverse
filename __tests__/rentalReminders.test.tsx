@@ -31,12 +31,14 @@ import React from "react";
 import { act, ReactTestRenderer } from "react-test-renderer";
 import { addDays, format } from "date-fns";
 import { router, useLocalSearchParams } from "expo-router";
+import Home from "@/app/(tabs)/home";
 import EditScreen from "@/app/edit/[id]";
 import Review from "@/app/review";
 import {
   handleNotificationResponse,
   scheduleAllRentalNotifications,
 } from "@/app/services/notifications";
+import * as globalContext from "@/context/GlobalProvider";
 import GlobalProvider, { useGlobalContext } from "@/context/GlobalProvider";
 import * as appwrite from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
@@ -149,6 +151,39 @@ describe("scheduling", () => {
     ]);
 
     expect(reminderTimes()).toHaveLength(3);
+  });
+});
+
+describe("loading the piano list", () => {
+  beforeEach(() => {
+    jest
+      .spyOn(globalContext, "useGlobalContext")
+      .mockReturnValue({ user: testUser } as any);
+  });
+
+  it("keeps the reminders when the pianos can't be loaded (e.g. offline)", async () => {
+    await scheduleAllRentalNotifications([rental(day(20))]);
+    const before = reminderTimes();
+    captureAlerts();
+    jest
+      .spyOn(appwrite, "getUserPianoEntries")
+      .mockRejectedValue(new Error("Network request failed"));
+
+    renderWithStore(<Home />, createTestStore({ user: testUser }));
+    await flushPromises();
+
+    expect(before).toHaveLength(3);
+    expect(reminderTimes()).toEqual(before);
+  });
+
+  it("drops the reminders of pianos that are gone once the list loads", async () => {
+    await scheduleAllRentalNotifications([rental(day(20))]);
+    jest.spyOn(appwrite, "getUserPianoEntries").mockResolvedValue([]);
+
+    renderWithStore(<Home />, createTestStore({ user: testUser }));
+    await flushPromises();
+
+    expect(reminderTimes()).toEqual([]);
   });
 });
 

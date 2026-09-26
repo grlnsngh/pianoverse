@@ -261,6 +261,7 @@ const Profile = () => {
     // Don't leave this account's pianos or reminders behind for the next user
     await scheduleAllRentalNotifications([]);
     dispatch(resetPianoState() as any);
+    dispatch(setActiveTab("home") as any);
     setUser(null);
     setIsLogged(false);
     router.replace("/");
