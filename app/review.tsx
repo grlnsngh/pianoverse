@@ -16,6 +16,7 @@ import {
 import CustomButton from "./components/CustomButton";
 import { COMPANY_ASSOCIATED, PIANO_CATEGORY } from "./constants/Piano";
 import { toStoredDate } from "@/utils/dates";
+import { scheduleRentalDueNotification } from "./services/notifications";
 
 interface ReviewParams {
   formData?: string;
@@ -135,7 +136,8 @@ const Review = () => {
 
     try {
       setUploading(true);
-      await createPianoEntry(finalDetails);
+      const createdPiano = await createPianoEntry(finalDetails);
+      await scheduleRentalDueNotification(createdPiano);
       router.push("/home"); // Navigate to home tab
       ToastAndroid.show(
         "Piano entry created successfully.",

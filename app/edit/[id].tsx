@@ -32,6 +32,7 @@ import {
   PIANO_CATEGORY,
   pianoCompaniesMakeList,
 } from "../constants/Piano";
+import { scheduleRentalDueNotification } from "../services/notifications";
 
 interface ImageAsset {
   uri: string;
@@ -327,7 +328,13 @@ const EditScreen = () => {
 
     try {
       setUploading(true);
-      await updatePianoEntry(id.toString(), finalDetails, image_url);
+      const updatedPiano = await updatePianoEntry(
+        id.toString(),
+        finalDetails,
+        image_url
+      );
+      // The end date or category may have changed
+      await scheduleRentalDueNotification(updatedPiano);
       router.push("/home");
       ToastAndroid.show("Piano entry updated successfully", ToastAndroid.SHORT);
     } catch (error) {

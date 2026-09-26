@@ -65,8 +65,6 @@ const Home = () => {
   const filters = useSelector((state: RootState) => state.pianos.filters);
 
   const [refreshing, setRefreshing] = useState(false);
-  const [lastNotificationSchedule, setLastNotificationSchedule] =
-    useState<string>("");
   const [showNotificationTest, setShowNotificationTest] = useState(false);
   const [layoutKey, setLayoutKey] = useState<string>("card");
   const [layoutCounter, setLayoutCounter] = useState<number>(0);
@@ -250,24 +248,10 @@ const Home = () => {
     if (isLoading) return;
     dispatch(setPianoListItems(items) as any);
 
-    if (items.length === 0) return;
-
-    // Schedule notifications for rental due dates
-    // Only schedule if we haven't scheduled for this data recently
-    const currentTime = Date.now();
-    const timeSinceLastSchedule =
-      currentTime - (parseInt(lastNotificationSchedule) || 0);
-
-    // Only schedule if it's been more than 30 seconds since last schedule
-    // This prevents excessive scheduling while still allowing updates
-    if (timeSinceLastSchedule > 30000) {
-      console.log(`Scheduling notifications for ${items.length} items`);
-      scheduleAllRentalNotifications(items);
-      setLastNotificationSchedule(currentTime.toString());
-    } else {
-      console.log("Skipping notification scheduling (recently scheduled)");
-    }
-  }, [items, isLoading, lastNotificationSchedule]);
+    // Keep rental reminders in line with the loaded pianos. This also removes
+    // reminders for pianos that were deleted or are no longer rented.
+    scheduleAllRentalNotifications(items);
+  }, [items, isLoading]);
 
   // Re-apply sorting and filters whenever the stored items or the filters
   // change (including pianos deleted from other screens)

@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { getCurrentUser } from "@/lib/appwrite";
@@ -52,41 +53,67 @@ const GlobalProvider = ({ children }) => {
       });
   }, []);
 
+  // Open the piano from a tapped reminder, once someone is signed in
+  const isSignedInRef = useRef(false);
+  isSignedInRef.current = isLogged && !loading;
+  const pendingResponseRef = useRef(null);
+  const lastHandledResponseRef = useRef(null);
+
+  const openFromNotification = useCallback((response) => {
+    const id = response.notification.request.identifier;
+    if (lastHandledResponseRef.current === id) return;
+    if (!isSignedInRef.current) {
+      pendingResponseRef.current = response;
+      return;
+    }
+    lastHandledResponseRef.current = id;
+    handleNotificationResponse(response);
+  }, []);
+
+  useEffect(() => {
+    if (loading || !isLogged || !pendingResponseRef.current) return;
+    const response = pendingResponseRef.current;
+    pendingResponseRef.current = null;
+    openFromNotification(response);
+  }, [loading, isLogged, openFromNotification]);
+
   // Initialize notifications
   useEffect(() => {
-    const initializeNotifications = async () => {
-      // Request notification permissions
-      const hasPermission = await requestNotificationPermissions();
+    requestNotificationPermissions().then((hasPermission) => {
       if (hasPermission) {
         console.log("✅ Notification permissions granted");
       }
+    });
 
-      // Set up notification listeners
-      const notificationListener =
-        Notifications.addNotificationReceivedListener((notification) => {
-          console.log(
-            "📱 Notification received:",
-            notification.request.content.title
-          );
-        });
+    // Set up notification listeners
+    const notificationListener = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log(
+          "📱 Notification received:",
+          notification.request.content.title
+        );
+      }
+    );
 
-      const responseListener =
-        Notifications.addNotificationResponseReceivedListener((response) => {
-          console.log(
-            "👆 User tapped notification:",
-            response.notification.request.content.title
-          );
-          handleNotificationResponse(response);
-        });
+    const responseListener =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log(
+          "👆 User tapped notification:",
+          response.notification.request.content.title
+        );
+        openFromNotification(response);
+      });
 
-      return () => {
-        Notifications.removeNotificationSubscription(notificationListener);
-        Notifications.removeNotificationSubscription(responseListener);
-      };
+    // The app may have been opened by tapping a notification
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) openFromNotification(response);
+    });
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener);
+      Notifications.removeNotificationSubscription(responseListener);
     };
-
-    initializeNotifications();
-  }, []);
+  }, [openFromNotification]);
 
   return (
     <GlobalContext.Provider
