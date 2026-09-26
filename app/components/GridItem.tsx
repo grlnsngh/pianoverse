@@ -4,7 +4,7 @@ import {
   PRIMARY_COLOR,
   SECONDARY_COLOR,
 } from "@/constants/colors";
-import { deletePianoEntry } from "@/lib/appwrite";
+import useDeletePiano from "@/lib/useDeletePiano";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
 import {
   differenceInDays,
@@ -16,7 +16,6 @@ import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
-  Alert,
   Dimensions,
   FlatList,
   StyleSheet,
@@ -111,6 +110,7 @@ const GridItem: React.FC<GridItemProps> = React.memo(
     onToggleSelection,
   }) => {
     const pathname = usePathname();
+    const confirmDelete = useDeletePiano();
     const [bookmarkedItems, setBookmarkedItems] = useState<Set<string>>(
       new Set()
     );
@@ -126,26 +126,9 @@ const GridItem: React.FC<GridItemProps> = React.memo(
       closeMenu();
     };
 
-    const handleOnClickDeleteMenu = async (
-      item: PianoItem & { empty?: boolean }
-    ) => {
-      const title = item.title;
-      try {
-        await deletePianoEntry(item);
-        ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
-        onDelete?.();
-      } catch (error) {
-        if (error instanceof Error) {
-          Alert.alert(
-            "Error",
-            `Error deleting piano entry: ${title} - ${error.message}`
-          );
-        } else {
-          Alert.alert("Error", "An unknown error occurred");
-        }
-      } finally {
-        closeMenu();
-      }
+    const handleOnClickDeleteMenu = (item: PianoItem & { empty?: boolean }) => {
+      closeMenu();
+      confirmDelete(item, onDelete);
     };
 
     const handleBookmark = (itemId: string) => {

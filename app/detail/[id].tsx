@@ -1,4 +1,5 @@
 import { SECONDARY_COLOR } from "@/constants/colors";
+import useDeletePiano from "@/lib/useDeletePiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import {
@@ -539,6 +540,8 @@ const DetailScreen = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
+  const confirmDelete = useDeletePiano();
 
   const filteredPiano: PianoItem | undefined = pianosList.find(
     (piano) => piano.$id === id
@@ -555,6 +558,11 @@ const DetailScreen = () => {
       });
     }
   }, [id, filteredPiano]);
+
+  // Stay blank while navigating away after a delete, instead of "Piano not found"
+  if (isDeleted) {
+    return <SafeAreaView className="bg-primary h-full" />;
+  }
 
   if (!filteredPiano) {
     return (
@@ -593,17 +601,11 @@ const DetailScreen = () => {
   };
 
   const handleDelete = () => {
-    Alert.alert("Delete Piano", "Are you sure you want to delete this piano?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          // TODO: Implement delete functionality
-          console.log("Delete piano:", id);
-        },
-      },
-    ]);
+    confirmDelete(filteredPiano, () => {
+      setIsDeleted(true);
+      if (router.canGoBack()) router.back();
+      else router.replace("/home");
+    });
   };
 
   const handleShare = () => {

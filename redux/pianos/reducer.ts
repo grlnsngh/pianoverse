@@ -10,6 +10,7 @@ import {
   CLEAR_SELECTED_ITEMS,
   TOGGLE_ITEM_SELECTION,
   SELECT_ALL_ITEMS,
+  REMOVE_PIANO_ITEMS,
 } from "./types";
 import { DEFAULT_FILTERS } from "@/app/constants/Piano";
 
@@ -81,6 +82,17 @@ const pianoReducer = (
         ...state,
         selectedItems: action.payload,
       };
+    case REMOVE_PIANO_ITEMS: {
+      const isRemoved = (id: string) => action.payload.includes(id);
+      return {
+        ...state,
+        items: state.items.filter((item) => !isRemoved(item.$id)),
+        filteredItems: state.filteredItems.filter(
+          (item) => !isRemoved(item.$id)
+        ),
+        selectedItems: state.selectedItems.filter((id) => !isRemoved(id)),
+      };
+    }
     default:
       return state;
   }

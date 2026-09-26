@@ -4,7 +4,7 @@ import {
   PRIMARY_COLOR,
   SECONDARY_COLOR,
 } from "@/constants/colors";
-import { deletePianoEntry } from "@/lib/appwrite";
+import useDeletePiano from "@/lib/useDeletePiano";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
 import {
   differenceInDays,
@@ -23,10 +23,8 @@ import React, {
   useMemo,
 } from "react";
 import {
-  Alert,
   StyleSheet,
   Text,
-  ToastAndroid,
   TouchableOpacity,
   View,
   Animated,
@@ -91,6 +89,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(
       rental_period_end,
     } = item;
     const pathname = usePathname();
+    const confirmDelete = useDeletePiano();
 
     // React Native Animated values for card expansion
     const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -238,24 +237,10 @@ const ListItem: React.FC<ListItemProps> = React.memo(
       closeMenu();
     }, [pathname, item.$id, closeMenu]);
 
-    const handleOnClickDeleteMenu = useCallback(async () => {
-      try {
-        await deletePianoEntry(item);
-        ToastAndroid.show(`Deleted ${title} successfully`, ToastAndroid.SHORT);
-        onDelete?.();
-      } catch (error) {
-        if (error instanceof Error) {
-          Alert.alert(
-            "Error",
-            `Error deleting piano entry: ${title} - ${error.message}`
-          );
-        } else {
-          Alert.alert("Error", "An unknown error occurred");
-        }
-      } finally {
-        closeMenu();
-      }
-    }, [item, title, onDelete, closeMenu]);
+    const handleOnClickDeleteMenu = useCallback(() => {
+      closeMenu();
+      confirmDelete(item, onDelete);
+    }, [item, onDelete, closeMenu, confirmDelete]);
 
     if (item.empty) {
       return <View style={styles.itemInvisible} />;

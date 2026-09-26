@@ -14,6 +14,7 @@ import GridItem from "../components/GridItem";
 
 const Search = () => {
   const { query } = useLocalSearchParams();
+  const searchQuery = (Array.isArray(query) ? query[0] : query) ?? "";
   const navigation = useNavigation();
   const pianoItems = useSelector((state: RootState) => state.pianos.items);
   const [items, setItems] = useState<PianoItem[]>([]);
@@ -24,11 +25,11 @@ const Search = () => {
         backgroundColor: SECONDARY_COLOR,
       },
       headerTintColor: "#161622",
-      title: `Search results for ${query}`,
+      title: `Search results for ${searchQuery}`,
     });
-    const searchResults = searchPianoItems(pianoItems, query[0]);
+    const searchResults = searchPianoItems(pianoItems, searchQuery);
     setItems(searchResults);
-  }, [query]);
+  }, [searchQuery, pianoItems]);
 
   const [visibleMenuId, setVisibleMenuId] = useState<string | null>(null);
 

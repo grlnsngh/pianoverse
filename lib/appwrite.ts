@@ -8,6 +8,7 @@ import {
   Query,
   Storage,
 } from "react-native-appwrite";
+import type { Models } from "react-native-appwrite";
 
 export const appwriteConfig = {
   endpoint: "https://cloud.appwrite.io/v1",
@@ -151,8 +152,13 @@ export function convertImageUrl(oldUrl: string): string | null {
   return newUrl;
 }
 
+// Appwrite returns 25 documents per request unless a limit is given, so piano
+// lists are fetched page by page.
+const PIANO_PAGE_SIZE = 100;
+const MAX_PIANO_PAGES = 100;
+
 /**
- * Retrieves piano entries created by a specific user and converts image URLs.
+ * Retrieves all piano entries created by a specific user and converts image URLs.
  *
  * @param {string} userAccountId - The ID of the user whose piano entries are to be retrieved.
  * @returns {Promise<Object[]>} A promise that resolves to an array of documents with converted image URLs.
@@ -160,14 +166,30 @@ export function convertImageUrl(oldUrl: string): string | null {
  */
 export async function getUserPianoEntries(userAccountId: string) {
   try {
-    const items = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.pianoCollectionId,
-      [Query.orderDesc("$createdAt"), Query.equal("creator", userAccountId)]
-    );
+    const documents: Models.Document[] = [];
+    let cursor: string | undefined;
+
+    for (let page = 0; page < MAX_PIANO_PAGES; page++) {
+      const queries = [
+        Query.orderDesc("$createdAt"),
+        Query.equal("creator", userAccountId),
+        Query.limit(PIANO_PAGE_SIZE),
+      ];
+      if (cursor) queries.push(Query.cursorAfter(cursor));
+
+      const { documents: pageDocuments } = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.pianoCollectionId,
+        queries
+      );
+      documents.push(...pageDocuments);
+
+      if (pageDocuments.length < PIANO_PAGE_SIZE) break;
+      cursor = pageDocuments[pageDocuments.length - 1].$id;
+    }
 
     // Convert image URLs to remove transformations
-    const convertedItems = items.documents.map((item) => ({
+    const convertedItems = documents.map((item) => ({
       ...item,
       image_url: item.image_url
         ? convertImageUrl(item.image_url)
@@ -198,28 +220,84 @@ export async function signOut() {
   }
 }
 
+/** An image picked on the device that still has to be uploaded. */
+export interface LocalImageAsset {
+  uri: string;
+  fileName?: string | null;
+  fileSize?: number;
+  mimeType?: string;
+}
+
 /**
- * Uploads a file to the storage.
+ * Piano data as sent by the forms. `image_url` is either the stored image URL
+ * or a newly picked image (an image picker asset or a file:// URI).
+ */
+export type PianoEntryInput = Omit<
+  Partial<PianoItemFormStateType>,
+  "image_url"
+> & {
+  image_url?: string | LocalImageAsset | null;
+};
+
+const IMAGE_MIME_TYPES: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  gif: "image/gif",
+  heic: "image/heic",
+  heif: "image/heif",
+};
+
+const getFileExtension = (value?: string | null) =>
+  value?.split(/[?#]/)[0].match(/\.([a-z0-9]+)$/i)?.[1];
+
+/** Returns the picked image to upload, or null if `image` is already stored. */
+const toLocalImage = (
+  image: PianoEntryInput["image_url"]
+): LocalImageAsset | null => {
+  if (!image) return null;
+  if (typeof image === "string") {
+    return image.startsWith("file://") ? { uri: image } : null;
+  }
+  return image;
+};
+
+const getLocalFileSize = async (uri: string) => {
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  return blob.size;
+};
+
+/**
+ * Uploads a picked image to the storage.
  *
- * @param {Object} pianoData - The data object containing file and user information.
- * @param {Object} pianoData.image_url - The file object to be uploaded.
+ * @param {PianoEntryInput} pianoData - The data object containing file and user information.
+ * @param {LocalImageAsset | string} pianoData.image_url - The picked image (asset or file:// URI) to be uploaded.
  * @param {string} pianoData.users - The user ID.
  * @param {string} pianoData.title - The title of the item.
- * @returns {Promise<string | void>} - The URL of the uploaded file or void if no file is provided.
+ * @returns {Promise<URL | void>} - The URL of the uploaded file or void if there is no image to upload.
  * @throws {Error} - Throws an error if the upload fails.
  */
-export async function uploadFile(pianoData: any) {
-  const file = pianoData.image_url;
+export async function uploadFile(pianoData: PianoEntryInput) {
+  const file = toLocalImage(pianoData.image_url);
   if (!file) return;
 
   try {
     // Extract the file extension from the original file name
-    const fileExtension = file.fileName.split(".").pop();
+    const fileExtension =
+      getFileExtension(file.fileName) ?? getFileExtension(file.uri) ?? "jpg";
+    // The uploaded file may have been re-encoded as JPEG by compression, so
+    // its content type follows the file itself rather than the original name.
+    const mimeType =
+      IMAGE_MIME_TYPES[
+        (getFileExtension(file.uri) ?? fileExtension).toLowerCase()
+      ] ?? "image/jpeg";
     const sanitizeFileName = (input: string) => {
       return input.replace(/[^a-zA-Z0-9-_]/g, "_");
     };
-    const userId = sanitizeFileName(pianoData.users);
-    const itemTitle = sanitizeFileName(pianoData.title);
+    const userId = sanitizeFileName(String(pianoData.users ?? ""));
+    const itemTitle = sanitizeFileName(pianoData.title ?? "");
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-"); // Optional: Add timestamp for uniqueness
 
     // Create a new file name using pianoData.title and the extracted file extension
@@ -227,8 +305,9 @@ export async function uploadFile(pianoData: any) {
 
     const asset = {
       name: newFileName,
-      type: `${file.type}/${fileExtension}`,
-      size: file.fileSize,
+      type: mimeType,
+      // The SDK silently skips the upload when the size is missing
+      size: file.fileSize ?? (await getLocalFileSize(file.uri)),
       uri: file.uri,
     };
 
@@ -237,6 +316,7 @@ export async function uploadFile(pianoData: any) {
       ID.unique(),
       asset
     );
+    if (!uploadedFile?.$id) throw new Error("Image upload failed.");
 
     const fileUrl = await getFilePreview(uploadedFile.$id);
     return fileUrl;
@@ -275,11 +355,11 @@ export async function getFilePreview(fileId) {
 /**
  * Creates a new piano entry in the database.
  *
- * @param {PianoItemFormStateType} pianoData - The data for the piano entry.
+ * @param {PianoEntryInput} pianoData - The data for the piano entry.
  * @returns {Promise<Object>} The response from the database after creating the document.
  * @throws {Error} If there is an error creating the piano entry.
  */
-export async function createPianoEntry(pianoData: PianoItemFormStateType) {
+export async function createPianoEntry(pianoData: PianoEntryInput) {
   try {
     const imageUrl = await uploadFile(pianoData);
     const response = await databases.createDocument(
@@ -300,22 +380,30 @@ export async function createPianoEntry(pianoData: PianoItemFormStateType) {
  * Updates an existing piano entry in the database.
  *
  * @param {string} documentId - The ID of the document to update.
- * @param {Partial<PianoItemFormStateType>} pianoData - The data of the piano entry to update.
- * @param {string} [pianoData.image_url] - The URL or local file path of the piano image.
+ * @param {PianoEntryInput} pianoData - The data of the piano entry to update.
+ * @param {string | LocalImageAsset} [pianoData.image_url] - The stored image URL, or a newly picked image to upload.
+ * @param {string} [previousImageUrl] - The piano's current image; deleted once a new image has been saved.
  * @returns {Promise<Object>} The updated document response from the database.
  * @throws {Error} If there is an error updating the piano entry.
  */
 export async function updatePianoEntry(
   documentId: string,
-  pianoData: Partial<PianoItemFormStateType>
+  pianoData: PianoEntryInput,
+  previousImageUrl?: string | null
 ) {
-  try {
-    let imageUrl = pianoData?.image_url || "";
+  let uploadedImageUrl: string | undefined;
 
-    // Check if image_url is a local file path
-    if (imageUrl.startsWith("file://")) {
+  try {
+    let imageUrl =
+      typeof pianoData.image_url === "string" ? pianoData.image_url : "";
+
+    // Upload a newly picked image
+    if (toLocalImage(pianoData.image_url)) {
       const uploadedUrl = await uploadFile(pianoData);
-      imageUrl = uploadedUrl ? String(uploadedUrl) : imageUrl;
+      if (uploadedUrl) {
+        uploadedImageUrl = String(uploadedUrl);
+        imageUrl = uploadedImageUrl;
+      }
     }
     const response = await databases.updateDocument(
       appwriteConfig.databaseId,
@@ -324,8 +412,19 @@ export async function updatePianoEntry(
       { ...pianoData, image_url: imageUrl }
     );
 
+    // The piano now points at the new image, so the old file is unused
+    if (uploadedImageUrl && previousImageUrl) {
+      await deleteFileByUrl(previousImageUrl).catch((error) =>
+        console.warn("Could not delete the replaced image:", error)
+      );
+    }
+
     return response;
   } catch (error) {
+    // Don't leave the new upload behind if the piano could not be saved
+    if (uploadedImageUrl) {
+      await deleteFileByUrl(uploadedImageUrl).catch(() => {});
+    }
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error updating piano entry:", errorMessage);
     throw new Error(errorMessage);
