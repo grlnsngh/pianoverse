@@ -12,6 +12,7 @@ export const SELECT_ALL_ITEMS = "SELECT_ALL_ITEMS";
 export const REMOVE_PIANO_ITEMS = "REMOVE_PIANO_ITEMS";
 export const ADD_PIANO_ITEM = "ADD_PIANO_ITEM";
 export const UPDATE_PIANO_ITEM = "UPDATE_PIANO_ITEM";
+export const RESET_PIANO_STATE = "RESET_PIANO_STATE";
 
 // Define the type for a piano item
 export interface PianoItem {
@@ -147,6 +148,10 @@ export interface UpdatePianoItemAction {
   payload: PianoItem;
 }
 
+export interface ResetPianoStateAction {
+  type: typeof RESET_PIANO_STATE;
+}
+
 export type PianoActionTypes =
   | SetPianoFiltersAction
   | SetPianoListItemsAction
@@ -158,4 +163,5 @@ export type PianoActionTypes =
   | SelectAllItemsAction
   | RemovePianoItemsAction
   | AddPianoItemAction
-  | UpdatePianoItemAction;
+  | UpdatePianoItemAction
+  | ResetPianoStateAction;

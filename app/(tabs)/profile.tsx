@@ -2,13 +2,15 @@ import { icons, images } from "@/constants";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { signOut } from "@/lib/appwrite";
 import { setActiveTab } from "@/redux/navigation/actions";
-import { setPianoFilters } from "@/redux/pianos/actions";
+import { resetPianoState, setPianoFilters } from "@/redux/pianos/actions";
+import { scheduleAllRentalNotifications } from "../services/notifications";
 import { FiltersType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useState, useRef, useEffect } from "react";
 import {
+  Alert,
   Modal,
   StyleSheet,
   Text,
@@ -256,7 +258,18 @@ const Profile = () => {
 
   const handleConfirmLogout = async () => {
     setModalVisible(false);
-    await signOut();
+    try {
+      await signOut();
+    } catch (error) {
+      Alert.alert(
+        "Sign Out Failed",
+        error instanceof Error ? error.message : "Please try again."
+      );
+      return;
+    }
+    // Don't leave this account's pianos or reminders behind for the next user
+    await scheduleAllRentalNotifications([]);
+    dispatch(resetPianoState() as any);
     setUser(null);
     setIsLogged(false);
     router.replace("/");

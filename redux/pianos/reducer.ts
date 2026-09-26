@@ -13,6 +13,7 @@ import {
   REMOVE_PIANO_ITEMS,
   ADD_PIANO_ITEM,
   UPDATE_PIANO_ITEM,
+  RESET_PIANO_STATE,
 } from "./types";
 import { DEFAULT_FILTERS } from "@/app/constants/Piano";
 
@@ -108,6 +109,8 @@ const pianoReducer = (
           item.$id === action.payload.$id ? action.payload : item
         ),
       };
+    case RESET_PIANO_STATE:
+      return initialState;
     default:
       return state;
   }

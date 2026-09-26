@@ -219,6 +219,8 @@ export async function signOut() {
 
     return session;
   } catch (error) {
+    // The session already expired, so there is nothing left to sign out of
+    if ((error as { code?: number })?.code === 401) return null;
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(errorMessage);
   }
@@ -477,45 +479,30 @@ export async function deleteFileByUrl(url: string): Promise<void> {
  * Deletes multiple piano entries from the database and their associated files from storage.
  *
  * @param {object[]} items - Array of piano entry objects to be deleted.
- * @returns {Promise<void>} - Resolves when all piano entries and their associated files are successfully deleted.
- * @throws {Error} - Throws an error if any deletion fails.
+ * @returns {Promise<{ deletedIds: string[]; failedIds: string[] }>} - Which pianos were deleted and which could not be.
  */
-export async function deleteMultiplePianoEntries(items: any[]): Promise<void> {
-  try {
-    const deletePromises = items.map(async (item) => {
+export async function deleteMultiplePianoEntries(
+  items: any[]
+): Promise<{ deletedIds: string[]; failedIds: string[] }> {
+  const results = await Promise.all(
+    items.map(async (item) => {
       try {
-        // Delete the associated file if the image URL exists
-        if (item.image_url) {
-          await deleteFileByUrl(item.image_url);
-        }
-
-        // Delete the piano entry from the database
-        await databases.deleteDocument(
-          appwriteConfig.databaseId,
-          appwriteConfig.pianoCollectionId,
-          item.$id
-        );
-
-        return { success: true, id: item.$id };
-      } catch (error) {
-        console.error(`Failed to delete item ${item.$id}:`, error);
-        return { success: false, id: item.$id, error };
+        await deletePianoEntry(item);
+        return { id: item.$id as string, deleted: true };
+      } catch {
+        return { id: item.$id as string, deleted: false };
       }
-    });
+    })
+  );
 
-    const results = await Promise.all(deletePromises);
-    const failedDeletes = results.filter((result) => !result.success);
-
-    if (failedDeletes.length > 0) {
-      throw new Error(
-        `Failed to delete ${failedDeletes.length} out of ${items.length} items`
-      );
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Error in bulk delete:", errorMessage);
-    throw new Error(`Bulk delete failed: ${errorMessage}`);
-  }
+  return {
+    deletedIds: results
+      .filter((result) => result.deleted)
+      .map((result) => result.id),
+    failedIds: results
+      .filter((result) => !result.deleted)
+      .map((result) => result.id),
+  };
 }
 
 /**
@@ -583,17 +570,19 @@ export async function updateMultiplePianoEntries(
  */
 export async function deletePianoEntry(item: any) {
   try {
-    // Delete the associated file if the image URL exists
-    if (item.image_url) {
-      await deleteFileByUrl(item.image_url);
-    }
-
     // Delete the piano entry from the database
     const response = await databases.deleteDocument(
       appwriteConfig.databaseId,
       appwriteConfig.pianoCollectionId,
       item.$id
     );
+
+    // Then its image; a missing image must not keep the piano from being deleted
+    if (item.image_url) {
+      await deleteFileByUrl(item.image_url).catch((error) =>
+        console.warn("Could not delete the piano's image:", error)
+      );
+    }
 
     return response;
   } catch (error) {
