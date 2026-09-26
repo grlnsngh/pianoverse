@@ -22,6 +22,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 import CustomButton from "../components/CustomButton";
 import FormField from "../components/FormField";
+import PriceField from "../components/PriceField";
 import {
   categoryOptions,
   COMPANY_ASSOCIATED,
@@ -128,6 +129,8 @@ const Create = () => {
   ] = useState(false);
   const [showDateOfPurchasePicker, setShowDateOfPurchasePicker] =
     useState(false);
+  const [showOnSaleImportDatePicker, setShowOnSaleImportDatePicker] =
+    useState(false);
 
   // Reset image error when image changes
   useEffect(() => {
@@ -200,6 +203,12 @@ const Create = () => {
     const currentDate = selectedDate || form.warehouseStoredSinceDate;
     setShowWarehouseStoredSinceDatePicker(false);
     setForm({ ...form, warehouseStoredSinceDate: currentDate });
+  };
+
+  const onOnSaleImportDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || form.onSaleImportDate;
+    setShowOnSaleImportDatePicker(false);
+    setForm({ ...form, onSaleImportDate: currentDate });
   };
 
   const openImagePicker = async () => {
@@ -719,16 +728,12 @@ const Create = () => {
                       />
                     )}
                   </View>
-                  <FormField
+                  <PriceField
                     title="Rent Price"
-                    value={form.rentalPrice.toString()}
-                    handleChangeText={(e) => {
-                      const numericValue = parseFloat(e);
-                      if (!isNaN(numericValue)) {
-                        setForm({ ...form, rentalPrice: numericValue });
-                      }
-                    }}
-                    keyboardType="numeric"
+                    value={form.rentalPrice}
+                    onChangeValue={(rentalPrice) =>
+                      setForm({ ...form, rentalPrice })
+                    }
                   />
                 </>
               )}
@@ -754,16 +759,12 @@ const Create = () => {
 
               {form.category === PIANO_CATEGORY.EVENTS && (
                 <>
-                  <FormField
+                  <PriceField
                     title="Purchase Price"
-                    value={form.eventPurchasePrice.toString()}
-                    handleChangeText={(e) => {
-                      const numericValue = parseFloat(e);
-                      if (!isNaN(numericValue)) {
-                        setForm({ ...form, eventPurchasePrice: numericValue });
-                      }
-                    }}
-                    keyboardType="numeric"
+                    value={form.eventPurchasePrice}
+                    onChangeValue={(eventPurchasePrice) =>
+                      setForm({ ...form, eventPurchasePrice })
+                    }
                   />
                   <FormField
                     title="Purchased From"
@@ -802,29 +803,23 @@ const Create = () => {
                       title="Import Date"
                       value={form.onSaleImportDate.toDateString()}
                       handleChangeText={() => {}}
-                      onFocus={() =>
-                        setShowWarehouseStoredSinceDatePicker(true)
-                      }
+                      onFocus={() => setShowOnSaleImportDatePicker(true)}
                     />
-                    {showWarehouseStoredSinceDatePicker && (
+                    {showOnSaleImportDatePicker && (
                       <DateTimePicker
                         value={form.onSaleImportDate}
                         mode="date"
                         display="default"
-                        onChange={onWarehouseStoredSinceDateChange}
+                        onChange={onOnSaleImportDateChange}
                       />
                     )}
                   </View>
-                  <FormField
+                  <PriceField
                     title="Price"
-                    value={form.onSalePrice.toString()}
-                    handleChangeText={(e) => {
-                      const numericValue = parseFloat(e);
-                      if (!isNaN(numericValue)) {
-                        setForm({ ...form, onSalePrice: numericValue });
-                      }
-                    }}
-                    keyboardType="numeric"
+                    value={form.onSalePrice}
+                    onChangeValue={(onSalePrice) =>
+                      setForm({ ...form, onSalePrice })
+                    }
                   />
                 </>
               )}
