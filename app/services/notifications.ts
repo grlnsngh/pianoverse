@@ -1,6 +1,8 @@
 import * as Notifications from "expo-notifications";
+import { router } from "expo-router";
 import { Platform } from "react-native";
-import { differenceInDays, subDays } from "date-fns";
+import { subDays } from "date-fns";
+import { parseStoredDate } from "@/utils/dates";
 
 // Configure notification handler
 Notifications.setNotificationHandler({
@@ -55,80 +57,79 @@ export const requestNotificationPermissions = async () => {
   }
 };
 
-// Schedule notification for rental due date (1 week before)
+// Reminders go out at 9:00 a week before, the day before and on the due date
+const REMINDER_HOUR = 9;
+const REMINDER_DAYS_BEFORE = [7, 1, 0];
+
+/**
+ * The reminder times still ahead for a rental due on `dueDate`. They only
+ * depend on the due date, so rescheduling (e.g. on every app start) never
+ * pushes a reminder later.
+ */
+export const getRentalReminderTimes = (dueDate: Date, now = new Date()) =>
+  REMINDER_DAYS_BEFORE.map((daysBefore) => {
+    const date = subDays(dueDate, daysBefore);
+    date.setHours(REMINDER_HOUR, 0, 0, 0);
+    return { daysBefore, date };
+  }).filter(({ date }) => date > now);
+
+const reminderBody = (title: string, daysBefore: number) => {
+  const when =
+    daysBefore === 0
+      ? "ends today"
+      : daysBefore === 1
+      ? "ends tomorrow"
+      : `ends in ${daysBefore} days`;
+  return `"${title}" rental ${when}. Please arrange return or extension.`;
+};
+
+// Replace a piano's rental reminders with ones for its current due date
+// (none if it is no longer rented or the due date has passed)
 export const scheduleRentalDueNotification = async (pianoItem: any) => {
   try {
-    // Validate input
-    if (
-      !pianoItem ||
-      !pianoItem.rental_period_end ||
-      pianoItem.category !== "rentable"
-    ) {
-      console.log(
-        `Skipping notification for piano ${
-          pianoItem?.title || "unknown"
-        }: invalid data`
-      );
-      return null;
-    }
+    if (!pianoItem?.$id) return [];
 
-    const dueDate = new Date(pianoItem.rental_period_end);
-    const now = new Date();
-
-    // Validate due date
-    if (isNaN(dueDate.getTime())) {
-      console.error(
-        `Invalid due date for piano ${pianoItem.title}: ${pianoItem.rental_period_end}`
-      );
-      return null;
-    }
-
-    // Check if due date is in the past
-    if (dueDate <= now) {
-      console.log(
-        `Skipping notification for piano ${pianoItem.title}: due date is in the past`
-      );
-      return null;
-    }
-
-    const notificationDate = subDays(dueDate, 7); // 1 week before
-
-    // If notification date is in the past, schedule for tomorrow instead
-    const finalNotificationDate =
-      notificationDate <= now
-        ? new Date(now.getTime() + 24 * 60 * 60 * 1000)
-        : notificationDate;
-
-    // Calculate days remaining for notification message
-    const daysRemaining = Math.max(1, differenceInDays(dueDate, now));
-
-    // Cancel any existing notification for this piano first
+    // Cancel any existing notifications for this piano first
     await cancelRentalNotification(pianoItem.$id);
 
-    const notificationId = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "🎹 Piano Rental Due Soon!",
-        body: `"${pianoItem.title}" rental expires in ${daysRemaining} days. Please arrange return or extension.`,
-        data: {
-          pianoId: pianoItem.$id,
-          type: "rental_due",
-          dueDate: pianoItem.rental_period_end,
-        },
-        sound: "default",
-      },
-      trigger: {
-        date: finalNotificationDate,
-        channelId: Platform.OS === "android" ? "rental-reminders" : undefined,
-      },
-    });
+    const dueDate = parseStoredDate(pianoItem.rental_period_end);
+    if (pianoItem.category !== "rentable" || !dueDate) {
+      console.log(
+        `Skipping notification for piano ${pianoItem.title}: not an active rental`
+      );
+      return [];
+    }
+
+    const reminders = getRentalReminderTimes(dueDate);
+    const notificationIds = await Promise.all(
+      reminders.map(({ daysBefore, date }) =>
+        Notifications.scheduleNotificationAsync({
+          content: {
+            title: "🎹 Piano Rental Due Soon!",
+            body: reminderBody(pianoItem.title, daysBefore),
+            data: {
+              pianoId: pianoItem.$id,
+              type: "rental_due",
+              dueDate: pianoItem.rental_period_end,
+            },
+            sound: "default",
+          },
+          trigger: {
+            date,
+            channelId:
+              Platform.OS === "android" ? "rental-reminders" : undefined,
+          },
+        })
+      )
+    );
 
     console.log(
-      `✅ Scheduled notification for piano "${pianoItem.title}" - ID: ${notificationId}`
+      `✅ Scheduled ${notificationIds.length} reminder(s) for piano "${pianoItem.title}"`
     );
-    return notificationId;
+    return notificationIds;
   } catch (error) {
     console.error("❌ Error scheduling rental notification:", error);
-    return null;
+    return [];
   }
 };
 
@@ -169,79 +170,51 @@ export const cancelRentalNotification = async (pianoId: string) => {
   }
 };
 
-// Schedule notifications for all active rentals
-export const scheduleAllRentalNotifications = async (pianoItems: any[]) => {
-  try {
-    if (!Array.isArray(pianoItems) || pianoItems.length === 0) {
-      console.log("ℹ️ No piano items to schedule notifications for");
+const cancelAllRentalNotifications = async () => {
+  const scheduledNotifications =
+    await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    scheduledNotifications
+      .filter(
+        (notification) => notification.content.data?.type === "rental_due"
+      )
+      .map((notification) =>
+        Notifications.cancelScheduledNotificationAsync(notification.identifier)
+      )
+  );
+};
+
+let schedulingQueue: Promise<unknown> = Promise.resolve();
+
+// Replace all rental reminders with ones for these pianos. Reminders for
+// pianos that were deleted or are no longer rented are removed too.
+export const scheduleAllRentalNotifications = (pianoItems: any[]) => {
+  const run = async () => {
+    try {
+      await cancelAllRentalNotifications();
+
+      const rentals = (Array.isArray(pianoItems) ? pianoItems : []).filter(
+        (item) => item?.category === "rentable" && item.rental_period_end
+      );
+      const results = await Promise.all(
+        rentals.map((item) => scheduleRentalDueNotification(item))
+      );
+      const notificationIds = results.flat();
+
+      console.log(
+        `✅ Scheduled ${notificationIds.length} reminder(s) for ${rentals.length} rental(s)`
+      );
+      return notificationIds;
+    } catch (error) {
+      console.error("❌ Error in bulk notification scheduling:", error);
       return [];
     }
+  };
 
-    console.log(
-      `🔄 Processing ${pianoItems.length} piano items for notifications`
-    );
-
-    // Clean up expired notifications first
-    const cleanedCount = await cleanupExpiredNotifications();
-
-    // Filter active rentals with valid due dates
-    const activeRentals = pianoItems.filter((item) => {
-      if (!item || item.category !== "rentable") return false;
-      if (!item.rental_period_end) return false;
-
-      const dueDate = new Date(item.rental_period_end);
-      const now = new Date();
-
-      // Only include rentals with future due dates
-      return !isNaN(dueDate.getTime()) && dueDate > now;
-    });
-
-    console.log(
-      `📅 Found ${activeRentals.length} active rentals with future due dates`
-    );
-
-    if (activeRentals.length === 0) {
-      console.log("ℹ️ No active rentals to schedule notifications for");
-      return [];
-    }
-
-    // Cancel all existing notifications first to prevent duplicates
-    await Notifications.cancelAllScheduledNotificationsAsync();
-    console.log("🗑️ Cancelled all existing notifications");
-
-    // Schedule new notifications with error handling for each item
-    const notificationPromises = activeRentals.map(async (item) => {
-      try {
-        return await scheduleRentalDueNotification(item);
-      } catch (error) {
-        console.error(
-          `Failed to schedule notification for piano ${item.title}:`,
-          error
-        );
-        return null;
-      }
-    });
-
-    const results = await Promise.all(notificationPromises);
-    const successfulSchedules = results.filter(
-      (id: string | null) => id !== null
-    );
-
-    console.log(
-      `✅ Successfully scheduled ${successfulSchedules.length} out of ${activeRentals.length} rental notifications`
-    );
-
-    // Log summary only if there were failures
-    if (successfulSchedules.length < activeRentals.length) {
-      const failedCount = activeRentals.length - successfulSchedules.length;
-      console.warn(`⚠️ Failed to schedule ${failedCount} notifications`);
-    }
-
-    return successfulSchedules;
-  } catch (error) {
-    console.error("❌ Error in bulk notification scheduling:", error);
-    return [];
-  }
+  // Run one at a time so overlapping calls can't leave duplicate reminders
+  const result = schedulingQueue.then(run, run);
+  schedulingQueue = result;
+  return result;
 };
 
 // Get all scheduled notifications
@@ -299,12 +272,7 @@ export const handleNotificationResponse = (
   const data = response.notification.request.content.data;
 
   if (data?.type === "rental_due" && data?.pianoId) {
-    // Navigate to the piano detail page
-    // This would typically use your navigation system
-    console.log(
-      `User tapped rental due notification for piano: ${data.pianoId}`
-    );
-    // You could dispatch an action to navigate to the piano detail
+    router.push(`/detail/${data.pianoId}`);
   }
 };
 

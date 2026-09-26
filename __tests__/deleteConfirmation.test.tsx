@@ -11,7 +11,6 @@ jest.mock("@/app/services/notifications", () => ({
 }));
 
 import React from "react";
-import { ToastAndroid } from "react-native";
 import CardItem from "@/app/components/CardItem";
 import GridItem from "@/app/components/GridItem";
 import ListItem from "@/app/components/ListItem";
@@ -61,7 +60,6 @@ beforeEach(() => {
     uri: "file:///old.jpg",
   });
   alerts = captureAlerts();
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
 });
 
 afterEach(() => {

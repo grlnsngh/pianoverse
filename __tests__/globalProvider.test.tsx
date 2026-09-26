@@ -5,11 +5,9 @@ jest.mock("@/app/services/notifications", () => ({
   requestNotificationPermissions: jest.fn(() => Promise.resolve(false)),
   handleNotificationResponse: jest.fn(),
 }));
-jest.mock("expo-notifications", () => ({
-  addNotificationReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
-  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeNotificationSubscription: jest.fn(),
-}));
+jest.mock("expo-notifications", () =>
+  require("./helpers/fakeNotifications").createFakeNotificationsModule()
+);
 
 import React from "react";
 import { act } from "react-test-renderer";

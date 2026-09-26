@@ -10,6 +10,9 @@ import {
   TOGGLE_ITEM_SELECTION,
   SELECT_ALL_ITEMS,
   REMOVE_PIANO_ITEMS,
+  ADD_PIANO_ITEM,
+  UPDATE_PIANO_ITEM,
+  RESET_PIANO_STATE,
   SetFilteredPianoListItemsAction,
   SetPianoFiltersAction,
   SetPianoListItemsAction,
@@ -19,6 +22,9 @@ import {
   ToggleItemSelectionAction,
   SelectAllItemsAction,
   RemovePianoItemsAction,
+  AddPianoItemAction,
+  UpdatePianoItemAction,
+  ResetPianoStateAction,
 } from "./types";
 
 // Create the action creator
@@ -80,4 +86,19 @@ export const removePianoItems = (
 ): RemovePianoItemsAction => ({
   type: REMOVE_PIANO_ITEMS,
   payload: itemIds,
+});
+
+export const addPianoItem = (item: PianoItem): AddPianoItemAction => ({
+  type: ADD_PIANO_ITEM,
+  payload: item,
+});
+
+export const updatePianoItem = (item: PianoItem): UpdatePianoItemAction => ({
+  type: UPDATE_PIANO_ITEM,
+  payload: item,
+});
+
+/** Clears all pianos, filters and selection, e.g. on logout. */
+export const resetPianoState = (): ResetPianoStateAction => ({
+  type: RESET_PIANO_STATE,
 });

@@ -1,6 +1,8 @@
 import { icons } from "@/constants";
 import { useGlobalContext } from "@/context/GlobalProvider";
-import { createPianoEntry } from "@/lib/appwrite";
+import { createPianoEntry, toPianoItem } from "@/lib/appwrite";
+import { resetCreateForm, setActiveTab } from "@/redux/navigation/actions";
+import { addPianoItem } from "@/redux/pianos/actions";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useLayoutEffect, useState } from "react";
@@ -9,12 +11,15 @@ import {
   Alert,
   ScrollView,
   Text,
-  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useDispatch } from "react-redux";
 import CustomButton from "./components/CustomButton";
 import { COMPANY_ASSOCIATED, PIANO_CATEGORY } from "./constants/Piano";
+import { toStoredDate } from "@/utils/dates";
+import { scheduleRentalDueNotification } from "./services/notifications";
+import { showToast } from "@/utils/toast";
 
 interface ReviewParams {
   formData?: string;
@@ -22,6 +27,7 @@ interface ReviewParams {
 
 const Review = () => {
   const { user } = useGlobalContext();
+  const dispatch = useDispatch();
   const params = useLocalSearchParams();
   const navigation = useNavigation();
   const [uploading, setUploading] = useState(false);
@@ -93,7 +99,7 @@ const Review = () => {
       image_url: form.image,
       creator: user.accountId,
       company_associated: form.companyAssociated,
-      date_of_purchase: form.dateOfPurchase,
+      date_of_purchase: toStoredDate(new Date(form.dateOfPurchase)),
     };
 
     let finalDetails = { ...basicDetails };
@@ -103,14 +109,16 @@ const Review = () => {
         rental_customer_name: form.rentalCustomerName,
         rental_customer_address: form.rentalCustomerAddress,
         rental_customer_mobile: form.rentalCustomerMobileNumber,
-        rental_period_start: form.rentalStartDate,
-        rental_period_end: form.rentalEndDate,
+        rental_period_start: toStoredDate(new Date(form.rentalStartDate)),
+        rental_period_end: toStoredDate(new Date(form.rentalEndDate)),
         rental_price: form.rentalPrice,
       };
       finalDetails = { ...finalDetails, ...rentalDetails };
     } else if (form.category === PIANO_CATEGORY.WAREHOUSE) {
       const warehouseDetails = {
-        warehouse_since_date: form.warehouseStoredSinceDate,
+        warehouse_since_date: toStoredDate(
+          new Date(form.warehouseStoredSinceDate)
+        ),
       };
       finalDetails = { ...finalDetails, ...warehouseDetails };
     } else if (form.category === PIANO_CATEGORY.EVENTS) {
@@ -124,7 +132,7 @@ const Review = () => {
     } else if (form.category === PIANO_CATEGORY.ON_SALE) {
       const onSaleDetails = {
         on_sale_purchase_from: form.onSalePurchaseFrom,
-        on_sale_import_date: form.onSaleImportDate,
+        on_sale_import_date: toStoredDate(new Date(form.onSaleImportDate)),
         on_sale_price: form.onSalePrice,
       };
       finalDetails = { ...finalDetails, ...onSaleDetails };
@@ -132,12 +140,15 @@ const Review = () => {
 
     try {
       setUploading(true);
-      await createPianoEntry(finalDetails);
-      router.push("/home"); // Navigate to home tab
-      ToastAndroid.show(
-        "Piano entry created successfully.",
-        ToastAndroid.SHORT
-      );
+      const createdPiano = await createPianoEntry(finalDetails);
+      await scheduleRentalDueNotification(createdPiano);
+      dispatch(addPianoItem(toPianoItem(createdPiano)) as any);
+      dispatch(resetCreateForm() as any);
+      dispatch(setActiveTab("home") as any);
+      // Go back to the tabs, so Back can't return here and publish again
+      if (router.canGoBack()) router.back();
+      else router.replace("/home");
+      showToast("Piano entry created successfully.");
     } catch (error) {
       const errorMessage = (error as Error).message;
       Alert.alert("Error while uploading", errorMessage);

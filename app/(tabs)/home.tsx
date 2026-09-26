@@ -12,7 +12,7 @@ import {
   clearSelectedItems,
 } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
-import { differenceInDays } from "date-fns";
+import { isRentalActive, parseStoredDate } from "@/utils/dates";
 import { SORT_BY_OPTIONS } from "../constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
@@ -48,7 +48,12 @@ const Home = () => {
     }
     return getUserPianoEntries(user.accountId);
   }, [user]);
-  const { data: items, isLoading, refetch } = useAppwrite(fetchFunction);
+  const {
+    data: items,
+    isLoading,
+    error: loadError,
+    refetch,
+  } = useAppwrite(fetchFunction);
 
   const pianoReduxItems: PianoItem[] = useSelector(
     (state: RootState) => state.pianos.items
@@ -65,8 +70,6 @@ const Home = () => {
   const filters = useSelector((state: RootState) => state.pianos.filters);
 
   const [refreshing, setRefreshing] = useState(false);
-  const [lastNotificationSchedule, setLastNotificationSchedule] =
-    useState<string>("");
   const [showNotificationTest, setShowNotificationTest] = useState(false);
   const [layoutKey, setLayoutKey] = useState<string>("card");
   const [layoutCounter, setLayoutCounter] = useState<number>(0);
@@ -169,12 +172,8 @@ const Home = () => {
           break;
         case SORT_BY_OPTIONS.PURCHASE_DATE:
           filteredItems = sortItems(filteredItems, (a, b) => {
-            const dateA = a.date_of_purchase
-              ? new Date(a.date_of_purchase).getTime()
-              : new Date(0).getTime();
-            const dateB = b.date_of_purchase
-              ? new Date(b.date_of_purchase).getTime()
-              : new Date(0).getTime();
+            const dateA = parseStoredDate(a.date_of_purchase)?.getTime() ?? 0;
+            const dateB = parseStoredDate(b.date_of_purchase)?.getTime() ?? 0;
             return dateB - dateA;
           });
           console.log("💰 Sorted by purchase date");
@@ -189,12 +188,10 @@ const Home = () => {
             const sortedRentableItems = sortItems(
               rentableItemsWithDueDate,
               (a, b) => {
-                const dateA = a.rental_period_end
-                  ? new Date(a.rental_period_end).getTime()
-                  : 0;
-                const dateB = b.rental_period_end
-                  ? new Date(b.rental_period_end).getTime()
-                  : 0;
+                const dateA =
+                  parseStoredDate(a.rental_period_end)?.getTime() ?? 0;
+                const dateB =
+                  parseStoredDate(b.rental_period_end)?.getTime() ?? 0;
                 return dateA - dateB; // Sort by earliest due date first
               }
             );
@@ -235,30 +232,10 @@ const Home = () => {
 
     // Apply active rentals filter
     if (filters.isActiveRentals) {
-      const isRentalPeriodActive = (
-        end: Date | string | null | undefined
-      ): boolean => {
-        if (!end) return false;
-        const endDate = new Date(end);
-        const currentDate = new Date();
-
-        // Check if the date is valid
-        if (isNaN(endDate.getTime())) return false;
-
-        // Set current date to start of day for accurate comparison
-        currentDate.setHours(0, 0, 0, 0);
-        endDate.setHours(0, 0, 0, 0);
-
-        const days = Math.ceil(
-          (endDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        return days >= 0; // Include today as active
-      };
-
       filteredItems = filteredItems.filter(
         (item) =>
           item.category === "rentable" &&
-          isRentalPeriodActive(item.rental_period_end)
+          isRentalActive(item.rental_period_end)
       );
       console.log(
         "🏠 Filtered by active rentals - Results:",
@@ -273,27 +250,15 @@ const Home = () => {
   // Store the fetched items in redux once loading has finished. An empty
   // result is stored too, so deleting the last piano clears the list.
   useEffect(() => {
-    if (isLoading) return;
+    // After a failed load (e.g. offline) keep what we have, including the
+    // reminders, rather than treating it as an empty list
+    if (isLoading || loadError || !user) return;
     dispatch(setPianoListItems(items) as any);
 
-    if (items.length === 0) return;
-
-    // Schedule notifications for rental due dates
-    // Only schedule if we haven't scheduled for this data recently
-    const currentTime = Date.now();
-    const timeSinceLastSchedule =
-      currentTime - (parseInt(lastNotificationSchedule) || 0);
-
-    // Only schedule if it's been more than 30 seconds since last schedule
-    // This prevents excessive scheduling while still allowing updates
-    if (timeSinceLastSchedule > 30000) {
-      console.log(`Scheduling notifications for ${items.length} items`);
-      scheduleAllRentalNotifications(items);
-      setLastNotificationSchedule(currentTime.toString());
-    } else {
-      console.log("Skipping notification scheduling (recently scheduled)");
-    }
-  }, [items, isLoading, lastNotificationSchedule]);
+    // Keep rental reminders in line with the loaded pianos. This also removes
+    // reminders for pianos that were deleted or are no longer rented.
+    scheduleAllRentalNotifications(items);
+  }, [items, isLoading, loadError, user]);
 
   // Re-apply sorting and filters whenever the stored items or the filters
   // change (including pianos deleted from other screens)

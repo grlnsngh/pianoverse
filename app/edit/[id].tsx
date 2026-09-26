@@ -1,9 +1,14 @@
 import { icons } from "@/constants";
 import { SECONDARY_COLOR } from "@/constants/colors";
-import { PianoEntryInput, updatePianoEntry } from "@/lib/appwrite";
+import {
+  PianoEntryInput,
+  toPianoItem,
+  updatePianoEntry,
+} from "@/lib/appwrite";
+import { updatePianoItem } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
-import { addHoursToDate } from "@/utils/ObjectManipulation";
+import { parseStoredDate, toStoredDate } from "@/utils/dates";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { Image } from "expo-image";
@@ -16,21 +21,23 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 import CustomButton from "../components/CustomButton";
 import FormField from "../components/FormField";
+import PriceField from "../components/PriceField";
 import {
   categoryOptions,
   PIANO_CATEGORY,
   pianoCompaniesMakeList,
 } from "../constants/Piano";
+import { scheduleRentalDueNotification } from "../services/notifications";
+import { showToast } from "@/utils/toast";
 
 interface ImageAsset {
   uri: string;
@@ -74,6 +81,7 @@ const EditScreen = () => {
   const { id } = useLocalSearchParams();
   const pianosList = useSelector((state: RootState) => state.pianos.items);
   const user = useSelector((state: RootState) => state.users.user);
+  const dispatch = useDispatch();
   const navigation = useNavigation();
 
   const filteredPiano: PianoItem | undefined = pianosList.find(
@@ -94,20 +102,23 @@ const EditScreen = () => {
     rentalCustomerName: filteredPiano?.rental_customer_name || "",
     rentalCustomerAddress: filteredPiano?.rental_customer_address || "",
     rentalCustomerMobileNumber: filteredPiano?.rental_customer_mobile || "",
-    rentalStartDate: addHoursToDate(filteredPiano?.rental_period_start),
-    rentalEndDate: addHoursToDate(filteredPiano?.rental_period_end),
+    rentalStartDate:
+      parseStoredDate(filteredPiano?.rental_period_start) ?? new Date(),
+    rentalEndDate:
+      parseStoredDate(filteredPiano?.rental_period_end) ?? new Date(),
     rentalPrice: filteredPiano?.rental_price || 0,
-    warehouseStoredSinceDate: addHoursToDate(
-      filteredPiano?.warehouse_since_date
-    ),
+    warehouseStoredSinceDate:
+      parseStoredDate(filteredPiano?.warehouse_since_date) ?? new Date(),
     eventPurchasePrice: filteredPiano?.event_purchase_price || 0,
     eventPurchaseFrom: filteredPiano?.event_purchase_from || "",
     eventModelNumber: filteredPiano?.event_model_number || "",
     eventBNumber: filteredPiano?.event_b_number || "",
     onSalePurchaseFrom: filteredPiano?.on_sale_purchase_from || "",
-    onSaleImportDate: addHoursToDate(filteredPiano?.on_sale_import_date),
+    onSaleImportDate:
+      parseStoredDate(filteredPiano?.on_sale_import_date) ?? new Date(),
     onSalePrice: filteredPiano?.on_sale_price || 0,
-    dateOfPurchase: addHoursToDate(filteredPiano?.date_of_purchase),
+    dateOfPurchase:
+      parseStoredDate(filteredPiano?.date_of_purchase) ?? new Date(),
   });
 
   const [showRentalStartDatePicker, setShowRentalStartDatePicker] =
@@ -118,6 +129,8 @@ const EditScreen = () => {
     setShowWarehouseStoredSinceDatePicker,
   ] = useState(false);
   const [showDateOfPurchasePicker, setShowDateOfPurchasePicker] =
+    useState(false);
+  const [showOnSaleImportDatePicker, setShowOnSaleImportDatePicker] =
     useState(false);
 
   useEffect(() => {
@@ -194,6 +207,12 @@ const EditScreen = () => {
     setForm({ ...form, warehouseStoredSinceDate: currentDate });
   };
 
+  const onOnSaleImportDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || form.onSaleImportDate;
+    setShowOnSaleImportDatePicker(false);
+    setForm({ ...form, onSaleImportDate: currentDate });
+  };
+
   const openImagePicker = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -268,7 +287,7 @@ const EditScreen = () => {
       company_associated: form.companyAssociated,
       image_url: form.image ?? image_url,
       creator: user.accountId,
-      date_of_purchase: form.dateOfPurchase.toDateString(),
+      date_of_purchase: toStoredDate(form.dateOfPurchase),
     };
 
     // Check if all basic details are provided
@@ -286,14 +305,14 @@ const EditScreen = () => {
         rental_customer_name: form.rentalCustomerName,
         rental_customer_address: form.rentalCustomerAddress,
         rental_customer_mobile: form.rentalCustomerMobileNumber,
-        rental_period_start: form.rentalStartDate.toDateString(),
-        rental_period_end: form.rentalEndDate.toDateString(),
+        rental_period_start: toStoredDate(form.rentalStartDate),
+        rental_period_end: toStoredDate(form.rentalEndDate),
         rental_price: form.rentalPrice,
       };
       finalDetails = { ...finalDetails, ...rentalDetails };
     } else if (form.category === PIANO_CATEGORY.WAREHOUSE) {
       const warehouseDetails = {
-        warehouse_since_date: form.warehouseStoredSinceDate.toDateString(),
+        warehouse_since_date: toStoredDate(form.warehouseStoredSinceDate),
       };
       finalDetails = { ...finalDetails, ...warehouseDetails };
     } else if (form.category === PIANO_CATEGORY.EVENTS) {
@@ -307,7 +326,7 @@ const EditScreen = () => {
     } else if (form.category === PIANO_CATEGORY.ON_SALE) {
       const onSaleDetails = {
         on_sale_purchase_from: form.onSalePurchaseFrom,
-        on_sale_import_date: form.onSaleImportDate.toDateString(),
+        on_sale_import_date: toStoredDate(form.onSaleImportDate),
         on_sale_price: form.onSalePrice,
       };
       finalDetails = { ...finalDetails, ...onSaleDetails };
@@ -315,9 +334,17 @@ const EditScreen = () => {
 
     try {
       setUploading(true);
-      await updatePianoEntry(id.toString(), finalDetails, image_url);
-      router.push("/home");
-      ToastAndroid.show("Piano entry updated successfully", ToastAndroid.SHORT);
+      const updatedPiano = await updatePianoEntry(
+        id.toString(),
+        finalDetails,
+        image_url
+      );
+      // The end date or category may have changed
+      await scheduleRentalDueNotification(updatedPiano);
+      dispatch(updatePianoItem(toPianoItem(updatedPiano)) as any);
+      if (router.canGoBack()) router.back();
+      else router.replace("/home");
+      showToast("Piano entry updated successfully");
     } catch (error) {
       const errorMessage = (error as Error).message;
       Alert.alert("Error while uploading", errorMessage);
@@ -589,16 +616,12 @@ const EditScreen = () => {
                       />
                     )}
                   </View>
-                  <FormField
+                  <PriceField
                     title="Rent Price"
-                    value={form.rentalPrice.toString()}
-                    handleChangeText={(e) => {
-                      const numericValue = parseFloat(e);
-                      if (!isNaN(numericValue)) {
-                        setForm({ ...form, rentalPrice: numericValue });
-                      }
-                    }}
-                    keyboardType="numeric"
+                    value={form.rentalPrice}
+                    onChangeValue={(rentalPrice) =>
+                      setForm({ ...form, rentalPrice })
+                    }
                   />
                 </>
               )}
@@ -624,16 +647,12 @@ const EditScreen = () => {
 
               {form.category === PIANO_CATEGORY.EVENTS && (
                 <>
-                  <FormField
+                  <PriceField
                     title="Purchase Price"
-                    value={form.eventPurchasePrice.toString()}
-                    handleChangeText={(e) => {
-                      const numericValue = parseFloat(e);
-                      if (!isNaN(numericValue)) {
-                        setForm({ ...form, eventPurchasePrice: numericValue });
-                      }
-                    }}
-                    keyboardType="numeric"
+                    value={form.eventPurchasePrice}
+                    onChangeValue={(eventPurchasePrice) =>
+                      setForm({ ...form, eventPurchasePrice })
+                    }
                   />
                   <FormField
                     title="Purchased From"
@@ -673,29 +692,23 @@ const EditScreen = () => {
                       title="Import Date"
                       value={form.onSaleImportDate.toDateString()}
                       handleChangeText={() => {}}
-                      onFocus={() =>
-                        setShowWarehouseStoredSinceDatePicker(true)
-                      }
+                      onFocus={() => setShowOnSaleImportDatePicker(true)}
                     />
-                    {showWarehouseStoredSinceDatePicker && (
+                    {showOnSaleImportDatePicker && (
                       <DateTimePicker
                         value={form.onSaleImportDate}
                         mode="date"
                         display="default"
-                        onChange={onWarehouseStoredSinceDateChange}
+                        onChange={onOnSaleImportDateChange}
                       />
                     )}
                   </View>
-                  <FormField
+                  <PriceField
                     title="Price"
-                    value={form.onSalePrice.toString()}
-                    handleChangeText={(e) => {
-                      const numericValue = parseFloat(e);
-                      if (!isNaN(numericValue)) {
-                        setForm({ ...form, onSalePrice: numericValue });
-                      }
-                    }}
-                    keyboardType="numeric"
+                    value={form.onSalePrice}
+                    onChangeValue={(onSalePrice) =>
+                      setForm({ ...form, onSalePrice })
+                    }
                   />
                 </>
               )}

@@ -4,6 +4,7 @@ import { Alert } from "react-native";
 const useAppwrite = (fn: () => Promise<any>) => {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
   const hasFetchedRef = useRef(false);
 
   const fetchData = async () => {
@@ -14,8 +15,10 @@ const useAppwrite = (fn: () => Promise<any>) => {
     try {
       const response = await fn();
       setData(response);
+      setError(null);
       hasFetchedRef.current = true;
     } catch (error) {
+      setError(error);
       Alert.alert(
         "Error",
         error instanceof Error ? error.message : "An error occurred"
@@ -31,10 +34,10 @@ const useAppwrite = (fn: () => Promise<any>) => {
 
   const refetch = () => {
     hasFetchedRef.current = false;
-    fetchData();
+    return fetchData();
   };
 
-  return { data, isLoading, refetch };
+  return { data, isLoading, error, refetch };
 };
 
 export default useAppwrite;

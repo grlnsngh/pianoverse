@@ -4,10 +4,12 @@ import logger from "redux-logger";
 
 import userReducer, { UserState } from "./users/reducers";
 import pianoReducer, { PianoState } from "./pianos/reducer";
+import navigationReducer from "./navigation/reducer";
 
 const rootReducer = combineReducers({
   users: userReducer,
   pianos: pianoReducer,
+  navigation: navigationReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer> & {

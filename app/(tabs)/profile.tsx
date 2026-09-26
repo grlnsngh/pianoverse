@@ -1,13 +1,16 @@
 import { icons, images } from "@/constants";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { signOut } from "@/lib/appwrite";
-import { setPianoFilters } from "@/redux/pianos/actions";
+import { setActiveTab } from "@/redux/navigation/actions";
+import { resetPianoState, setPianoFilters } from "@/redux/pianos/actions";
+import { scheduleAllRentalNotifications } from "../services/notifications";
 import { FiltersType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useState, useRef, useEffect } from "react";
 import {
+  Alert,
   Modal,
   StyleSheet,
   Text,
@@ -25,6 +28,7 @@ import CustomButton from "../components/CustomButton";
 import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
 import { exportPianosToCSV } from "@/utils/csvExport";
+import { isRentalActive } from "@/utils/dates";
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -178,8 +182,7 @@ const Profile = () => {
     return items.filter(
       (item) =>
         item.category === PIANO_CATEGORY.RENTABLE &&
-        item.rental_period_end &&
-        new Date(item.rental_period_end) > new Date()
+        isRentalActive(item.rental_period_end)
     ).length;
   };
 
@@ -188,14 +191,6 @@ const Profile = () => {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     return items.filter((item) => new Date(item.$createdAt) > thirtyDaysAgo)
       .length;
-  };
-
-  const calculateSoldThisMonth = () => {
-    const thisMonth = new Date();
-    thisMonth.setDate(1);
-    return items.filter(
-      (item) => item.sold_date && new Date(item.sold_date) >= thisMonth
-    ).length;
   };
 
   const rentableCount = filterItemsByCategory(PIANO_CATEGORY.RENTABLE);
@@ -251,11 +246,22 @@ const Profile = () => {
   const totalValue = calculateTotalValue();
   const activeRentals = calculateActiveRentals();
   const recentAdditions = calculateRecentAdditions();
-  const soldThisMonth = calculateSoldThisMonth();
 
   const handleConfirmLogout = async () => {
     setModalVisible(false);
-    await signOut();
+    try {
+      await signOut();
+    } catch (error) {
+      Alert.alert(
+        "Sign Out Failed",
+        error instanceof Error ? error.message : "Please try again."
+      );
+      return;
+    }
+    // Don't leave this account's pianos or reminders behind for the next user
+    await scheduleAllRentalNotifications([]);
+    dispatch(resetPianoState() as any);
+    dispatch(setActiveTab("home") as any);
     setUser(null);
     setIsLogged(false);
     router.replace("/");
@@ -279,7 +285,7 @@ const Profile = () => {
       category: category,
     };
     dispatch(setPianoFilters(filters) as any);
-    router.push("/home");
+    dispatch(setActiveTab("home") as any);
   };
 
   const formatMemberSince = (dateString: string) => {
@@ -483,7 +489,7 @@ const Profile = () => {
                   <TouchableOpacity
                     onPress={() => {
                       animateButtonPress();
-                      router.push("/create");
+                      dispatch(setActiveTab("create") as any);
                     }}
                     className="bg-secondary rounded-xl px-8 py-4 flex-row items-center shadow-lg"
                     activeOpacity={0.8}
@@ -632,7 +638,7 @@ const Profile = () => {
               ) : (
                 <View className="space-y-3">
                   <TouchableOpacity
-                    onPress={() => router.push("/home")}
+                    onPress={() => dispatch(setActiveTab("home") as any)}
                     className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
                     activeOpacity={0.7}
                   >
@@ -656,7 +662,7 @@ const Profile = () => {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={() => router.push("/create")}
+                    onPress={() => dispatch(setActiveTab("create") as any)}
                     className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
                     activeOpacity={0.7}
                   >
@@ -688,7 +694,7 @@ const Profile = () => {
                           isActiveRentals: true,
                         };
                         dispatch(setPianoFilters(filters) as any);
-                        router.push("/home");
+                        dispatch(setActiveTab("home") as any);
                       }}
                       className="bg-green-500/20 border border-green-500/40 rounded-xl p-4 flex-row items-center justify-between"
                       activeOpacity={0.7}

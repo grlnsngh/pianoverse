@@ -23,11 +23,9 @@ jest.mock("expo-image-manipulator", () => ({
 }));
 
 import React from "react";
-import { ToastAndroid } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import EditScreen from "@/app/edit/[id]";
-import { addHoursToDate } from "@/utils/ObjectManipulation";
 import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
@@ -57,7 +55,6 @@ beforeEach(() => {
     uri: "file:///old.jpg",
   });
   alerts = captureAlerts();
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -101,8 +98,8 @@ it("keeps the sale details of an On Sale piano when it is saved", async () => {
   expect(fakeBackend.documents.get("piano-1")).toMatchObject({
     on_sale_purchase_from: "Kolkata Imports",
     on_sale_price: 250000,
-    // Same date handling as every other date on this screen, not "today"
-    on_sale_import_date: addHoursToDate(importDate).toDateString(),
+    // The stored day, not "today"
+    on_sale_import_date: "2026-03-10",
   });
 });
 
@@ -144,7 +141,9 @@ it("uploads a newly picked image when the piano is saved", async () => {
   expect(fakeBackend.documents.get("piano-1")?.image_url).toBe(fileViewUrl(newFileId));
   // The replaced image is no longer referenced, so it is cleaned up
   expect(fakeBackend.files.has("old-file")).toBe(false);
-  expect(router.push).toHaveBeenCalledWith("/home");
+  // Back to where the edit started, not a new copy of Home
+  expect(router.back).toHaveBeenCalled();
+  expect(router.push).not.toHaveBeenCalled();
 });
 
 it("saves the rest of the piano without touching the image when none was picked", async () => {

@@ -4,7 +4,8 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as IntentLauncher from "expo-intent-launcher";
 import { Alert, Platform } from "react-native";
-import { differenceInDays } from "date-fns";
+import { differenceInCalendarDays, startOfToday } from "date-fns";
+import { parseStoredDate } from "./dates";
 
 /**
  * Escapes CSV field values by wrapping them in quotes if they contain special characters
@@ -29,14 +30,10 @@ const escapeCSVField = (field: any): string => {
 const getRentalStatus = (
   endDate: Date | string | null | undefined
 ): { status: string; daysRemaining: number } => {
-  if (!endDate) return { status: "N/A", daysRemaining: 0 };
+  const end = parseStoredDate(endDate);
+  if (!end) return { status: "N/A", daysRemaining: 0 };
 
-  const end = new Date(endDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  end.setHours(0, 0, 0, 0);
-
-  const daysRemaining = differenceInDays(end, today);
+  const daysRemaining = differenceInCalendarDays(end, startOfToday());
 
   if (daysRemaining < 0) return { status: "EXPIRED", daysRemaining };
   if (daysRemaining === 0) return { status: "EXPIRES TODAY", daysRemaining: 0 };
@@ -115,10 +112,8 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
     // Calculate days in warehouse
     let daysInWarehouse = "";
     if (piano.warehouse_since_date) {
-      const days = differenceInDays(
-        new Date(),
-        new Date(piano.warehouse_since_date)
-      );
+      const since = parseStoredDate(piano.warehouse_since_date);
+      const days = since ? differenceInCalendarDays(startOfToday(), since) : 0;
       daysInWarehouse = days > 0 ? `${days} days` : "0 days";
     }
 

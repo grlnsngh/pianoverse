@@ -18,7 +18,6 @@ jest.mock("@/app/services/notifications", () => ({
 }));
 
 import React from "react";
-import { ToastAndroid } from "react-native";
 import { router } from "expo-router";
 import DetailScreen from "@/app/detail/[id]";
 import { cancelRentalNotification } from "@/app/services/notifications";
@@ -57,7 +56,6 @@ beforeEach(() => {
     uri: "file:///old.jpg",
   });
   alerts = captureAlerts();
-  jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
 });
 
 afterEach(() => {

@@ -23,11 +23,13 @@ export const fakeBackend = {
   files: new Map<string, StoredFile>(),
   listCalls: [] as string[][],
   failNextDocumentUpdate: false,
+  signOutError: null as Error | null,
   reset() {
     this.documents.clear();
     this.files.clear();
     this.listCalls = [];
     this.failNextDocumentUpdate = false;
+    this.signOutError = null;
   },
 };
 
@@ -139,7 +141,10 @@ class Account {
   get = jest.fn();
   create = jest.fn();
   createEmailPasswordSession = jest.fn();
-  deleteSession = jest.fn();
+  deleteSession = jest.fn(async () => {
+    if (fakeBackend.signOutError) throw fakeBackend.signOutError;
+    return {};
+  });
   createRecovery = jest.fn();
   updateRecovery = jest.fn();
 }

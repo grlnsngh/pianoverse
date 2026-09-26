@@ -6,13 +6,7 @@ import {
 } from "@/constants/colors";
 import useDeletePiano from "@/lib/useDeletePiano";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
-import {
-  differenceInDays,
-  differenceInMonths,
-  differenceInWeeks,
-  differenceInYears,
-  format,
-} from "date-fns";
+import { getRemainingPeriod, getRentalState } from "@/utils/dates";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React, {
@@ -53,19 +47,6 @@ interface ListItemProps {
   onEnterBulkSelection?: (id: string) => void;
 }
 
-const calculateRemainingPeriod = (end: Date | null | undefined) => {
-  if (!end) return { days: 0, weeks: 0, months: 0, years: 0 };
-  const endDate = new Date(end);
-  const currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0);
-
-  const days = differenceInDays(endDate, currentDate);
-  const weeks = differenceInWeeks(endDate, currentDate);
-  const months = differenceInMonths(endDate, currentDate);
-  const years = differenceInYears(endDate, currentDate);
-
-  return { days, weeks, months, years };
-};
 
 const ListItem: React.FC<ListItemProps> = React.memo(
   ({
@@ -160,17 +141,13 @@ const ListItem: React.FC<ListItemProps> = React.memo(
     }, [scaleAnim, elevationAnim]);
 
     const remaining = useMemo(
-      () => calculateRemainingPeriod(rental_period_end),
+      () => getRemainingPeriod(rental_period_end),
       [rental_period_end]
     );
 
-    const isRemainingPositive = useMemo(
-      () =>
-        remaining.days > 0 ||
-        remaining.weeks > 0 ||
-        remaining.months > 0 ||
-        remaining.years > 0,
-      [remaining]
+    const rentalState = useMemo(
+      () => getRentalState(rental_period_end),
+      [rental_period_end]
     );
 
     const pluralize = useCallback(
@@ -262,21 +239,18 @@ const ListItem: React.FC<ListItemProps> = React.memo(
     }, []);
 
     const getStatusColor = useCallback(() => {
-      if (!rental_period_end) return SECONDARY_COLOR;
-      if (isRemainingPositive) {
+      if (!rentalState) return SECONDARY_COLOR;
+      if (rentalState === "due_today") return "#ef4444";
+      if (rentalState === "active") {
         return isLessThanOrEqualTo7Days(remaining) ? "#ef4444" : "#10b981";
       }
       return "#6b7280";
-    }, [
-      rental_period_end,
-      isRemainingPositive,
-      remaining,
-      isLessThanOrEqualTo7Days,
-    ]);
+    }, [rentalState, remaining, isLessThanOrEqualTo7Days]);
 
     const getStatusText = useCallback(() => {
-      if (!rental_period_end) return null;
-      if (isRemainingPositive) {
+      if (!rentalState) return null;
+      if (rentalState === "due_today") return "Due today";
+      if (rentalState === "active") {
         return `${displayRemainingTime(remaining)} remaining`;
       }
       return `Expired ${displayElapsedTime({
@@ -285,13 +259,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(
         weeks: Math.abs(remaining.weeks),
         days: Math.abs(remaining.days),
       })} ago`;
-    }, [
-      rental_period_end,
-      isRemainingPositive,
-      remaining,
-      displayRemainingTime,
-      displayElapsedTime,
-    ]);
+    }, [rentalState, remaining, displayRemainingTime, displayElapsedTime]);
 
     return (
       <PaperProvider>

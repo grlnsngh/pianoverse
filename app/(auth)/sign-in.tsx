@@ -3,7 +3,6 @@ import {
   Text,
   ScrollView,
   Alert,
-  ToastAndroid,
   Animated,
   Dimensions,
   StyleSheet,
@@ -22,6 +21,7 @@ import { Link, router } from "expo-router";
 import CustomButton from "../components/CustomButton";
 import { getCurrentUser, signIn } from "@/lib/appwrite";
 import { useGlobalContext } from "@/context/GlobalProvider";
+import { showToast } from "@/utils/toast";
 
 const { width, height } = Dimensions.get("window");
 
@@ -153,10 +153,7 @@ const SignIn = () => {
       setUser(result);
       setIsLogged(true);
 
-      ToastAndroid.show(
-        "Welcome back! Successfully logged in",
-        ToastAndroid.SHORT
-      );
+      showToast("Welcome back! Successfully logged in");
       router.replace("/home");
     } catch (error) {
       // Reset button animation on error

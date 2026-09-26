@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import GlobalProvider from "@/context/GlobalProvider";
 import { Provider } from "react-redux";
 import store from "@/redux/store";
+import ToastHost from "./components/ToastHost";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -45,6 +46,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         </Stack>
+        <ToastHost />
       </GlobalProvider>
     </Provider>
   );

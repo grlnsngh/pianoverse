@@ -7,11 +7,11 @@ import {
 import useDeletePiano from "@/lib/useDeletePiano";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
 import {
-  differenceInDays,
-  differenceInMonths,
-  differenceInWeeks,
-  differenceInYears,
-} from "date-fns";
+  getRemainingPeriod,
+  getRentalState,
+  Period,
+  RentalState,
+} from "@/utils/dates";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React, { useEffect, useState, useRef, useCallback } from "react";
@@ -20,7 +20,6 @@ import {
   FlatList,
   StyleSheet,
   Text,
-  ToastAndroid,
   TouchableOpacity,
   View,
   Animated,
@@ -35,6 +34,7 @@ import RNAAnimated, {
 } from "react-native-reanimated";
 import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "../constants/Piano";
+import { showToast } from "@/utils/toast";
 
 interface GridItemProps {
   item: (PianoItem & { empty?: boolean })[];
@@ -50,19 +50,6 @@ const { width } = Dimensions.get("window");
 const numColumns = 2;
 const itemWidth = (width - 48) / numColumns; // Account for padding and gaps
 
-const calculateRemainingPeriod = (end: Date | null | undefined) => {
-  if (!end) return { days: 0, weeks: 0, months: 0, years: 0 };
-  const endDate = new Date(end);
-  const currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0);
-
-  const days = differenceInDays(endDate, currentDate);
-  const weeks = differenceInWeeks(endDate, currentDate);
-  const months = differenceInMonths(endDate, currentDate);
-  const years = differenceInYears(endDate, currentDate);
-
-  return { days, weeks, months, years };
-};
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
@@ -79,17 +66,19 @@ const getCategoryIcon = (category: string) => {
   }
 };
 
-const getStatusColor = (remaining: any) => {
-  if (!remaining || remaining.days === 0) return SECONDARY_COLOR;
-  if (remaining.days > 0) {
+const getStatusColor = (state: RentalState | null, remaining: Period) => {
+  if (!state) return SECONDARY_COLOR;
+  if (state === "due_today") return "#ef4444";
+  if (state === "active") {
     return remaining.days <= 7 ? "#ef4444" : "#10b981";
   }
   return "#6b7280";
 };
 
-const getStatusText = (remaining: any) => {
-  if (!remaining || remaining.days === 0) return null;
-  if (remaining.days > 0) {
+const getStatusText = (state: RentalState | null, remaining: Period) => {
+  if (!state) return null;
+  if (state === "due_today") return "Due today";
+  if (state === "active") {
     if (remaining.days <= 7) return `${remaining.days}d left`;
     if (remaining.weeks > 0) return `${remaining.weeks}w left`;
     if (remaining.months > 0) return `${remaining.months}mo left`;
@@ -136,10 +125,10 @@ const GridItem: React.FC<GridItemProps> = React.memo(
         const newSet = new Set(prev);
         if (newSet.has(itemId)) {
           newSet.delete(itemId);
-          ToastAndroid.show("Removed from bookmarks", ToastAndroid.SHORT);
+          showToast("Removed from bookmarks");
         } else {
           newSet.add(itemId);
-          ToastAndroid.show("Added to bookmarks", ToastAndroid.SHORT);
+          showToast("Added to bookmarks");
         }
         return newSet;
       });
@@ -247,7 +236,8 @@ const GridItem: React.FC<GridItemProps> = React.memo(
           return <View style={[styles.item, styles.itemInvisible]} />;
         }
 
-        const remaining = calculateRemainingPeriod(item.rental_period_end);
+        const remaining = getRemainingPeriod(item.rental_period_end);
+        const rentalState = getRentalState(item.rental_period_end);
         const isBookmarked = bookmarkedItems.has(item.$id);
 
         return (
@@ -406,16 +396,21 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                     </View>
 
                     {/* Status Badge */}
-                    {getStatusText(remaining) && (
+                    {getStatusText(rentalState, remaining) && (
                       <View style={styles.statusBadge}>
                         <View
                           style={[
                             styles.statusDot,
-                            { backgroundColor: getStatusColor(remaining) },
+                            {
+                              backgroundColor: getStatusColor(
+                                rentalState,
+                                remaining
+                              ),
+                            },
                           ]}
                         />
                         <Text style={styles.statusText}>
-                          {getStatusText(remaining)}
+                          {getStatusText(rentalState, remaining)}
                         </Text>
                       </View>
                     )}
