@@ -8,6 +8,7 @@ import {
   ReactTestRenderer,
 } from "react-test-renderer";
 import { combineReducers, createStore } from "redux";
+import navigationReducer from "@/redux/navigation/reducer";
 import pianoReducer from "@/redux/pianos/reducer";
 import userReducer from "@/redux/users/reducers";
 import { DEFAULT_FILTERS } from "@/app/constants/Piano";
@@ -18,7 +19,11 @@ export const createTestStore = ({
   items = [],
 }: { user?: any; items?: PianoItem[] } = {}) =>
   createStore(
-    combineReducers({ users: userReducer, pianos: pianoReducer }),
+    combineReducers({
+      users: userReducer,
+      pianos: pianoReducer,
+      navigation: navigationReducer,
+    }),
     {
       users: { user, isAuthenticated: !!user },
       pianos: {
@@ -28,6 +33,7 @@ export const createTestStore = ({
         isBulkSelectionMode: false,
         selectedItems: [],
       },
+      navigation: { activeTab: "home", createFormResetCount: 0 },
     } as any
   );
 

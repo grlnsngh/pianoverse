@@ -1,6 +1,8 @@
 import { icons } from "@/constants";
 import { useGlobalContext } from "@/context/GlobalProvider";
-import { createPianoEntry } from "@/lib/appwrite";
+import { createPianoEntry, toPianoItem } from "@/lib/appwrite";
+import { resetCreateForm, setActiveTab } from "@/redux/navigation/actions";
+import { addPianoItem } from "@/redux/pianos/actions";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useLayoutEffect, useState } from "react";
@@ -13,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useDispatch } from "react-redux";
 import CustomButton from "./components/CustomButton";
 import { COMPANY_ASSOCIATED, PIANO_CATEGORY } from "./constants/Piano";
 import { toStoredDate } from "@/utils/dates";
@@ -24,6 +27,7 @@ interface ReviewParams {
 
 const Review = () => {
   const { user } = useGlobalContext();
+  const dispatch = useDispatch();
   const params = useLocalSearchParams();
   const navigation = useNavigation();
   const [uploading, setUploading] = useState(false);
@@ -138,7 +142,12 @@ const Review = () => {
       setUploading(true);
       const createdPiano = await createPianoEntry(finalDetails);
       await scheduleRentalDueNotification(createdPiano);
-      router.push("/home"); // Navigate to home tab
+      dispatch(addPianoItem(toPianoItem(createdPiano)) as any);
+      dispatch(resetCreateForm() as any);
+      dispatch(setActiveTab("home") as any);
+      // Go back to the tabs, so Back can't return here and publish again
+      if (router.canGoBack()) router.back();
+      else router.replace("/home");
       ToastAndroid.show(
         "Piano entry created successfully.",
         ToastAndroid.SHORT

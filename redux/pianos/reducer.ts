@@ -11,6 +11,8 @@ import {
   TOGGLE_ITEM_SELECTION,
   SELECT_ALL_ITEMS,
   REMOVE_PIANO_ITEMS,
+  ADD_PIANO_ITEM,
+  UPDATE_PIANO_ITEM,
 } from "./types";
 import { DEFAULT_FILTERS } from "@/app/constants/Piano";
 
@@ -93,6 +95,19 @@ const pianoReducer = (
         selectedItems: state.selectedItems.filter((id) => !isRemoved(id)),
       };
     }
+    case ADD_PIANO_ITEM:
+      // Newest first, like the list from the server
+      return {
+        ...state,
+        items: [action.payload, ...state.items],
+      };
+    case UPDATE_PIANO_ITEM:
+      return {
+        ...state,
+        items: state.items.map((item) =>
+          item.$id === action.payload.$id ? action.payload : item
+        ),
+      };
     default:
       return state;
   }

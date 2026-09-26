@@ -1,6 +1,7 @@
 import { icons, images } from "@/constants";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { signOut } from "@/lib/appwrite";
+import { setActiveTab } from "@/redux/navigation/actions";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { FiltersType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
@@ -279,7 +280,7 @@ const Profile = () => {
       category: category,
     };
     dispatch(setPianoFilters(filters) as any);
-    router.push("/home");
+    dispatch(setActiveTab("home") as any);
   };
 
   const formatMemberSince = (dateString: string) => {
@@ -483,7 +484,7 @@ const Profile = () => {
                   <TouchableOpacity
                     onPress={() => {
                       animateButtonPress();
-                      router.push("/create");
+                      dispatch(setActiveTab("create") as any);
                     }}
                     className="bg-secondary rounded-xl px-8 py-4 flex-row items-center shadow-lg"
                     activeOpacity={0.8}
@@ -632,7 +633,7 @@ const Profile = () => {
               ) : (
                 <View className="space-y-3">
                   <TouchableOpacity
-                    onPress={() => router.push("/home")}
+                    onPress={() => dispatch(setActiveTab("home") as any)}
                     className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
                     activeOpacity={0.7}
                   >
@@ -656,7 +657,7 @@ const Profile = () => {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={() => router.push("/create")}
+                    onPress={() => dispatch(setActiveTab("create") as any)}
                     className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
                     activeOpacity={0.7}
                   >
@@ -688,7 +689,7 @@ const Profile = () => {
                           isActiveRentals: true,
                         };
                         dispatch(setPianoFilters(filters) as any);
-                        router.push("/home");
+                        dispatch(setActiveTab("home") as any);
                       }}
                       className="bg-green-500/20 border border-green-500/40 rounded-xl p-4 flex-row items-center justify-between"
                       activeOpacity={0.7}

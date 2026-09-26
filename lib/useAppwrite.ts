@@ -31,7 +31,7 @@ const useAppwrite = (fn: () => Promise<any>) => {
 
   const refetch = () => {
     hasFetchedRef.current = false;
-    fetchData();
+    return fetchData();
   };
 
   return { data, isLoading, refetch };

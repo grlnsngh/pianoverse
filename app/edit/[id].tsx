@@ -1,6 +1,11 @@
 import { icons } from "@/constants";
 import { SECONDARY_COLOR } from "@/constants/colors";
-import { PianoEntryInput, updatePianoEntry } from "@/lib/appwrite";
+import {
+  PianoEntryInput,
+  toPianoItem,
+  updatePianoEntry,
+} from "@/lib/appwrite";
+import { updatePianoItem } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { parseStoredDate, toStoredDate } from "@/utils/dates";
@@ -22,7 +27,7 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 import CustomButton from "../components/CustomButton";
 import FormField from "../components/FormField";
@@ -76,6 +81,7 @@ const EditScreen = () => {
   const { id } = useLocalSearchParams();
   const pianosList = useSelector((state: RootState) => state.pianos.items);
   const user = useSelector((state: RootState) => state.users.user);
+  const dispatch = useDispatch();
   const navigation = useNavigation();
 
   const filteredPiano: PianoItem | undefined = pianosList.find(
@@ -335,7 +341,9 @@ const EditScreen = () => {
       );
       // The end date or category may have changed
       await scheduleRentalDueNotification(updatedPiano);
-      router.push("/home");
+      dispatch(updatePianoItem(toPianoItem(updatedPiano)) as any);
+      if (router.canGoBack()) router.back();
+      else router.replace("/home");
       ToastAndroid.show("Piano entry updated successfully", ToastAndroid.SHORT);
     } catch (error) {
       const errorMessage = (error as Error).message;

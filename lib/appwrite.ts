@@ -1,4 +1,4 @@
-import { PianoItemFormStateType } from "@/redux/pianos/types";
+import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
 import {
   Account,
   Client,
@@ -152,6 +152,18 @@ export function convertImageUrl(oldUrl: string): string | null {
   return newUrl;
 }
 
+/**
+ * Prepares a piano document for the app: converts its image URL to one
+ * without transformations.
+ */
+export const toPianoItem = (document: Models.Document): PianoItem =>
+  ({
+    ...document,
+    image_url: document.image_url
+      ? convertImageUrl(document.image_url)
+      : document.image_url,
+  }) as unknown as PianoItem;
+
 // Appwrite returns 25 documents per request unless a limit is given, so piano
 // lists are fetched page by page.
 const PIANO_PAGE_SIZE = 100;
@@ -188,15 +200,7 @@ export async function getUserPianoEntries(userAccountId: string) {
       cursor = pageDocuments[pageDocuments.length - 1].$id;
     }
 
-    // Convert image URLs to remove transformations
-    const convertedItems = documents.map((item) => ({
-      ...item,
-      image_url: item.image_url
-        ? convertImageUrl(item.image_url)
-        : item.image_url,
-    }));
-
-    return convertedItems;
+    return documents.map(toPianoItem);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(errorMessage);

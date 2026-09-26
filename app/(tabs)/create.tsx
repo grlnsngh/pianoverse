@@ -17,6 +17,8 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 import CustomButton from "../components/CustomButton";
 import FormField from "../components/FormField";
@@ -64,6 +66,30 @@ interface FormState {
   dateOfPurchase: Date;
 }
 
+const createEmptyForm = (): FormState => ({
+  category: "rentable",
+  title: "",
+  description: "",
+  image: null,
+  make: "",
+  rentalCustomerName: "",
+  rentalCustomerAddress: "",
+  rentalCustomerMobileNumber: "",
+  rentalStartDate: new Date(),
+  rentalEndDate: new Date(),
+  rentalPrice: 0,
+  warehouseStoredSinceDate: new Date(),
+  eventPurchasePrice: 0,
+  eventPurchaseFrom: "",
+  eventModelNumber: "",
+  eventBNumber: "",
+  onSalePurchaseFrom: "",
+  onSaleImportDate: new Date(),
+  onSalePrice: 0,
+  companyAssociated: "",
+  dateOfPurchase: new Date(),
+});
+
 const Create = () => {
   const { user } = useGlobalContext();
   const params = useLocalSearchParams();
@@ -89,31 +115,16 @@ const Create = () => {
       }
     }
 
-    // Default form state
-    return {
-      category: "rentable",
-      title: "",
-      description: "",
-      image: null,
-      make: "",
-      rentalCustomerName: "",
-      rentalCustomerAddress: "",
-      rentalCustomerMobileNumber: "",
-      rentalStartDate: new Date(),
-      rentalEndDate: new Date(),
-      rentalPrice: 0,
-      warehouseStoredSinceDate: new Date(),
-      eventPurchasePrice: 0,
-      eventPurchaseFrom: "",
-      eventModelNumber: "",
-      eventBNumber: "",
-      onSalePurchaseFrom: "",
-      onSaleImportDate: new Date(),
-      onSalePrice: 0,
-      companyAssociated: "",
-      dateOfPurchase: new Date(),
-    };
+    return createEmptyForm();
   });
+
+  // Start over once the piano has been published from the review screen
+  const createFormResetCount = useSelector(
+    (state: RootState) => state.navigation.createFormResetCount
+  );
+  useEffect(() => {
+    if (createFormResetCount > 0) setForm(createEmptyForm());
+  }, [createFormResetCount]);
 
   const [showRentalStartDatePicker, setShowRentalStartDatePicker] =
     useState(false);

@@ -143,7 +143,9 @@ it("uploads a newly picked image when the piano is saved", async () => {
   expect(fakeBackend.documents.get("piano-1")?.image_url).toBe(fileViewUrl(newFileId));
   // The replaced image is no longer referenced, so it is cleaned up
   expect(fakeBackend.files.has("old-file")).toBe(false);
-  expect(router.push).toHaveBeenCalledWith("/home");
+  // Back to where the edit started, not a new copy of Home
+  expect(router.back).toHaveBeenCalled();
+  expect(router.push).not.toHaveBeenCalled();
 });
 
 it("saves the rest of the piano without touching the image when none was picked", async () => {

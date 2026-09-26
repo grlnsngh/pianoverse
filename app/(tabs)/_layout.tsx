@@ -1,8 +1,11 @@
 import { SECONDARY_COLOR } from "@/constants/colors";
 import { Image } from "expo-image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Text, View, TouchableOpacity } from "react-native";
 import { TabView, SceneMap } from "react-native-tab-view";
+import { useDispatch, useSelector } from "react-redux";
+import { setActiveTab, TabKey } from "@/redux/navigation/actions";
+import { RootState } from "@/redux/store";
 import { icons } from "../../constants";
 import Home from "./home";
 import Create from "./create";
@@ -38,12 +41,27 @@ const TabIcon = ({
 };
 
 const TabsLayout = () => {
-  const [index, setIndex] = useState(0);
-  const [routes] = useState([
+  const dispatch = useDispatch();
+  const [routes] = useState<{ key: TabKey; title: string }[]>([
     { key: "home", title: "Home" },
     { key: "create", title: "Create" },
     { key: "profile", title: "Profile" },
   ]);
+  // Kept in the store so other screens can switch tabs instead of pushing
+  // another copy of the tabs
+  const activeTab = useSelector(
+    (state: RootState) => state.navigation.activeTab
+  );
+  const index = Math.max(
+    routes.findIndex((route) => route.key === activeTab),
+    0
+  );
+  const setIndex = (i: number) => dispatch(setActiveTab(routes[i].key) as any);
+
+  // Start on Home after signing in or opening the app
+  useEffect(() => {
+    dispatch(setActiveTab("home") as any);
+  }, []);
 
   const renderScene = SceneMap({
     home: Home,
