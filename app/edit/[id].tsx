@@ -1,7 +1,7 @@
 import { icons } from "@/constants";
 import { SECONDARY_COLOR } from "@/constants/colors";
-import { updatePianoEntry } from "@/lib/appwrite";
-import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
+import { PianoEntryInput, updatePianoEntry } from "@/lib/appwrite";
+import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { addHoursToDate } from "@/utils/ObjectManipulation";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -73,6 +73,7 @@ interface FormState {
 const EditScreen = () => {
   const { id } = useLocalSearchParams();
   const pianosList = useSelector((state: RootState) => state.pianos.items);
+  const user = useSelector((state: RootState) => state.users.user);
   const navigation = useNavigation();
 
   const filteredPiano: PianoItem | undefined = pianosList.find(
@@ -252,8 +253,6 @@ const EditScreen = () => {
     }
   };
 
-  const user = useSelector((state: RootState) => state.users.user);
-
   const handleOnSubmit = async () => {
     if (!user || !user.accountId) {
       Alert.alert("Error", "You must be logged in to update a piano entry.");
@@ -267,7 +266,7 @@ const EditScreen = () => {
       title: form.title,
       description: form.description,
       company_associated: form.companyAssociated,
-      image_url: form.image ? form.image.uri : image_url,
+      image_url: form.image ?? image_url,
       creator: user.accountId,
       date_of_purchase: form.dateOfPurchase.toDateString(),
     };
@@ -280,7 +279,7 @@ const EditScreen = () => {
       }
     }
 
-    let finalDetails: Partial<PianoItemFormStateType> = { ...basicDetails };
+    let finalDetails: PianoEntryInput = { ...basicDetails };
 
     if (form.category === PIANO_CATEGORY.RENTABLE) {
       const rentalDetails = {
@@ -299,24 +298,24 @@ const EditScreen = () => {
       finalDetails = { ...finalDetails, ...warehouseDetails };
     } else if (form.category === PIANO_CATEGORY.EVENTS) {
       const eventDetails = {
-        event_purchase_price: 0,
-        event_purchase_from: "",
-        event_model_number: "",
-        event_b_number: "",
+        event_purchase_price: form.eventPurchasePrice,
+        event_purchase_from: form.eventPurchaseFrom,
+        event_model_number: form.eventModelNumber,
+        event_b_number: form.eventBNumber,
       };
       finalDetails = { ...finalDetails, ...eventDetails };
     } else if (form.category === PIANO_CATEGORY.ON_SALE) {
       const onSaleDetails = {
-        on_sale_purchase_from: "",
-        on_sale_import_date: new Date().toDateString(),
-        on_sale_price: 0,
+        on_sale_purchase_from: form.onSalePurchaseFrom,
+        on_sale_import_date: form.onSaleImportDate.toDateString(),
+        on_sale_price: form.onSalePrice,
       };
       finalDetails = { ...finalDetails, ...onSaleDetails };
     }
 
     try {
       setUploading(true);
-      await updatePianoEntry(id.toString(), finalDetails);
+      await updatePianoEntry(id.toString(), finalDetails, image_url);
       router.push("/home");
       ToastAndroid.show("Piano entry updated successfully", ToastAndroid.SHORT);
     } catch (error) {

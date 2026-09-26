@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { getCurrentUser } from "@/lib/appwrite";
 import { useDispatch } from "react-redux";
 import { setCurrentUser } from "@/redux/users/actions";
@@ -13,9 +19,19 @@ export const useGlobalContext = () => useContext(GlobalContext);
 
 const GlobalProvider = ({ children }) => {
   const [isLogged, setIsLogged] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUserState] = useState(null);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
+
+  // Screens such as Edit read the user from Redux, so keep it in sync on
+  // sign-in, sign-up and logout, not only when the app starts.
+  const setUser = useCallback(
+    (nextUser) => {
+      setUserState(nextUser);
+      dispatch(setCurrentUser(nextUser));
+    },
+    [dispatch]
+  );
 
   useEffect(() => {
     getCurrentUser()
@@ -23,7 +39,6 @@ const GlobalProvider = ({ children }) => {
         if (res) {
           setIsLogged(true);
           setUser(res);
-          dispatch(setCurrentUser(res));
         } else {
           setIsLogged(false);
           setUser(null);

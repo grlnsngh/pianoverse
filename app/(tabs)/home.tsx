@@ -48,8 +48,11 @@ const Home = () => {
     }
     return getUserPianoEntries(user.accountId);
   }, [user]);
-  const { data: items, refetch } = useAppwrite(fetchFunction);
+  const { data: items, isLoading, refetch } = useAppwrite(fetchFunction);
 
+  const pianoReduxItems: PianoItem[] = useSelector(
+    (state: RootState) => state.pianos.items
+  );
   const filteredPianoReduxItems: PianoItem[] = useSelector(
     (state: RootState) => state.pianos.filteredItems
   );
@@ -126,7 +129,7 @@ const Home = () => {
 
   const applyFilters = useCallback(() => {
     console.log("🔍 Applying filters:", filters);
-    let filteredItems: PianoItem[] = items.slice();
+    let filteredItems: PianoItem[] = pianoReduxItems.slice();
     console.log("📊 Original items count:", filteredItems.length);
 
     // Apply sorting first
@@ -265,63 +268,38 @@ const Home = () => {
 
     console.log("✅ Final filtered results:", filteredItems.length);
     dispatch(setFilteredPianoListItems(filteredItems) as any);
-  }, [items, filters, dispatch]);
+  }, [pianoReduxItems, filters, dispatch]);
 
-  // Combined effect to handle both data loading and filtering
-  // This prevents duplicate filtering when both items and filters change
+  // Store the fetched items in redux once loading has finished. An empty
+  // result is stored too, so deleting the last piano clears the list.
   useEffect(() => {
-    if (items && items.length > 0) {
-      // Set items in redux store - original items
-      dispatch(setPianoListItems(items) as any);
+    if (isLoading) return;
+    dispatch(setPianoListItems(items) as any);
 
-      // Schedule notifications for rental due dates
-      // Only schedule if we haven't scheduled for this data recently
-      const currentTime = Date.now();
-      const timeSinceLastSchedule =
-        currentTime - (parseInt(lastNotificationSchedule) || 0);
+    if (items.length === 0) return;
 
-      // Only schedule if it's been more than 30 seconds since last schedule
-      // This prevents excessive scheduling while still allowing updates
-      if (timeSinceLastSchedule > 30000) {
-        console.log(`Scheduling notifications for ${items.length} items`);
-        scheduleAllRentalNotifications(items);
-        setLastNotificationSchedule(currentTime.toString());
-      } else {
-        console.log("Skipping notification scheduling (recently scheduled)");
-      }
+    // Schedule notifications for rental due dates
+    // Only schedule if we haven't scheduled for this data recently
+    const currentTime = Date.now();
+    const timeSinceLastSchedule =
+      currentTime - (parseInt(lastNotificationSchedule) || 0);
 
-      // Apply filters if any are set - only do this once when data is loaded
-      if (
-        filters.category ||
-        filters.isActiveRentals ||
-        filters.isSold ||
-        filters.sortBy
-      ) {
-        applyFilters();
-      } else {
-        // No filters set, show all items
-        dispatch(setFilteredPianoListItems(items) as any);
-      }
+    // Only schedule if it's been more than 30 seconds since last schedule
+    // This prevents excessive scheduling while still allowing updates
+    if (timeSinceLastSchedule > 30000) {
+      console.log(`Scheduling notifications for ${items.length} items`);
+      scheduleAllRentalNotifications(items);
+      setLastNotificationSchedule(currentTime.toString());
+    } else {
+      console.log("Skipping notification scheduling (recently scheduled)");
     }
-  }, [items, lastNotificationSchedule]); // Removed filters from dependencies to prevent duplicate calls
+  }, [items, isLoading, lastNotificationSchedule]);
 
-  // Separate effect for filter changes only (when items are already loaded)
+  // Re-apply sorting and filters whenever the stored items or the filters
+  // change (including pianos deleted from other screens)
   useEffect(() => {
-    // Only run filtering if we have items and this is a filter change (not initial data load)
-    if (
-      items &&
-      items.length > 0 &&
-      (filters.category ||
-        filters.isActiveRentals ||
-        filters.isSold ||
-        filters.sortBy)
-    ) {
-      applyFilters();
-    } else if (items && items.length > 0) {
-      // No filters set, show all items
-      dispatch(setFilteredPianoListItems(items) as any);
-    }
-  }, [filters]); // Only depend on filters, not items
+    applyFilters();
+  }, [applyFilters]);
 
   // Update layout key when layout changes
   useEffect(() => {

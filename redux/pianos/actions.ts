@@ -9,6 +9,7 @@ import {
   CLEAR_SELECTED_ITEMS,
   TOGGLE_ITEM_SELECTION,
   SELECT_ALL_ITEMS,
+  REMOVE_PIANO_ITEMS,
   SetFilteredPianoListItemsAction,
   SetPianoFiltersAction,
   SetPianoListItemsAction,
@@ -17,6 +18,7 @@ import {
   ClearSelectedItemsAction,
   ToggleItemSelectionAction,
   SelectAllItemsAction,
+  RemovePianoItemsAction,
 } from "./types";
 
 // Create the action creator
@@ -70,5 +72,12 @@ export const selectAllItems = (
   itemIds: string[]
 ): SelectAllItemsAction => ({
   type: SELECT_ALL_ITEMS,
+  payload: itemIds,
+});
+
+export const removePianoItems = (
+  itemIds: string[]
+): RemovePianoItemsAction => ({
+  type: REMOVE_PIANO_ITEMS,
   payload: itemIds,
 });
