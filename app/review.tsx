@@ -5,7 +5,7 @@ import { resetCreateForm, setActiveTab } from "@/redux/navigation/actions";
 import { addPianoItem } from "@/redux/pianos/actions";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -33,49 +33,24 @@ const Review = () => {
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
-  const [lastImageUri, setLastImageUri] = useState<string | null>(null);
-  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(
-    null
+
+  // Parse the form data from the navigation params (once, not on every render)
+  const form = useMemo(
+    () => (params.formData ? JSON.parse(params.formData as string) : {}),
+    [params.formData]
   );
+  const imageUri: string | undefined = form.image?.uri;
 
-  // Parse the form data from the navigation params
-  const form = params.formData ? JSON.parse(params.formData as string) : {};
-
-  // Reset image error when image URI changes
+  // Give a new image a fresh start, and stop showing "Loading image..." if it
+  // hasn't loaded within 2 seconds
   useEffect(() => {
-    if (form.image && form.image.uri !== lastImageUri) {
-      setImageError(false);
-      setImageLoading(false); // Reset loading state
-      setLastImageUri(form.image.uri);
+    setImageError(false);
+    setImageLoading(false);
+    if (!imageUri) return;
 
-      // Clear any existing timeout
-      if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-      }
-
-      // Set a timeout to clear loading state if image doesn't load within 2 seconds
-      const timeout = setTimeout(() => {
-        setImageLoading(false);
-      }, 2000);
-
-      setLoadingTimeout(timeout);
-    } else if (!form.image) {
-      setImageLoading(false);
-      setImageError(false);
-      setLastImageUri(null);
-      if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-        setLoadingTimeout(null);
-      }
-    }
-
-    // Cleanup timeout on unmount
-    return () => {
-      if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-      }
-    };
-  }, [form.image, lastImageUri, loadingTimeout]);
+    const timeout = setTimeout(() => setImageLoading(false), 2000);
+    return () => clearTimeout(timeout);
+  }, [imageUri]);
 
   // Hide the default header
   useLayoutEffect(() => {
@@ -307,25 +282,12 @@ const Review = () => {
                             onError={() => {
                               setImageError(true);
                               setImageLoading(false);
-                              if (loadingTimeout) {
-                                clearTimeout(loadingTimeout);
-                                setLoadingTimeout(null);
-                              }
                             }}
                             onLoad={() => {
                               setImageError(false);
                               setImageLoading(false);
-                              if (loadingTimeout) {
-                                clearTimeout(loadingTimeout);
-                                setLoadingTimeout(null);
-                              }
                             }}
-                            onLoadStart={() => {
-                              // Only set loading if not already loading (prevents unnecessary re-renders)
-                              if (!imageLoading) {
-                                setImageLoading(true);
-                              }
-                            }}
+                            onLoadStart={() => setImageLoading(true)}
                           />
                         ) : (
                           <View className="w-full h-48 bg-black-100 items-center justify-center">

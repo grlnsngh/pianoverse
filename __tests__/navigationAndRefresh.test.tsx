@@ -205,10 +205,6 @@ describe("tabs", () => {
       store.dispatch(setActiveTab("profile"));
     });
     const renderer = renderWithStore(<Profile />, store);
-    // The profile shows a short loading animation first
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    });
 
     await pressText(renderer.root, "Add New Piano");
     expect(store.getState().navigation.activeTab).toBe("create");

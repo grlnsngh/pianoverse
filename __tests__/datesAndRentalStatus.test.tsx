@@ -23,7 +23,6 @@ jest.mock("@/context/GlobalProvider", () => ({
 }));
 
 import React from "react";
-import { act } from "react-test-renderer";
 import { addDays, format } from "date-fns";
 import CardItem from "@/app/components/CardItem";
 import GridItem from "@/app/components/GridItem";
@@ -218,10 +217,6 @@ it("the profile counts a rental ending today as currently rented", async () => {
     <Profile />,
     createTestStore({ user: testUser, items: pianos })
   );
-  // The profile shows a short loading animation first
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  });
   await flushPromises();
 
   const texts = allTexts(renderer.root);
