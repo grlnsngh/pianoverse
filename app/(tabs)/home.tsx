@@ -38,6 +38,18 @@ import NotificationTest from "../components/NotificationTest";
 import { usePathname } from "expo-router";
 import { router } from "expo-router";
 
+// Sorts by a key worked out once per piano, instead of parsing dates again
+// on every comparison
+const sortByKey = (
+  items: PianoItem[],
+  getKey: (item: PianoItem) => number,
+  order: "asc" | "desc"
+) => {
+  const keys = new Map(items.map((item) => [item, getKey(item)]));
+  const direction = order === "asc" ? 1 : -1;
+  return [...items].sort((a, b) => direction * (keys.get(a)! - keys.get(b)!));
+};
+
 const Home = () => {
   const dispatch = useDispatch();
 
@@ -131,52 +143,30 @@ const Home = () => {
   }, [layoutView.grid, filteredPianoReduxItems, formatData]);
 
   const applyFilters = useCallback(() => {
-    console.log("🔍 Applying filters:", filters);
     let filteredItems: PianoItem[] = pianoReduxItems.slice();
-    console.log("📊 Original items count:", filteredItems.length);
 
     // Apply sorting first
     if (filters.sortBy) {
-      const sortItems = (
-        items: PianoItem[],
-        compareFn: (a: PianoItem, b: PianoItem) => number
-      ) => {
-        return items.sort(compareFn);
-      };
-
       switch (filters.sortBy) {
         case SORT_BY_OPTIONS.TITLE_ASC:
           filteredItems = smartSortTitles(filteredItems, true);
-          console.log("🔤 Sorted by title A-Z (smart sorting)");
-          console.log(
-            "📝 First few titles:",
-            filteredItems.slice(0, 5).map((item) => item.title)
-          );
           break;
         case SORT_BY_OPTIONS.TITLE_DES:
           filteredItems = smartSortTitles(filteredItems, false);
-          console.log("🔤 Sorted by title Z-A (smart sorting)");
-          console.log(
-            "📝 First few titles:",
-            filteredItems.slice(0, 5).map((item) => item.title)
-          );
           break;
         case SORT_BY_OPTIONS.LATEST_ADDED:
-          filteredItems = sortItems(
+          filteredItems = sortByKey(
             filteredItems,
-            (a, b) =>
-              new Date(b.$createdAt).getTime() -
-              new Date(a.$createdAt).getTime()
+            (item) => new Date(item.$createdAt).getTime(),
+            "desc"
           );
-          console.log("🕒 Sorted by latest added");
           break;
         case SORT_BY_OPTIONS.PURCHASE_DATE:
-          filteredItems = sortItems(filteredItems, (a, b) => {
-            const dateA = parseStoredDate(a.date_of_purchase)?.getTime() ?? 0;
-            const dateB = parseStoredDate(b.date_of_purchase)?.getTime() ?? 0;
-            return dateB - dateA;
-          });
-          console.log("💰 Sorted by purchase date");
+          filteredItems = sortByKey(
+            filteredItems,
+            (item) => parseStoredDate(item.date_of_purchase)?.getTime() ?? 0,
+            "desc"
+          );
           break;
         case SORT_BY_OPTIONS.DUE_DATE:
           // Filter to only rentable items with rental_period_end, then sort by due date
@@ -185,30 +175,22 @@ const Home = () => {
           );
 
           if (rentableItemsWithDueDate.length > 0) {
-            const sortedRentableItems = sortItems(
+            // Replace the filtered items with sorted rentable items,
+            // earliest due date first
+            filteredItems = sortByKey(
               rentableItemsWithDueDate,
-              (a, b) => {
-                const dateA =
-                  parseStoredDate(a.rental_period_end)?.getTime() ?? 0;
-                const dateB =
-                  parseStoredDate(b.rental_period_end)?.getTime() ?? 0;
-                return dateA - dateB; // Sort by earliest due date first
-              }
+              (item) => parseStoredDate(item.rental_period_end)?.getTime() ?? 0,
+              "asc"
             );
-
-            // Replace the filtered items with sorted rentable items
-            filteredItems = sortedRentableItems;
-            console.log("📅 Sorted by due date (earliest first)");
           } else {
             // If no rentable items with due dates, keep original items
             filteredItems = filteredItems.filter(
               (item) => item.category === "rentable"
             );
-            console.log("📅 No rentable items with due dates found");
           }
           break;
         default:
-          console.log("⚠️ Unknown sort option:", filters.sortBy);
+          console.warn("Unknown sort option:", filters.sortBy);
           break;
       }
     }
@@ -222,12 +204,6 @@ const Home = () => {
       filteredItems = filteredItems.filter(
         (item) => item.category.toLowerCase() === formattedFilter
       );
-      console.log(
-        "🏷️ Filtered by category:",
-        filters.category,
-        "- Results:",
-        filteredItems.length
-      );
     }
 
     // Apply active rentals filter
@@ -237,13 +213,8 @@ const Home = () => {
           item.category === "rentable" &&
           isRentalActive(item.rental_period_end)
       );
-      console.log(
-        "🏠 Filtered by active rentals - Results:",
-        filteredItems.length
-      );
     }
 
-    console.log("✅ Final filtered results:", filteredItems.length);
     dispatch(setFilteredPianoListItems(filteredItems) as any);
   }, [pianoReduxItems, filters, dispatch]);
 

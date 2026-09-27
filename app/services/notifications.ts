@@ -83,6 +83,35 @@ const reminderBody = (title: string, daysBefore: number) => {
   return `"${title}" rental ${when}. Please arrange return or extension.`;
 };
 
+// Schedule a rental's reminders (none if it is no longer rented or the due
+// date has passed). Existing reminders must already be cancelled.
+const scheduleRentalReminders = async (pianoItem: any) => {
+  const dueDate = parseStoredDate(pianoItem.rental_period_end);
+  if (pianoItem.category !== "rentable" || !dueDate) return [];
+
+  return Promise.all(
+    getRentalReminderTimes(dueDate).map(({ daysBefore, date }) =>
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: "🎹 Piano Rental Due Soon!",
+          body: reminderBody(pianoItem.title, daysBefore),
+          data: {
+            pianoId: pianoItem.$id,
+            type: "rental_due",
+            dueDate: pianoItem.rental_period_end,
+          },
+          sound: "default",
+        },
+        trigger: {
+          date,
+          channelId:
+            Platform.OS === "android" ? "rental-reminders" : undefined,
+        },
+      })
+    )
+  );
+};
+
 // Replace a piano's rental reminders with ones for its current due date
 // (none if it is no longer rented or the due date has passed)
 export const scheduleRentalDueNotification = async (pianoItem: any) => {
@@ -91,42 +120,7 @@ export const scheduleRentalDueNotification = async (pianoItem: any) => {
 
     // Cancel any existing notifications for this piano first
     await cancelRentalNotification(pianoItem.$id);
-
-    const dueDate = parseStoredDate(pianoItem.rental_period_end);
-    if (pianoItem.category !== "rentable" || !dueDate) {
-      console.log(
-        `Skipping notification for piano ${pianoItem.title}: not an active rental`
-      );
-      return [];
-    }
-
-    const reminders = getRentalReminderTimes(dueDate);
-    const notificationIds = await Promise.all(
-      reminders.map(({ daysBefore, date }) =>
-        Notifications.scheduleNotificationAsync({
-          content: {
-            title: "🎹 Piano Rental Due Soon!",
-            body: reminderBody(pianoItem.title, daysBefore),
-            data: {
-              pianoId: pianoItem.$id,
-              type: "rental_due",
-              dueDate: pianoItem.rental_period_end,
-            },
-            sound: "default",
-          },
-          trigger: {
-            date,
-            channelId:
-              Platform.OS === "android" ? "rental-reminders" : undefined,
-          },
-        })
-      )
-    );
-
-    console.log(
-      `✅ Scheduled ${notificationIds.length} reminder(s) for piano "${pianoItem.title}"`
-    );
-    return notificationIds;
+    return await scheduleRentalReminders(pianoItem);
   } catch (error) {
     console.error("❌ Error scheduling rental notification:", error);
     return [];
@@ -157,13 +151,6 @@ export const cancelRentalNotification = async (pianoId: string) => {
       );
 
       await Promise.all(cancelPromises);
-      console.log(
-        `🗑️ Cancelled ${notificationsToCancel.length} notification(s) for piano ID: ${pianoId}`
-      );
-    } else {
-      console.log(
-        `ℹ️ No notifications found to cancel for piano ID: ${pianoId}`
-      );
     }
   } catch (error) {
     console.error("❌ Error cancelling rental notification:", error);
@@ -196,8 +183,15 @@ export const scheduleAllRentalNotifications = (pianoItems: any[]) => {
       const rentals = (Array.isArray(pianoItems) ? pianoItems : []).filter(
         (item) => item?.category === "rentable" && item.rental_period_end
       );
+      // All rental reminders were just cancelled, so skip the per-piano
+      // cancel (one native lookup per piano)
       const results = await Promise.all(
-        rentals.map((item) => scheduleRentalDueNotification(item))
+        rentals.map((item) =>
+          scheduleRentalReminders(item).catch((error) => {
+            console.error(`❌ Error scheduling reminders for ${item.title}:`, error);
+            return [];
+          })
+        )
       );
       const notificationIds = results.flat();
 
