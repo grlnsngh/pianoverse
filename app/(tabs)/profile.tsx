@@ -27,7 +27,7 @@ import CustomButton from "../components/CustomButton";
 import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
 import { exportPianosToCSV } from "@/utils/csvExport";
-import { isRentalActive } from "@/utils/dates";
+import { isCurrentlyRented, isSold } from "@/utils/pianoStatus";
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -88,8 +88,11 @@ const Profile = () => {
     ]).start();
   };
 
+  // Sold pianos are no longer part of the stock
+  const stock = items.filter((item) => !isSold(item));
+
   const filterItemsByCategory = (category: string) => {
-    return items.filter((item) => item.category === category).length;
+    return stock.filter((item) => item.category === category).length;
   };
 
   // Calculate additional stats
@@ -101,11 +104,7 @@ const Profile = () => {
   };
 
   const calculateActiveRentals = () => {
-    return items.filter(
-      (item) =>
-        item.category === PIANO_CATEGORY.RENTABLE &&
-        isRentalActive(item.rental_period_end)
-    ).length;
+    return items.filter(isCurrentlyRented).length;
   };
 
   const calculateRecentAdditions = () => {
@@ -400,10 +399,10 @@ const Profile = () => {
                   <View className="flex-row items-center justify-between mb-6">
                     <View className="flex-1 items-center">
                       <Text className="text-4xl font-pbold text-secondary mb-1">
-                        {items?.length || 0}
+                        {stock.length}
                       </Text>
                       <Text className="text-gray-400 text-sm font-pmedium">
-                        Total Pianos
+                        In Stock
                       </Text>
                     </View>
 

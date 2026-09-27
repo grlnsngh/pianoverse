@@ -2,14 +2,16 @@ import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/app/constants/Piano";
 import { FiltersType } from "@/redux/pianos/types";
 
 /**
- * How many filters currently hide pianos from the list. Sorting by due date
- * counts too, because it only shows rentals.
+ * How many filters currently narrow the list. Sorting by due date counts too,
+ * because it only shows rentals, and so does showing sold pianos (instead of
+ * the ones in stock).
  */
 export const countActiveFilters = (filters: FiltersType) =>
   [
     filters.category !== "",
     filters.isActiveRentals,
     filters.sortBy === SORT_BY_OPTIONS.DUE_DATE,
+    filters.isSold,
   ].filter(Boolean).length;
 
 /** Default filters and sort, keeping the chosen layout. */

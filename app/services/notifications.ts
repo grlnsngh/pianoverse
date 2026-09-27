@@ -87,7 +87,9 @@ const reminderBody = (title: string, daysBefore: number) => {
 // date has passed). Existing reminders must already be cancelled.
 const scheduleRentalReminders = async (pianoItem: any) => {
   const dueDate = parseStoredDate(pianoItem.rental_period_end);
-  if (pianoItem.category !== "rentable" || !dueDate) return [];
+  // A sold piano's rental is over
+  if (pianoItem.category !== "rentable" || !dueDate || pianoItem.sold_date)
+    return [];
 
   return Promise.all(
     getRentalReminderTimes(dueDate).map(({ daysBefore, date }) =>
@@ -180,7 +182,10 @@ export const scheduleAllRentalNotifications = (pianoItems: any[]) => {
       await cancelAllRentalNotifications();
 
       const rentals = (Array.isArray(pianoItems) ? pianoItems : []).filter(
-        (item) => item?.category === "rentable" && item.rental_period_end
+        (item) =>
+          item?.category === "rentable" &&
+          item.rental_period_end &&
+          !item.sold_date
       );
       // All rental reminders were just cancelled, so skip the per-piano
       // cancel (one native lookup per piano)

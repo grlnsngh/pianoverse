@@ -382,6 +382,29 @@ export async function createPianoEntry(pianoData: PianoEntryInput) {
   }
 }
 
+/** Piano fields that can be changed on their own (everything but the image). */
+export type PianoFieldsUpdate = Omit<
+  Partial<PianoItemFormStateType>,
+  "image_url"
+>;
+
+/**
+ * Changes only the given fields of a piano, e.g. to record a sale or extend a
+ * rental. Unlike updatePianoEntry it never touches the image.
+ */
+export async function updatePianoFields(
+  documentId: string,
+  fields: PianoFieldsUpdate
+): Promise<PianoItem> {
+  const response = await databases.updateDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.pianoCollectionId,
+    documentId,
+    fields
+  );
+  return toPianoItem(response);
+}
+
 /**
  * Updates an existing piano entry in the database.
  *

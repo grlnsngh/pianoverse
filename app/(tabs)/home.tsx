@@ -15,7 +15,8 @@ import {
 import { setActiveTab } from "@/redux/navigation/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { isRentalActive, parseStoredDate } from "@/utils/dates";
-import { clearFilters } from "@/utils/filters";
+import { clearFilters, countActiveFilters } from "@/utils/filters";
+import { isSold } from "@/utils/pianoStatus";
 import { SORT_BY_OPTIONS } from "../constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
@@ -163,7 +164,7 @@ const Home = () => {
           subtitle="Check your connection and try again."
           action={{ title: "Try Again", onPress: () => refetch() }}
         />
-      ) : hasPianos ? (
+      ) : hasPianos && countActiveFilters(filters) > 0 ? (
         <EmptyState
           title="No pianos match your filters"
           subtitle="Try another category, or clear the filters to see every piano."
@@ -171,6 +172,15 @@ const Home = () => {
             title: "Clear Filters",
             onPress: () =>
               dispatch(setPianoFilters(clearFilters(filters)) as any),
+          }}
+        />
+      ) : hasPianos ? (
+        <EmptyState
+          title="No Pianos in Stock"
+          subtitle="Every piano has been sold. Turn on Sold Pianos in the filters to see them."
+          action={{
+            title: "Add a Piano",
+            onPress: () => dispatch(setActiveTab("create") as any),
           }}
         />
       ) : (
@@ -213,7 +223,10 @@ const Home = () => {
   }, [layoutView.grid, filteredPianoReduxItems, formatData]);
 
   const applyFilters = useCallback(() => {
-    let filteredItems: PianoItem[] = pianoReduxItems.slice();
+    // Sold pianos are no longer stock, so they only show with the Sold filter
+    let filteredItems: PianoItem[] = pianoReduxItems.filter(
+      (item) => isSold(item) === filters.isSold
+    );
 
     // Apply sorting first
     if (filters.sortBy) {

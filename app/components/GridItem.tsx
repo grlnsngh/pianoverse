@@ -5,7 +5,7 @@ import {
   SECONDARY_COLOR,
 } from "@/constants/colors";
 import useDeletePiano from "@/lib/useDeletePiano";
-import { getCategoryLabel } from "@/utils/ObjectManipulation";
+import { getStatusLabel } from "@/utils/pianoStatus";
 import { getEntranceDelay } from "@/utils/animation";
 import {
   getRemainingPeriod,
@@ -412,7 +412,7 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                   numberOfLines={1}
                   style={styles.categoryText}
                 >
-                  {getCategoryLabel(item.category)}
+                  {getStatusLabel(item)}
                 </Text>
 
                 {item.company_associated && (
