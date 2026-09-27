@@ -134,7 +134,7 @@ describe("rescheduling rental reminders", () => {
     await scheduleAllRentalNotifications(rentals);
 
     expect(Notifications.getAllScheduledNotificationsAsync).toHaveBeenCalledTimes(1);
-    expect(fakeNotifications.rentalReminders()).toHaveLength(60);
+    expect(fakeNotifications.rentalReminders()).toHaveLength(100);
   });
 
   it("logs a single summary instead of a line per piano", async () => {

@@ -57,9 +57,11 @@ export const requestNotificationPermissions = async () => {
   }
 };
 
-// Reminders go out at 9:00 a week before, the day before and on the due date
+// Reminders go out at 9:00 a week before, the day before and on the due date,
+// then the day after and a week after if the rental hasn't been extended (or
+// the piano marked as returned or sold)
 const REMINDER_HOUR = 9;
-const REMINDER_DAYS_BEFORE = [7, 1, 0];
+const REMINDER_DAYS_BEFORE = [7, 1, 0, -1, -7];
 
 /**
  * The reminder times still ahead for a rental due on `dueDate`. They only
@@ -73,12 +75,19 @@ export const getRentalReminderTimes = (dueDate: Date, now = new Date()) =>
     return { daysBefore, date };
   }).filter(({ date }) => date > now);
 
+const reminderTitle = (daysBefore: number) =>
+  daysBefore < 0 ? "🎹 Piano Rental Overdue" : "🎹 Piano Rental Due Soon!";
+
 const reminderBody = (title: string, daysBefore: number) => {
   const when =
     daysBefore === 0
       ? "ends today"
       : daysBefore === 1
       ? "ends tomorrow"
+      : daysBefore === -1
+      ? "ended yesterday"
+      : daysBefore < 0
+      ? `ended ${-daysBefore} days ago`
       : `ends in ${daysBefore} days`;
   return `"${title}" rental ${when}. Please arrange return or extension.`;
 };
@@ -95,7 +104,7 @@ const scheduleRentalReminders = async (pianoItem: any) => {
     getRentalReminderTimes(dueDate).map(({ daysBefore, date }) =>
       Notifications.scheduleNotificationAsync({
         content: {
-          title: "🎹 Piano Rental Due Soon!",
+          title: reminderTitle(daysBefore),
           body: reminderBody(pianoItem.title, daysBefore),
           data: {
             pianoId: pianoItem.$id,

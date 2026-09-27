@@ -33,6 +33,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
 import { PIANO_CATEGORY } from "../constants/Piano";
 import CustomButton from "../components/CustomButton";
+import ExtendRentalSheet from "../components/ExtendRentalSheet";
 import MarkAsSoldSheet from "../components/MarkAsSoldSheet";
 import icons from "../../constants/icons";
 
@@ -592,6 +593,7 @@ const DetailScreen = () => {
   const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
   const [showSoldSheet, setShowSoldSheet] = useState(false);
+  const [showExtendSheet, setShowExtendSheet] = useState(false);
   const confirmDelete = useDeletePiano();
   const updatePiano = useUpdatePiano();
 
@@ -814,6 +816,16 @@ const DetailScreen = () => {
             <SaleDetails piano={filteredPiano} onUndo={handleUndoSale} />
           ) : (
             <View className="flex-row space-x-3">
+              {category === PIANO_CATEGORY.RENTABLE && (
+                <TouchableOpacity
+                  onPress={() => setShowExtendSheet(true)}
+                  className="flex-1 bg-secondary/20 rounded-xl py-4 border border-secondary/40 items-center"
+                >
+                  <Text className="text-secondary font-psemibold">
+                    Extend Rental
+                  </Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 onPress={() => setShowSoldSheet(true)}
                 className="flex-1 bg-black-100/50 rounded-xl py-4 border border-gray-700 items-center"
@@ -919,6 +931,11 @@ const DetailScreen = () => {
         piano={filteredPiano}
         visible={showSoldSheet}
         onClose={() => setShowSoldSheet(false)}
+      />
+      <ExtendRentalSheet
+        piano={filteredPiano}
+        visible={showExtendSheet}
+        onClose={() => setShowExtendSheet(false)}
       />
     </SafeAreaView>
   );
