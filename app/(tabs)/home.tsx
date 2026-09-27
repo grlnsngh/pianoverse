@@ -21,6 +21,7 @@ import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
 import React, { useCallback, useEffect, useState, useMemo } from "react";
 import {
+  ActivityIndicator,
   BackHandler,
   FlatList,
   RefreshControl,
@@ -149,12 +150,20 @@ const Home = () => {
     refetch();
   }, [refetch]);
 
-  // Say whether the filters hid everything or there's nothing yet, and offer
-  // the way out
+  // Say why the list is empty (still loading, offline, filtered out or no
+  // pianos yet) and offer the way out
   const hasPianos = pianoReduxItems.length > 0;
   const renderEmptyState = useCallback(
     () =>
-      hasPianos ? (
+      !hasPianos && isLoading ? (
+        <ActivityIndicator color={SECONDARY_COLOR} style={{ marginTop: 48 }} />
+      ) : !hasPianos && loadError ? (
+        <EmptyState
+          title="Couldn't load your pianos"
+          subtitle="Check your connection and try again."
+          action={{ title: "Try Again", onPress: () => refetch() }}
+        />
+      ) : hasPianos ? (
         <EmptyState
           title="No pianos match your filters"
           subtitle="Try another category, or clear the filters to see every piano."
@@ -174,7 +183,7 @@ const Home = () => {
           }}
         />
       ),
-    [hasPianos, filters, dispatch]
+    [hasPianos, isLoading, loadError, refetch, filters, dispatch]
   );
 
   const formatData = useCallback((data: PianoItem[], numColumns: number) => {

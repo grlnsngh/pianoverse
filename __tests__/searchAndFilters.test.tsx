@@ -14,7 +14,7 @@ jest.mock("expo-router", () => ({
 }));
 
 import React from "react";
-import { TextInput } from "react-native";
+import { ActivityIndicator, TextInput } from "react-native";
 import { act } from "react-test-renderer";
 import { router, usePathname } from "expo-router";
 import Home from "@/app/(tabs)/home";
@@ -178,6 +178,40 @@ describe("when the Home list is empty", () => {
     await pressText(renderer.root, "Add a Piano");
 
     expect(store.getState().navigation.activeTab).toBe("create");
+  });
+
+  it("shows a spinner, not 'No Pianos Yet', while the pianos load", async () => {
+    jest
+      .mocked(getUserPianoEntries)
+      .mockReturnValue(new Promise(() => {}) as any);
+    const renderer = renderWithStore(
+      <Home />,
+      createTestStore({ user: testUser })
+    );
+    await flushPromises();
+
+    expect(renderer.root.findAllByType(ActivityIndicator)).toHaveLength(1);
+    expect(allTexts(renderer.root)).not.toContain("No Pianos Yet");
+  });
+
+  it("offers to try again when the pianos couldn't load", async () => {
+    const alerts = captureAlerts();
+    jest
+      .mocked(getUserPianoEntries)
+      .mockRejectedValueOnce(new Error("Network request failed"))
+      .mockResolvedValueOnce([makePiano()] as any);
+    const store = createTestStore({ user: testUser });
+    const renderer = renderWithStore(<Home />, store);
+    await flushPromises();
+
+    expect(alerts.titles()).toEqual(["Error"]);
+    const texts = allTexts(renderer.root);
+    expect(texts).toContain("Couldn't load your pianos");
+    expect(texts).not.toContain("No Pianos Yet");
+
+    await pressText(renderer.root, "Try Again");
+
+    expect(store.getState().pianos.items).toHaveLength(1);
   });
 });
 
