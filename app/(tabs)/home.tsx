@@ -25,7 +25,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import CardItem from "../components/CardItem";
 import EmptyState from "../components/EmptyState";
@@ -52,6 +52,7 @@ const sortByKey = (
 
 const Home = () => {
   const dispatch = useDispatch();
+  const store = useStore<RootState>();
 
   const { user } = useGlobalContext();
   const fetchFunction = useCallback(() => {
@@ -102,19 +103,33 @@ const Home = () => {
   //   }, [])
   // );
 
-  const handleToggleItemSelection = (itemId: string) => {
-    dispatch(toggleItemSelection(itemId) as any);
-  };
-
-  const handleEnterBulkSelection = (itemId: string) => {
-    // Enter bulk selection mode and select the long-pressed item
-    if (!isBulkSelectionMode) {
-      dispatch(setBulkSelectionMode(true) as any);
-    }
-    if (!selectedItems.includes(itemId)) {
+  // The row callbacks below keep their identity across renders, so memoized
+  // rows only re-render when their own props change
+  const handleToggleItemSelection = useCallback(
+    (itemId: string) => {
       dispatch(toggleItemSelection(itemId) as any);
-    }
-  };
+    },
+    [dispatch]
+  );
+
+  const handleEnterBulkSelection = useCallback(
+    (itemId: string) => {
+      // Read the latest selection at press time rather than from this render
+      const { isBulkSelectionMode, selectedItems } = store.getState().pianos;
+      // Enter bulk selection mode and select the long-pressed item
+      if (!isBulkSelectionMode) {
+        dispatch(setBulkSelectionMode(true) as any);
+      }
+      if (!selectedItems.includes(itemId)) {
+        dispatch(toggleItemSelection(itemId) as any);
+      }
+    },
+    [dispatch, store]
+  );
+
+  const handleItemDeleted = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   const formatData = useCallback((data: PianoItem[], numColumns: number) => {
     const newData = [...data];
@@ -250,8 +265,11 @@ const Home = () => {
   }, [layoutView]);
 
   const [visibleMenuId, setVisibleMenuId] = useState<string | null>(null);
-  const openMenu = (menuId: string) => setVisibleMenuId(menuId);
-  const closeMenu = () => setVisibleMenuId(null);
+  const openMenu = useCallback(
+    (menuId: string) => setVisibleMenuId(menuId),
+    []
+  );
+  const closeMenu = useCallback(() => setVisibleMenuId(null), []);
   const pathname = usePathname();
 
   // Improved sorting function that handles numbers more intuitively
@@ -370,15 +388,19 @@ const Home = () => {
         return <View style={{ flex: 1, margin: 4 }} />;
       }
 
+      // Only the row whose menu is open sees a change when a menu opens
+      const rowMenuId =
+        visibleMenuId === (item as PianoItem).$id ? visibleMenuId : null;
+
       if (layoutView.card === "checked") {
         return (
           <CardItem
             item={item as PianoItem}
             index={index}
-            visibleMenuId={visibleMenuId}
+            visibleMenuId={rowMenuId}
             openMenu={openMenu}
             closeMenu={closeMenu}
-            onDelete={() => refetch()}
+            onDelete={handleItemDeleted}
             isBulkSelectionMode={isBulkSelectionMode}
             isSelected={selectedItems.includes((item as PianoItem).$id)}
             onToggleSelection={handleToggleItemSelection}
@@ -391,10 +413,10 @@ const Home = () => {
           <ListItem
             item={item as PianoItem}
             index={index}
-            visibleMenuId={visibleMenuId}
+            visibleMenuId={rowMenuId}
             openMenu={openMenu}
             closeMenu={closeMenu}
-            onDelete={() => refetch()}
+            onDelete={handleItemDeleted}
             isBulkSelectionMode={isBulkSelectionMode}
             isSelected={selectedItems.includes((item as PianoItem).$id)}
             onToggleSelection={handleToggleItemSelection}
@@ -406,10 +428,10 @@ const Home = () => {
           <CardItem
             item={item as PianoItem}
             index={index}
-            visibleMenuId={visibleMenuId}
+            visibleMenuId={rowMenuId}
             openMenu={openMenu}
             closeMenu={closeMenu}
-            onDelete={() => refetch()}
+            onDelete={handleItemDeleted}
             isBulkSelectionMode={isBulkSelectionMode}
             isSelected={selectedItems.includes((item as PianoItem).$id)}
             onToggleSelection={handleToggleItemSelection}
@@ -426,7 +448,7 @@ const Home = () => {
       visibleMenuId,
       openMenu,
       closeMenu,
-      refetch,
+      handleItemDeleted,
       isBulkSelectionMode,
       selectedItems,
       handleToggleItemSelection,

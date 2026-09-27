@@ -1,5 +1,6 @@
 import React from "react";
 import { Alert, AlertButton } from "react-native";
+import { PaperProvider } from "react-native-paper";
 import { Provider } from "react-redux";
 import {
   act,
@@ -45,7 +46,12 @@ const mountedRenderers = new Set<ReactTestRenderer>();
 export const renderWithStore = (ui: React.ReactElement, store: TestStore) => {
   let renderer!: ReactTestRenderer;
   act(() => {
-    renderer = create(<Provider store={store}>{ui}</Provider>);
+    renderer = create(
+      <Provider store={store}>
+        {/* Like the root layout */}
+        <PaperProvider>{ui}</PaperProvider>
+      </Provider>
+    );
   });
   mountedRenderers.add(renderer);
   return renderer;

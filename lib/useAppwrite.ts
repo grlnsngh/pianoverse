@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { Alert } from "react-native";
 
 const useAppwrite = (fn: () => Promise<any>) => {
@@ -6,14 +6,18 @@ const useAppwrite = (fn: () => Promise<any>) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
   const hasFetchedRef = useRef(false);
+  // Keep refetch stable (for memoized list rows) while still calling the
+  // latest fn
+  const fnRef = useRef(fn);
+  fnRef.current = fn;
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     // Prevent duplicate fetches
     if (hasFetchedRef.current) return;
 
     setIsLoading(true);
     try {
-      const response = await fn();
+      const response = await fnRef.current();
       setData(response);
       setError(null);
       hasFetchedRef.current = true;
@@ -26,16 +30,16 @@ const useAppwrite = (fn: () => Promise<any>) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const refetch = () => {
+  const refetch = useCallback(() => {
     hasFetchedRef.current = false;
     return fetchData();
-  };
+  }, [fetchData]);
 
   return { data, isLoading, error, refetch };
 };
