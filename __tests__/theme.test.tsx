@@ -67,10 +67,7 @@ describe("styling", () => {
           line,
           at: `${path.relative(root, file)}:${i + 1}`,
         }))
-        .filter(
-          ({ line }) =>
-            /className/.test(line) || /"[^"]*\b(bg|border|text)-/.test(line)
-        )
+        // Every line, so class strings that wrap onto a second line count too
         .filter(({ line }) => unsupported.test(line))
         .map(({ at, line }) => `${at} ${line.trim()}`)
     );
