@@ -17,6 +17,8 @@ import {
 import { Dropdown } from "react-native-element-dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { prepareImageForUpload } from "@/utils/image";
+import { rentalDetailsError } from "@/utils/validation";
+import { addDays } from "date-fns";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
@@ -274,6 +276,15 @@ const Create = () => {
         Alert.alert("Error", "Please fill all rental details.");
         return;
       }
+      const problem = rentalDetailsError({
+        mobile: form.rentalCustomerMobileNumber,
+        startDate: form.rentalStartDate,
+        endDate: form.rentalEndDate,
+      });
+      if (problem) {
+        Alert.alert("Check the rental details", problem);
+        return;
+      }
     } else if (form.category === PIANO_CATEGORY.WAREHOUSE) {
       // Warehouse might not need additional validation beyond basic
     } else if (form.category === PIANO_CATEGORY.EVENTS) {
@@ -319,7 +330,7 @@ const Create = () => {
                       calculateProgress().currentStep > step
                         ? "bg-secondary border-secondary shadow-lg"
                         : calculateProgress().currentStep === step
-                        ? "bg-secondary border-secondary shadow-lg animate-pulse"
+                        ? "bg-secondary border-white shadow-lg"
                         : "bg-black-200 border-gray-600"
                     }`}
                   >
@@ -339,7 +350,7 @@ const Create = () => {
                     <View className="w-12 mx-2">
                       <View className="h-1 bg-gray-600 rounded-full">
                         <View
-                          className="h-full bg-secondary rounded-full transition-all duration-500 ease-out"
+                          className="h-full bg-secondary rounded-full"
                           style={{
                             width:
                               calculateProgress().currentStep > step
@@ -378,7 +389,7 @@ const Create = () => {
               <Text className="text-base text-gray-100 font-pmedium">
                 Category
               </Text>
-              <View className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary flex flex-row items-center">
+              <View className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 border-black-200 flex flex-row items-center">
                 <Picker
                   selectedValue={form.category}
                   style={styles.picker}
@@ -484,7 +495,7 @@ const Create = () => {
             <Text className="text-base text-gray-100 font-pmedium mb-2">
               Make
             </Text>
-            <View className="w-full px-4 py-5 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary">
+            <View className="w-full px-4 py-5 bg-black-100 rounded-2xl border-2 border-black-200">
               <Dropdown
                 data={pianoCompaniesMakeList}
                 search
@@ -558,7 +569,11 @@ const Create = () => {
                     handleChangeText={(e) => {
                       setForm({ ...form, rentalCustomerMobileNumber: e });
                     }}
-                    keyboardType="numeric"
+                    keyboardType="phone-pad"
+                    textContentType="telephoneNumber"
+                    autoComplete="tel"
+                    maxLength={16}
+                    placeholder="98765 43210"
                   />
 
                   <View>
@@ -590,6 +605,8 @@ const Create = () => {
                         mode="date"
                         display="default"
                         onChange={onRentalEndDateChange}
+                        // A rental ends at least a day after it starts
+                        minimumDate={addDays(form.rentalStartDate, 1)}
                       />
                     )}
                   </View>

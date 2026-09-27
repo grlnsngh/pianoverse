@@ -13,10 +13,20 @@ import {
   parseStoredDate,
   periodBetween,
 } from "@/utils/dates";
+import { callNumber, messageOnWhatsApp } from "@/utils/contact";
+import { buildShareMessage } from "@/utils/share";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useNavigation, router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View, TouchableOpacity, Alert } from "react-native";
+import {
+  ScrollView,
+  Share,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
 import { PIANO_CATEGORY } from "../constants/Piano";
@@ -210,15 +220,30 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
               {piano.rental_customer_mobile && (
                 <View className="flex-row items-center space-x-3">
                   <View className="w-8 h-8 bg-secondary/10 rounded-full items-center justify-center">
-                    <Image
-                      source={icons.search}
-                      className="w-4 h-4"
-                      tintColor="#FFA001"
-                    />
+                    <Ionicons name="call" size={16} color="#FFA001" />
                   </View>
-                  <Text className="text-base text-white font-pregular flex-1">
-                    {piano.rental_customer_mobile}
-                  </Text>
+                  {/* Tap the number to call the customer */}
+                  <TouchableOpacity
+                    className="flex-1"
+                    onPress={() => callNumber(piano.rental_customer_mobile!)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Call ${piano.rental_customer_mobile}`}
+                  >
+                    <Text className="text-base text-secondary font-pregular">
+                      {piano.rental_customer_mobile}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() =>
+                      messageOnWhatsApp(piano.rental_customer_mobile!)
+                    }
+                    className="w-9 h-9 rounded-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(37, 211, 102, 0.15)" }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Message on WhatsApp"
+                  >
+                    <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
+                  </TouchableOpacity>
                 </View>
               )}
 
@@ -590,9 +615,18 @@ const DetailScreen = () => {
     });
   };
 
-  const handleShare = () => {
-    // TODO: Implement share functionality
-    Alert.alert("Share", "Share functionality coming soon!");
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        title: filteredPiano.title,
+        message: buildShareMessage(filteredPiano),
+      });
+    } catch (error) {
+      Alert.alert(
+        "Couldn't Share",
+        error instanceof Error ? error.message : "Please try again."
+      );
+    }
   };
 
   const getCategoryColor = () => {
@@ -753,7 +787,7 @@ const DetailScreen = () => {
       </ScrollView>
 
       {/* Action Buttons - Sticky Footer */}
-      <View className="absolute bottom-0 left-0 right-0 bg-primary/95 backdrop-blur-lg border-t border-gray-700 p-4">
+      <View className="absolute bottom-0 left-0 right-0 bg-primary/95 border-t border-gray-700 p-4">
         <View className="flex-row space-x-3">
           <TouchableOpacity
             onPress={handleEdit}
@@ -770,6 +804,7 @@ const DetailScreen = () => {
           <TouchableOpacity
             onPress={handleShare}
             className="bg-secondary/20 rounded-xl px-5 py-4 flex-row justify-center items-center"
+            accessibilityLabel="Share"
           >
             <Image
               source={icons.upload}

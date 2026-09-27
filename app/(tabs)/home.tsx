@@ -10,14 +10,19 @@ import {
   toggleItemSelection,
   selectAllItems,
   clearSelectedItems,
+  setPianoFilters,
 } from "@/redux/pianos/actions";
+import { setActiveTab } from "@/redux/navigation/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { isRentalActive, parseStoredDate } from "@/utils/dates";
+import { clearFilters } from "@/utils/filters";
 import { SORT_BY_OPTIONS } from "../constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
 import React, { useCallback, useEffect, useState, useMemo } from "react";
 import {
+  ActivityIndicator,
+  BackHandler,
   FlatList,
   RefreshControl,
   Text,
@@ -103,6 +108,20 @@ const Home = () => {
   //   }, [])
   // );
 
+  // Android's back button leaves selection mode before it leaves the app
+  useEffect(() => {
+    if (!isBulkSelectionMode) return;
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        dispatch(clearSelectedItems() as any);
+        dispatch(setBulkSelectionMode(false) as any);
+        return true;
+      }
+    );
+    return () => subscription.remove();
+  }, [isBulkSelectionMode, dispatch]);
+
   // The row callbacks below keep their identity across renders, so memoized
   // rows only re-render when their own props change
   const handleToggleItemSelection = useCallback(
@@ -130,6 +149,42 @@ const Home = () => {
   const handleItemDeleted = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  // Say why the list is empty (still loading, offline, filtered out or no
+  // pianos yet) and offer the way out
+  const hasPianos = pianoReduxItems.length > 0;
+  const renderEmptyState = useCallback(
+    () =>
+      !hasPianos && isLoading ? (
+        <ActivityIndicator color={SECONDARY_COLOR} style={{ marginTop: 48 }} />
+      ) : !hasPianos && loadError ? (
+        <EmptyState
+          title="Couldn't load your pianos"
+          subtitle="Check your connection and try again."
+          action={{ title: "Try Again", onPress: () => refetch() }}
+        />
+      ) : hasPianos ? (
+        <EmptyState
+          title="No pianos match your filters"
+          subtitle="Try another category, or clear the filters to see every piano."
+          action={{
+            title: "Clear Filters",
+            onPress: () =>
+              dispatch(setPianoFilters(clearFilters(filters)) as any),
+          }}
+        />
+      ) : (
+        <EmptyState
+          title="No Pianos Yet"
+          subtitle="Pianos you add will show up here."
+          action={{
+            title: "Add a Piano",
+            onPress: () => dispatch(setActiveTab("create") as any),
+          }}
+        />
+      ),
+    [hasPianos, isLoading, loadError, refetch, filters, dispatch]
+  );
 
   const formatData = useCallback((data: PianoItem[], numColumns: number) => {
     const newData = [...data];
@@ -482,7 +537,7 @@ const Home = () => {
           <View className="flex-1">
             <SearchInput />
           </View>
-          <View className="w-14 h-15 flex items-center justify-center">
+          <View className="w-14 flex items-center justify-center">
             <FilterButton />
           </View>
         </View>
@@ -514,12 +569,7 @@ const Home = () => {
           windowSize={10}
           removeClippedSubviews={true}
           renderItem={renderItem}
-          ListEmptyComponent={() => (
-            <EmptyState
-              title="No Pianos Found"
-              subtitle="No Pianos created yet"
-            />
-          )}
+          ListEmptyComponent={renderEmptyState}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
@@ -535,12 +585,7 @@ const Home = () => {
           windowSize={10}
           removeClippedSubviews={true}
           renderItem={renderItem}
-          ListEmptyComponent={() => (
-            <EmptyState
-              title="No Pianos Found"
-              subtitle="No Pianos created yet"
-            />
-          )}
+          ListEmptyComponent={renderEmptyState}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }

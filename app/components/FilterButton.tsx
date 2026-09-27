@@ -24,6 +24,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import { Divider, Switch } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "../constants/Piano";
+import { countActiveFilters } from "@/utils/filters";
 
 const FilterButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -86,6 +87,7 @@ const FilterButton = () => {
   };
 
   const filterState = useSelector((state: RootState) => state.pianos.filters);
+  const activeFilterCount = countActiveFilters(filterState);
 
   // Sync filterForm with filterState when filterState changes
   useEffect(() => {
@@ -231,6 +233,11 @@ const FilterButton = () => {
         onPress={toggleModal}
         className="w-10 h-10 bg-primary-200 rounded-full flex items-center justify-center border border-secondary"
         activeOpacity={0.7}
+        accessibilityLabel={
+          activeFilterCount > 0
+            ? `Filters, ${activeFilterCount} active`
+            : "Filters"
+        }
       >
         <Image
           style={{ tintColor: SECONDARY_COLOR }}
@@ -238,6 +245,17 @@ const FilterButton = () => {
           className="w-5 h-5"
           resizeMode="contain"
         />
+        {/* Shows at a glance that the list is filtered */}
+        {activeFilterCount > 0 && (
+          <View
+            testID="active-filter-badge"
+            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-secondary items-center justify-center border-2 border-primary"
+          >
+            <Text className="text-[10px] font-pbold text-primary">
+              {activeFilterCount}
+            </Text>
+          </View>
+        )}
       </TouchableOpacity>
 
       <Modal

@@ -13,16 +13,24 @@ const SearchInput: React.FC<SearchInputProps> = React.memo(
   ({ initialQuery }) => {
     const pathname = usePathname();
     const [query, setQuery] = useState(initialQuery || "");
+    // NativeWind v2 ignores focus: classes on a View, so track focus here
+    const [isFocused, setIsFocused] = useState(false);
 
     const handleSearch = useCallback(() => {
-      if (query === "")
+      const trimmed = query.trim();
+      if (trimmed === "")
         return Alert.alert(
           "Missing Query",
           "Please input something to search results across database"
         );
 
-      if (pathname.startsWith("/search")) router.setParams({ query });
-      else router.push(`/search/${query}`);
+      if (pathname.startsWith("/search")) router.setParams({ query: trimmed });
+      // Let the router encode the query, so "/", "#", "%" and "?" survive
+      else
+        router.push({
+          pathname: "/search/[query]",
+          params: { query: trimmed },
+        });
     }, [query, pathname]);
 
     const handleTextChange = useCallback((e: string) => {
@@ -32,8 +40,9 @@ const SearchInput: React.FC<SearchInputProps> = React.memo(
     return (
       <View
         style={{ height: 60 }}
-        className="flex flex-row items-center space-x-4 w-full h-16 
-      px-4 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary"
+        className={`flex flex-row items-center space-x-4 w-full h-16 px-4 bg-black-100 rounded-2xl border-2 ${
+          isFocused ? "border-secondary" : "border-black-200"
+        }`}
       >
         <TouchableOpacity onPress={handleSearch}>
           <Image
@@ -48,6 +57,11 @@ const SearchInput: React.FC<SearchInputProps> = React.memo(
           placeholder="Search"
           placeholderTextColor="#CDCDE0"
           onChangeText={handleTextChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          // Search from the keyboard too
+          returnKeyType="search"
+          onSubmitEditing={handleSearch}
         />
       </View>
     );

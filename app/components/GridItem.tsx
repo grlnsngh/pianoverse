@@ -15,7 +15,7 @@ import {
 } from "@/utils/dates";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import {
   Dimensions,
   FlatList,
@@ -35,7 +35,6 @@ import RNAAnimated, {
 } from "react-native-reanimated";
 import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "../constants/Piano";
-import { showToast } from "@/utils/toast";
 
 interface GridItemProps {
   item: (PianoItem & { empty?: boolean })[];
@@ -100,9 +99,6 @@ const GridItem: React.FC<GridItemProps> = React.memo(
   }) => {
     const pathname = usePathname();
     const confirmDelete = useDeletePiano();
-    const [bookmarkedItems, setBookmarkedItems] = useState<Set<string>>(
-      new Set()
-    );
 
     const handleOnClickItem = (item: PianoItem & { empty?: boolean }) => {
       if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
@@ -120,20 +116,6 @@ const GridItem: React.FC<GridItemProps> = React.memo(
       confirmDelete(item, onDelete);
     };
 
-    const handleBookmark = (itemId: string) => {
-      setBookmarkedItems((prev) => {
-        const newSet = new Set(prev);
-        if (newSet.has(itemId)) {
-          newSet.delete(itemId);
-          showToast("Removed from bookmarks");
-        } else {
-          newSet.add(itemId);
-          showToast("Added to bookmarks");
-        }
-        return newSet;
-      });
-    };
-
     interface GridItemCardProps {
       item: PianoItem & { empty?: boolean };
       index: number;
@@ -141,8 +123,6 @@ const GridItem: React.FC<GridItemProps> = React.memo(
       openMenu: (id: string) => void;
       closeMenu: () => void;
       onDelete?: () => void;
-      bookmarkedItems: Set<string>;
-      handleBookmark: (itemId: string) => void;
       handleOnClickItem: (item: PianoItem) => void;
       isBulkSelectionMode?: boolean;
       isSelected?: boolean;
@@ -157,8 +137,6 @@ const GridItem: React.FC<GridItemProps> = React.memo(
         openMenu,
         closeMenu,
         onDelete,
-        bookmarkedItems,
-        handleBookmark,
         handleOnClickItem,
         isBulkSelectionMode = false,
         isSelected = false,
@@ -238,7 +216,6 @@ const GridItem: React.FC<GridItemProps> = React.memo(
 
         const remaining = getRemainingPeriod(item.rental_period_end);
         const rentalState = getRentalState(item.rental_period_end);
-        const isBookmarked = bookmarkedItems.has(item.$id);
 
         return (
           <RNAAnimated.View style={[styles.gridItemContainer, animatedStyle]}>
@@ -312,28 +289,6 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                             />
                           )}
                         </View>
-                      </TouchableOpacity>
-                    )}
-
-                    {/* Bookmark Button (only when not in bulk mode) */}
-                    {!isBulkSelectionMode && (
-                      <TouchableOpacity
-                        onPress={() => handleBookmark(item.$id)}
-                        style={styles.actionButton}
-                        activeOpacity={0.7}
-                      >
-                        <Image
-                          source={icons.bookmark}
-                          style={[
-                            styles.actionIcon,
-                            {
-                              tintColor: isBookmarked
-                                ? SECONDARY_COLOR
-                                : "#CDCDE0",
-                            },
-                          ]}
-                          resizeMode="contain"
-                        />
                       </TouchableOpacity>
                     )}
 
@@ -491,8 +446,6 @@ const GridItem: React.FC<GridItemProps> = React.memo(
           openMenu={openMenu}
           closeMenu={closeMenu}
           onDelete={onDelete}
-          bookmarkedItems={bookmarkedItems}
-          handleBookmark={handleBookmark}
           handleOnClickItem={handleOnClickItem}
           isBulkSelectionMode={isBulkSelectionMode}
           isSelected={selectedItems.includes(item.$id)}
@@ -504,8 +457,6 @@ const GridItem: React.FC<GridItemProps> = React.memo(
         openMenu,
         closeMenu,
         onDelete,
-        bookmarkedItems,
-        handleBookmark,
         handleOnClickItem,
         isBulkSelectionMode,
         selectedItems,
