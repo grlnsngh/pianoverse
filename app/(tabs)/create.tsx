@@ -3,7 +3,6 @@ import { useGlobalContext } from "@/context/GlobalProvider";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { Image } from "expo-image";
-import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -17,6 +16,7 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { prepareImageForUpload } from "@/utils/image";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
@@ -239,40 +239,8 @@ const Create = () => {
         return;
       }
 
-      const imageUri = asset.uri;
-      const response = await fetch(imageUri);
-      const blob = await response.blob();
-      const fileSize = blob.size; // File size in bytes
-
-      const targetSize = 500 * 1024; // Target size in bytes (500 KB)
-      let compress = 1.0;
-      let compressedFileSize = fileSize;
-      let compressedImageUri = imageUri;
-      // Loop to adjust compression ratio
-      while (compressedFileSize > targetSize && compress > 0) {
-        compress -= 0.1;
-        const compressedImage = await ImageManipulator.manipulateAsync(
-          imageUri,
-          [],
-          {
-            compress,
-            format: ImageManipulator.SaveFormat.JPEG,
-          }
-        );
-
-        const compressedResponse = await fetch(compressedImage.uri);
-        const compressedBlob = await compressedResponse.blob();
-        compressedFileSize = compressedBlob.size; // Compressed file size in bytes
-        compressedImageUri = compressedImage.uri;
-      }
-      setForm({
-        ...form,
-        image: {
-          ...asset,
-          uri: compressedImageUri,
-          fileSize: compressedFileSize,
-        },
-      });
+      const image = await prepareImageForUpload(asset);
+      setForm({ ...form, image });
     }
   };
 

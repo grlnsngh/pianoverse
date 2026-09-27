@@ -5,7 +5,11 @@ module.exports = function (api) {
     plugins: ["nativewind/babel", "react-native-reanimated/plugin"],
     env: {
       production: {
-        plugins: ["react-native-paper/babel"],
+        plugins: [
+          "react-native-paper/babel",
+          // Debug logging costs time on every call; keep only warnings and errors
+          ["transform-remove-console", { exclude: ["error", "warn"] }],
+        ],
       },
     },
   };

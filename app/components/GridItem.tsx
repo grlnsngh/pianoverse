@@ -6,6 +6,7 @@ import {
 } from "@/constants/colors";
 import useDeletePiano from "@/lib/useDeletePiano";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
+import { getEntranceDelay } from "@/utils/animation";
 import {
   getRemainingPeriod,
   getRentalState,
@@ -24,7 +25,7 @@ import {
   View,
   Animated,
 } from "react-native";
-import { IconButton, Menu, PaperProvider, Surface } from "react-native-paper";
+import { IconButton, Menu, Surface } from "react-native-paper";
 import RNAAnimated, {
   useAnimatedStyle,
   useSharedValue,
@@ -49,7 +50,6 @@ interface GridItemProps {
 const { width } = Dimensions.get("window");
 const numColumns = 2;
 const itemWidth = (width - 48) / numColumns; // Account for padding and gaps
-
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
@@ -174,7 +174,7 @@ const GridItem: React.FC<GridItemProps> = React.memo(
 
         // Trigger animation on mount with staggered delay
         useEffect(() => {
-          const delay = index * 100; // Stagger by 100ms per item
+          const delay = getEntranceDelay(index);
           opacity.value = withDelay(
             delay,
             withTiming(1, {
@@ -241,241 +241,237 @@ const GridItem: React.FC<GridItemProps> = React.memo(
         const isBookmarked = bookmarkedItems.has(item.$id);
 
         return (
-          <PaperProvider>
-            <RNAAnimated.View style={[styles.gridItemContainer, animatedStyle]}>
-              <Surface
-                style={[styles.item, { elevation: elevationAnim }]}
-                className="bg-primary-200 rounded-2xl overflow-hidden"
-              >
-                {/* Image Section with Overlay */}
-                <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-                  <TouchableOpacity
-                    activeOpacity={0.9}
-                    onPress={
-                      isBulkSelectionMode
-                        ? () => onToggleSelection?.(item.$id)
-                        : () => handleOnClickItem(item)
-                    }
-                    onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
-                    onPressOut={
-                      isBulkSelectionMode ? undefined : handlePressOut
-                    }
-                    style={styles.imageContainer}
-                  >
-                    <Image
-                      source={{ uri: item.image_url }}
-                      style={styles.image}
-                      resizeMode="cover"
-                      placeholder={images.empty}
-                      placeholderContentFit="cover"
-                    />
+          <RNAAnimated.View style={[styles.gridItemContainer, animatedStyle]}>
+            <Surface
+              style={[styles.item, { elevation: elevationAnim }]}
+              className="bg-primary-200 rounded-2xl overflow-hidden"
+            >
+              {/* Image Section with Overlay */}
+              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={
+                    isBulkSelectionMode
+                      ? () => onToggleSelection?.(item.$id)
+                      : () => handleOnClickItem(item)
+                  }
+                  onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
+                  onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
+                  style={styles.imageContainer}
+                >
+                  <Image
+                    source={{ uri: item.image_url }}
+                    style={styles.image}
+                    resizeMode="cover"
+                    placeholder={images.empty}
+                    placeholderContentFit="cover"
+                  />
 
-                    {/* Gradient Overlay */}
-                    <View style={styles.imageOverlay} />
+                  {/* Gradient Overlay */}
+                  <View style={styles.imageOverlay} />
 
-                    {/* Top Action Buttons */}
-                    <View style={styles.topActions}>
-                      {/* Selection Checkbox (only in bulk mode) */}
-                      {isBulkSelectionMode && (
-                        <TouchableOpacity
-                          onPress={() => onToggleSelection?.(item.$id)}
-                          style={[
-                            styles.actionButton,
-                            {
-                              backgroundColor: isSelected
-                                ? SECONDARY_COLOR
-                                : "rgba(0, 0, 0, 0.6)",
-                            },
-                          ]}
-                          activeOpacity={0.7}
-                        >
-                          <View
-                            style={{
-                              width: 16,
-                              height: 16,
-                              borderRadius: 8,
-                              borderWidth: 2,
-                              borderColor: "white",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              backgroundColor: isSelected
-                                ? "#161622"
-                                : "transparent",
-                            }}
-                          >
-                            {isSelected && (
-                              <Image
-                                source={icons.close}
-                                style={{
-                                  width: 10,
-                                  height: 10,
-                                  tintColor: "white",
-                                }}
-                                resizeMode="contain"
-                              />
-                            )}
-                          </View>
-                        </TouchableOpacity>
-                      )}
-
-                      {/* Bookmark Button (only when not in bulk mode) */}
-                      {!isBulkSelectionMode && (
-                        <TouchableOpacity
-                          onPress={() => handleBookmark(item.$id)}
-                          style={styles.actionButton}
-                          activeOpacity={0.7}
-                        >
-                          <Image
-                            source={icons.bookmark}
-                            style={[
-                              styles.actionIcon,
-                              {
-                                tintColor: isBookmarked
-                                  ? SECONDARY_COLOR
-                                  : "#CDCDE0",
-                              },
-                            ]}
-                            resizeMode="contain"
-                          />
-                        </TouchableOpacity>
-                      )}
-
-                      {/* Menu Button (only when not in bulk mode) */}
-                      {!isBulkSelectionMode && (
-                        <View style={styles.menuContainer}>
-                          <Menu
-                            style={styles.menu}
-                            visible={visibleMenuId === item.$id}
-                            onDismiss={closeMenu}
-                            anchor={
-                              <TouchableOpacity
-                                onPress={() => openMenu(item.$id)}
-                                style={styles.actionButton}
-                                activeOpacity={0.7}
-                              >
-                                <Image
-                                  source={icons.menu}
-                                  style={[
-                                    styles.actionIcon,
-                                    { tintColor: "#CDCDE0" },
-                                  ]}
-                                  resizeMode="contain"
-                                />
-                              </TouchableOpacity>
-                            }
-                          >
-                            <Menu.Item
-                              onPress={() => handleOnClickEditMenu(item)}
-                              title="Edit"
-                              leadingIcon={() => (
-                                <IconButton
-                                  icon={icons.pencil}
-                                  size={16}
-                                  iconColor={SECONDARY_COLOR}
-                                  style={styles.menuItemIcon}
-                                />
-                              )}
-                              titleStyle={{ color: "#CDCDE0" }}
-                            />
-                            <Menu.Item
-                              onPress={() => handleOnClickDeleteMenu(item)}
-                              title="Delete"
-                              leadingIcon={() => (
-                                <IconButton
-                                  icon={icons.trash}
-                                  size={16}
-                                  iconColor="#ef4444"
-                                  style={styles.menuItemIcon}
-                                />
-                              )}
-                              titleStyle={{ color: "#CDCDE0" }}
-                            />
-                          </Menu>
-                        </View>
-                      )}
-                    </View>
-
-                    {/* Status Badge */}
-                    {getStatusText(rentalState, remaining) && (
-                      <View style={styles.statusBadge}>
-                        <View
-                          style={[
-                            styles.statusDot,
-                            {
-                              backgroundColor: getStatusColor(
-                                rentalState,
-                                remaining
-                              ),
-                            },
-                          ]}
-                        />
-                        <Text style={styles.statusText}>
-                          {getStatusText(rentalState, remaining)}
-                        </Text>
-                      </View>
-                    )}
-
-                    {/* Category Badge */}
-                    <View style={styles.categoryBadge}>
-                      <View
+                  {/* Top Action Buttons */}
+                  <View style={styles.topActions}>
+                    {/* Selection Checkbox (only in bulk mode) */}
+                    {isBulkSelectionMode && (
+                      <TouchableOpacity
+                        onPress={() => onToggleSelection?.(item.$id)}
                         style={[
-                          styles.categoryIconContainer,
+                          styles.actionButton,
                           {
-                            backgroundColor:
-                              item.category === PIANO_CATEGORY.RENTABLE
-                                ? CATEGORY_COLORS.RENTABLE
-                                : item.category === PIANO_CATEGORY.EVENTS
-                                ? CATEGORY_COLORS.EVENTS
-                                : item.category === PIANO_CATEGORY.ON_SALE
-                                ? CATEGORY_COLORS.ON_SALE
-                                : item.category === PIANO_CATEGORY.WAREHOUSE
-                                ? CATEGORY_COLORS.WAREHOUSE
-                                : SECONDARY_COLOR,
+                            backgroundColor: isSelected
+                              ? SECONDARY_COLOR
+                              : "rgba(0, 0, 0, 0.6)",
                           },
                         ]}
+                        activeOpacity={0.7}
+                      >
+                        <View
+                          style={{
+                            width: 16,
+                            height: 16,
+                            borderRadius: 8,
+                            borderWidth: 2,
+                            borderColor: "white",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: isSelected
+                              ? "#161622"
+                              : "transparent",
+                          }}
+                        >
+                          {isSelected && (
+                            <Image
+                              source={icons.close}
+                              style={{
+                                width: 10,
+                                height: 10,
+                                tintColor: "white",
+                              }}
+                              resizeMode="contain"
+                            />
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    )}
+
+                    {/* Bookmark Button (only when not in bulk mode) */}
+                    {!isBulkSelectionMode && (
+                      <TouchableOpacity
+                        onPress={() => handleBookmark(item.$id)}
+                        style={styles.actionButton}
+                        activeOpacity={0.7}
                       >
                         <Image
-                          source={getCategoryIcon(item.category)}
-                          style={styles.categoryIcon}
-                          tintColor={PRIMARY_COLOR}
+                          source={icons.bookmark}
+                          style={[
+                            styles.actionIcon,
+                            {
+                              tintColor: isBookmarked
+                                ? SECONDARY_COLOR
+                                : "#CDCDE0",
+                            },
+                          ]}
                           resizeMode="contain"
                         />
+                      </TouchableOpacity>
+                    )}
+
+                    {/* Menu Button (only when not in bulk mode) */}
+                    {!isBulkSelectionMode && (
+                      <View style={styles.menuContainer}>
+                        <Menu
+                          style={styles.menu}
+                          visible={visibleMenuId === item.$id}
+                          onDismiss={closeMenu}
+                          anchor={
+                            <TouchableOpacity
+                              onPress={() => openMenu(item.$id)}
+                              style={styles.actionButton}
+                              activeOpacity={0.7}
+                            >
+                              <Image
+                                source={icons.menu}
+                                style={[
+                                  styles.actionIcon,
+                                  { tintColor: "#CDCDE0" },
+                                ]}
+                                resizeMode="contain"
+                              />
+                            </TouchableOpacity>
+                          }
+                        >
+                          <Menu.Item
+                            onPress={() => handleOnClickEditMenu(item)}
+                            title="Edit"
+                            leadingIcon={() => (
+                              <IconButton
+                                icon={icons.pencil}
+                                size={16}
+                                iconColor={SECONDARY_COLOR}
+                                style={styles.menuItemIcon}
+                              />
+                            )}
+                            titleStyle={{ color: "#CDCDE0" }}
+                          />
+                          <Menu.Item
+                            onPress={() => handleOnClickDeleteMenu(item)}
+                            title="Delete"
+                            leadingIcon={() => (
+                              <IconButton
+                                icon={icons.trash}
+                                size={16}
+                                iconColor="#ef4444"
+                                style={styles.menuItemIcon}
+                              />
+                            )}
+                            titleStyle={{ color: "#CDCDE0" }}
+                          />
+                        </Menu>
                       </View>
+                    )}
+                  </View>
+
+                  {/* Status Badge */}
+                  {getStatusText(rentalState, remaining) && (
+                    <View style={styles.statusBadge}>
+                      <View
+                        style={[
+                          styles.statusDot,
+                          {
+                            backgroundColor: getStatusColor(
+                              rentalState,
+                              remaining
+                            ),
+                          },
+                        ]}
+                      />
+                      <Text style={styles.statusText}>
+                        {getStatusText(rentalState, remaining)}
+                      </Text>
                     </View>
-                  </TouchableOpacity>
-                </Animated.View>
-
-                {/* Content Section */}
-                <View style={styles.contentContainer}>
-                  <Text
-                    className="text-white font-psemibold text-sm mb-1"
-                    numberOfLines={2}
-                    style={styles.titleText}
-                  >
-                    {item.title}
-                  </Text>
-
-                  <Text
-                    className="text-xs text-gray-100 font-pregular mb-1"
-                    numberOfLines={1}
-                    style={styles.categoryText}
-                  >
-                    {getCategoryLabel(item.category)}
-                  </Text>
-
-                  {item.company_associated && (
-                    <Text
-                      className="text-xs text-gray-100 font-pregular"
-                      numberOfLines={1}
-                      style={styles.companyText}
-                    >
-                      {item.company_associated}
-                    </Text>
                   )}
-                </View>
-              </Surface>
-            </RNAAnimated.View>
-          </PaperProvider>
+
+                  {/* Category Badge */}
+                  <View style={styles.categoryBadge}>
+                    <View
+                      style={[
+                        styles.categoryIconContainer,
+                        {
+                          backgroundColor:
+                            item.category === PIANO_CATEGORY.RENTABLE
+                              ? CATEGORY_COLORS.RENTABLE
+                              : item.category === PIANO_CATEGORY.EVENTS
+                              ? CATEGORY_COLORS.EVENTS
+                              : item.category === PIANO_CATEGORY.ON_SALE
+                              ? CATEGORY_COLORS.ON_SALE
+                              : item.category === PIANO_CATEGORY.WAREHOUSE
+                              ? CATEGORY_COLORS.WAREHOUSE
+                              : SECONDARY_COLOR,
+                        },
+                      ]}
+                    >
+                      <Image
+                        source={getCategoryIcon(item.category)}
+                        style={styles.categoryIcon}
+                        tintColor={PRIMARY_COLOR}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+
+              {/* Content Section */}
+              <View style={styles.contentContainer}>
+                <Text
+                  className="text-white font-psemibold text-sm mb-1"
+                  numberOfLines={2}
+                  style={styles.titleText}
+                >
+                  {item.title}
+                </Text>
+
+                <Text
+                  className="text-xs text-gray-100 font-pregular mb-1"
+                  numberOfLines={1}
+                  style={styles.categoryText}
+                >
+                  {getCategoryLabel(item.category)}
+                </Text>
+
+                {item.company_associated && (
+                  <Text
+                    className="text-xs text-gray-100 font-pregular"
+                    numberOfLines={1}
+                    style={styles.companyText}
+                  >
+                    {item.company_associated}
+                  </Text>
+                )}
+              </View>
+            </Surface>
+          </RNAAnimated.View>
         );
       }
     );

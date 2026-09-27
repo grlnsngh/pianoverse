@@ -3,6 +3,7 @@ import { useFonts } from "expo-font";
 import { useEffect } from "react";
 import GlobalProvider from "@/context/GlobalProvider";
 import { Provider } from "react-redux";
+import { PaperProvider } from "react-native-paper";
 import store from "@/redux/store";
 import ToastHost from "./components/ToastHost";
 
@@ -41,12 +42,16 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <GlobalProvider>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        </Stack>
-        <ToastHost />
+        {/* One provider for the whole app (theme and the host that menus
+            render into), instead of one per list row */}
+        <PaperProvider>
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          </Stack>
+          <ToastHost />
+        </PaperProvider>
       </GlobalProvider>
     </Provider>
   );

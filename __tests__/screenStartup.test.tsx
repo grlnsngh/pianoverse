@@ -1,0 +1,134 @@
+jest.mock("expo-router", () => ({
+  router: { push: jest.fn(), back: jest.fn(), replace: jest.fn() },
+  useLocalSearchParams: jest.fn(() => ({})),
+  useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
+}));
+jest.mock("@/context/GlobalProvider", () => ({
+  useGlobalContext: () => ({
+    user: require("./helpers/fixtures").testUser,
+    setUser: jest.fn(),
+    setIsLogged: jest.fn(),
+  }),
+}));
+jest.mock("@/app/services/notifications", () => ({
+  scheduleAllRentalNotifications: jest.fn(() => Promise.resolve([])),
+  scheduleRentalDueNotification: jest.fn(() => Promise.resolve([])),
+}));
+
+import React from "react";
+import { Animated } from "react-native";
+import { act } from "react-test-renderer";
+import { useLocalSearchParams } from "expo-router";
+import Profile from "@/app/(tabs)/profile";
+import Review from "@/app/review";
+import { makePiano, testUser } from "./helpers/fixtures";
+import {
+  allTexts,
+  createTestStore,
+  findByImageSource,
+  queryAllByText,
+  renderWithStore,
+} from "./helpers/render";
+
+afterEach(() => {
+  jest.useRealTimers();
+  jest.restoreAllMocks();
+});
+
+describe("the profile", () => {
+  const renderProfile = () =>
+    renderWithStore(
+      <Profile />,
+      createTestStore({ user: testUser, items: [makePiano()] })
+    );
+
+  it("shows the profile straight away", () => {
+    const renderer = renderProfile();
+
+    const texts = allTexts(renderer.root);
+    expect(texts).not.toContain("Loading Profile...");
+    expect(texts).toContain("Overview");
+    expect(texts).toContain("Sign Out");
+  });
+
+  it("fades in once and leaves no animation running", () => {
+    const loop = jest.spyOn(Animated, "loop");
+    const realParallel = Animated.parallel;
+    const entrances: Animated.CompositeAnimation[] = [];
+    jest.spyOn(Animated, "parallel").mockImplementation((...args) => {
+      const animation = realParallel(...args);
+      jest.spyOn(animation, "stop");
+      entrances.push(animation);
+      return animation;
+    });
+
+    const renderer = renderProfile();
+    act(() => renderer.unmount());
+
+    expect(loop).not.toHaveBeenCalled();
+    expect(entrances).toHaveLength(1);
+    expect(entrances[0].stop).toHaveBeenCalled();
+  });
+});
+
+describe("the review screen", () => {
+  const uri = "file:///cache/ImagePicker/piano.jpeg";
+  const formData = JSON.stringify({
+    category: "warehouse",
+    title: "Kawai K-300",
+    make: "Other",
+    companyAssociated: "Shamshersons",
+    dateOfPurchase: new Date(),
+    warehouseStoredSinceDate: new Date(),
+    image: { uri, fileName: "piano.jpeg", fileSize: 1000 },
+  });
+
+  const renderReview = () => {
+    jest.mocked(useLocalSearchParams).mockReturnValue({ formData });
+    const renderer = renderWithStore(
+      <Review />,
+      createTestStore({ user: testUser })
+    );
+    const image = () =>
+      findByImageSource(renderer.root, (source) => source.uri === uri);
+    return { renderer, image };
+  };
+
+  it("reads the form once, not on every render", () => {
+    const parse = jest.spyOn(JSON, "parse");
+    const { renderer, image } = renderReview();
+
+    // Each of these re-renders the screen
+    act(() => image().props.onLoadStart());
+    act(() => image().props.onLoad());
+    act(() => image().props.onLoadStart());
+
+    expect(queryAllByText(renderer.root, "Kawai K-300")).toHaveLength(1);
+    const formParses = parse.mock.calls.filter(([text]) => text === formData);
+    expect(formParses).toHaveLength(1);
+  });
+
+  it("stops showing the loading message if the image never loads", () => {
+    jest.useFakeTimers();
+    const { renderer, image } = renderReview();
+
+    act(() => image().props.onLoadStart());
+    expect(allTexts(renderer.root)).toContain("Loading image...");
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+    expect(allTexts(renderer.root)).not.toContain("Loading image...");
+  });
+
+  it("explains when the image can't be shown", () => {
+    const { renderer, image } = renderReview();
+
+    act(() => image().props.onLoadStart());
+    act(() => image().props.onError());
+
+    const texts = allTexts(renderer.root);
+    expect(texts).toContain("Failed to load image");
+    expect(texts).not.toContain("Loading image...");
+  });
+});

@@ -23,7 +23,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import { PieChart } from "react-native-chart-kit";
 import CustomButton from "../components/CustomButton";
 import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
@@ -42,110 +41,33 @@ const Profile = () => {
   const statsFadeAnim = useRef(new Animated.Value(0)).current;
   const categoryFadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Loading animation
-  const loadingAnim = useRef(new Animated.Value(0)).current;
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Simulate data loading (replace with actual data fetching)
+  // Fade the sections in once. The data is already in the store, so there's
+  // nothing to wait for first.
   useEffect(() => {
-    const loadProfileData = async () => {
-      try {
-        // Simulate API call or data processing
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        setIsLoading(false);
-
-        // Start animations after data is loaded
-        const loadingAnimation = Animated.loop(
-          Animated.timing(loadingAnim, {
-            toValue: 1,
-            duration: 1500,
-            easing: Easing.inOut(Easing.cubic),
-            useNativeDriver: true,
-          })
-        );
-        loadingAnimation.start();
-
-        // Start main animations
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 800,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-          Animated.timing(statsFadeAnim, {
-            toValue: 1,
-            duration: 1000,
-            delay: 300,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-          Animated.timing(categoryFadeAnim, {
-            toValue: 1,
-            duration: 1000,
-            delay: 600,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-        ]).start();
-
-        return () => loadingAnimation.stop();
-      } catch (error) {
-        console.error("Error loading profile data:", error);
-        setIsLoading(false);
-      }
-    };
-
-    loadProfileData();
-  }, []);
-
-  // Loading animation
-  useEffect(() => {
-    const loadingAnimation = Animated.loop(
-      Animated.timing(loadingAnim, {
+    const entrance = Animated.parallel([
+      Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 1500,
-        easing: Easing.inOut(Easing.cubic),
+        duration: 800,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
-      })
-    );
-    loadingAnimation.start();
-
-    // Simulate loading time and then show content
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      loadingAnimation.stop();
-
-      // Start main animations after loading
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 800,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(statsFadeAnim, {
-          toValue: 1,
-          duration: 1000,
-          delay: 300,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(categoryFadeAnim, {
-          toValue: 1,
-          duration: 1000,
-          delay: 600,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, 500); // Reduced from 2000ms to 500ms
-
-    return () => {
-      clearTimeout(timer);
-      loadingAnimation.stop();
-    };
+      }),
+      Animated.timing(statsFadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        delay: 300,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(categoryFadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        delay: 600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]);
+    entrance.start();
+    return () => entrance.stop();
   }, []);
 
   // Button press animation
@@ -316,421 +238,387 @@ const Profile = () => {
 
   return (
     <SafeAreaView className="bg-primary h-full">
-      {isLoading ? (
-        /* Loading Screen */
-        <View className="flex-1 justify-center items-center">
+      <Animated.View
+        style={{
+          flex: 1,
+          opacity: fadeAnim,
+          transform: [{ scale: scaleAnim }],
+        }}
+      >
+        <ScrollView className="flex-1">
+          {/* Header */}
+          <View className="flex-row justify-between items-center px-4 py-4">
+            <Text className="text-white text-2xl font-pbold">Profile</Text>
+            <TouchableOpacity
+              onPress={() => {
+                animateButtonPress();
+                showLogoutModal();
+              }}
+              className="bg-red-500 flex-row items-center px-4 py-2 rounded-xl shadow-lg"
+              activeOpacity={0.8}
+            >
+              <Image
+                source={icons.logout}
+                resizeMode="contain"
+                className="w-5 h-5 mr-2"
+                tintColor="#ffffff"
+              />
+              <Text className="text-white font-psemibold text-sm">
+                Sign Out
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* User Info Section */}
+          <View className="w-full px-4 mt-6 mb-8">
+            <View className="bg-primary-400 rounded-2xl p-6 shadow-lg">
+              <View className="flex-row items-center">
+                {/* Profile Picture */}
+                <View className="w-20 h-20 border-3 border-secondary rounded-full flex justify-center items-center mr-4">
+                  <Image
+                    source={{ uri: user?.avatar }}
+                    className="w-[90%] h-[90%] rounded-full"
+                    resizeMode="cover"
+                  />
+                </View>
+
+                {/* User Details */}
+                <View className="flex-1">
+                  <Text className="text-white text-xl font-pbold mb-1">
+                    {user?.username || "User"}
+                  </Text>
+                  <Text className="text-gray-100 text-sm font-pregular mb-2">
+                    {user?.email}
+                  </Text>
+
+                  {/* Member Since Info */}
+                  {user?.$createdAt && (
+                    <View className="flex-row items-center">
+                      <View className="bg-secondary rounded-full p-1 mr-2">
+                        <Image
+                          source={icons.profile}
+                          className="w-3 h-3"
+                          tintColor="#161622"
+                        />
+                      </View>
+                      <Text className="text-secondary text-xs font-pmedium">
+                        Member for{" "}
+                        {calculateMembershipDuration(user.$createdAt)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              {/* Join Date */}
+              {user?.$createdAt && (
+                <View className="mt-4 pt-4 border-t border-gray-600">
+                  <Text className="text-gray-100 text-xs font-pregular">
+                    Joined {formatMemberSince(user.$createdAt)}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Export CSV Button */}
+          {items.length > 0 && (
+            <View className="px-4 mb-4">
+              <TouchableOpacity
+                onPress={handleExportCSV}
+                className="bg-secondary/20 rounded-xl py-4 px-4 flex-row items-center justify-center space-x-2 border border-secondary/40"
+                activeOpacity={0.7}
+              >
+                <Image
+                  source={icons.upload}
+                  className="w-5 h-5"
+                  tintColor="#FFA001"
+                />
+                <Text className="text-secondary font-psemibold text-base ml-2">
+                  Download Piano List
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Stats Section */}
           <Animated.View
+            className="px-4 mb-6"
             style={{
+              opacity: statsFadeAnim,
               transform: [
                 {
-                  rotate: loadingAnim.interpolate({
+                  translateY: statsFadeAnim.interpolate({
                     inputRange: [0, 1],
-                    outputRange: ["0deg", "360deg"],
+                    outputRange: [20, 0],
                   }),
                 },
               ],
             }}
           >
-            <View className="bg-secondary rounded-full p-4">
-              <Image
-                source={icons.profile}
-                className="w-12 h-12"
-                tintColor="#161622"
-              />
-            </View>
-          </Animated.View>
-          <Text className="text-white text-lg font-psemibold mt-4">
-            Loading Profile...
-          </Text>
-          <Text className="text-gray-100 text-sm font-pregular mt-2">
-            Preparing your piano collection
-          </Text>
-        </View>
-      ) : (
-        <Animated.View
-          style={{
-            flex: 1,
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-          }}
-        >
-          <ScrollView className="flex-1">
-            {/* Header */}
-            <View className="flex-row justify-between items-center px-4 py-4">
-              <Text className="text-white text-2xl font-pbold">Profile</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  animateButtonPress();
-                  showLogoutModal();
-                }}
-                className="bg-red-500 flex-row items-center px-4 py-2 rounded-xl shadow-lg"
-                activeOpacity={0.8}
-              >
-                <Image
-                  source={icons.logout}
-                  resizeMode="contain"
-                  className="w-5 h-5 mr-2"
-                  tintColor="#ffffff"
-                />
-                <Text className="text-white font-psemibold text-sm">
-                  Sign Out
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <Text className="text-white text-xl font-pbold mb-4">Overview</Text>
 
-            {/* User Info Section */}
-            <View className="w-full px-4 mt-6 mb-8">
-              <View className="bg-primary-400 rounded-2xl p-6 shadow-lg">
-                <View className="flex-row items-center">
-                  {/* Profile Picture */}
-                  <View className="w-20 h-20 border-3 border-secondary rounded-full flex justify-center items-center mr-4">
-                    <Image
-                      source={{ uri: user?.avatar }}
-                      className="w-[90%] h-[90%] rounded-full"
-                      resizeMode="cover"
-                    />
-                  </View>
-
-                  {/* User Details */}
-                  <View className="flex-1">
-                    <Text className="text-white text-xl font-pbold mb-1">
-                      {user?.username || "User"}
-                    </Text>
-                    <Text className="text-gray-100 text-sm font-pregular mb-2">
-                      {user?.email}
-                    </Text>
-
-                    {/* Member Since Info */}
-                    {user?.$createdAt && (
-                      <View className="flex-row items-center">
-                        <View className="bg-secondary rounded-full p-1 mr-2">
-                          <Image
-                            source={icons.profile}
-                            className="w-3 h-3"
-                            tintColor="#161622"
-                          />
-                        </View>
-                        <Text className="text-secondary text-xs font-pmedium">
-                          Member for{" "}
-                          {calculateMembershipDuration(user.$createdAt)}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-
-                {/* Join Date */}
-                {user?.$createdAt && (
-                  <View className="mt-4 pt-4 border-t border-gray-600">
-                    <Text className="text-gray-100 text-xs font-pregular">
-                      Joined {formatMemberSince(user.$createdAt)}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-
-            {/* Export CSV Button */}
-            {items.length > 0 && (
-              <View className="px-4 mb-4">
-                <TouchableOpacity
-                  onPress={handleExportCSV}
-                  className="bg-secondary/20 rounded-xl py-4 px-4 flex-row items-center justify-center space-x-2 border border-secondary/40"
-                  activeOpacity={0.7}
-                >
+            {items.length === 0 ? (
+              /* Empty State for No Pianos */
+              <View className="bg-black-100/50 rounded-2xl p-8 items-center">
+                <View className="bg-secondary/20 rounded-full p-6 mb-4">
                   <Image
-                    source={icons.upload}
-                    className="w-5 h-5"
+                    source={icons.card}
+                    className="w-16 h-16"
                     tintColor="#FFA001"
                   />
-                  <Text className="text-secondary font-psemibold text-base ml-2">
-                    Download Piano List
+                </View>
+                <Text className="text-white text-xl font-pbold mb-2">
+                  No Pianos Yet
+                </Text>
+                <Text className="text-gray-400 text-center text-base font-pregular mb-6 px-4">
+                  Start managing your piano inventory by adding your first
+                  instrument
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    animateButtonPress();
+                    dispatch(setActiveTab("create") as any);
+                  }}
+                  className="bg-secondary rounded-xl px-8 py-4 flex-row items-center shadow-lg"
+                  activeOpacity={0.8}
+                >
+                  <Image
+                    source={icons.plus}
+                    className="w-6 h-6 mr-2"
+                    tintColor="#161622"
+                  />
+                  <Text className="text-primary font-pbold text-base">
+                    Add Your First Piano
                   </Text>
                 </TouchableOpacity>
               </View>
-            )}
-
-            {/* Stats Section */}
-            <Animated.View
-              className="px-4 mb-6"
-              style={{
-                opacity: statsFadeAnim,
-                transform: [
-                  {
-                    translateY: statsFadeAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [20, 0],
-                    }),
-                  },
-                ],
-              }}
-            >
-              <Text className="text-white text-xl font-pbold mb-4">
-                Overview
-              </Text>
-
-              {items.length === 0 ? (
-                /* Empty State for No Pianos */
-                <View className="bg-black-100/50 rounded-2xl p-8 items-center">
-                  <View className="bg-secondary/20 rounded-full p-6 mb-4">
-                    <Image
-                      source={icons.card}
-                      className="w-16 h-16"
-                      tintColor="#FFA001"
-                    />
-                  </View>
-                  <Text className="text-white text-xl font-pbold mb-2">
-                    No Pianos Yet
-                  </Text>
-                  <Text className="text-gray-400 text-center text-base font-pregular mb-6 px-4">
-                    Start managing your piano inventory by adding your first
-                    instrument
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      animateButtonPress();
-                      dispatch(setActiveTab("create") as any);
-                    }}
-                    className="bg-secondary rounded-xl px-8 py-4 flex-row items-center shadow-lg"
-                    activeOpacity={0.8}
-                  >
-                    <Image
-                      source={icons.plus}
-                      className="w-6 h-6 mr-2"
-                      tintColor="#161622"
-                    />
-                    <Text className="text-primary font-pbold text-base">
-                      Add Your First Piano
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <>
-                  {/* Quick Stats - Simplified */}
-                  <View className="bg-black-100/50 rounded-2xl p-5 mb-4">
-                    <View className="flex-row items-center justify-between mb-6">
-                      <View className="flex-1 items-center">
-                        <Text className="text-4xl font-pbold text-secondary mb-1">
-                          {items?.length || 0}
-                        </Text>
-                        <Text className="text-gray-400 text-sm font-pmedium">
-                          Total Pianos
-                        </Text>
-                      </View>
-
-                      <View className="w-px h-16 bg-gray-700 mx-4" />
-
-                      <View className="flex-1 items-center">
-                        <Text className="text-4xl font-pbold text-green-400 mb-1">
-                          {activeRentals}
-                        </Text>
-                        <Text className="text-gray-400 text-sm font-pmedium">
-                          Currently Rented
-                        </Text>
-                      </View>
+            ) : (
+              <>
+                {/* Quick Stats - Simplified */}
+                <View className="bg-black-100/50 rounded-2xl p-5 mb-4">
+                  <View className="flex-row items-center justify-between mb-6">
+                    <View className="flex-1 items-center">
+                      <Text className="text-4xl font-pbold text-secondary mb-1">
+                        {items?.length || 0}
+                      </Text>
+                      <Text className="text-gray-400 text-sm font-pmedium">
+                        Total Pianos
+                      </Text>
                     </View>
 
-                    {/* Recent Activity */}
-                    {recentAdditions > 0 && (
-                      <View className="pt-4 border-t border-gray-700">
-                        <Text className="text-gray-400 text-xs font-pmedium mb-2">
-                          THIS MONTH
-                        </Text>
-                        <Text className="text-white text-base font-psemibold">
-                          {recentAdditions} piano
-                          {recentAdditions !== 1 ? "s" : ""} added recently
-                        </Text>
-                      </View>
-                    )}
+                    <View className="w-px h-16 bg-gray-700 mx-4" />
+
+                    <View className="flex-1 items-center">
+                      <Text className="text-4xl font-pbold text-green-400 mb-1">
+                        {activeRentals}
+                      </Text>
+                      <Text className="text-gray-400 text-sm font-pmedium">
+                        Currently Rented
+                      </Text>
+                    </View>
                   </View>
 
-                  {/* Category Breakdown - Simplified */}
-                  <View className="space-y-3">
-                    <Text className="text-white text-lg font-pbold mb-1">
-                      By Category
-                    </Text>
-
-                    {pieChartData.map((item, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        onPress={() =>
-                          navigateToHomeWithFilter(
-                            item.name === "Rented Out"
-                              ? "Rentable"
-                              : item.name === "Storage"
-                              ? "Warehouse"
-                              : item.name === "Events"
-                              ? "Events"
-                              : "On Sale"
-                          )
-                        }
-                        className="bg-black-100/50 rounded-xl p-4 flex-row items-center justify-between"
-                        activeOpacity={0.7}
-                      >
-                        <View className="flex-row items-center flex-1">
-                          <View
-                            className="w-12 h-12 rounded-full items-center justify-center mr-4"
-                            style={{ backgroundColor: `${item.color}20` }}
-                          >
-                            <Image
-                              source={item.icon}
-                              className="w-6 h-6"
-                              tintColor={item.color}
-                            />
-                          </View>
-                          <View className="flex-1">
-                            <Text className="text-white text-base font-psemibold mb-1">
-                              {item.name}
-                            </Text>
-                            <View className="flex-row items-center">
-                              <View className="bg-gray-700 rounded-full h-2 flex-1 mr-3">
-                                <View
-                                  className="h-2 rounded-full"
-                                  style={{
-                                    width: `${item.percentage}%`,
-                                    backgroundColor: item.color,
-                                  }}
-                                />
-                              </View>
-                              <Text className="text-gray-400 text-sm font-pmedium w-12">
-                                {item.percentage}%
-                              </Text>
-                            </View>
-                          </View>
-                          <View className="items-end ml-2">
-                            <Text className="text-2xl font-pbold text-white">
-                              {item.count}
-                            </Text>
-                          </View>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </>
-              )}
-            </Animated.View>
-
-            {/* Quick Actions */}
-            <Animated.View
-              className="px-4 mb-6"
-              style={{
-                opacity: categoryFadeAnim,
-                transform: [
-                  {
-                    translateY: categoryFadeAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [30, 0],
-                    }),
-                  },
-                ],
-              }}
-            >
-              <Text className="text-white text-lg font-pbold mb-4">
-                Quick Actions
-              </Text>
-
-              {items.length === 0 ? (
-                <View className="bg-black-100/50 rounded-xl p-6 items-center">
-                  <Text className="text-gray-400 text-center text-sm font-pregular">
-                    Actions will appear here once you add pianos
-                  </Text>
+                  {/* Recent Activity */}
+                  {recentAdditions > 0 && (
+                    <View className="pt-4 border-t border-gray-700">
+                      <Text className="text-gray-400 text-xs font-pmedium mb-2">
+                        THIS MONTH
+                      </Text>
+                      <Text className="text-white text-base font-psemibold">
+                        {recentAdditions} piano
+                        {recentAdditions !== 1 ? "s" : ""} added recently
+                      </Text>
+                    </View>
+                  )}
                 </View>
-              ) : (
+
+                {/* Category Breakdown - Simplified */}
                 <View className="space-y-3">
-                  <TouchableOpacity
-                    onPress={() => dispatch(setActiveTab("home") as any)}
-                    className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
-                    activeOpacity={0.7}
-                  >
-                    <View className="flex-row items-center">
-                      <View className="w-10 h-10 bg-secondary/20 rounded-full items-center justify-center mr-3">
-                        <Image
-                          source={icons.eye}
-                          className="w-5 h-5"
-                          tintColor="#FFA001"
-                        />
-                      </View>
-                      <Text className="text-white text-base font-psemibold">
-                        View All Pianos
-                      </Text>
-                    </View>
-                    <Image
-                      source={icons.rightArrow}
-                      className="w-5 h-5"
-                      tintColor="#FFA001"
-                    />
-                  </TouchableOpacity>
+                  <Text className="text-white text-lg font-pbold mb-1">
+                    By Category
+                  </Text>
 
-                  <TouchableOpacity
-                    onPress={() => dispatch(setActiveTab("create") as any)}
-                    className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
-                    activeOpacity={0.7}
-                  >
-                    <View className="flex-row items-center">
-                      <View className="w-10 h-10 bg-secondary/20 rounded-full items-center justify-center mr-3">
-                        <Image
-                          source={icons.plus}
-                          className="w-5 h-5"
-                          tintColor="#FFA001"
-                        />
-                      </View>
-                      <Text className="text-white text-base font-psemibold">
-                        Add New Piano
-                      </Text>
-                    </View>
-                    <Image
-                      source={icons.rightArrow}
-                      className="w-5 h-5"
-                      tintColor="#FFA001"
-                    />
-                  </TouchableOpacity>
-
-                  {activeRentals > 0 && (
+                  {pieChartData.map((item, index) => (
                     <TouchableOpacity
-                      onPress={() => {
-                        const filters: FiltersType = {
-                          ...DEFAULT_FILTERS,
-                          category: "Rentable",
-                          isActiveRentals: true,
-                        };
-                        dispatch(setPianoFilters(filters) as any);
-                        dispatch(setActiveTab("home") as any);
-                      }}
-                      className="bg-green-500/20 border border-green-500/40 rounded-xl p-4 flex-row items-center justify-between"
+                      key={index}
+                      onPress={() =>
+                        navigateToHomeWithFilter(
+                          item.name === "Rented Out"
+                            ? "Rentable"
+                            : item.name === "Storage"
+                            ? "Warehouse"
+                            : item.name === "Events"
+                            ? "Events"
+                            : "On Sale"
+                        )
+                      }
+                      className="bg-black-100/50 rounded-xl p-4 flex-row items-center justify-between"
                       activeOpacity={0.7}
                     >
-                      <View className="flex-row items-center">
-                        <View className="w-10 h-10 bg-green-500/20 rounded-full items-center justify-center mr-3">
+                      <View className="flex-row items-center flex-1">
+                        <View
+                          className="w-12 h-12 rounded-full items-center justify-center mr-4"
+                          style={{ backgroundColor: `${item.color}20` }}
+                        >
                           <Image
-                            source={icons.bookmark}
-                            className="w-5 h-5"
-                            tintColor="#22C55E"
+                            source={item.icon}
+                            className="w-6 h-6"
+                            tintColor={item.color}
                           />
                         </View>
-                        <Text className="text-white text-base font-psemibold">
-                          Active Rentals
-                        </Text>
-                      </View>
-                      <View className="flex-row items-center">
-                        <View className="bg-green-500 rounded-full px-3 py-1 mr-2">
-                          <Text className="text-white text-sm font-pbold">
-                            {activeRentals}
+                        <View className="flex-1">
+                          <Text className="text-white text-base font-psemibold mb-1">
+                            {item.name}
+                          </Text>
+                          <View className="flex-row items-center">
+                            <View className="bg-gray-700 rounded-full h-2 flex-1 mr-3">
+                              <View
+                                className="h-2 rounded-full"
+                                style={{
+                                  width: `${item.percentage}%`,
+                                  backgroundColor: item.color,
+                                }}
+                              />
+                            </View>
+                            <Text className="text-gray-400 text-sm font-pmedium w-12">
+                              {item.percentage}%
+                            </Text>
+                          </View>
+                        </View>
+                        <View className="items-end ml-2">
+                          <Text className="text-2xl font-pbold text-white">
+                            {item.count}
                           </Text>
                         </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+          </Animated.View>
+
+          {/* Quick Actions */}
+          <Animated.View
+            className="px-4 mb-6"
+            style={{
+              opacity: categoryFadeAnim,
+              transform: [
+                {
+                  translateY: categoryFadeAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [30, 0],
+                  }),
+                },
+              ],
+            }}
+          >
+            <Text className="text-white text-lg font-pbold mb-4">
+              Quick Actions
+            </Text>
+
+            {items.length === 0 ? (
+              <View className="bg-black-100/50 rounded-xl p-6 items-center">
+                <Text className="text-gray-400 text-center text-sm font-pregular">
+                  Actions will appear here once you add pianos
+                </Text>
+              </View>
+            ) : (
+              <View className="space-y-3">
+                <TouchableOpacity
+                  onPress={() => dispatch(setActiveTab("home") as any)}
+                  className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
+                  activeOpacity={0.7}
+                >
+                  <View className="flex-row items-center">
+                    <View className="w-10 h-10 bg-secondary/20 rounded-full items-center justify-center mr-3">
+                      <Image
+                        source={icons.eye}
+                        className="w-5 h-5"
+                        tintColor="#FFA001"
+                      />
+                    </View>
+                    <Text className="text-white text-base font-psemibold">
+                      View All Pianos
+                    </Text>
+                  </View>
+                  <Image
+                    source={icons.rightArrow}
+                    className="w-5 h-5"
+                    tintColor="#FFA001"
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => dispatch(setActiveTab("create") as any)}
+                  className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
+                  activeOpacity={0.7}
+                >
+                  <View className="flex-row items-center">
+                    <View className="w-10 h-10 bg-secondary/20 rounded-full items-center justify-center mr-3">
+                      <Image
+                        source={icons.plus}
+                        className="w-5 h-5"
+                        tintColor="#FFA001"
+                      />
+                    </View>
+                    <Text className="text-white text-base font-psemibold">
+                      Add New Piano
+                    </Text>
+                  </View>
+                  <Image
+                    source={icons.rightArrow}
+                    className="w-5 h-5"
+                    tintColor="#FFA001"
+                  />
+                </TouchableOpacity>
+
+                {activeRentals > 0 && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      const filters: FiltersType = {
+                        ...DEFAULT_FILTERS,
+                        category: "Rentable",
+                        isActiveRentals: true,
+                      };
+                      dispatch(setPianoFilters(filters) as any);
+                      dispatch(setActiveTab("home") as any);
+                    }}
+                    className="bg-green-500/20 border border-green-500/40 rounded-xl p-4 flex-row items-center justify-between"
+                    activeOpacity={0.7}
+                  >
+                    <View className="flex-row items-center">
+                      <View className="w-10 h-10 bg-green-500/20 rounded-full items-center justify-center mr-3">
                         <Image
-                          source={icons.rightArrow}
+                          source={icons.bookmark}
                           className="w-5 h-5"
                           tintColor="#22C55E"
                         />
                       </View>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-            </Animated.View>
-          </ScrollView>
-        </Animated.View>
-      )}
+                      <Text className="text-white text-base font-psemibold">
+                        Active Rentals
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center">
+                      <View className="bg-green-500 rounded-full px-3 py-1 mr-2">
+                        <Text className="text-white text-sm font-pbold">
+                          {activeRentals}
+                        </Text>
+                      </View>
+                      <Image
+                        source={icons.rightArrow}
+                        className="w-5 h-5"
+                        tintColor="#22C55E"
+                      />
+                    </View>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </Animated.View>
+        </ScrollView>
+      </Animated.View>
 
       {/* Logout Modal */}
       <Modal

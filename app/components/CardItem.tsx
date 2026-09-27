@@ -6,6 +6,7 @@ import {
 } from "@/constants/colors";
 import useDeletePiano from "@/lib/useDeletePiano";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
+import { getEntranceDelay } from "@/utils/animation";
 import { getRemainingPeriod, getRentalState } from "@/utils/dates";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
@@ -23,7 +24,7 @@ import {
   View,
   Animated,
 } from "react-native";
-import { IconButton, Menu, PaperProvider, Surface } from "react-native-paper";
+import { IconButton, Menu, Surface } from "react-native-paper";
 import RNAAnimated, {
   useAnimatedStyle,
   useSharedValue,
@@ -48,7 +49,6 @@ interface CardItemProps {
   onEnterBulkSelection?: (id: string) => void;
   isGridView?: boolean;
 }
-
 
 const CardItem: React.FC<CardItemProps> = React.memo(
   ({
@@ -87,7 +87,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
 
     // Trigger animation on mount
     useEffect(() => {
-      const delay = index * 100; // Stagger by 100ms per item
+      const delay = getEntranceDelay(index);
       opacity.value = withDelay(
         delay,
         withTiming(1, {
@@ -229,9 +229,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
 
     const handleBookmark = useCallback(() => {
       setIsBookmarked(!isBookmarked);
-      showToast(
-        isBookmarked ? "Removed from bookmarks" : "Added to bookmarks"
-      );
+      showToast(isBookmarked ? "Removed from bookmarks" : "Added to bookmarks");
     }, [isBookmarked]);
 
     const getCategoryGradient = useCallback((category: string) => {
@@ -269,414 +267,408 @@ const CardItem: React.FC<CardItemProps> = React.memo(
     }, []);
 
     return (
-      <PaperProvider>
-        <RNAAnimated.View
-          style={[
-            animatedStyle,
-            isGridView ? styles.gridContainer : { marginBottom: 24 },
-          ]}
+      <RNAAnimated.View
+        style={[
+          animatedStyle,
+          isGridView ? styles.gridContainer : { marginBottom: 24 },
+        ]}
+      >
+        <View
+          className={
+            isGridView ? "flex-col items-center" : "flex-col items-center px-4"
+          }
         >
-          <View
+          <Surface
+            style={[
+              styles.cardContainer,
+              { elevation: elevationAnim },
+              isGridView && styles.gridCard,
+            ]}
             className={
               isGridView
-                ? "flex-col items-center"
-                : "flex-col items-center px-4"
+                ? "bg-primary-200 rounded-2xl overflow-hidden shadow-lg border border-primary-100"
+                : "bg-primary-200 rounded-2xl overflow-hidden w-full shadow-lg"
             }
           >
-            <Surface
-              style={[
-                styles.cardContainer,
-                { elevation: elevationAnim },
-                isGridView && styles.gridCard,
-              ]}
-              className={
-                isGridView
-                  ? "bg-primary-200 rounded-2xl overflow-hidden shadow-lg border border-primary-100"
-                  : "bg-primary-200 rounded-2xl overflow-hidden w-full shadow-lg"
-              }
-            >
-              {/* Header with avatar, title, and actions - Only for list/card view */}
-              {!isGridView && (
-                <View className="flex-row items-center p-4 pb-3">
-                  <View className="relative">
-                    <View className="w-12 h-12 rounded-xl overflow-hidden bg-primary-300 border-2 border-primary-400">
-                      <Image
-                        source={
-                          category === PIANO_CATEGORY.RENTABLE
-                            ? images.category_rentable
-                            : category === PIANO_CATEGORY.EVENTS
-                            ? images.category_event
-                            : category === PIANO_CATEGORY.ON_SALE
-                            ? images.category_sale
-                            : category === PIANO_CATEGORY.WAREHOUSE
-                            ? images.category_warehouse
-                            : { uri: avatar }
-                        }
-                        className="w-full h-full"
-                        resizeMode="cover"
-                        placeholder={images.empty}
-                        placeholderContentFit="cover"
-                      />
-                    </View>
-                    {/* Category Badge */}
-                    <View
-                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center border border-white"
-                      style={{
-                        backgroundColor:
-                          category === PIANO_CATEGORY.RENTABLE
-                            ? CATEGORY_COLORS.RENTABLE
-                            : category === PIANO_CATEGORY.EVENTS
-                            ? CATEGORY_COLORS.EVENTS
-                            : category === PIANO_CATEGORY.ON_SALE
-                            ? CATEGORY_COLORS.ON_SALE
-                            : category === PIANO_CATEGORY.WAREHOUSE
-                            ? CATEGORY_COLORS.WAREHOUSE
-                            : SECONDARY_COLOR,
-                      }}
-                    >
-                      <Image
-                        source={getCategoryIcon(category)}
-                        className="w-2.5 h-2.5"
-                        tintColor={PRIMARY_COLOR}
-                        resizeMode="contain"
-                      />
-                    </View>
-                  </View>
-
-                  <View className="flex-1 ml-3">
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-1">
-                        <Text
-                          className="text-white font-psemibold text-base mb-1"
-                          numberOfLines={1}
-                        >
-                          {title}
-                        </Text>
-                        {company_associated && (
-                          <Text
-                            className="text-xs text-gray-100 font-pregular"
-                            numberOfLines={1}
-                          >
-                            {company_associated}
-                          </Text>
-                        )}
-                      </View>
-
-                      {/* Action Buttons */}
-                      <View className="flex-row items-center space-x-2">
-                        {/* Selection Checkbox (only in bulk mode) */}
-                        {isBulkSelectionMode && (
-                          <TouchableOpacity
-                            onPress={() => onToggleSelection?.(item.$id)}
-                            className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center mr-2"
-                            activeOpacity={0.7}
-                          >
-                            <View
-                              className={`w-5 h-5 rounded border-2 items-center justify-center ${
-                                isSelected
-                                  ? "bg-secondary border-secondary"
-                                  : "border-gray-400"
-                              }`}
-                            >
-                              {isSelected && (
-                                <Image
-                                  source={icons.close}
-                                  className="w-3 h-3"
-                                  tintColor="#161622"
-                                  resizeMode="contain"
-                                />
-                              )}
-                            </View>
-                          </TouchableOpacity>
-                        )}
-
-                        {/* Bookmark Button (only when not in bulk mode) */}
-                        {!isBulkSelectionMode && (
-                          <TouchableOpacity
-                            onPress={handleBookmark}
-                            className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                            activeOpacity={0.7}
-                          >
-                            <Image
-                              source={icons.bookmark}
-                              className="w-4 h-4"
-                              tintColor={
-                                isBookmarked ? SECONDARY_COLOR : "#CDCDE0"
-                              }
-                              resizeMode="contain"
-                            />
-                          </TouchableOpacity>
-                        )}
-
-                        {/* Menu Button (only when not in bulk mode) */}
-                        {!isBulkSelectionMode && (
-                          <View style={styles.container}>
-                            <Menu
-                              style={styles.menu}
-                              visible={visibleMenuId === item.$id}
-                              onDismiss={closeMenu}
-                              anchor={
-                                <TouchableOpacity
-                                  onPress={() => openMenu(item.$id)}
-                                  className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                                  activeOpacity={0.7}
-                                >
-                                  <Image
-                                    source={icons.menu}
-                                    className="w-4 h-4"
-                                    tintColor="#CDCDE0"
-                                    resizeMode="contain"
-                                  />
-                                </TouchableOpacity>
-                              }
-                            >
-                              <Menu.Item
-                                onPress={handleOnClickEditMenu}
-                                title="Edit"
-                                leadingIcon={() => (
-                                  <IconButton
-                                    icon={icons.pencil}
-                                    size={16}
-                                    iconColor={SECONDARY_COLOR}
-                                    style={styles.menuItemIcon}
-                                  />
-                                )}
-                                titleStyle={{ color: "#CDCDE0" }}
-                              />
-                              <Menu.Item
-                                onPress={handleOnClickDeleteMenu}
-                                title="Delete"
-                                leadingIcon={() => (
-                                  <IconButton
-                                    icon={icons.trash}
-                                    size={16}
-                                    iconColor="#ef4444"
-                                    style={styles.menuItemIcon}
-                                  />
-                                )}
-                                titleStyle={{ color: "#CDCDE0" }}
-                              />
-                            </Menu>
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              )}
-
-              {/* Main Image with Overlay */}
-              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={
-                    isBulkSelectionMode
-                      ? () => onToggleSelection?.(item.$id)
-                      : handleOnClickItem
-                  }
-                  onLongPress={
-                    !isBulkSelectionMode
-                      ? () => onEnterBulkSelection?.(item.$id)
-                      : undefined
-                  }
-                  onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
-                  onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
-                  className="relative"
-                >
-                  <View
-                    className={
-                      isGridView
-                        ? "w-full aspect-square bg-primary-300 overflow-hidden"
-                        : "w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden"
-                    }
-                  >
+            {/* Header with avatar, title, and actions - Only for list/card view */}
+            {!isGridView && (
+              <View className="flex-row items-center p-4 pb-3">
+                <View className="relative">
+                  <View className="w-12 h-12 rounded-xl overflow-hidden bg-primary-300 border-2 border-primary-400">
                     <Image
-                      source={{ uri: image_url }}
+                      source={
+                        category === PIANO_CATEGORY.RENTABLE
+                          ? images.category_rentable
+                          : category === PIANO_CATEGORY.EVENTS
+                          ? images.category_event
+                          : category === PIANO_CATEGORY.ON_SALE
+                          ? images.category_sale
+                          : category === PIANO_CATEGORY.WAREHOUSE
+                          ? images.category_warehouse
+                          : { uri: avatar }
+                      }
                       className="w-full h-full"
                       resizeMode="cover"
                       placeholder={images.empty}
                       placeholderContentFit="cover"
                     />
-
-                    {/* Gradient Overlay */}
-                    <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-
-                    {/* Status Badge */}
-                    {getStatusText() && (
-                      <View className="absolute top-3 left-3">
-                        <View className="flex-row items-center bg-black/70 rounded-full px-3 py-1">
-                          <View
-                            className="w-2 h-2 rounded-full mr-2"
-                            style={{ backgroundColor: getStatusColor() }}
-                          />
-                          <Text className="text-white text-xs font-pmedium">
-                            {getStatusText()}
-                          </Text>
-                        </View>
-                      </View>
-                    )}
-
-                    {/* Category Label - Only for list/card view */}
-                    {!isGridView && (
-                      <View className="absolute bottom-3 left-3">
-                        <View
-                          className="px-3 py-1 rounded-full"
-                          style={{
-                            backgroundColor:
-                              category === PIANO_CATEGORY.RENTABLE
-                                ? `${CATEGORY_COLORS.RENTABLE}90`
-                                : category === PIANO_CATEGORY.EVENTS
-                                ? `${CATEGORY_COLORS.EVENTS}90`
-                                : category === PIANO_CATEGORY.ON_SALE
-                                ? `${CATEGORY_COLORS.ON_SALE}90`
-                                : category === PIANO_CATEGORY.WAREHOUSE
-                                ? `${CATEGORY_COLORS.WAREHOUSE}90`
-                                : `${SECONDARY_COLOR}90`,
-                          }}
-                        >
-                          <Text className="text-white text-xs font-psemibold">
-                            {getCategoryLabel(category)}
-                          </Text>
-                        </View>
-                      </View>
-                    )}
                   </View>
-                </TouchableOpacity>
-              </Animated.View>
+                  {/* Category Badge */}
+                  <View
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center border border-white"
+                    style={{
+                      backgroundColor:
+                        category === PIANO_CATEGORY.RENTABLE
+                          ? CATEGORY_COLORS.RENTABLE
+                          : category === PIANO_CATEGORY.EVENTS
+                          ? CATEGORY_COLORS.EVENTS
+                          : category === PIANO_CATEGORY.ON_SALE
+                          ? CATEGORY_COLORS.ON_SALE
+                          : category === PIANO_CATEGORY.WAREHOUSE
+                          ? CATEGORY_COLORS.WAREHOUSE
+                          : SECONDARY_COLOR,
+                    }}
+                  >
+                    <Image
+                      source={getCategoryIcon(category)}
+                      className="w-2.5 h-2.5"
+                      tintColor={PRIMARY_COLOR}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </View>
 
-              {/* Content section for grid view */}
-              {isGridView && (
-                <View className="p-3 bg-primary-100 rounded-b-2xl">
-                  {/* Title Section */}
-                  <View className="mb-3">
-                    <Text
-                      className="text-white font-psemibold text-sm mb-1 leading-5"
-                      numberOfLines={2}
-                    >
-                      {title}
-                    </Text>
-                    {company_associated && (
+                <View className="flex-1 ml-3">
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-1">
                       <Text
-                        className="text-xs text-gray-300 font-pmedium"
+                        className="text-white font-psemibold text-base mb-1"
                         numberOfLines={1}
                       >
-                        {company_associated}
+                        {title}
                       </Text>
-                    )}
-                  </View>
-
-                  {/* Category Badge */}
-                  <View className="mb-3">
-                    <View
-                      className="px-3 py-1.5 rounded-full self-start"
-                      style={{
-                        backgroundColor:
-                          category === PIANO_CATEGORY.RENTABLE
-                            ? `${CATEGORY_COLORS.RENTABLE}E0`
-                            : category === PIANO_CATEGORY.EVENTS
-                            ? `${CATEGORY_COLORS.EVENTS}E0`
-                            : category === PIANO_CATEGORY.ON_SALE
-                            ? `${CATEGORY_COLORS.ON_SALE}E0`
-                            : category === PIANO_CATEGORY.WAREHOUSE
-                            ? `${CATEGORY_COLORS.WAREHOUSE}E0`
-                            : `${SECONDARY_COLOR}E0`,
-                      }}
-                    >
-                      <Text className="text-white text-xs font-psemibold">
-                        {getCategoryLabel(category)}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Action Buttons Section */}
-                  <View className="pt-2 border-t border-primary-200">
-                    {/* Selection Mode */}
-                    {isBulkSelectionMode && (
-                      <TouchableOpacity
-                        onPress={() => onToggleSelection?.(item.$id)}
-                        className="flex-row items-center justify-center py-1.5 px-2 rounded-lg bg-primary-200"
-                        activeOpacity={0.7}
-                      >
-                        <View
-                          className={`w-4 h-4 rounded border-2 items-center justify-center mr-2 ${
-                            isSelected
-                              ? "bg-secondary border-secondary"
-                              : "border-gray-400"
-                          }`}
+                      {company_associated && (
+                        <Text
+                          className="text-xs text-gray-100 font-pregular"
+                          numberOfLines={1}
                         >
-                          {isSelected && (
-                            <Image
-                              source={icons.close}
-                              className="w-2.5 h-2.5"
-                              tintColor="#161622"
-                              resizeMode="contain"
-                            />
-                          )}
-                        </View>
-                        <Text className="text-xs text-white font-pmedium">
-                          {isSelected ? "Selected" : "Select"}
+                          {company_associated}
                         </Text>
-                      </TouchableOpacity>
-                    )}
+                      )}
+                    </View>
 
-                    {/* Normal Mode Actions */}
-                    {!isBulkSelectionMode && (
-                      <View className="flex-row items-center justify-between">
+                    {/* Action Buttons */}
+                    <View className="flex-row items-center space-x-2">
+                      {/* Selection Checkbox (only in bulk mode) */}
+                      {isBulkSelectionMode && (
+                        <TouchableOpacity
+                          onPress={() => onToggleSelection?.(item.$id)}
+                          className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center mr-2"
+                          activeOpacity={0.7}
+                        >
+                          <View
+                            className={`w-5 h-5 rounded border-2 items-center justify-center ${
+                              isSelected
+                                ? "bg-secondary border-secondary"
+                                : "border-gray-400"
+                            }`}
+                          >
+                            {isSelected && (
+                              <Image
+                                source={icons.close}
+                                className="w-3 h-3"
+                                tintColor="#161622"
+                                resizeMode="contain"
+                              />
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                      )}
+
+                      {/* Bookmark Button (only when not in bulk mode) */}
+                      {!isBulkSelectionMode && (
                         <TouchableOpacity
                           onPress={handleBookmark}
-                          className="flex-row items-center flex-1 justify-center py-1.5 px-2 rounded-lg bg-primary-200 mr-1"
+                          className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
                           activeOpacity={0.7}
                         >
                           <Image
                             source={icons.bookmark}
-                            className="w-3.5 h-3.5 mr-1.5"
+                            className="w-4 h-4"
                             tintColor={
                               isBookmarked ? SECONDARY_COLOR : "#CDCDE0"
                             }
                             resizeMode="contain"
                           />
-                          <Text className="text-xs text-gray-200 font-pmedium">
-                            {isBookmarked ? "Saved" : "Save"}
-                          </Text>
                         </TouchableOpacity>
+                      )}
 
-                        {/* Inline Action Buttons for Grid View */}
-                        <View className="flex-row items-center ml-1">
-                          <TouchableOpacity
-                            onPress={handleOnClickEditMenu}
-                            className="w-8 h-8 rounded-full bg-primary-200 items-center justify-center mr-1"
-                            activeOpacity={0.7}
+                      {/* Menu Button (only when not in bulk mode) */}
+                      {!isBulkSelectionMode && (
+                        <View style={styles.container}>
+                          <Menu
+                            style={styles.menu}
+                            visible={visibleMenuId === item.$id}
+                            onDismiss={closeMenu}
+                            anchor={
+                              <TouchableOpacity
+                                onPress={() => openMenu(item.$id)}
+                                className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
+                                activeOpacity={0.7}
+                              >
+                                <Image
+                                  source={icons.menu}
+                                  className="w-4 h-4"
+                                  tintColor="#CDCDE0"
+                                  resizeMode="contain"
+                                />
+                              </TouchableOpacity>
+                            }
                           >
-                            <Image
-                              source={icons.pencil}
-                              className="w-3.5 h-3.5"
-                              tintColor={SECONDARY_COLOR}
-                              resizeMode="contain"
+                            <Menu.Item
+                              onPress={handleOnClickEditMenu}
+                              title="Edit"
+                              leadingIcon={() => (
+                                <IconButton
+                                  icon={icons.pencil}
+                                  size={16}
+                                  iconColor={SECONDARY_COLOR}
+                                  style={styles.menuItemIcon}
+                                />
+                              )}
+                              titleStyle={{ color: "#CDCDE0" }}
                             />
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            onPress={handleOnClickDeleteMenu}
-                            className="w-8 h-8 rounded-full bg-primary-200 items-center justify-center"
-                            activeOpacity={0.7}
-                          >
-                            <Image
-                              source={icons.trash}
-                              className="w-3.5 h-3.5"
-                              tintColor="#ef4444"
-                              resizeMode="contain"
+                            <Menu.Item
+                              onPress={handleOnClickDeleteMenu}
+                              title="Delete"
+                              leadingIcon={() => (
+                                <IconButton
+                                  icon={icons.trash}
+                                  size={16}
+                                  iconColor="#ef4444"
+                                  style={styles.menuItemIcon}
+                                />
+                              )}
+                              titleStyle={{ color: "#CDCDE0" }}
                             />
-                          </TouchableOpacity>
+                          </Menu>
                         </View>
-                      </View>
-                    )}
+                      )}
+                    </View>
                   </View>
                 </View>
-              )}
-            </Surface>
-          </View>
-        </RNAAnimated.View>
-      </PaperProvider>
+              </View>
+            )}
+
+            {/* Main Image with Overlay */}
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={
+                  isBulkSelectionMode
+                    ? () => onToggleSelection?.(item.$id)
+                    : handleOnClickItem
+                }
+                onLongPress={
+                  !isBulkSelectionMode
+                    ? () => onEnterBulkSelection?.(item.$id)
+                    : undefined
+                }
+                onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
+                onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
+                className="relative"
+              >
+                <View
+                  className={
+                    isGridView
+                      ? "w-full aspect-square bg-primary-300 overflow-hidden"
+                      : "w-full h-48 bg-primary-300 rounded-b-2xl overflow-hidden"
+                  }
+                >
+                  <Image
+                    source={{ uri: image_url }}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                    placeholder={images.empty}
+                    placeholderContentFit="cover"
+                  />
+
+                  {/* Gradient Overlay */}
+                  <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+                  {/* Status Badge */}
+                  {getStatusText() && (
+                    <View className="absolute top-3 left-3">
+                      <View className="flex-row items-center bg-black/70 rounded-full px-3 py-1">
+                        <View
+                          className="w-2 h-2 rounded-full mr-2"
+                          style={{ backgroundColor: getStatusColor() }}
+                        />
+                        <Text className="text-white text-xs font-pmedium">
+                          {getStatusText()}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Category Label - Only for list/card view */}
+                  {!isGridView && (
+                    <View className="absolute bottom-3 left-3">
+                      <View
+                        className="px-3 py-1 rounded-full"
+                        style={{
+                          backgroundColor:
+                            category === PIANO_CATEGORY.RENTABLE
+                              ? `${CATEGORY_COLORS.RENTABLE}90`
+                              : category === PIANO_CATEGORY.EVENTS
+                              ? `${CATEGORY_COLORS.EVENTS}90`
+                              : category === PIANO_CATEGORY.ON_SALE
+                              ? `${CATEGORY_COLORS.ON_SALE}90`
+                              : category === PIANO_CATEGORY.WAREHOUSE
+                              ? `${CATEGORY_COLORS.WAREHOUSE}90`
+                              : `${SECONDARY_COLOR}90`,
+                        }}
+                      >
+                        <Text className="text-white text-xs font-psemibold">
+                          {getCategoryLabel(category)}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Content section for grid view */}
+            {isGridView && (
+              <View className="p-3 bg-primary-100 rounded-b-2xl">
+                {/* Title Section */}
+                <View className="mb-3">
+                  <Text
+                    className="text-white font-psemibold text-sm mb-1 leading-5"
+                    numberOfLines={2}
+                  >
+                    {title}
+                  </Text>
+                  {company_associated && (
+                    <Text
+                      className="text-xs text-gray-300 font-pmedium"
+                      numberOfLines={1}
+                    >
+                      {company_associated}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Category Badge */}
+                <View className="mb-3">
+                  <View
+                    className="px-3 py-1.5 rounded-full self-start"
+                    style={{
+                      backgroundColor:
+                        category === PIANO_CATEGORY.RENTABLE
+                          ? `${CATEGORY_COLORS.RENTABLE}E0`
+                          : category === PIANO_CATEGORY.EVENTS
+                          ? `${CATEGORY_COLORS.EVENTS}E0`
+                          : category === PIANO_CATEGORY.ON_SALE
+                          ? `${CATEGORY_COLORS.ON_SALE}E0`
+                          : category === PIANO_CATEGORY.WAREHOUSE
+                          ? `${CATEGORY_COLORS.WAREHOUSE}E0`
+                          : `${SECONDARY_COLOR}E0`,
+                    }}
+                  >
+                    <Text className="text-white text-xs font-psemibold">
+                      {getCategoryLabel(category)}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Action Buttons Section */}
+                <View className="pt-2 border-t border-primary-200">
+                  {/* Selection Mode */}
+                  {isBulkSelectionMode && (
+                    <TouchableOpacity
+                      onPress={() => onToggleSelection?.(item.$id)}
+                      className="flex-row items-center justify-center py-1.5 px-2 rounded-lg bg-primary-200"
+                      activeOpacity={0.7}
+                    >
+                      <View
+                        className={`w-4 h-4 rounded border-2 items-center justify-center mr-2 ${
+                          isSelected
+                            ? "bg-secondary border-secondary"
+                            : "border-gray-400"
+                        }`}
+                      >
+                        {isSelected && (
+                          <Image
+                            source={icons.close}
+                            className="w-2.5 h-2.5"
+                            tintColor="#161622"
+                            resizeMode="contain"
+                          />
+                        )}
+                      </View>
+                      <Text className="text-xs text-white font-pmedium">
+                        {isSelected ? "Selected" : "Select"}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Normal Mode Actions */}
+                  {!isBulkSelectionMode && (
+                    <View className="flex-row items-center justify-between">
+                      <TouchableOpacity
+                        onPress={handleBookmark}
+                        className="flex-row items-center flex-1 justify-center py-1.5 px-2 rounded-lg bg-primary-200 mr-1"
+                        activeOpacity={0.7}
+                      >
+                        <Image
+                          source={icons.bookmark}
+                          className="w-3.5 h-3.5 mr-1.5"
+                          tintColor={isBookmarked ? SECONDARY_COLOR : "#CDCDE0"}
+                          resizeMode="contain"
+                        />
+                        <Text className="text-xs text-gray-200 font-pmedium">
+                          {isBookmarked ? "Saved" : "Save"}
+                        </Text>
+                      </TouchableOpacity>
+
+                      {/* Inline Action Buttons for Grid View */}
+                      <View className="flex-row items-center ml-1">
+                        <TouchableOpacity
+                          onPress={handleOnClickEditMenu}
+                          className="w-8 h-8 rounded-full bg-primary-200 items-center justify-center mr-1"
+                          activeOpacity={0.7}
+                        >
+                          <Image
+                            source={icons.pencil}
+                            className="w-3.5 h-3.5"
+                            tintColor={SECONDARY_COLOR}
+                            resizeMode="contain"
+                          />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          onPress={handleOnClickDeleteMenu}
+                          className="w-8 h-8 rounded-full bg-primary-200 items-center justify-center"
+                          activeOpacity={0.7}
+                        >
+                          <Image
+                            source={icons.trash}
+                            className="w-3.5 h-3.5"
+                            tintColor="#ef4444"
+                            resizeMode="contain"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+          </Surface>
+        </View>
+      </RNAAnimated.View>
     );
   }
 );

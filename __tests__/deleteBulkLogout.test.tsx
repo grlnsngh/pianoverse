@@ -186,10 +186,6 @@ describe("logging out", () => {
     await scheduleAllRentalNotifications(pianos);
     const testStore = store(pianos);
     const renderer = renderWithStore(<Profile />, testStore);
-    // The profile shows a short loading animation first
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    });
     return { testStore, renderer };
   };
 
