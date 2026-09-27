@@ -50,7 +50,6 @@ interface CardItemProps {
   isGridView?: boolean;
 }
 
-
 const CardItem: React.FC<CardItemProps> = React.memo(
   ({
     item,
@@ -230,9 +229,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
 
     const handleBookmark = useCallback(() => {
       setIsBookmarked(!isBookmarked);
-      showToast(
-        isBookmarked ? "Removed from bookmarks" : "Added to bookmarks"
-      );
+      showToast(isBookmarked ? "Removed from bookmarks" : "Added to bookmarks");
     }, [isBookmarked]);
 
     const getCategoryGradient = useCallback((category: string) => {
@@ -278,9 +275,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
       >
         <View
           className={
-            isGridView
-              ? "flex-col items-center"
-              : "flex-col items-center px-4"
+            isGridView ? "flex-col items-center" : "flex-col items-center px-4"
           }
         >
           <Surface
@@ -630,9 +625,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                         <Image
                           source={icons.bookmark}
                           className="w-3.5 h-3.5 mr-1.5"
-                          tintColor={
-                            isBookmarked ? SECONDARY_COLOR : "#CDCDE0"
-                          }
+                          tintColor={isBookmarked ? SECONDARY_COLOR : "#CDCDE0"}
                           resizeMode="contain"
                         />
                         <Text className="text-xs text-gray-200 font-pmedium">

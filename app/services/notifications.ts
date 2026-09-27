@@ -104,8 +104,7 @@ const scheduleRentalReminders = async (pianoItem: any) => {
         },
         trigger: {
           date,
-          channelId:
-            Platform.OS === "android" ? "rental-reminders" : undefined,
+          channelId: Platform.OS === "android" ? "rental-reminders" : undefined,
         },
       })
     )
@@ -188,7 +187,10 @@ export const scheduleAllRentalNotifications = (pianoItems: any[]) => {
       const results = await Promise.all(
         rentals.map((item) =>
           scheduleRentalReminders(item).catch((error) => {
-            console.error(`❌ Error scheduling reminders for ${item.title}:`, error);
+            console.error(
+              `❌ Error scheduling reminders for ${item.title}:`,
+              error
+            );
             return [];
           })
         )

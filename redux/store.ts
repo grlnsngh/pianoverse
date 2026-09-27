@@ -1,4 +1,9 @@
-import { applyMiddleware, combineReducers, createStore, Middleware } from "redux";
+import {
+  applyMiddleware,
+  combineReducers,
+  createStore,
+  Middleware,
+} from "redux";
 import logger from "redux-logger";
 
 import userReducer, { UserState } from "./users/reducers";

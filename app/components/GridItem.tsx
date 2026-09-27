@@ -51,7 +51,6 @@ const { width } = Dimensions.get("window");
 const numColumns = 2;
 const itemWidth = (width - 48) / numColumns; // Account for padding and gaps
 
-
 const getCategoryIcon = (category: string) => {
   switch (category) {
     case PIANO_CATEGORY.RENTABLE:
@@ -257,9 +256,7 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                       : () => handleOnClickItem(item)
                   }
                   onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
-                  onPressOut={
-                    isBulkSelectionMode ? undefined : handlePressOut
-                  }
+                  onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
                   style={styles.imageContainer}
                 >
                   <Image
