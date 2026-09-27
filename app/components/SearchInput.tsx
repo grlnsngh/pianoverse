@@ -13,6 +13,8 @@ const SearchInput: React.FC<SearchInputProps> = React.memo(
   ({ initialQuery }) => {
     const pathname = usePathname();
     const [query, setQuery] = useState(initialQuery || "");
+    // NativeWind v2 ignores focus: classes on a View, so track focus here
+    const [isFocused, setIsFocused] = useState(false);
 
     const handleSearch = useCallback(() => {
       if (query === "")
@@ -32,8 +34,9 @@ const SearchInput: React.FC<SearchInputProps> = React.memo(
     return (
       <View
         style={{ height: 60 }}
-        className="flex flex-row items-center space-x-4 w-full h-16 
-      px-4 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary"
+        className={`flex flex-row items-center space-x-4 w-full h-16 px-4 bg-black-100 rounded-2xl border-2 ${
+          isFocused ? "border-secondary" : "border-black-200"
+        }`}
       >
         <TouchableOpacity onPress={handleSearch}>
           <Image
@@ -48,6 +51,8 @@ const SearchInput: React.FC<SearchInputProps> = React.memo(
           placeholder="Search"
           placeholderTextColor="#CDCDE0"
           onChangeText={handleTextChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
       </View>
     );

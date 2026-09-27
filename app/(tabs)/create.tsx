@@ -319,7 +319,7 @@ const Create = () => {
                       calculateProgress().currentStep > step
                         ? "bg-secondary border-secondary shadow-lg"
                         : calculateProgress().currentStep === step
-                        ? "bg-secondary border-secondary shadow-lg animate-pulse"
+                        ? "bg-secondary border-white shadow-lg"
                         : "bg-black-200 border-gray-600"
                     }`}
                   >
@@ -339,7 +339,7 @@ const Create = () => {
                     <View className="w-12 mx-2">
                       <View className="h-1 bg-gray-600 rounded-full">
                         <View
-                          className="h-full bg-secondary rounded-full transition-all duration-500 ease-out"
+                          className="h-full bg-secondary rounded-full"
                           style={{
                             width:
                               calculateProgress().currentStep > step
@@ -378,7 +378,7 @@ const Create = () => {
               <Text className="text-base text-gray-100 font-pmedium">
                 Category
               </Text>
-              <View className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary flex flex-row items-center">
+              <View className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 border-black-200 flex flex-row items-center">
                 <Picker
                   selectedValue={form.category}
                   style={styles.picker}
@@ -484,7 +484,7 @@ const Create = () => {
             <Text className="text-base text-gray-100 font-pmedium mb-2">
               Make
             </Text>
-            <View className="w-full px-4 py-5 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary">
+            <View className="w-full px-4 py-5 bg-black-100 rounded-2xl border-2 border-black-200">
               <Dropdown
                 data={pianoCompaniesMakeList}
                 search

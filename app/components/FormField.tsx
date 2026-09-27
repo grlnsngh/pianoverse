@@ -20,9 +20,13 @@ const FormField: React.FC<FormFieldProps> = React.memo(
     placeholder,
     handleChangeText,
     otherStyles = "mt-7",
+    onFocus,
+    onBlur,
     ...props
   }) => {
     const [showPassword, setShowPassword] = useState(false);
+    // NativeWind v2 ignores focus: classes on a View, so track focus here
+    const [isFocused, setIsFocused] = useState(false);
 
     const isDescription = useMemo(() => title === "Description", [title]);
     const inputHeight = useMemo(
@@ -41,9 +45,9 @@ const FormField: React.FC<FormFieldProps> = React.memo(
 
         <View
           style={{ height: inputHeight }}
-          className={`w-full px-4 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary ${
-            isDescription ? "" : "flex flex-row items-center"
-          }`}
+          className={`w-full px-4 bg-black-100 rounded-2xl border-2 ${
+            isFocused ? "border-secondary" : "border-black-200"
+          } ${isDescription ? "" : "flex flex-row items-center"}`}
         >
           <TextInput
             className={`${
@@ -55,6 +59,14 @@ const FormField: React.FC<FormFieldProps> = React.memo(
             onChangeText={handleChangeText}
             secureTextEntry={isPassword && !showPassword}
             {...props}
+            onFocus={(event) => {
+              setIsFocused(true);
+              onFocus?.(event);
+            }}
+            onBlur={(event) => {
+              setIsFocused(false);
+              onBlur?.(event);
+            }}
             {...(isDescription && {
               multiline: true,
               textAlignVertical: "top",

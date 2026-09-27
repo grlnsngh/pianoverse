@@ -753,7 +753,7 @@ const DetailScreen = () => {
       </ScrollView>
 
       {/* Action Buttons - Sticky Footer */}
-      <View className="absolute bottom-0 left-0 right-0 bg-primary/95 backdrop-blur-lg border-t border-gray-700 p-4">
+      <View className="absolute bottom-0 left-0 right-0 bg-primary/95 border-t border-gray-700 p-4">
         <View className="flex-row space-x-3">
           <TouchableOpacity
             onPress={handleEdit}

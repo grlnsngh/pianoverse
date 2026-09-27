@@ -337,7 +337,7 @@ const EditScreen = () => {
               </Text>
               <View
                 className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 
-            border-black-200 focus:border-secondary flex flex-row items-center mt-3"
+            border-black-200 flex flex-row items-center mt-3"
               >
                 <Picker
                   selectedValue={form.category}
@@ -475,7 +475,7 @@ const EditScreen = () => {
             <Text className="text-base text-gray-100 font-pmedium mb-2 mt-7">
               Make
             </Text>
-            <View className="w-full px-4 py-5 bg-black-100 rounded-2xl border-2 border-black-200 focus:border-secondary">
+            <View className="w-full px-4 py-5 bg-black-100 rounded-2xl border-2 border-black-200">
               <Dropdown
                 data={pianoCompaniesMakeList}
                 search

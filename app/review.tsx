@@ -171,7 +171,7 @@ const Review = () => {
                     className={`w-8 h-8 rounded-full items-center justify-center border-2 ${
                       step < 3
                         ? "bg-secondary border-secondary shadow-lg"
-                        : "bg-secondary border-secondary shadow-lg animate-pulse"
+                        : "bg-secondary border-white shadow-lg"
                     }`}
                   >
                     <Text className="font-psemibold text-xs text-black-100">
