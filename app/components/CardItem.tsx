@@ -10,13 +10,7 @@ import { getEntranceDelay } from "@/utils/animation";
 import { getRemainingPeriod, getRentalState } from "@/utils/dates";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -34,7 +28,6 @@ import RNAAnimated, {
 } from "react-native-reanimated";
 import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "../constants/Piano";
-import { showToast } from "@/utils/toast";
 
 interface CardItemProps {
   item: PianoItem & { empty?: boolean };
@@ -75,7 +68,6 @@ const CardItem: React.FC<CardItemProps> = React.memo(
     const { avatar = "" } = users || {};
     const pathname = usePathname();
     const confirmDelete = useDeletePiano();
-    const [isBookmarked, setIsBookmarked] = useState(false);
 
     // React Native Animated values for card expansion
     const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -227,11 +219,6 @@ const CardItem: React.FC<CardItemProps> = React.memo(
       confirmDelete(item, onDelete);
     }, [item, onDelete, closeMenu, confirmDelete]);
 
-    const handleBookmark = useCallback(() => {
-      setIsBookmarked(!isBookmarked);
-      showToast(isBookmarked ? "Removed from bookmarks" : "Added to bookmarks");
-    }, [isBookmarked]);
-
     const getCategoryGradient = useCallback((category: string) => {
       switch (category) {
         case PIANO_CATEGORY.RENTABLE:
@@ -382,24 +369,6 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                               />
                             )}
                           </View>
-                        </TouchableOpacity>
-                      )}
-
-                      {/* Bookmark Button (only when not in bulk mode) */}
-                      {!isBulkSelectionMode && (
-                        <TouchableOpacity
-                          onPress={handleBookmark}
-                          className="w-8 h-8 rounded-full bg-primary-300 items-center justify-center"
-                          activeOpacity={0.7}
-                        >
-                          <Image
-                            source={icons.bookmark}
-                            className="w-4 h-4"
-                            tintColor={
-                              isBookmarked ? SECONDARY_COLOR : "#CDCDE0"
-                            }
-                            resizeMode="contain"
-                          />
                         </TouchableOpacity>
                       )}
 
@@ -616,25 +585,9 @@ const CardItem: React.FC<CardItemProps> = React.memo(
 
                   {/* Normal Mode Actions */}
                   {!isBulkSelectionMode && (
-                    <View className="flex-row items-center justify-between">
-                      <TouchableOpacity
-                        onPress={handleBookmark}
-                        className="flex-row items-center flex-1 justify-center py-1.5 px-2 rounded-lg bg-primary-200 mr-1"
-                        activeOpacity={0.7}
-                      >
-                        <Image
-                          source={icons.bookmark}
-                          className="w-3.5 h-3.5 mr-1.5"
-                          tintColor={isBookmarked ? SECONDARY_COLOR : "#CDCDE0"}
-                          resizeMode="contain"
-                        />
-                        <Text className="text-xs text-gray-200 font-pmedium">
-                          {isBookmarked ? "Saved" : "Save"}
-                        </Text>
-                      </TouchableOpacity>
-
+                    <View className="flex-row items-center justify-end">
                       {/* Inline Action Buttons for Grid View */}
-                      <View className="flex-row items-center ml-1">
+                      <View className="flex-row items-center">
                         <TouchableOpacity
                           onPress={handleOnClickEditMenu}
                           className="w-8 h-8 rounded-full bg-primary-200 items-center justify-center mr-1"
