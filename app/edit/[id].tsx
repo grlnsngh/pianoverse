@@ -12,7 +12,6 @@ import { parseStoredDate, toStoredDate } from "@/utils/dates";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -25,7 +24,8 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { prepareImageForUpload } from "@/utils/image";
+import { PhotoSource, pickPianoPhoto } from "@/utils/photo";
+import { Ionicons } from "@expo/vector-icons";
 import { rentalDetailsError } from "@/utils/validation";
 import { addDays } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
@@ -215,32 +215,11 @@ const EditScreen = () => {
     setForm({ ...form, onSaleImportDate: currentDate });
   };
 
-  const openImagePicker = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const asset = result.assets[0];
-
-      // Check minimum dimensions to prevent too small cropped images
-      const minWidth = 50;
-      const minHeight = 50;
-      if (asset.width < minWidth || asset.height < minHeight) {
-        Alert.alert(
-          "Image Too Small",
-          `The cropped image is too small (${asset.width}x${asset.height}). Please select a larger area or choose a different image. Minimum size: ${minWidth}x${minHeight} pixels.`
-        );
-        return;
-      }
-
-      const image = await prepareImageForUpload(asset);
-      setForm({ ...form, image });
-    }
+  const addPhoto = async (source: PhotoSource) => {
+    const image = await pickPianoPhoto(source);
+    if (image) setForm((current) => ({ ...current, image }));
   };
+  const openImagePicker = () => addPhoto("library");
 
   const handleOnSubmit = async () => {
     if (!user || !user.accountId) {
@@ -418,6 +397,24 @@ const EditScreen = () => {
                         resizeMode="contain"
                       />
                     </TouchableOpacity>
+                    {/* Replace it with a new photo from the camera */}
+                    <TouchableOpacity
+                      onPress={() => addPhoto("camera")}
+                      accessibilityLabel="Take a new photo"
+                      style={{
+                        position: "absolute",
+                        bottom: 16,
+                        left: 16,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        borderRadius: 15,
+                        width: 32,
+                        height: 32,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons name="camera" size={16} color="white" />
+                    </TouchableOpacity>
                   </>
                 ) : (
                   <>
@@ -464,6 +461,24 @@ const EditScreen = () => {
                         tintColor="white"
                         resizeMode="contain"
                       />
+                    </TouchableOpacity>
+                    {/* Replace it with a new photo from the camera */}
+                    <TouchableOpacity
+                      onPress={() => addPhoto("camera")}
+                      accessibilityLabel="Take a new photo"
+                      style={{
+                        position: "absolute",
+                        bottom: 16,
+                        left: 56,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        borderRadius: 15,
+                        width: 32,
+                        height: 32,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons name="camera" size={16} color="white" />
                     </TouchableOpacity>
                   </>
                 )}
