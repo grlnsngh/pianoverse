@@ -1,12 +1,13 @@
 import { Alert, Linking } from "react-native";
+import { toNationalMobile } from "@/utils/validation";
 
-// Customers are in India: a bare 10-digit mobile gets the +91 country code
-const COUNTRY_CODE = "91";
-
-/** The number in international form, digits only (as WhatsApp links want). */
+/**
+ * The number in international form, digits only (as WhatsApp links want).
+ * Customers are in India, so Indian numbers get the 91 country code.
+ */
 export const toInternationalDigits = (mobile: string) => {
-  const digits = mobile.replace(/\D/g, "");
-  return digits.length === 10 ? `${COUNTRY_CODE}${digits}` : digits;
+  const national = toNationalMobile(mobile);
+  return national ? `91${national}` : mobile.replace(/\D/g, "");
 };
 
 const open = async (url: string, appName: string) => {

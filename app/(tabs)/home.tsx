@@ -21,6 +21,7 @@ import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
 import React, { useCallback, useEffect, useState, useMemo } from "react";
 import {
+  BackHandler,
   FlatList,
   RefreshControl,
   Text,
@@ -105,6 +106,20 @@ const Home = () => {
   //     // to prevent duplicate scheduling and infinite console logs
   //   }, [])
   // );
+
+  // Android's back button leaves selection mode before it leaves the app
+  useEffect(() => {
+    if (!isBulkSelectionMode) return;
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        dispatch(clearSelectedItems() as any);
+        dispatch(setBulkSelectionMode(false) as any);
+        return true;
+      }
+    );
+    return () => subscription.remove();
+  }, [isBulkSelectionMode, dispatch]);
 
   // The row callbacks below keep their identity across renders, so memoized
   // rows only re-render when their own props change

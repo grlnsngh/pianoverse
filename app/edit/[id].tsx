@@ -26,6 +26,8 @@ import {
 import { Dropdown } from "react-native-element-dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { prepareImageForUpload } from "@/utils/image";
+import { rentalDetailsError } from "@/utils/validation";
+import { addDays } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import CompanyAssociatedPicker from "../components/CompanyAssociatedPicker";
 import CustomButton from "../components/CustomButton";
@@ -269,6 +271,16 @@ const EditScreen = () => {
     let finalDetails: PianoEntryInput = { ...basicDetails };
 
     if (form.category === PIANO_CATEGORY.RENTABLE) {
+      const problem = rentalDetailsError({
+        mobile: form.rentalCustomerMobileNumber,
+        startDate: form.rentalStartDate,
+        endDate: form.rentalEndDate,
+      });
+      if (problem) {
+        Alert.alert("Check the rental details", problem);
+        return;
+      }
+
       const rentalDetails = {
         rental_customer_name: form.rentalCustomerName,
         rental_customer_address: form.rentalCustomerAddress,
@@ -549,7 +561,11 @@ const EditScreen = () => {
                     handleChangeText={(e) => {
                       setForm({ ...form, rentalCustomerMobileNumber: e });
                     }}
-                    keyboardType="numeric"
+                    keyboardType="phone-pad"
+                    textContentType="telephoneNumber"
+                    autoComplete="tel"
+                    maxLength={16}
+                    placeholder="98765 43210"
                   />
 
                   <View>
@@ -581,6 +597,8 @@ const EditScreen = () => {
                         mode="date"
                         display="default"
                         onChange={onRentalEndDateChange}
+                        // A rental ends at least a day after it starts
+                        minimumDate={addDays(form.rentalStartDate, 1)}
                       />
                     )}
                   </View>
