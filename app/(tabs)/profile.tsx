@@ -1,6 +1,7 @@
 import { icons, images } from "@/constants";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { signOut } from "@/lib/appwrite";
+import { clearPianoCache } from "@/lib/pianoCache";
 import { setActiveTab } from "@/redux/navigation/actions";
 import { resetPianoState, setPianoFilters } from "@/redux/pianos/actions";
 import { scheduleAllRentalNotifications } from "../services/notifications";
@@ -195,6 +196,7 @@ const Profile = () => {
     }
     // Don't leave this account's pianos or reminders behind for the next user
     await scheduleAllRentalNotifications([]);
+    await clearPianoCache();
     dispatch(resetPianoState() as any);
     dispatch(setActiveTab("home") as any);
     setUser(null);

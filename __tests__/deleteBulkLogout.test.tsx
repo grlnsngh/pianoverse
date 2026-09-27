@@ -34,6 +34,7 @@ import BulkOperationsBar from "@/app/components/BulkOperationsBar";
 import { scheduleAllRentalNotifications } from "@/app/services/notifications";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { deletePianoEntry } from "@/lib/appwrite";
+import { loadPianosFromCache, savePianosToCache } from "@/lib/pianoCache";
 import {
   setBulkSelectionMode,
   toggleItemSelection,
@@ -202,12 +203,14 @@ describe("logging out", () => {
 
   it("clears the previous user's pianos and reminders", async () => {
     const { testStore, renderer } = await renderProfile();
+    await savePianosToCache(testUser.accountId, [piano("a")]);
 
     await confirmSignOut(renderer);
 
     expect(testStore.getState().pianos.items).toEqual([]);
     expect(testStore.getState().pianos.filteredItems).toEqual([]);
     expect(fakeNotifications.rentalReminders()).toEqual([]);
+    expect(await loadPianosFromCache(testUser.accountId)).toBeNull();
     expect(useGlobalContext().setUser).toHaveBeenCalledWith(null);
     expect(router.replace).toHaveBeenCalledWith("/");
   });

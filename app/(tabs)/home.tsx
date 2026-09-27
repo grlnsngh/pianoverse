@@ -3,6 +3,8 @@ import { SECONDARY_COLOR } from "@/constants/colors";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import useAppwrite from "@/lib/useAppwrite";
+import { loadPianosFromCache, savePianosToCache } from "@/lib/pianoCache";
+import { format } from "date-fns";
 import {
   setFilteredPianoListItems,
   setPianoListItems,
@@ -20,7 +22,13 @@ import { isOverdue, isSold } from "@/utils/pianoStatus";
 import { SORT_BY_OPTIONS } from "../constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
-import React, { useCallback, useEffect, useState, useMemo } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 import {
   ActivityIndicator,
   BackHandler,
@@ -89,6 +97,10 @@ const Home = () => {
   const filters = useSelector((state: RootState) => state.pianos.filters);
 
   const [refreshing, setRefreshing] = useState(false);
+  // When the list on this device was last saved (shown while offline)
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  // Once the pianos have loaded from the server, the saved copy follows them
+  const hasLoadedRef = useRef(false);
   const [showNotificationTest, setShowNotificationTest] = useState(false);
   const [layoutKey, setLayoutKey] = useState<string>("card");
   const [layoutCounter, setLayoutCounter] = useState<number>(0);
@@ -320,10 +332,36 @@ const Home = () => {
 
   // Store the fetched items in redux once loading has finished. An empty
   // result is stored too, so deleting the last piano clears the list.
+  // Show the pianos saved on this device straight away, until the server
+  // answers (or for good, when offline)
+  useEffect(() => {
+    if (!user?.accountId) return;
+    let cancelled = false;
+    loadPianosFromCache(user.accountId).then((cached) => {
+      if (cancelled || !cached) return;
+      setSavedAt(cached.savedAt);
+      if (!hasLoadedRef.current) {
+        dispatch(setPianoListItems(cached.pianos) as any);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.accountId]);
+
+  // Keep the saved copy up to date, including changes made in the app
+  useEffect(() => {
+    if (!hasLoadedRef.current || !user?.accountId) return;
+    savePianosToCache(user.accountId, pianoReduxItems).then((cached) => {
+      if (cached) setSavedAt(cached.savedAt);
+    });
+  }, [pianoReduxItems, user?.accountId]);
+
   useEffect(() => {
     // After a failed load (e.g. offline) keep what we have, including the
     // reminders, rather than treating it as an empty list
     if (isLoading || loadError || !user) return;
+    hasLoadedRef.current = true;
     dispatch(setPianoListItems(items) as any);
 
     // Keep rental reminders in line with the loaded pianos. This also removes
@@ -571,6 +609,26 @@ const Home = () => {
             <FilterButton />
           </View>
         </View>
+
+        {/* Offline: say the list may be out of date */}
+        {!!loadError && hasPianos && (
+          <TouchableOpacity
+            onPress={() => refetch()}
+            className="flex-row items-center justify-between mt-3 px-4 py-3 rounded-xl bg-black-100 border border-black-200"
+            activeOpacity={0.7}
+          >
+            <Text className="text-gray-100 font-pmedium text-sm flex-1 mr-3">
+              Offline.{" "}
+              {savedAt
+                ? `Showing pianos saved ${format(
+                    new Date(savedAt),
+                    "d MMM, h:mm a"
+                  )}.`
+                : "Showing the last loaded pianos."}
+            </Text>
+            <Text className="text-secondary font-psemibold text-sm">Retry</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Rentals that should have come back by now */}
         {overdueCount > 0 && !filters.isOverdue && (
