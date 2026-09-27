@@ -1,5 +1,4 @@
-import { createStore, applyMiddleware, combineReducers } from "redux";
-import createSagaMiddleware from "redux-saga";
+import { applyMiddleware, combineReducers, createStore, Middleware } from "redux";
 import logger from "redux-logger";
 
 import userReducer, { UserState } from "./users/reducers";
@@ -17,8 +16,9 @@ export type RootState = ReturnType<typeof rootReducer> & {
   piano: PianoState;
 };
 
-const sagaMiddleware = createSagaMiddleware();
+// Logging every action with the whole state is only useful while developing
+const middleware: Middleware[] = __DEV__ ? [logger] : [];
 
-const store = createStore(rootReducer, applyMiddleware(sagaMiddleware, logger));
+const store = createStore(rootReducer, applyMiddleware(...middleware));
 
 export default store;
