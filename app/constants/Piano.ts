@@ -71,6 +71,7 @@ export const DEFAULT_FILTERS: FiltersType = {
   sortBy: SORT_BY_OPTIONS.LATEST_ADDED,
   category: "",
   isActiveRentals: false,
+  isOverdue: false,
   isSold: false,
   layoutStatus: {
     card: "unchecked",

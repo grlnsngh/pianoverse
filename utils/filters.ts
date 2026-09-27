@@ -10,6 +10,7 @@ export const countActiveFilters = (filters: FiltersType) =>
   [
     filters.category !== "",
     filters.isActiveRentals,
+    filters.isOverdue,
     filters.sortBy === SORT_BY_OPTIONS.DUE_DATE,
     filters.isSold,
   ].filter(Boolean).length;

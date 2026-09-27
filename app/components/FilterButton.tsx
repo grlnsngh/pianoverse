@@ -481,12 +481,37 @@ const FilterButton = () => {
                     ...filterForm,
                     category: newCategory,
                     isActiveRentals: !filterForm.isActiveRentals,
+                    // A rental can't be both active and overdue
+                    isOverdue: false,
                   });
                 }}
                 trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
                 thumbColor={
                   filterForm.isActiveRentals ? PRIMARY_COLOR : "white"
                 }
+              />
+            </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+              className="mt-3"
+            >
+              <Text style={styles.option}>Overdue Rentals</Text>
+              <Switch
+                value={filterForm.isOverdue}
+                onValueChange={() =>
+                  setFilterForm({
+                    ...filterForm,
+                    isOverdue: !filterForm.isOverdue,
+                    isActiveRentals: false,
+                  })
+                }
+                trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
+                thumbColor={filterForm.isOverdue ? PRIMARY_COLOR : "white"}
               />
             </View>
 

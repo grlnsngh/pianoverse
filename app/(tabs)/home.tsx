@@ -16,7 +16,7 @@ import { setActiveTab } from "@/redux/navigation/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { isRentalActive, parseStoredDate } from "@/utils/dates";
 import { clearFilters, countActiveFilters } from "@/utils/filters";
-import { isSold } from "@/utils/pianoStatus";
+import { isOverdue, isSold } from "@/utils/pianoStatus";
 import { SORT_BY_OPTIONS } from "../constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
@@ -150,6 +150,18 @@ const Home = () => {
   const handleItemDeleted = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  const overdueCount = useMemo(
+    () => pianoReduxItems.filter(isOverdue).length,
+    [pianoReduxItems]
+  );
+  const showOverdue = useCallback(
+    () =>
+      dispatch(
+        setPianoFilters({ ...clearFilters(filters), isOverdue: true }) as any
+      ),
+    [filters, dispatch]
+  );
 
   // Say why the list is empty (still loading, offline, filtered out or no
   // pianos yet) and offer the way out
@@ -296,6 +308,11 @@ const Home = () => {
           item.category === "rentable" &&
           isRentalActive(item.rental_period_end)
       );
+    }
+
+    // Rentals that have ended but haven't been extended or returned
+    if (filters.isOverdue) {
+      filteredItems = filteredItems.filter(isOverdue);
     }
 
     dispatch(setFilteredPianoListItems(filteredItems) as any);
@@ -554,6 +571,21 @@ const Home = () => {
             <FilterButton />
           </View>
         </View>
+
+        {/* Rentals that should have come back by now */}
+        {overdueCount > 0 && !filters.isOverdue && (
+          <TouchableOpacity
+            onPress={showOverdue}
+            className="flex-row items-center justify-between mt-3 px-4 py-3 rounded-xl bg-red-500/15 border border-red-500/40"
+            activeOpacity={0.7}
+          >
+            <Text className="text-red-300 font-pmedium text-sm">
+              {overdueCount} {overdueCount === 1 ? "rental is" : "rentals are"}{" "}
+              overdue
+            </Text>
+            <Text className="text-red-300 font-psemibold text-sm">View</Text>
+          </TouchableOpacity>
+        )}
 
         <View className="flex flex-row justify-end mr-1 my-3">
           <Text className="font-pmedium text-sm text-gray-100">

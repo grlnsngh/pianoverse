@@ -15,6 +15,7 @@ import {
 } from "@/utils/dates";
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { callNumber, messageOnWhatsApp } from "@/utils/contact";
+import { formatRupees } from "@/utils/money";
 import { isSold } from "@/utils/pianoStatus";
 import { buildShareMessage } from "@/utils/share";
 import { Ionicons } from "@expo/vector-icons";
@@ -557,7 +558,7 @@ const SaleDetails = ({
     ["Sold On", formatDate(piano.sold_date)],
     ["Buyer", piano.sold_to_name],
     ["Address", piano.sold_to_address],
-    ["Price", price > 0 ? `₹${price.toLocaleString("en-IN")}` : null],
+    ["Price", price > 0 ? formatRupees(price) : null],
   ].filter(([, value]) => value);
 
   return (

@@ -27,13 +27,17 @@ import CustomButton from "../components/CustomButton";
 import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
 import { exportPianosToCSV } from "@/utils/csvExport";
-import { isCurrentlyRented, isSold } from "@/utils/pianoStatus";
+import { formatRupees } from "@/utils/money";
+import { isCurrentlyRented, isOverdue, isSold } from "@/utils/pianoStatus";
+import { rentFromActiveRentals, salesInMonth } from "@/utils/stats";
+import { clearFilters } from "@/utils/filters";
 
 const Profile = () => {
   const dispatch = useDispatch();
   const { user, setUser, setIsLogged } = useGlobalContext();
   const [modalVisible, setModalVisible] = useState(false);
   const items = useSelector((state: RootState) => state.pianos.items);
+  const filters = useSelector((state: RootState) => state.pianos.filters);
 
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -166,6 +170,16 @@ const Profile = () => {
 
   const totalValue = calculateTotalValue();
   const activeRentals = calculateActiveRentals();
+  const activeRent = rentFromActiveRentals(items);
+  const salesThisMonth = salesInMonth(items);
+  const overdueCount = items.filter(isOverdue).length;
+
+  const showOverdueRentals = () => {
+    dispatch(
+      setPianoFilters({ ...clearFilters(filters), isOverdue: true }) as any
+    );
+    dispatch(setActiveTab("home") as any);
+  };
   const recentAdditions = calculateRecentAdditions();
 
   const handleConfirmLogout = async () => {
@@ -429,6 +443,48 @@ const Profile = () => {
                         {recentAdditions !== 1 ? "s" : ""} added recently
                       </Text>
                     </View>
+                  )}
+                </View>
+
+                {/* Income */}
+                <View className="bg-black-100/50 rounded-2xl p-5 mb-4">
+                  <Text className="text-gray-400 text-xs font-pmedium mb-3">
+                    INCOME
+                  </Text>
+                  <View className="flex-row">
+                    <View className="flex-1">
+                      <Text className="text-2xl font-pbold text-secondary">
+                        {formatRupees(activeRent)}
+                      </Text>
+                      <Text className="text-gray-400 text-sm font-pmedium">
+                        Rent from {activeRentals} active rental
+                        {activeRentals === 1 ? "" : "s"}
+                      </Text>
+                    </View>
+                    <View className="w-px bg-gray-700 mx-4" />
+                    <View className="flex-1">
+                      <Text className="text-2xl font-pbold text-green-400">
+                        {formatRupees(salesThisMonth.total)}
+                      </Text>
+                      <Text className="text-gray-400 text-sm font-pmedium">
+                        {salesThisMonth.count} sold this month
+                      </Text>
+                    </View>
+                  </View>
+
+                  {overdueCount > 0 && (
+                    <TouchableOpacity
+                      onPress={showOverdueRentals}
+                      className="mt-4 pt-4 border-t border-gray-700 flex-row items-center justify-between"
+                      activeOpacity={0.7}
+                    >
+                      <Text className="text-red-300 font-pmedium">
+                        {overdueCount}{" "}
+                        {overdueCount === 1 ? "rental is" : "rentals are"}{" "}
+                        overdue
+                      </Text>
+                      <Text className="text-red-300 font-psemibold">View</Text>
+                    </TouchableOpacity>
                   )}
                 </View>
 
