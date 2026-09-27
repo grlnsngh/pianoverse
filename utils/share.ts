@@ -1,5 +1,6 @@
 import { PIANO_CATEGORY } from "@/app/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
+import { formatRupees } from "@/utils/money";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
 
 /**
@@ -16,7 +17,7 @@ export const buildShareMessage = (piano: PianoItem) => {
     piano.category === PIANO_CATEGORY.ON_SALE &&
     piano.on_sale_price != null
   ) {
-    lines.push(`Price: ₹${piano.on_sale_price.toLocaleString("en-IN")}`);
+    lines.push(`Price: ${formatRupees(piano.on_sale_price)}`);
   }
   return lines.filter(Boolean).join("\n");
 };

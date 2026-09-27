@@ -3,6 +3,8 @@ import { SECONDARY_COLOR } from "@/constants/colors";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import useAppwrite from "@/lib/useAppwrite";
+import { loadPianosFromCache, savePianosToCache } from "@/lib/pianoCache";
+import { format } from "date-fns";
 import {
   setFilteredPianoListItems,
   setPianoListItems,
@@ -15,11 +17,18 @@ import {
 import { setActiveTab } from "@/redux/navigation/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { isRentalActive, parseStoredDate } from "@/utils/dates";
-import { clearFilters } from "@/utils/filters";
+import { clearFilters, countActiveFilters } from "@/utils/filters";
+import { isOverdue, isSold } from "@/utils/pianoStatus";
 import { SORT_BY_OPTIONS } from "../constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
-import React, { useCallback, useEffect, useState, useMemo } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 import {
   ActivityIndicator,
   BackHandler,
@@ -88,6 +97,10 @@ const Home = () => {
   const filters = useSelector((state: RootState) => state.pianos.filters);
 
   const [refreshing, setRefreshing] = useState(false);
+  // When the list on this device was last saved (shown while offline)
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  // Once the pianos have loaded from the server, the saved copy follows them
+  const hasLoadedRef = useRef(false);
   const [showNotificationTest, setShowNotificationTest] = useState(false);
   const [layoutKey, setLayoutKey] = useState<string>("card");
   const [layoutCounter, setLayoutCounter] = useState<number>(0);
@@ -150,6 +163,18 @@ const Home = () => {
     refetch();
   }, [refetch]);
 
+  const overdueCount = useMemo(
+    () => pianoReduxItems.filter(isOverdue).length,
+    [pianoReduxItems]
+  );
+  const showOverdue = useCallback(
+    () =>
+      dispatch(
+        setPianoFilters({ ...clearFilters(filters), isOverdue: true }) as any
+      ),
+    [filters, dispatch]
+  );
+
   // Say why the list is empty (still loading, offline, filtered out or no
   // pianos yet) and offer the way out
   const hasPianos = pianoReduxItems.length > 0;
@@ -163,7 +188,7 @@ const Home = () => {
           subtitle="Check your connection and try again."
           action={{ title: "Try Again", onPress: () => refetch() }}
         />
-      ) : hasPianos ? (
+      ) : hasPianos && countActiveFilters(filters) > 0 ? (
         <EmptyState
           title="No pianos match your filters"
           subtitle="Try another category, or clear the filters to see every piano."
@@ -171,6 +196,15 @@ const Home = () => {
             title: "Clear Filters",
             onPress: () =>
               dispatch(setPianoFilters(clearFilters(filters)) as any),
+          }}
+        />
+      ) : hasPianos ? (
+        <EmptyState
+          title="No Pianos in Stock"
+          subtitle="Every piano has been sold. Turn on Sold Pianos in the filters to see them."
+          action={{
+            title: "Add a Piano",
+            onPress: () => dispatch(setActiveTab("create") as any),
           }}
         />
       ) : (
@@ -213,7 +247,10 @@ const Home = () => {
   }, [layoutView.grid, filteredPianoReduxItems, formatData]);
 
   const applyFilters = useCallback(() => {
-    let filteredItems: PianoItem[] = pianoReduxItems.slice();
+    // Sold pianos are no longer stock, so they only show with the Sold filter
+    let filteredItems: PianoItem[] = pianoReduxItems.filter(
+      (item) => isSold(item) === filters.isSold
+    );
 
     // Apply sorting first
     if (filters.sortBy) {
@@ -285,15 +322,46 @@ const Home = () => {
       );
     }
 
+    // Rentals that have ended but haven't been extended or returned
+    if (filters.isOverdue) {
+      filteredItems = filteredItems.filter(isOverdue);
+    }
+
     dispatch(setFilteredPianoListItems(filteredItems) as any);
   }, [pianoReduxItems, filters, dispatch]);
 
   // Store the fetched items in redux once loading has finished. An empty
   // result is stored too, so deleting the last piano clears the list.
+  // Show the pianos saved on this device straight away, until the server
+  // answers (or for good, when offline)
+  useEffect(() => {
+    if (!user?.accountId) return;
+    let cancelled = false;
+    loadPianosFromCache(user.accountId).then((cached) => {
+      if (cancelled || !cached) return;
+      setSavedAt(cached.savedAt);
+      if (!hasLoadedRef.current) {
+        dispatch(setPianoListItems(cached.pianos) as any);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.accountId]);
+
+  // Keep the saved copy up to date, including changes made in the app
+  useEffect(() => {
+    if (!hasLoadedRef.current || !user?.accountId) return;
+    savePianosToCache(user.accountId, pianoReduxItems).then((cached) => {
+      if (cached) setSavedAt(cached.savedAt);
+    });
+  }, [pianoReduxItems, user?.accountId]);
+
   useEffect(() => {
     // After a failed load (e.g. offline) keep what we have, including the
     // reminders, rather than treating it as an empty list
     if (isLoading || loadError || !user) return;
+    hasLoadedRef.current = true;
     dispatch(setPianoListItems(items) as any);
 
     // Keep rental reminders in line with the loaded pianos. This also removes
@@ -541,6 +609,41 @@ const Home = () => {
             <FilterButton />
           </View>
         </View>
+
+        {/* Offline: say the list may be out of date */}
+        {!!loadError && hasPianos && (
+          <TouchableOpacity
+            onPress={() => refetch()}
+            className="flex-row items-center justify-between mt-3 px-4 py-3 rounded-xl bg-black-100 border border-black-200"
+            activeOpacity={0.7}
+          >
+            <Text className="text-gray-100 font-pmedium text-sm flex-1 mr-3">
+              Offline.{" "}
+              {savedAt
+                ? `Showing pianos saved ${format(
+                    new Date(savedAt),
+                    "d MMM, h:mm a"
+                  )}.`
+                : "Showing the last loaded pianos."}
+            </Text>
+            <Text className="text-secondary font-psemibold text-sm">Retry</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Rentals that should have come back by now */}
+        {overdueCount > 0 && !filters.isOverdue && (
+          <TouchableOpacity
+            onPress={showOverdue}
+            className="flex-row items-center justify-between mt-3 px-4 py-3 rounded-xl bg-red-500/15 border border-red-500/40"
+            activeOpacity={0.7}
+          >
+            <Text className="text-red-300 font-pmedium text-sm">
+              {overdueCount} {overdueCount === 1 ? "rental is" : "rentals are"}{" "}
+              overdue
+            </Text>
+            <Text className="text-red-300 font-psemibold text-sm">View</Text>
+          </TouchableOpacity>
+        )}
 
         <View className="flex flex-row justify-end mr-1 my-3">
           <Text className="font-pmedium text-sm text-gray-100">

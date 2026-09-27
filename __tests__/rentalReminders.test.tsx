@@ -104,11 +104,16 @@ describe("scheduling", () => {
     setNow(new Date(2026, 9, 2, 10, 0));
     await scheduleAllRentalNotifications([dueSoon]);
 
-    expect(firstDay).toEqual(["2026-10-03 09:00", "2026-10-04 09:00"]);
+    expect(firstDay).toEqual([
+      "2026-10-03 09:00",
+      "2026-10-04 09:00",
+      "2026-10-05 09:00",
+      "2026-10-11 09:00",
+    ]);
     expect(reminderTimes()).toEqual(firstDay);
   });
 
-  it("reminds a week before, the day before and on the due date", async () => {
+  it("reminds a week before, the day before, on the due date, and when overdue", async () => {
     setNow(new Date(2026, 9, 1, 10, 0));
 
     await scheduleAllRentalNotifications([rental("2026-10-20")]);
@@ -117,9 +122,19 @@ describe("scheduling", () => {
       "2026-10-13 09:00",
       "2026-10-19 09:00",
       "2026-10-20 09:00",
+      "2026-10-21 09:00",
+      "2026-10-27 09:00",
     ]);
-    expect(fakeNotifications.rentalReminders()[0].content.body).toBe(
+    const reminders = fakeNotifications.rentalReminders();
+    expect(reminders[0].content.body).toBe(
       '"Yamaha U1" rental ends in 7 days. Please arrange return or extension.'
+    );
+    expect(reminders[3].content).toMatchObject({
+      title: "🎹 Piano Rental Overdue",
+      body: '"Yamaha U1" rental ended yesterday. Please arrange return or extension.',
+    });
+    expect(reminders[4].content.body).toBe(
+      '"Yamaha U1" rental ended 7 days ago. Please arrange return or extension.'
     );
   });
 
@@ -150,7 +165,7 @@ describe("scheduling", () => {
       scheduleAllRentalNotifications(pianos),
     ]);
 
-    expect(reminderTimes()).toHaveLength(3);
+    expect(reminderTimes()).toHaveLength(5);
   });
 });
 
@@ -172,7 +187,7 @@ describe("loading the piano list", () => {
     renderWithStore(<Home />, createTestStore({ user: testUser }));
     await flushPromises();
 
-    expect(before).toHaveLength(3);
+    expect(before).toHaveLength(5);
     expect(reminderTimes()).toEqual(before);
   });
 

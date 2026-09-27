@@ -5,7 +5,7 @@ import {
   SECONDARY_COLOR,
 } from "@/constants/colors";
 import useDeletePiano from "@/lib/useDeletePiano";
-import { getCategoryLabel } from "@/utils/ObjectManipulation";
+import { getStatusLabel } from "@/utils/pianoStatus";
 import { getEntranceDelay } from "@/utils/animation";
 import { getRemainingPeriod, getRentalState } from "@/utils/dates";
 import { Image } from "expo-image";
@@ -359,7 +359,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(
                             : SECONDARY_COLOR,
                       }}
                     >
-                      {getCategoryLabel(category)}
+                      {getStatusLabel(item)}
                     </Text>
                     {company_associated && (
                       <Text

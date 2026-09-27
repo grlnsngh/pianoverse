@@ -13,7 +13,10 @@ import {
   parseStoredDate,
   periodBetween,
 } from "@/utils/dates";
+import useUpdatePiano from "@/lib/useUpdatePiano";
 import { callNumber, messageOnWhatsApp } from "@/utils/contact";
+import { formatRupees } from "@/utils/money";
+import { isSold } from "@/utils/pianoStatus";
 import { buildShareMessage } from "@/utils/share";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -31,6 +34,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
 import { PIANO_CATEGORY } from "../constants/Piano";
 import CustomButton from "../components/CustomButton";
+import ExtendRentalSheet from "../components/ExtendRentalSheet";
+import MarkAsSoldSheet from "../components/MarkAsSoldSheet";
 import icons from "../../constants/icons";
 
 const isLessThanOrEqualTo7Days = (remaining: {
@@ -541,6 +546,46 @@ const OnSaleDetails = ({ piano }: { piano: PianoItem }) => {
   );
 };
 
+const SaleDetails = ({
+  piano,
+  onUndo,
+}: {
+  piano: PianoItem;
+  onUndo: () => void;
+}) => {
+  const price = Number(piano.sold_price);
+  const rows = [
+    ["Sold On", formatDate(piano.sold_date)],
+    ["Buyer", piano.sold_to_name],
+    ["Address", piano.sold_to_address],
+    ["Price", price > 0 ? formatRupees(price) : null],
+  ].filter(([, value]) => value);
+
+  return (
+    <View className="bg-black-100/50 rounded-2xl p-5">
+      <Text className="text-sm text-gray-400 font-pmedium uppercase tracking-wide mb-3">
+        Sale
+      </Text>
+      {rows.map(([label, value]) => (
+        <View key={label} className="flex-row justify-between items-start py-2">
+          <Text className="text-sm text-gray-400 font-pmedium mr-4">
+            {label}
+          </Text>
+          <Text className="text-white font-psemibold flex-1 text-right">
+            {value}
+          </Text>
+        </View>
+      ))}
+      <TouchableOpacity
+        onPress={onUndo}
+        className="mt-3 py-3 rounded-xl border border-gray-600 items-center"
+      >
+        <Text className="text-gray-100 font-pmedium">Undo Sale</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 const DetailScreen = () => {
   const { id } = useLocalSearchParams();
   const pianosList = useSelector((state: RootState) => state.pianos.items);
@@ -548,7 +593,10 @@ const DetailScreen = () => {
   const navigation = useNavigation();
   const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+  const [showSoldSheet, setShowSoldSheet] = useState(false);
+  const [showExtendSheet, setShowExtendSheet] = useState(false);
   const confirmDelete = useDeletePiano();
+  const updatePiano = useUpdatePiano();
 
   const filteredPiano: PianoItem | undefined = pianosList.find(
     (piano) => piano.$id === id
@@ -615,6 +663,32 @@ const DetailScreen = () => {
     });
   };
 
+  const sold = isSold(filteredPiano);
+
+  const handleUndoSale = () =>
+    Alert.alert(
+      "Undo Sale",
+      `Mark "${title}" as not sold? The sale details will be removed.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Undo Sale",
+          style: "destructive",
+          onPress: () =>
+            updatePiano(
+              filteredPiano,
+              {
+                sold_date: null,
+                sold_price: null,
+                sold_to_name: null,
+                sold_to_address: null,
+              },
+              `${title} is back in stock`
+            ),
+        },
+      ]
+    );
+
   const handleShare = async () => {
     try {
       await Share.share({
@@ -663,6 +737,11 @@ const DetailScreen = () => {
                 {printCategoryLabel(category)}
               </Text>
             </View>
+            {sold && (
+              <View className="absolute top-4 left-4 bg-gray-100 rounded-full px-4 py-2 shadow-lg">
+                <Text className="text-primary font-pbold text-sm">SOLD</Text>
+              </View>
+            )}
           </View>
 
           {/* Title & Make */}
@@ -732,6 +811,29 @@ const DetailScreen = () => {
           )}
           {category === PIANO_CATEGORY.ON_SALE && (
             <OnSaleDetails piano={filteredPiano} />
+          )}
+
+          {sold ? (
+            <SaleDetails piano={filteredPiano} onUndo={handleUndoSale} />
+          ) : (
+            <View className="flex-row space-x-3">
+              {category === PIANO_CATEGORY.RENTABLE && (
+                <TouchableOpacity
+                  onPress={() => setShowExtendSheet(true)}
+                  className="flex-1 bg-secondary/20 rounded-xl py-4 border border-secondary/40 items-center"
+                >
+                  <Text className="text-secondary font-psemibold">
+                    Extend Rental
+                  </Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={() => setShowSoldSheet(true)}
+                className="flex-1 bg-black-100/50 rounded-xl py-4 border border-gray-700 items-center"
+              >
+                <Text className="text-white font-psemibold">Mark as Sold</Text>
+              </TouchableOpacity>
+            </View>
           )}
 
           {/* Additional Information - Collapsible */}
@@ -825,6 +927,17 @@ const DetailScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
+
+      <MarkAsSoldSheet
+        piano={filteredPiano}
+        visible={showSoldSheet}
+        onClose={() => setShowSoldSheet(false)}
+      />
+      <ExtendRentalSheet
+        piano={filteredPiano}
+        visible={showExtendSheet}
+        onClose={() => setShowExtendSheet(false)}
+      />
     </SafeAreaView>
   );
 };

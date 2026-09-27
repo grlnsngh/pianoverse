@@ -18,6 +18,9 @@
       "**/__tests__/**/*.test.[jt]s?(x)"
     ],
     "globalSetup": "<rootDir>/__tests__/helpers/globalSetup.js",
+    "setupFiles": [
+      "<rootDir>/__tests__/helpers/setup.js"
+    ],
     "testTimeout": 30000,
     "transform": {
       "\\.(png|jpg|jpeg|gif|webp)$": "<rootDir>/__tests__/helpers/assetTransformer.js"
@@ -29,6 +32,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/datetimepicker": "^8.2.0",
     "@react-native-picker/picker": "^2.7.7",
     "@react-navigation/native": "^6.0.2",

@@ -86,6 +86,7 @@ export interface FiltersType {
   sortBy: string;
   category: string;
   isActiveRentals: boolean;
+  isOverdue: boolean;
   isSold: boolean;
   layoutStatus: {
     grid: string;

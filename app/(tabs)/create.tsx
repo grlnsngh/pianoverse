@@ -3,7 +3,6 @@ import { useGlobalContext } from "@/context/GlobalProvider";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -16,7 +15,8 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { prepareImageForUpload } from "@/utils/image";
+import { PhotoSource, pickPianoPhoto } from "@/utils/photo";
+import { Ionicons } from "@expo/vector-icons";
 import { rentalDetailsError } from "@/utils/validation";
 import { addDays } from "date-fns";
 import { useSelector } from "react-redux";
@@ -219,32 +219,11 @@ const Create = () => {
     setForm({ ...form, onSaleImportDate: currentDate });
   };
 
-  const openImagePicker = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const asset = result.assets[0];
-
-      // Check minimum dimensions to prevent too small cropped images
-      const minWidth = 50;
-      const minHeight = 50;
-      if (asset.width < minWidth || asset.height < minHeight) {
-        Alert.alert(
-          "Image Too Small",
-          `The cropped image is too small (${asset.width}x${asset.height}). Please select a larger area or choose a different image. Minimum size: ${minWidth}x${minHeight} pixels.`
-        );
-        return;
-      }
-
-      const image = await prepareImageForUpload(asset);
-      setForm({ ...form, image });
-    }
+  const addPhoto = async (source: PhotoSource) => {
+    const image = await pickPianoPhoto(source);
+    if (image) setForm((current) => ({ ...current, image }));
   };
+  const openImagePicker = () => addPhoto("library");
 
   const handleReview = () => {
     // Check if basic details are provided
@@ -413,8 +392,8 @@ const Create = () => {
               <Text className="text-base text-gray-100 font-pmedium mb-2">
                 Upload Image
               </Text>
-              <TouchableOpacity onPress={openImagePicker}>
-                {form.image ? (
+              {form.image ? (
+                <TouchableOpacity onPress={openImagePicker}>
                   <>
                     {imageError ? (
                       <View className="w-full h-64 rounded-2xl bg-black-100 items-center justify-center">
@@ -457,12 +436,42 @@ const Create = () => {
                         resizeMode="contain"
                       />
                     </TouchableOpacity>
+                    {/* Replace it with a new photo from the camera */}
+                    <TouchableOpacity
+                      onPress={() => addPhoto("camera")}
+                      accessibilityLabel="Take a new photo"
+                      style={{
+                        position: "absolute",
+                        bottom: 16,
+                        left: 16,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        borderRadius: 15,
+                        width: 32,
+                        height: 32,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons name="camera" size={16} color="white" />
+                    </TouchableOpacity>
                   </>
-                ) : (
-                  <View
+                </TouchableOpacity>
+              ) : (
+                <View className="flex-row space-x-3">
+                  <TouchableOpacity
+                    onPress={() => addPhoto("camera")}
                     style={{ height: 60 }}
-                    className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 
-                  border-black-200 flex justify-center items-center flex-row space-x-2"
+                    className="flex-1 px-4 bg-black-100 rounded-2xl border-2 border-black-200 flex justify-center items-center flex-row space-x-2"
+                  >
+                    <Ionicons name="camera-outline" size={20} color="#CDCDE0" />
+                    <Text className="text-sm text-gray-100 font-pmedium">
+                      Take Photo
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={openImagePicker}
+                    style={{ height: 60 }}
+                    className="flex-1 px-4 bg-black-100 rounded-2xl border-2 border-black-200 flex justify-center items-center flex-row space-x-2"
                   >
                     <Image
                       source={icons.upload}
@@ -473,9 +482,9 @@ const Create = () => {
                     <Text className="text-sm text-gray-100 font-pmedium">
                       Choose a file
                     </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
 
             <FormField
