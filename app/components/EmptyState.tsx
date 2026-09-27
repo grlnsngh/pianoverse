@@ -10,10 +10,12 @@ import CustomButton from "./CustomButton";
 interface EmptyStateProps {
   title: string;
   subtitle: string;
+  // Replaces the default "Back to Explore" button
+  action?: { title: string; onPress: () => void };
 }
 
 const EmptyState: React.FC<EmptyStateProps> = React.memo(
-  ({ title, subtitle }) => {
+  ({ title, subtitle, action }) => {
     const dispatch = useDispatch();
     const pathname = usePathname();
 
@@ -28,15 +30,20 @@ const EmptyState: React.FC<EmptyStateProps> = React.memo(
         <Text className="text-xl text-center font-psemibold text-white mt-2">
           {title}
         </Text>
-        <Text className="text-sm font-pmedium text-gray-100">{subtitle}</Text>
+        <Text className="text-sm text-center font-pmedium text-gray-100">
+          {subtitle}
+        </Text>
 
         <CustomButton
-          title="Back to Explore"
-          handlePress={() => {
-            dispatch(setActiveTab("home") as any);
-            // From search results, return to the list
-            if (pathname.startsWith("/search")) router.back();
-          }}
+          title={action?.title ?? "Back to Explore"}
+          handlePress={
+            action?.onPress ??
+            (() => {
+              dispatch(setActiveTab("home") as any);
+              // From search results, return to the list
+              if (pathname.startsWith("/search")) router.back();
+            })
+          }
           containerStyles="w-full my-5"
         />
       </View>

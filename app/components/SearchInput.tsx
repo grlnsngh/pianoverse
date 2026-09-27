@@ -17,14 +17,20 @@ const SearchInput: React.FC<SearchInputProps> = React.memo(
     const [isFocused, setIsFocused] = useState(false);
 
     const handleSearch = useCallback(() => {
-      if (query === "")
+      const trimmed = query.trim();
+      if (trimmed === "")
         return Alert.alert(
           "Missing Query",
           "Please input something to search results across database"
         );
 
-      if (pathname.startsWith("/search")) router.setParams({ query });
-      else router.push(`/search/${query}`);
+      if (pathname.startsWith("/search")) router.setParams({ query: trimmed });
+      // Let the router encode the query, so "/", "#", "%" and "?" survive
+      else
+        router.push({
+          pathname: "/search/[query]",
+          params: { query: trimmed },
+        });
     }, [query, pathname]);
 
     const handleTextChange = useCallback((e: string) => {
@@ -53,6 +59,9 @@ const SearchInput: React.FC<SearchInputProps> = React.memo(
           onChangeText={handleTextChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          // Search from the keyboard too
+          returnKeyType="search"
+          onSubmitEditing={handleSearch}
         />
       </View>
     );

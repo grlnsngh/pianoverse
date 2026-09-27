@@ -41,19 +41,29 @@ export const formatDate = (
 /**
  * Searches an array of PianoItems based on a search input.
  * @param items - The array of PianoItems to search.
- * @param searchInput - The search input to match against the PianoItem titles.
+ * @param searchInput - Matched against the title, make, customer name and
+ *   mobile, model number and B-number.
  * @returns An array of PianoItems that match the search input.
  */
 export const searchPianoItems = (
   items: PianoItem[],
   searchInput: string
 ): PianoItem[] => {
-  const trimmedInput = searchInput.trim();
-  if (trimmedInput === "") {
+  const term = searchInput.trim().toLowerCase();
+  if (term === "") {
     return items;
   }
   return items.filter((item) =>
-    item.title.toLowerCase().includes(trimmedInput.toLowerCase())
+    [
+      item.title,
+      item.make,
+      item.rental_customer_name,
+      item.rental_customer_mobile,
+      item.event_model_number,
+      item.event_b_number,
+    ].some(
+      (field) => field != null && String(field).toLowerCase().includes(term)
+    )
   );
 };
 
