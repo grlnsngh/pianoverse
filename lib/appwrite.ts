@@ -240,9 +240,11 @@ export interface LocalImageAsset {
  */
 export type PianoEntryInput = Omit<
   Partial<PianoItemFormStateType>,
-  "image_url"
+  "image_url" | "users"
 > & {
   image_url?: string | LocalImageAsset | null;
+  // The owner's user document ID
+  users?: string;
 };
 
 const IMAGE_MIME_TYPES: Record<string, string> = {

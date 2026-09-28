@@ -1,5 +1,4 @@
 import { categoryOptions } from "@/app/constants/Piano";
-import { SECONDARY_COLOR } from "@/constants/colors";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate } from "./dates";
 
@@ -69,33 +68,6 @@ export const formatDateString = (dateString: string) => {
     hour12: true, // "AM/PM"
   });
 };
-
-/**
- * Creates a button configuration object.
- *
- * @param {Object} form - The form object containing the company association.
- * @param {string} form.companyAssociated - The company associated with the form.
- * @param {string} value - The value associated with the button.
- * @param {string} label - The label to display on the button.
- * @returns {Object} The button configuration object.
- * @returns {string} return.value - The value associated with the button.
- * @returns {string} return.label - The label to display on the button.
- * @returns {Object} return.labelStyle - The style object for the label.
- * @returns {Object} return.style - The style object for the button.
- */
-export const createButtonConfig = (
-  form: { companyAssociated?: string | null },
-  value: string,
-  label: string
-) => ({
-  value,
-  label,
-  labelStyle: form.companyAssociated === value ? {} : { color: "white" },
-  style:
-    form.companyAssociated === value
-      ? { backgroundColor: SECONDARY_COLOR }
-      : {},
-});
 
 /**
  * Retrieves the label for a given category value.

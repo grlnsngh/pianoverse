@@ -241,6 +241,21 @@ describe("rental details", () => {
       );
     });
 
+    it("checks the same rental details as the Create screen", async () => {
+      const renderer = renderEdit();
+
+      typeInto(renderer, "Customer Address", "  ");
+      await pressText(renderer.root, "Save Changes");
+
+      expect(alerts.titles()).toEqual(["Missing Details"]);
+      expect(alerts.spy.mock.calls[0][1]).toBe(
+        "Please fill all rental details."
+      );
+      expect(
+        fakeBackend.documents.get("piano-1")?.rental_customer_address
+      ).toBe("12 MG Road");
+    });
+
     it("saves a mobile number written with the country code", async () => {
       const renderer = renderEdit();
 
