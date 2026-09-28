@@ -333,17 +333,13 @@ export async function uploadFile(pianoData: PianoEntryInput) {
 }
 
 /**
- * Creates a new piano entry in the database.
+ * The URL for viewing an uploaded file in the storage bucket.
  *
- * @param {Object} pianoData - The data for the piano entry.
- * @param {string} pianoData.name - The name of the piano.
- * @param {string} pianoData.type - The type of the piano.
- * @param {string} pianoData.manufacturer - The manufacturer of the piano.
- * @param {string} pianoData.image - The image file of the piano.
- * @returns {Promise<Object>} The response from the database after creating the document.
- * @throws {Error} If there is an error creating the piano entry.
+ * @param {string} fileId - The ID of the uploaded file.
+ * @returns {Promise<URL>} The file's view URL.
+ * @throws {Error} If no URL could be made for the file.
  */
-export async function getFilePreview(fileId) {
+export async function getFilePreview(fileId: string) {
   let fileUrl;
 
   try {

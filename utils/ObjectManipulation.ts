@@ -83,7 +83,11 @@ export const formatDateString = (dateString: string) => {
  * @returns {Object} return.labelStyle - The style object for the label.
  * @returns {Object} return.style - The style object for the button.
  */
-export const createButtonConfig = (form, value, label) => ({
+export const createButtonConfig = (
+  form: { companyAssociated?: string | null },
+  value: string,
+  label: string
+) => ({
   value,
   label,
   labelStyle: form.companyAssociated === value ? {} : { color: "white" },

@@ -166,3 +166,46 @@ describe("income", () => {
     });
   });
 });
+
+describe("the profile's shortcuts", () => {
+  const layoutStatus = {
+    card: "unchecked",
+    list: "unchecked",
+    grid: "checked",
+  };
+
+  const renderProfile = () => {
+    const store = createTestStore({ user: testUser, items: pianos });
+    store.dispatch(
+      setPianoFilters({ ...DEFAULT_FILTERS, layoutStatus, isSold: true })
+    );
+    return { store, renderer: renderWithStore(<Profile />, store) };
+  };
+
+  it("filter by category but keep the chosen layout", async () => {
+    const { store, renderer } = renderProfile();
+
+    await pressText(renderer.root, "Storage");
+
+    expect(store.getState().navigation.activeTab).toBe("home");
+    // Other filters start over, the layout stays
+    expect(store.getState().pianos.filters).toEqual({
+      ...DEFAULT_FILTERS,
+      layoutStatus,
+      category: "Warehouse",
+    });
+  });
+
+  it("show active rentals but keep the chosen layout", async () => {
+    const { store, renderer } = renderProfile();
+
+    await pressText(renderer.root, "Active Rentals");
+
+    expect(store.getState().pianos.filters).toEqual({
+      ...DEFAULT_FILTERS,
+      layoutStatus,
+      category: "Rentable",
+      isActiveRentals: true,
+    });
+  });
+});

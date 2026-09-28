@@ -22,7 +22,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
+import { PIANO_CATEGORY } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
 import { exportPianosToCSV } from "@/utils/csvExport";
 import { formatRupees } from "@/utils/money";
@@ -164,12 +164,7 @@ const Profile = () => {
   const salesThisMonth = salesInMonth(items);
   const overdueCount = items.filter(isOverdue).length;
 
-  const showOverdueRentals = () => {
-    dispatch(
-      setPianoFilters({ ...clearFilters(filters), isOverdue: true }) as any
-    );
-    dispatch(setActiveTab("home") as any);
-  };
+  const showOverdueRentals = () => showOnHome({ isOverdue: true });
   const recentAdditions = calculateRecentAdditions();
 
   const handleConfirmLogout = async () => {
@@ -205,14 +200,17 @@ const Profile = () => {
     await exportPianosToCSV(items);
   };
 
-  const navigateToHomeWithFilter = (category: string) => {
-    const filters: FiltersType = {
-      ...DEFAULT_FILTERS,
-      category: category,
-    };
-    dispatch(setPianoFilters(filters) as any);
+  // Shortcuts to Home start from the default filters but keep the chosen
+  // layout (card, list or grid)
+  const showOnHome = (shortcutFilters: Partial<FiltersType>) => {
+    dispatch(
+      setPianoFilters({ ...clearFilters(filters), ...shortcutFilters }) as any
+    );
     dispatch(setActiveTab("home") as any);
   };
+
+  const navigateToHomeWithFilter = (category: string) =>
+    showOnHome({ category });
 
   const formatMemberSince = (dateString: string) => {
     const date = new Date(dateString);
@@ -622,15 +620,12 @@ const Profile = () => {
 
                 {activeRentals > 0 && (
                   <TouchableOpacity
-                    onPress={() => {
-                      const filters: FiltersType = {
-                        ...DEFAULT_FILTERS,
+                    onPress={() =>
+                      showOnHome({
                         category: "Rentable",
                         isActiveRentals: true,
-                      };
-                      dispatch(setPianoFilters(filters) as any);
-                      dispatch(setActiveTab("home") as any);
-                    }}
+                      })
+                    }
                     className="bg-green-500/20 border border-green-500/40 rounded-xl p-4 flex-row items-center justify-between"
                     activeOpacity={0.7}
                   >

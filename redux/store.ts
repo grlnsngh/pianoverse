@@ -3,23 +3,23 @@ import {
   combineReducers,
   createStore,
   Middleware,
+  Reducer,
 } from "redux";
 import logger from "redux-logger";
 
-import userReducer, { UserState } from "./users/reducers";
+import userReducer from "./users/reducers";
 import pianoReducer, { PianoState } from "./pianos/reducer";
-import navigationReducer from "./navigation/reducer";
+import navigationReducer, { NavigationState } from "./navigation/reducer";
 
+// Each slice reducer only knows its own actions; at the root they all receive
+// every action, which is what Redux's Reducer type describes
 const rootReducer = combineReducers({
   users: userReducer,
-  pianos: pianoReducer,
-  navigation: navigationReducer,
+  pianos: pianoReducer as Reducer<PianoState>,
+  navigation: navigationReducer as Reducer<NavigationState>,
 });
 
-export type RootState = ReturnType<typeof rootReducer> & {
-  user: UserState;
-  piano: PianoState;
-};
+export type RootState = ReturnType<typeof rootReducer>;
 
 // Logging every action with the whole state is only useful while developing
 const middleware: Middleware[] = __DEV__ ? [logger] : [];
