@@ -8,6 +8,11 @@ import useDeletePiano from "@/lib/useDeletePiano";
 import { getStatusLabel } from "@/utils/pianoStatus";
 import { getEntranceDelay } from "@/utils/animation";
 import { getRemainingPeriod, getRentalState } from "@/utils/dates";
+import {
+  getCategoryIcon,
+  getRentalStatusColor,
+  getRentalStatusText,
+} from "@/utils/rentalStatus";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
@@ -147,61 +152,8 @@ const CardItem: React.FC<CardItemProps> = React.memo(
       [rental_period_end]
     );
 
-    const pluralize = useCallback(
-      (value: number, unit: string) =>
-        `${value} ${unit}${value > 1 ? "s" : ""}`,
-      []
-    );
-
-    const displayRemainingTime = useCallback(
-      (remaining: {
-        years: number;
-        months: number;
-        weeks: number;
-        days: number;
-      }) => {
-        if (remaining.years > 0) return pluralize(remaining.years, "year");
-        if (remaining.months > 0) return pluralize(remaining.months, "month");
-        if (remaining.weeks > 0) return pluralize(remaining.weeks, "week");
-        return pluralize(remaining.days, "day");
-      },
-      [pluralize]
-    );
-
-    const isLessThanOrEqualTo7Days = useCallback(
-      (remaining: {
-        years: number;
-        months: number;
-        weeks: number;
-        days: number;
-      }) => {
-        return (
-          remaining.years === 0 &&
-          remaining.months === 0 &&
-          remaining.weeks === 0 &&
-          remaining.days <= 7
-        );
-      },
-      []
-    );
-
-    const getStatusColor = useCallback(() => {
-      if (!rentalState) return SECONDARY_COLOR;
-      if (rentalState === "due_today") return "#ef4444";
-      if (rentalState === "active") {
-        return isLessThanOrEqualTo7Days(remaining) ? "#ef4444" : "#10b981";
-      }
-      return "#6b7280";
-    }, [rentalState, remaining, isLessThanOrEqualTo7Days]);
-
-    const getStatusText = useCallback(() => {
-      if (!rentalState) return null;
-      if (rentalState === "due_today") return "Due today";
-      if (rentalState === "active") {
-        return `${displayRemainingTime(remaining)} remaining`;
-      }
-      return "Expired";
-    }, [rentalState, remaining, displayRemainingTime]);
+    const statusText = getRentalStatusText(rentalState, remaining);
+    const statusColor = getRentalStatusColor(rentalState, remaining);
 
     const handleOnClickItem = useCallback(() => {
       if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
@@ -222,21 +174,6 @@ const CardItem: React.FC<CardItemProps> = React.memo(
     if (item.empty) {
       return <View style={styles.itemInvisible} />;
     }
-
-    const getCategoryIcon = useCallback((category: string) => {
-      switch (category) {
-        case PIANO_CATEGORY.RENTABLE:
-          return icons.card;
-        case PIANO_CATEGORY.EVENTS:
-          return icons.play;
-        case PIANO_CATEGORY.ON_SALE:
-          return icons.bookmark;
-        case PIANO_CATEGORY.WAREHOUSE:
-          return icons.home;
-        default:
-          return icons.card;
-      }
-    }, []);
 
     return (
       <RNAAnimated.View
@@ -451,15 +388,15 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                   <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
                   {/* Status Badge */}
-                  {getStatusText() && (
+                  {statusText && (
                     <View className="absolute top-3 left-3">
                       <View className="flex-row items-center bg-black/70 rounded-full px-3 py-1">
                         <View
                           className="w-2 h-2 rounded-full mr-2"
-                          style={{ backgroundColor: getStatusColor() }}
+                          style={{ backgroundColor: statusColor }}
                         />
                         <Text className="text-white text-xs font-pmedium">
-                          {getStatusText()}
+                          {statusText}
                         </Text>
                       </View>
                     </View>

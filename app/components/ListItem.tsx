@@ -8,6 +8,11 @@ import useDeletePiano from "@/lib/useDeletePiano";
 import { getStatusLabel } from "@/utils/pianoStatus";
 import { getEntranceDelay } from "@/utils/animation";
 import { getRemainingPeriod, getRentalState } from "@/utils/dates";
+import {
+  getCategoryIcon,
+  getRentalStatusColor,
+  getRentalStatusText,
+} from "@/utils/rentalStatus";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
@@ -144,58 +149,8 @@ const ListItem: React.FC<ListItemProps> = React.memo(
       [rental_period_end]
     );
 
-    const pluralize = useCallback(
-      (value: number, unit: string) =>
-        `${value} ${unit}${value > 1 ? "s" : ""}`,
-      []
-    );
-
-    const displayRemainingTime = useCallback(
-      (remaining: {
-        years: number;
-        months: number;
-        weeks: number;
-        days: number;
-      }) => {
-        if (remaining.years > 0) return pluralize(remaining.years, "year");
-        if (remaining.months > 0) return pluralize(remaining.months, "month");
-        if (remaining.weeks > 0) return pluralize(remaining.weeks, "week");
-        return pluralize(remaining.days, "day");
-      },
-      [pluralize]
-    );
-
-    const displayElapsedTime = useCallback(
-      (elapsed: {
-        years: number;
-        months: number;
-        weeks: number;
-        days: number;
-      }) => {
-        if (elapsed.years > 0) return pluralize(elapsed.years, "year");
-        if (elapsed.months > 0) return pluralize(elapsed.months, "month");
-        if (elapsed.weeks > 0) return pluralize(elapsed.weeks, "week");
-        return pluralize(elapsed.days, "day");
-      },
-      [pluralize]
-    );
-
-    const isLessThanOrEqualTo7Days = useCallback(
-      (remaining: {
-        years: number;
-        months: number;
-        weeks: number;
-        days: number;
-      }) => {
-        return (
-          remaining.years === 0 &&
-          remaining.months === 0 &&
-          remaining.weeks === 0 &&
-          remaining.days <= 7
-        );
-      },
-      []
-    );
+    const statusText = getRentalStatusText(rentalState, remaining);
+    const statusColor = getRentalStatusColor(rentalState, remaining);
 
     const handleOnClickItem = useCallback(() => {
       if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
@@ -216,44 +171,6 @@ const ListItem: React.FC<ListItemProps> = React.memo(
     if (item.empty) {
       return <View style={styles.itemInvisible} />;
     }
-
-    const getCategoryIcon = useCallback((category: string) => {
-      switch (category) {
-        case PIANO_CATEGORY.RENTABLE:
-          return icons.card;
-        case PIANO_CATEGORY.EVENTS:
-          return icons.play;
-        case PIANO_CATEGORY.ON_SALE:
-          return icons.bookmark;
-        case PIANO_CATEGORY.WAREHOUSE:
-          return icons.home;
-        default:
-          return icons.card;
-      }
-    }, []);
-
-    const getStatusColor = useCallback(() => {
-      if (!rentalState) return SECONDARY_COLOR;
-      if (rentalState === "due_today") return "#ef4444";
-      if (rentalState === "active") {
-        return isLessThanOrEqualTo7Days(remaining) ? "#ef4444" : "#10b981";
-      }
-      return "#6b7280";
-    }, [rentalState, remaining, isLessThanOrEqualTo7Days]);
-
-    const getStatusText = useCallback(() => {
-      if (!rentalState) return null;
-      if (rentalState === "due_today") return "Due today";
-      if (rentalState === "active") {
-        return `${displayRemainingTime(remaining)} remaining`;
-      }
-      return `Expired ${displayElapsedTime({
-        years: Math.abs(remaining.years),
-        months: Math.abs(remaining.months),
-        weeks: Math.abs(remaining.weeks),
-        days: Math.abs(remaining.days),
-      })} ago`;
-    }, [rentalState, remaining, displayRemainingTime, displayElapsedTime]);
 
     return (
       <RNAAnimated.View style={[animatedStyle, { marginBottom: 12 }]}>
@@ -365,17 +282,17 @@ const ListItem: React.FC<ListItemProps> = React.memo(
                   </View>
 
                   {/* Status Indicator */}
-                  {getStatusText() && (
+                  {statusText && (
                     <View className="flex-row items-center">
                       <View
                         className="w-2 h-2 rounded-full mr-2"
-                        style={{ backgroundColor: getStatusColor() }}
+                        style={{ backgroundColor: statusColor }}
                       />
                       <Text
                         className="text-xs font-pmedium"
-                        style={{ color: getStatusColor() }}
+                        style={{ color: statusColor }}
                       >
-                        {getStatusText()}
+                        {statusText}
                       </Text>
                     </View>
                   )}

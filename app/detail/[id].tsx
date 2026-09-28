@@ -17,6 +17,7 @@ import useUpdatePiano from "@/lib/useUpdatePiano";
 import { callNumber, messageOnWhatsApp } from "@/utils/contact";
 import { formatRupees } from "@/utils/money";
 import { isSold } from "@/utils/pianoStatus";
+import { formatPeriod, isEndingSoon } from "@/utils/rentalStatus";
 import { buildShareMessage } from "@/utils/share";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -38,57 +39,6 @@ import ExtendRentalSheet from "../components/ExtendRentalSheet";
 import MarkAsSoldSheet from "../components/MarkAsSoldSheet";
 import icons from "../../constants/icons";
 
-const isLessThanOrEqualTo7Days = (remaining: {
-  years: number;
-  months: number;
-  weeks: number;
-  days: number;
-}) => {
-  return (
-    remaining.years === 0 &&
-    remaining.months === 0 &&
-    remaining.weeks === 0 &&
-    remaining.days <= 7
-  );
-};
-
-const pluralize = (value: number, unit: string) =>
-  `${value} ${unit}${value > 1 ? "s" : ""}`;
-
-const displayRemainingTime = (remaining: {
-  years: number;
-  months: number;
-  weeks: number;
-  days: number;
-}) => {
-  if (remaining.years > 0) return pluralize(remaining.years, "year");
-  if (remaining.months > 0) return pluralize(remaining.months, "month");
-  if (remaining.weeks > 0) return pluralize(remaining.weeks, "week");
-  return pluralize(remaining.days, "day");
-};
-
-export const DurationText = ({
-  label,
-  period,
-}: {
-  label: string;
-  period: { days: number; weeks: number; months: number; years: number };
-}) => (
-  <View className="flex-row items-center space-x-2">
-    <Image source={icons.eye} className="w-5 h-5" tintColor="#FFA001" />
-    <Text className="text-base text-gray-100 font-pmedium">
-      {label}:{" "}
-      <Text
-        className={`text-white font-psemibold ${
-          isLessThanOrEqualTo7Days(period) ? "text-red-500" : ""
-        }`}
-      >
-        {displayRemainingTime(period)}
-      </Text>
-    </Text>
-  </View>
-);
-
 const RentableDetails = ({ piano }: { piano: PianoItem }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const { rental_period_start, rental_period_end } = piano;
@@ -105,7 +55,7 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
   const isExpiringSoon =
     rentalState === "due_today" ||
     rentalState === "ended" ||
-    (rentalState === "active" && isLessThanOrEqualTo7Days(remaining));
+    (rentalState === "active" && isEndingSoon(remaining));
 
   const rentalStatusTitle =
     rentalState === "ended"
@@ -117,15 +67,10 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
       : "Active Rental";
   const rentalStatusText =
     rentalState === "ended"
-      ? `Ended ${displayRemainingTime({
-          days: -remaining.days,
-          weeks: -remaining.weeks,
-          months: -remaining.months,
-          years: -remaining.years,
-        })} ago`
+      ? `Ended ${formatPeriod(remaining)} ago`
       : rentalState === "due_today"
       ? "The rental ends today"
-      : `${displayRemainingTime(remaining)} remaining`;
+      : `${formatPeriod(remaining)} remaining`;
 
   return (
     <View className="bg-black-100/50 rounded-xl overflow-hidden">
@@ -304,7 +249,7 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
                     Duration
                   </Text>
                   <Text className="text-secondary font-psemibold">
-                    {displayRemainingTime(totalDuration)}
+                    {formatPeriod(totalDuration)}
                   </Text>
                 </View>
               )}

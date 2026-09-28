@@ -7,12 +7,12 @@ import {
 import useDeletePiano from "@/lib/useDeletePiano";
 import { getStatusLabel } from "@/utils/pianoStatus";
 import { getEntranceDelay } from "@/utils/animation";
+import { getRemainingPeriod, getRentalState } from "@/utils/dates";
 import {
-  getRemainingPeriod,
-  getRentalState,
-  Period,
-  RentalState,
-} from "@/utils/dates";
+  getCategoryIcon,
+  getRentalStatusColor,
+  getRentalStatusText,
+} from "@/utils/rentalStatus";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React, { useEffect, useRef, useCallback } from "react";
@@ -49,42 +49,6 @@ interface GridItemProps {
 const { width } = Dimensions.get("window");
 const numColumns = 2;
 const itemWidth = (width - 48) / numColumns; // Account for padding and gaps
-
-const getCategoryIcon = (category: string) => {
-  switch (category) {
-    case PIANO_CATEGORY.RENTABLE:
-      return icons.card;
-    case PIANO_CATEGORY.EVENTS:
-      return icons.play;
-    case PIANO_CATEGORY.ON_SALE:
-      return icons.bookmark;
-    case PIANO_CATEGORY.WAREHOUSE:
-      return icons.home;
-    default:
-      return icons.card;
-  }
-};
-
-const getStatusColor = (state: RentalState | null, remaining: Period) => {
-  if (!state) return SECONDARY_COLOR;
-  if (state === "due_today") return "#ef4444";
-  if (state === "active") {
-    return remaining.days <= 7 ? "#ef4444" : "#10b981";
-  }
-  return "#6b7280";
-};
-
-const getStatusText = (state: RentalState | null, remaining: Period) => {
-  if (!state) return null;
-  if (state === "due_today") return "Due today";
-  if (state === "active") {
-    if (remaining.days <= 7) return `${remaining.days}d left`;
-    if (remaining.weeks > 0) return `${remaining.weeks}w left`;
-    if (remaining.months > 0) return `${remaining.months}mo left`;
-    return "Active";
-  }
-  return "Expired";
-};
 
 const GridItem: React.FC<GridItemProps> = React.memo(
   ({
@@ -216,6 +180,9 @@ const GridItem: React.FC<GridItemProps> = React.memo(
 
         const remaining = getRemainingPeriod(item.rental_period_end);
         const rentalState = getRentalState(item.rental_period_end);
+        const statusText = getRentalStatusText(rentalState, remaining, {
+          compact: true,
+        });
 
         return (
           <RNAAnimated.View style={[styles.gridItemContainer, animatedStyle]}>
@@ -348,22 +315,20 @@ const GridItem: React.FC<GridItemProps> = React.memo(
                   </View>
 
                   {/* Status Badge */}
-                  {getStatusText(rentalState, remaining) && (
+                  {statusText && (
                     <View style={styles.statusBadge}>
                       <View
                         style={[
                           styles.statusDot,
                           {
-                            backgroundColor: getStatusColor(
+                            backgroundColor: getRentalStatusColor(
                               rentalState,
                               remaining
                             ),
                           },
                         ]}
                       />
-                      <Text style={styles.statusText}>
-                        {getStatusText(rentalState, remaining)}
-                      </Text>
+                      <Text style={styles.statusText}>{statusText}</Text>
                     </View>
                   )}
 
