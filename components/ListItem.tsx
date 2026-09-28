@@ -386,6 +386,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(
     );
   }
 );
+ListItem.displayName = "ListItem";
 
 export default ListItem;
 

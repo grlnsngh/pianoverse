@@ -3,7 +3,7 @@ import { PianoFormImage } from "@/utils/pianoForm";
 import { PhotoSource } from "@/utils/photo";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Text, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface PianoPhotoFieldProps {
@@ -64,13 +64,8 @@ const PianoPhotoField: React.FC<PianoPhotoFieldProps> = ({
   onPick,
   onRemove,
 }) => {
+  // The photo that failed to load; a different photo gets a fresh try
   const [failedUri, setFailedUri] = useState<string | null>(null);
-  const shownUri = image?.uri ?? savedPhotoUrl;
-
-  // A different photo gets a fresh try
-  useEffect(() => {
-    setFailedUri(null);
-  }, [shownUri]);
 
   const pickFromLibrary = () => onPick("library");
   const takePhoto = () => onPick("camera");

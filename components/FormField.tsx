@@ -87,5 +87,6 @@ const FormField: React.FC<FormFieldProps> = React.memo(
     );
   }
 );
+FormField.displayName = "FormField";
 
 export default FormField;

@@ -20,13 +20,9 @@ export const requestNotificationPermissions = async () => {
       await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
-    console.log(`📱 Current notification permission status: ${existingStatus}`);
-
     if (existingStatus !== "granted") {
-      console.log("🔄 Requesting notification permissions...");
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
-      console.log(`📱 New notification permission status: ${finalStatus}`);
     }
 
     if (finalStatus !== "granted") {
@@ -38,7 +34,6 @@ export const requestNotificationPermissions = async () => {
 
     // Set up Android notification channel
     if (Platform.OS === "android") {
-      console.log("🔧 Setting up Android notification channel...");
       await Notifications.setNotificationChannelAsync("rental-reminders", {
         name: "Rental Reminders",
         importance: Notifications.AndroidImportance.HIGH,
@@ -46,10 +41,8 @@ export const requestNotificationPermissions = async () => {
         lightColor: "#FF9C01",
         sound: "default",
       });
-      console.log("✅ Android notification channel configured");
     }
 
-    console.log("✅ Notification permissions granted and configured");
     return true;
   } catch (error) {
     console.error("❌ Error requesting notification permissions:", error);
@@ -227,54 +220,6 @@ export const scheduleAllRentalNotifications = (pianoItems: any[]) => {
   return result;
 };
 
-// Get all scheduled notifications
-export const getScheduledNotifications = async () => {
-  try {
-    return await Notifications.getAllScheduledNotificationsAsync();
-  } catch (error) {
-    console.error("Error getting scheduled notifications:", error);
-    return [];
-  }
-};
-
-// Clean up expired notifications
-export const cleanupExpiredNotifications = async () => {
-  try {
-    const scheduledNotifications =
-      await Notifications.getAllScheduledNotificationsAsync();
-    const now = new Date();
-
-    const expiredNotifications = scheduledNotifications.filter(
-      (notification: Notifications.NotificationRequest) => {
-        const trigger = notification.trigger as any;
-        if (trigger && trigger.date) {
-          const notificationDate = new Date(trigger.date);
-          return notificationDate <= now;
-        }
-        return false;
-      }
-    );
-
-    if (expiredNotifications.length > 0) {
-      console.log(
-        `🧹 Cleaning up ${expiredNotifications.length} expired notifications`
-      );
-
-      const cancelPromises = expiredNotifications.map((notification) =>
-        Notifications.cancelScheduledNotificationAsync(notification.identifier)
-      );
-
-      await Promise.all(cancelPromises);
-      console.log("✅ Expired notifications cleaned up");
-    }
-
-    return expiredNotifications.length;
-  } catch (error) {
-    console.error("❌ Error cleaning up expired notifications:", error);
-    return 0;
-  }
-};
-
 // Handle notification response (when user taps on notification)
 export const handleNotificationResponse = (
   response: Notifications.NotificationResponse
@@ -283,117 +228,5 @@ export const handleNotificationResponse = (
 
   if (data?.type === "rental_due" && data?.pianoId) {
     router.push(`/detail/${data.pianoId}`);
-  }
-};
-
-// Cancel all scheduled notifications
-export const cancelAllNotifications = async () => {
-  try {
-    await Notifications.cancelAllScheduledNotificationsAsync();
-    console.log("🗑️ Cancelled all scheduled notifications");
-  } catch (error) {
-    console.error("❌ Error cancelling all notifications:", error);
-  }
-};
-
-// Get notification status for debugging
-export const getNotificationStatus = async () => {
-  try {
-    const permissions = await Notifications.getPermissionsAsync();
-    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-
-    return {
-      permissions,
-      scheduledCount: scheduled.length,
-      scheduledNotifications: scheduled.map((n) => ({
-        id: n.identifier,
-        title: n.content.title,
-        date: (n.trigger as any)?.date,
-        data: n.content.data,
-      })),
-    };
-  } catch (error) {
-    console.error("❌ Error getting notification status:", error);
-    return null;
-  }
-};
-
-// Test function to show a sample notification immediately
-export const showTestNotification = async () => {
-  try {
-    console.log("🔔 Creating test notification...");
-
-    // Schedule notification for 30 seconds from now
-    const testDate = new Date(Date.now() + 30 * 1000); // 30 seconds from now
-
-    const notificationId = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "🎹 Test Notification - Pianoverse",
-        body: "This is a test notification to verify the notification system is working! Your rental reminder system is ready.",
-        data: {
-          type: "test_notification",
-          test: true,
-        },
-        sound: "default",
-      },
-      trigger: {
-        date: testDate,
-        channelId: Platform.OS === "android" ? "rental-reminders" : undefined,
-      },
-    });
-
-    console.log(`✅ Test notification scheduled! ID: ${notificationId}`);
-    console.log(
-      `⏰ Notification will appear at: ${testDate.toLocaleTimeString()}`
-    );
-    console.log("📱 Check your device in 30 seconds to see the notification!");
-
-    return {
-      success: true,
-      notificationId,
-      scheduledTime: testDate.toISOString(),
-    };
-  } catch (error) {
-    console.error("❌ Error creating test notification:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
-};
-
-// Test function to show notification immediately (no delay)
-export const showImmediateTestNotification = async () => {
-  try {
-    console.log("🚀 Creating immediate test notification...");
-
-    const notificationId = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "🎹 Immediate Test - Pianoverse",
-        body: "This notification appeared immediately! Your notification system is working perfectly.",
-        data: {
-          type: "immediate_test",
-          test: true,
-        },
-        sound: "default",
-      },
-      trigger: null, // null trigger = show immediately
-    });
-
-    console.log(`✅ Immediate test notification sent! ID: ${notificationId}`);
-    console.log(
-      "📱 Check your device now - the notification should appear immediately!"
-    );
-
-    return {
-      success: true,
-      notificationId,
-    };
-  } catch (error) {
-    console.error("❌ Error creating immediate test notification:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
   }
 };

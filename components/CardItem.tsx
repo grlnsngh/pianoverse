@@ -547,6 +547,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
     );
   }
 );
+CardItem.displayName = "CardItem";
 
 export default CardItem;
 

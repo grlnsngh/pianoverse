@@ -46,7 +46,7 @@ const GlobalProvider = ({ children }) => {
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.warn("Could not check who is signed in:", error);
       })
       .finally(() => {
         setLoading(false);
@@ -77,32 +77,14 @@ const GlobalProvider = ({ children }) => {
     openFromNotification(response);
   }, [loading, isLogged, openFromNotification]);
 
-  // Initialize notifications
+  // Ask for permission to send reminders, and open the piano when one is tapped
   useEffect(() => {
-    requestNotificationPermissions().then((hasPermission) => {
-      if (hasPermission) {
-        console.log("✅ Notification permissions granted");
-      }
-    });
-
-    // Set up notification listeners
-    const notificationListener = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        console.log(
-          "📱 Notification received:",
-          notification.request.content.title
-        );
-      }
-    );
+    requestNotificationPermissions();
 
     const responseListener =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log(
-          "👆 User tapped notification:",
-          response.notification.request.content.title
-        );
-        openFromNotification(response);
-      });
+      Notifications.addNotificationResponseReceivedListener(
+        openFromNotification
+      );
 
     // The app may have been opened by tapping a notification
     Notifications.getLastNotificationResponseAsync().then((response) => {
@@ -110,7 +92,6 @@ const GlobalProvider = ({ children }) => {
     });
 
     return () => {
-      Notifications.removeNotificationSubscription(notificationListener);
       Notifications.removeNotificationSubscription(responseListener);
     };
   }, [openFromNotification]);
