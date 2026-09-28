@@ -4,7 +4,7 @@ jest.mock("@/lib/appwrite", () => ({
 jest.mock("@/context/GlobalProvider", () => ({
   useGlobalContext: () => ({ user: require("./helpers/fixtures").testUser }),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   scheduleAllRentalNotifications: jest.fn(() => Promise.resolve([])),
 }));
 jest.mock("expo-router", () => ({
@@ -12,7 +12,7 @@ jest.mock("expo-router", () => ({
   usePathname: jest.fn(() => "/home"),
 }));
 // A memoized row, like the real ones, that records its renders and props
-jest.mock("@/app/components/ListItem", () => {
+jest.mock("@/components/ListItem", () => {
   const React = require("react");
   const { Text } = require("react-native");
   return React.memo((props: any) => {

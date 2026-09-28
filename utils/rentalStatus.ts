@@ -1,5 +1,5 @@
 import { icons } from "@/constants";
-import { PIANO_CATEGORY } from "@/app/constants/Piano";
+import { PIANO_CATEGORY } from "@/constants/Piano";
 import { SECONDARY_COLOR } from "@/constants/colors";
 import { Period, RentalState } from "@/utils/dates";
 

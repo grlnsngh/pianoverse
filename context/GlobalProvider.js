@@ -13,7 +13,7 @@ import * as Notifications from "expo-notifications";
 import {
   requestNotificationPermissions,
   handleNotificationResponse,
-} from "@/app/services/notifications";
+} from "@/services/notifications";
 
 const GlobalContext = createContext();
 export const useGlobalContext = () => useContext(GlobalContext);

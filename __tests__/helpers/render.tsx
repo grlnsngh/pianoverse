@@ -12,7 +12,7 @@ import { combineReducers, createStore } from "redux";
 import navigationReducer from "@/redux/navigation/reducer";
 import pianoReducer from "@/redux/pianos/reducer";
 import userReducer from "@/redux/users/reducers";
-import { DEFAULT_FILTERS } from "@/app/constants/Piano";
+import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
 import { setToastListener } from "@/utils/toast";
 

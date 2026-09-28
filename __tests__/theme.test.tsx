@@ -9,8 +9,8 @@ import zlib from "zlib";
 import React from "react";
 import { TextInput } from "react-native";
 import { act, create, ReactTestRenderer } from "react-test-renderer";
-import FormField from "@/app/components/FormField";
-import SearchInput from "@/app/components/SearchInput";
+import FormField from "@/components/FormField";
+import SearchInput from "@/components/SearchInput";
 
 const root = path.join(__dirname, "..");
 const PRIMARY = "#161622";
@@ -59,18 +59,20 @@ describe("styling", () => {
     });
 
   it("only uses classes NativeWind v2 can apply", () => {
-    const offenders = sourceFiles(path.join(root, "app")).flatMap((file) =>
-      fs
-        .readFileSync(file, "utf8")
-        .split("\n")
-        .map((line, i) => ({
-          line,
-          at: `${path.relative(root, file)}:${i + 1}`,
-        }))
-        // Every line, so class strings that wrap onto a second line count too
-        .filter(({ line }) => unsupported.test(line))
-        .map(({ at, line }) => `${at} ${line.trim()}`)
-    );
+    const offenders = ["app", "components"]
+      .flatMap((dir) => sourceFiles(path.join(root, dir)))
+      .flatMap((file) =>
+        fs
+          .readFileSync(file, "utf8")
+          .split("\n")
+          .map((line, i) => ({
+            line,
+            at: `${path.relative(root, file)}:${i + 1}`,
+          }))
+          // Every line, so class strings that wrap onto a second line count too
+          .filter(({ line }) => unsupported.test(line))
+          .map(({ at, line }) => `${at} ${line.trim()}`)
+      );
     expect(offenders).toEqual([]);
   });
 });

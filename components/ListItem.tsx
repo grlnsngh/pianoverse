@@ -32,7 +32,7 @@ import RNAAnimated, {
   Easing,
 } from "react-native-reanimated";
 import { PianoItem } from "@/redux/pianos/types";
-import { PIANO_CATEGORY } from "../constants/Piano";
+import { PIANO_CATEGORY } from "@/constants/Piano";
 
 interface ListItemProps {
   item: PianoItem & { empty?: boolean };

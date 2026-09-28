@@ -13,14 +13,14 @@ jest.mock("expo-router", () => ({
   useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
   usePathname: jest.fn(() => "/detail/piano-1"),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
 }));
 
 import React from "react";
 import { router } from "expo-router";
 import DetailScreen from "@/app/detail/[id]";
-import { cancelRentalNotification } from "@/app/services/notifications";
+import { cancelRentalNotification } from "@/services/notifications";
 import icons from "@/constants/icons";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";

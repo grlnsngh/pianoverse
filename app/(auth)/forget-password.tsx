@@ -12,10 +12,10 @@ import {
 import React, { useState, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SECONDARY_COLOR, PRIMARY_COLOR } from "@/constants/colors";
-import Logo from "../components/Logo";
-import EnhancedFormField from "../components/EnhancedFormField";
+import Logo from "@/components/Logo";
+import EnhancedFormField from "@/components/EnhancedFormField";
 import { Link, router } from "expo-router";
-import CustomButton from "../components/CustomButton";
+import CustomButton from "@/components/CustomButton";
 import { sendPasswordRecovery } from "@/lib/appwrite";
 import { showToast } from "@/utils/toast";
 

@@ -4,7 +4,7 @@ jest.mock("@/lib/appwrite", () => ({
 jest.mock("@/context/GlobalProvider", () => ({
   useGlobalContext: () => ({ user: require("./helpers/fixtures").testUser }),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   scheduleAllRentalNotifications: jest.fn(() => Promise.resolve([])),
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
 }));
@@ -18,9 +18,9 @@ import { ActivityIndicator, TextInput } from "react-native";
 import { act } from "react-test-renderer";
 import { router, usePathname } from "expo-router";
 import Home from "@/app/(tabs)/home";
-import FilterButton from "@/app/components/FilterButton";
-import SearchInput from "@/app/components/SearchInput";
-import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/app/constants/Piano";
+import FilterButton from "@/components/FilterButton";
+import SearchInput from "@/components/SearchInput";
+import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/constants/Piano";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { searchPianoItems } from "@/utils/ObjectManipulation";

@@ -33,11 +33,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import { PIANO_CATEGORY } from "../constants/Piano";
-import CustomButton from "../components/CustomButton";
-import ExtendRentalSheet from "../components/ExtendRentalSheet";
-import MarkAsSoldSheet from "../components/MarkAsSoldSheet";
-import icons from "../../constants/icons";
+import { PIANO_CATEGORY } from "@/constants/Piano";
+import CustomButton from "@/components/CustomButton";
+import ExtendRentalSheet from "@/components/ExtendRentalSheet";
+import MarkAsSoldSheet from "@/components/MarkAsSoldSheet";
+import icons from "@/constants/icons";
 
 const RentableDetails = ({ piano }: { piano: PianoItem }) => {
   const [isExpanded, setIsExpanded] = useState(true);

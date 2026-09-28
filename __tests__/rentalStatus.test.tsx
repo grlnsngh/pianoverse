@@ -5,9 +5,9 @@ jest.mock("expo-router", () => ({
 
 import React from "react";
 import { addDays, addMonths, addYears } from "date-fns";
-import CardItem from "@/app/components/CardItem";
-import GridItem from "@/app/components/GridItem";
-import ListItem from "@/app/components/ListItem";
+import CardItem from "@/components/CardItem";
+import GridItem from "@/components/GridItem";
+import ListItem from "@/components/ListItem";
 import { icons } from "@/constants";
 import { PianoItem } from "@/redux/pianos/types";
 import {

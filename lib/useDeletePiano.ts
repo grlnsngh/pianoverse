@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { Alert, Platform } from "react-native";
 import { useDispatch } from "react-redux";
-import { cancelRentalNotification } from "@/app/services/notifications";
+import { cancelRentalNotification } from "@/services/notifications";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { removePianoItems } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";

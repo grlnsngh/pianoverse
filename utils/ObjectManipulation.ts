@@ -1,4 +1,4 @@
-import { categoryOptions } from "@/app/constants/Piano";
+import { categoryOptions } from "@/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate } from "./dates";
 

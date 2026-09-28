@@ -24,9 +24,9 @@ jest.mock("@/context/GlobalProvider", () => ({
 
 import React from "react";
 import { addDays, format } from "date-fns";
-import CardItem from "@/app/components/CardItem";
-import GridItem from "@/app/components/GridItem";
-import ListItem from "@/app/components/ListItem";
+import CardItem from "@/components/CardItem";
+import GridItem from "@/components/GridItem";
+import ListItem from "@/components/ListItem";
 import Profile from "@/app/(tabs)/profile";
 import DetailScreen from "@/app/detail/[id]";
 import EditScreen from "@/app/edit/[id]";

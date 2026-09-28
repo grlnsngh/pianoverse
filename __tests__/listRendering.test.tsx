@@ -5,7 +5,7 @@ jest.mock("@/lib/appwrite", () => ({
 jest.mock("@/context/GlobalProvider", () => ({
   useGlobalContext: () => ({ user: require("./helpers/fixtures").testUser }),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   scheduleAllRentalNotifications: jest.fn(() => Promise.resolve([])),
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
 }));
@@ -20,7 +20,7 @@ import { PaperProvider } from "react-native-paper";
 import * as Reanimated from "react-native-reanimated";
 import { act } from "react-test-renderer";
 import Home from "@/app/(tabs)/home";
-import CardItem from "@/app/components/CardItem";
+import CardItem from "@/components/CardItem";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { SET_FILTERED_PIANO_LIST_ITEMS } from "@/redux/pianos/types";
 import { getEntranceDelay } from "@/utils/animation";

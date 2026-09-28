@@ -15,13 +15,13 @@ import {
   View,
 } from "react-native";
 import { useDispatch } from "react-redux";
-import { PIANO_CATEGORY } from "./constants/Piano";
+import { PIANO_CATEGORY } from "@/constants/Piano";
 import {
   createEmptyPianoForm,
   parsePianoForm,
   toPianoEntryInput,
 } from "@/utils/pianoForm";
-import { scheduleRentalDueNotification } from "./services/notifications";
+import { scheduleRentalDueNotification } from "@/services/notifications";
 import { showToast } from "@/utils/toast";
 
 const Review = () => {

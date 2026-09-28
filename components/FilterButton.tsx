@@ -19,7 +19,7 @@ import {
 import { Dropdown } from "react-native-element-dropdown";
 import { Divider, Switch } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
-import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "../constants/Piano";
+import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/constants/Piano";
 import { countActiveFilters } from "@/utils/filters";
 
 const FilterButton = () => {

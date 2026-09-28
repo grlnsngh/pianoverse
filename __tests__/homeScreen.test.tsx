@@ -4,7 +4,7 @@ jest.mock("@/lib/appwrite", () => ({
 jest.mock("@/context/GlobalProvider", () => ({
   useGlobalContext: () => ({ user: require("./helpers/fixtures").testUser }),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   scheduleAllRentalNotifications: jest.fn(() => Promise.resolve([])),
 }));
 jest.mock("expo-router", () => ({
@@ -12,12 +12,12 @@ jest.mock("expo-router", () => ({
   usePathname: jest.fn(() => "/home"),
 }));
 // Render list rows as plain titles; the real cards are covered elsewhere.
-jest.mock("@/app/components/ListItem", () => {
+jest.mock("@/components/ListItem", () => {
   const React = require("react");
   const { Text } = require("react-native");
   return ({ item }: any) => React.createElement(Text, null, `row:${item.title}`);
 });
-jest.mock("@/app/components/CardItem", () => {
+jest.mock("@/components/CardItem", () => {
   const React = require("react");
   const { Text } = require("react-native");
   return ({ item }: any) => React.createElement(Text, null, `row:${item.title}`);
@@ -27,8 +27,8 @@ import React from "react";
 import { FlatList } from "react-native";
 import { act } from "react-test-renderer";
 import Home from "@/app/(tabs)/home";
-import { DEFAULT_FILTERS } from "@/app/constants/Piano";
-import { scheduleAllRentalNotifications } from "@/app/services/notifications";
+import { DEFAULT_FILTERS } from "@/constants/Piano";
+import { scheduleAllRentalNotifications } from "@/services/notifications";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters, setPianoListItems } from "@/redux/pianos/actions";
 import { makePiano } from "./helpers/fixtures";

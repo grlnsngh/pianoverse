@@ -17,10 +17,10 @@ import React, { useEffect, useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import CustomButton from "../components/CustomButton";
-import PianoFormFields from "../components/PianoFormFields";
-import PianoPhotoField from "../components/PianoPhotoField";
-import { scheduleRentalDueNotification } from "../services/notifications";
+import CustomButton from "@/components/CustomButton";
+import PianoFormFields from "@/components/PianoFormFields";
+import PianoPhotoField from "@/components/PianoPhotoField";
+import { scheduleRentalDueNotification } from "@/services/notifications";
 
 const EditScreen = () => {
   const { id } = useLocalSearchParams();

@@ -9,7 +9,7 @@ jest.mock("@/context/GlobalProvider", () => ({
     setIsLogged: jest.fn(),
   }),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   scheduleAllRentalNotifications: jest.fn(() => Promise.resolve([])),
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
 }));
@@ -22,7 +22,7 @@ import React from "react";
 import { addDays, subMonths } from "date-fns";
 import Home from "@/app/(tabs)/home";
 import Profile from "@/app/(tabs)/profile";
-import { DEFAULT_FILTERS } from "@/app/constants/Piano";
+import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";

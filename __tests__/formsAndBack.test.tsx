@@ -16,7 +16,7 @@ jest.mock("expo-router", () => ({
 jest.mock("@/context/GlobalProvider", () => ({
   useGlobalContext: () => ({ user: require("./helpers/fixtures").testUser }),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   scheduleAllRentalNotifications: jest.fn(() => Promise.resolve([])),
   scheduleRentalDueNotification: jest.fn(() => Promise.resolve([])),
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
@@ -372,7 +372,10 @@ describe("going back to the tabs", () => {
         if (entry.isDirectory()) return sourceFiles(full);
         return /\.tsx?$/.test(entry.name) ? [full] : [];
       });
-    const pushesToTabs = sourceFiles(appDir).filter((file) =>
+    const pushesToTabs = [
+      ...sourceFiles(appDir),
+      ...sourceFiles(path.join(__dirname, "..", "components")),
+    ].filter((file) =>
       /router\.(push|navigate)\(\s*["'`]\/(home|create|profile|\(tabs\))/.test(
         fs.readFileSync(file, "utf8")
       )

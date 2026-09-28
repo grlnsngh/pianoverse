@@ -11,10 +11,10 @@ import {
   PianoFormState,
 } from "@/utils/pianoForm";
 import { PhotoSource, pickPianoPhoto } from "@/utils/photo";
-import CustomButton from "../components/CustomButton";
-import PianoFormFields from "../components/PianoFormFields";
-import PianoPhotoField from "../components/PianoPhotoField";
-import { PIANO_CATEGORY } from "../constants/Piano";
+import CustomButton from "@/components/CustomButton";
+import PianoFormFields from "@/components/PianoFormFields";
+import PianoPhotoField from "@/components/PianoPhotoField";
+import { PIANO_CATEGORY } from "@/constants/Piano";
 
 const CATEGORY_STEP_NAMES: Record<string, string> = {
   [PIANO_CATEGORY.RENTABLE]: "Rental Details",

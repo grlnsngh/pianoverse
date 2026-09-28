@@ -37,7 +37,7 @@ import Review from "@/app/review";
 import {
   handleNotificationResponse,
   scheduleAllRentalNotifications,
-} from "@/app/services/notifications";
+} from "@/services/notifications";
 import * as globalContext from "@/context/GlobalProvider";
 import GlobalProvider, { useGlobalContext } from "@/context/GlobalProvider";
 import * as appwrite from "@/lib/appwrite";

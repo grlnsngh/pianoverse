@@ -18,7 +18,7 @@ import { PianoItem } from "@/redux/pianos/types";
 import { isRentalActive, parseStoredDate } from "@/utils/dates";
 import { clearFilters, countActiveFilters } from "@/utils/filters";
 import { isOverdue, isSold } from "@/utils/pianoStatus";
-import { SORT_BY_OPTIONS } from "../constants/Piano";
+import { SORT_BY_OPTIONS } from "@/constants/Piano";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
 import React, {
@@ -39,13 +39,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import CardItem from "../components/CardItem";
-import EmptyState from "../components/EmptyState";
-import FilterButton from "../components/FilterButton";
-import ListItem from "../components/ListItem";
-import SearchInput from "../components/SearchInput";
-import BulkOperationsBar from "../components/BulkOperationsBar";
-import { scheduleAllRentalNotifications } from "../services/notifications";
+import CardItem from "@/components/CardItem";
+import EmptyState from "@/components/EmptyState";
+import FilterButton from "@/components/FilterButton";
+import ListItem from "@/components/ListItem";
+import SearchInput from "@/components/SearchInput";
+import BulkOperationsBar from "@/components/BulkOperationsBar";
+import { scheduleAllRentalNotifications } from "@/services/notifications";
 
 // Sorts by a key worked out once per piano, instead of parsing dates again
 // on every comparison

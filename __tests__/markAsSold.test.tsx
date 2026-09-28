@@ -33,16 +33,16 @@ import { act, ReactTestRenderer } from "react-test-renderer";
 import { addDays } from "date-fns";
 import Home from "@/app/(tabs)/home";
 import Profile from "@/app/(tabs)/profile";
-import FilterButton from "@/app/components/FilterButton";
+import FilterButton from "@/components/FilterButton";
 import DetailScreen from "@/app/detail/[id]";
 import {
   scheduleAllRentalNotifications,
   scheduleRentalDueNotification,
-} from "@/app/services/notifications";
+} from "@/services/notifications";
 import * as appwrite from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
-import { DEFAULT_FILTERS } from "@/app/constants/Piano";
+import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { toStoredDate } from "@/utils/dates";
 import { getStatusLabel } from "@/utils/pianoStatus";
 import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";

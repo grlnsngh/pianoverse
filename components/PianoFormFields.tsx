@@ -8,7 +8,7 @@ import {
   categoryOptions,
   PIANO_CATEGORY,
   pianoCompaniesMakeList,
-} from "../constants/Piano";
+} from "@/constants/Piano";
 import CompanyAssociatedPicker from "./CompanyAssociatedPicker";
 import DateField from "./DateField";
 import FormField from "./FormField";

@@ -15,7 +15,7 @@ import {
   UPDATE_PIANO_ITEM,
   RESET_PIANO_STATE,
 } from "./types";
-import { DEFAULT_FILTERS } from "@/app/constants/Piano";
+import { DEFAULT_FILTERS } from "@/constants/Piano";
 
 // Define the state interface
 export interface PianoState {

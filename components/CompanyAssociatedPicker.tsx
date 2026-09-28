@@ -2,7 +2,7 @@ import { SECONDARY_COLOR } from "@/constants/colors";
 import React from "react";
 import { Text } from "react-native";
 import { SegmentedButtons } from "react-native-paper";
-import { COMPANY_ASSOCIATED } from "../constants/Piano";
+import { COMPANY_ASSOCIATED } from "@/constants/Piano";
 
 interface CompanyAssociatedPickerProps {
   value: string;

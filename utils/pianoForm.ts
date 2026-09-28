@@ -1,4 +1,4 @@
-import { PIANO_CATEGORY } from "@/app/constants/Piano";
+import { PIANO_CATEGORY } from "@/constants/Piano";
 import { LocalImageAsset, PianoEntryInput } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate, toStoredDate } from "@/utils/dates";

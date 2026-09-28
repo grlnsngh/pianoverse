@@ -6,15 +6,15 @@ jest.mock("expo-router", () => ({
   router: { push: jest.fn(), setParams: jest.fn() },
   usePathname: jest.fn(() => "/home"),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
 }));
 
 import React from "react";
-import CardItem from "@/app/components/CardItem";
-import GridItem from "@/app/components/GridItem";
-import ListItem from "@/app/components/ListItem";
-import { cancelRentalNotification } from "@/app/services/notifications";
+import CardItem from "@/components/CardItem";
+import GridItem from "@/components/GridItem";
+import ListItem from "@/components/ListItem";
+import { cancelRentalNotification } from "@/services/notifications";
 import icons from "@/constants/icons";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
