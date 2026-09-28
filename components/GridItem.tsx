@@ -36,8 +36,10 @@ import RNAAnimated, {
 import { PianoItem } from "@/redux/pianos/types";
 import { PIANO_CATEGORY } from "@/constants/Piano";
 
+type GridPiano = PianoItem & { empty?: boolean };
+
 interface GridItemProps {
-  item: (PianoItem & { empty?: boolean })[];
+  item: GridPiano[];
   visibleMenuId: string | null;
   openMenu: (id: string) => void;
   closeMenu: () => void;
@@ -49,6 +51,326 @@ interface GridItemProps {
 const { width } = Dimensions.get("window");
 const numColumns = 2;
 const itemWidth = (width - 48) / numColumns; // Account for padding and gaps
+
+interface GridItemCardProps {
+  item: GridPiano;
+  index: number;
+  menuVisible: boolean;
+  openMenu: (id: string) => void;
+  closeMenu: () => void;
+  onOpen: (item: PianoItem) => void;
+  onEdit: (item: PianoItem) => void;
+  onDeleteItem: (item: PianoItem) => void;
+  isBulkSelectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: (id: string) => void;
+}
+
+// Kept outside GridItem so a re-render (opening a menu, selecting) updates
+// the cards instead of mounting new ones and replaying their entrance.
+
+const GridItemCard: React.FC<GridItemCardProps> = React.memo(
+  ({
+    item,
+    index,
+    menuVisible,
+    openMenu,
+    closeMenu,
+    onOpen,
+    onEdit,
+    onDeleteItem,
+    isBulkSelectionMode = false,
+    isSelected = false,
+    onToggleSelection,
+  }) => {
+    // React Native Animated values for card expansion
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const elevationAnim = useRef(new Animated.Value(4)).current;
+
+    // Reanimated values for fade-in
+    const opacity = useSharedValue(0);
+    const translateY = useSharedValue(20);
+
+    // Trigger animation on mount with staggered delay
+    useEffect(() => {
+      const delay = getEntranceDelay(index);
+      opacity.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+        })
+      );
+      translateY.value = withDelay(
+        delay,
+        withTiming(0, {
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+        })
+      );
+    }, [index]);
+
+    // Animated styles
+    const animatedStyle = useAnimatedStyle(() => {
+      return {
+        opacity: opacity.value,
+        transform: [{ translateY: translateY.value }],
+      };
+    });
+
+    // Handle card press animations
+    const handlePressIn = () => {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 0.95,
+          useNativeDriver: true,
+          friction: 8,
+          tension: 100,
+        }),
+        Animated.timing(elevationAnim, {
+          toValue: 8,
+          duration: 150,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          friction: 8,
+          tension: 100,
+        }),
+        Animated.timing(elevationAnim, {
+          toValue: 4,
+          duration: 150,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    };
+
+    if (item.empty) {
+      return <View style={[styles.item, styles.itemInvisible]} />;
+    }
+
+    const remaining = getRemainingPeriod(item.rental_period_end);
+    const rentalState = getRentalState(item.rental_period_end);
+    const statusText = getRentalStatusText(rentalState, remaining, {
+      compact: true,
+    });
+
+    return (
+      <RNAAnimated.View style={[styles.gridItemContainer, animatedStyle]}>
+        <Surface
+          style={[styles.item, { elevation: elevationAnim }]}
+          className="bg-primary-200 rounded-2xl overflow-hidden"
+        >
+          {/* Image Section with Overlay */}
+          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={
+                isBulkSelectionMode
+                  ? () => onToggleSelection?.(item.$id)
+                  : () => onOpen(item)
+              }
+              onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
+              onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
+              style={styles.imageContainer}
+            >
+              <Image
+                source={{ uri: item.image_url }}
+                style={styles.image}
+                resizeMode="cover"
+                placeholder={images.empty}
+                placeholderContentFit="cover"
+              />
+
+              {/* Gradient Overlay */}
+              <View style={styles.imageOverlay} />
+
+              {/* Top Action Buttons */}
+              <View style={styles.topActions}>
+                {/* Selection Checkbox (only in bulk mode) */}
+                {isBulkSelectionMode && (
+                  <TouchableOpacity
+                    onPress={() => onToggleSelection?.(item.$id)}
+                    style={[
+                      styles.actionButton,
+                      {
+                        backgroundColor: isSelected
+                          ? SECONDARY_COLOR
+                          : "rgba(0, 0, 0, 0.6)",
+                      },
+                    ]}
+                    activeOpacity={0.7}
+                  >
+                    <View
+                      style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: 8,
+                        borderWidth: 2,
+                        borderColor: "white",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: isSelected ? "#161622" : "transparent",
+                      }}
+                    >
+                      {isSelected && (
+                        <Image
+                          source={icons.close}
+                          style={{
+                            width: 10,
+                            height: 10,
+                            tintColor: "white",
+                          }}
+                          resizeMode="contain"
+                        />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
+
+                {/* Menu Button (only when not in bulk mode) */}
+                {!isBulkSelectionMode && (
+                  <View style={styles.menuContainer}>
+                    <Menu
+                      style={styles.menu}
+                      visible={menuVisible}
+                      onDismiss={closeMenu}
+                      anchor={
+                        <TouchableOpacity
+                          onPress={() => openMenu(item.$id)}
+                          style={styles.actionButton}
+                          activeOpacity={0.7}
+                        >
+                          <Image
+                            source={icons.menu}
+                            style={[
+                              styles.actionIcon,
+                              { tintColor: "#CDCDE0" },
+                            ]}
+                            resizeMode="contain"
+                          />
+                        </TouchableOpacity>
+                      }
+                    >
+                      <Menu.Item
+                        onPress={() => onEdit(item)}
+                        title="Edit"
+                        leadingIcon={() => (
+                          <IconButton
+                            icon={icons.pencil}
+                            size={16}
+                            iconColor={SECONDARY_COLOR}
+                            style={styles.menuItemIcon}
+                          />
+                        )}
+                        titleStyle={{ color: "#CDCDE0" }}
+                      />
+                      <Menu.Item
+                        onPress={() => onDeleteItem(item)}
+                        title="Delete"
+                        leadingIcon={() => (
+                          <IconButton
+                            icon={icons.trash}
+                            size={16}
+                            iconColor="#ef4444"
+                            style={styles.menuItemIcon}
+                          />
+                        )}
+                        titleStyle={{ color: "#CDCDE0" }}
+                      />
+                    </Menu>
+                  </View>
+                )}
+              </View>
+
+              {/* Status Badge */}
+              {statusText && (
+                <View style={styles.statusBadge}>
+                  <View
+                    style={[
+                      styles.statusDot,
+                      {
+                        backgroundColor: getRentalStatusColor(
+                          rentalState,
+                          remaining
+                        ),
+                      },
+                    ]}
+                  />
+                  <Text style={styles.statusText}>{statusText}</Text>
+                </View>
+              )}
+
+              {/* Category Badge */}
+              <View style={styles.categoryBadge}>
+                <View
+                  style={[
+                    styles.categoryIconContainer,
+                    {
+                      backgroundColor:
+                        item.category === PIANO_CATEGORY.RENTABLE
+                          ? CATEGORY_COLORS.RENTABLE
+                          : item.category === PIANO_CATEGORY.EVENTS
+                          ? CATEGORY_COLORS.EVENTS
+                          : item.category === PIANO_CATEGORY.ON_SALE
+                          ? CATEGORY_COLORS.ON_SALE
+                          : item.category === PIANO_CATEGORY.WAREHOUSE
+                          ? CATEGORY_COLORS.WAREHOUSE
+                          : SECONDARY_COLOR,
+                    },
+                  ]}
+                >
+                  <Image
+                    source={getCategoryIcon(item.category)}
+                    style={styles.categoryIcon}
+                    tintColor={PRIMARY_COLOR}
+                    resizeMode="contain"
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* Content Section */}
+          <View style={styles.contentContainer}>
+            <Text
+              className="text-white font-psemibold text-sm mb-1"
+              numberOfLines={2}
+              style={styles.titleText}
+            >
+              {item.title}
+            </Text>
+
+            <Text
+              className="text-xs text-gray-100 font-pregular mb-1"
+              numberOfLines={1}
+              style={styles.categoryText}
+            >
+              {getStatusLabel(item)}
+            </Text>
+
+            {item.company_associated && (
+              <Text
+                className="text-xs text-gray-100 font-pregular"
+                numberOfLines={1}
+                style={styles.companyText}
+              >
+                {item.company_associated}
+              </Text>
+            )}
+          </View>
+        </Surface>
+      </RNAAnimated.View>
+    );
+  }
+);
+GridItemCard.displayName = "GridItemCard";
 
 const GridItem: React.FC<GridItemProps> = React.memo(
   ({
@@ -64,354 +386,42 @@ const GridItem: React.FC<GridItemProps> = React.memo(
     const pathname = usePathname();
     const confirmDelete = useDeletePiano();
 
-    const handleOnClickItem = (item: PianoItem & { empty?: boolean }) => {
-      if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
-      else router.push(`/detail/${item.$id}`);
-    };
+    const handleOnClickItem = useCallback(
+      (item: PianoItem) => {
+        if (pathname.startsWith("/detail")) router.setParams({ id: item.$id });
+        else router.push(`/detail/${item.$id}`);
+      },
+      [pathname]
+    );
 
-    const handleOnClickEditMenu = (item: PianoItem & { empty?: boolean }) => {
-      if (pathname.startsWith("/edit")) router.setParams({ id: item.$id });
-      else router.push(`/edit/${item.$id}`);
-      closeMenu();
-    };
+    const handleOnClickEditMenu = useCallback(
+      (item: PianoItem) => {
+        if (pathname.startsWith("/edit")) router.setParams({ id: item.$id });
+        else router.push(`/edit/${item.$id}`);
+        closeMenu();
+      },
+      [pathname, closeMenu]
+    );
 
-    const handleOnClickDeleteMenu = (item: PianoItem & { empty?: boolean }) => {
-      closeMenu();
-      confirmDelete(item, onDelete);
-    };
-
-    interface GridItemCardProps {
-      item: PianoItem & { empty?: boolean };
-      index: number;
-      visibleMenuId: string | null;
-      openMenu: (id: string) => void;
-      closeMenu: () => void;
-      onDelete?: () => void;
-      handleOnClickItem: (item: PianoItem) => void;
-      isBulkSelectionMode?: boolean;
-      isSelected?: boolean;
-      onToggleSelection?: (id: string) => void;
-    }
-
-    const GridItemCard: React.FC<GridItemCardProps> = React.memo(
-      ({
-        item,
-        index,
-        visibleMenuId,
-        openMenu,
-        closeMenu,
-        onDelete,
-        handleOnClickItem,
-        isBulkSelectionMode = false,
-        isSelected = false,
-        onToggleSelection,
-      }) => {
-        // React Native Animated values for card expansion
-        const scaleAnim = useRef(new Animated.Value(1)).current;
-        const elevationAnim = useRef(new Animated.Value(4)).current;
-
-        // Reanimated values for fade-in
-        const opacity = useSharedValue(0);
-        const translateY = useSharedValue(20);
-
-        // Trigger animation on mount with staggered delay
-        useEffect(() => {
-          const delay = getEntranceDelay(index);
-          opacity.value = withDelay(
-            delay,
-            withTiming(1, {
-              duration: 600,
-              easing: Easing.out(Easing.cubic),
-            })
-          );
-          translateY.value = withDelay(
-            delay,
-            withTiming(0, {
-              duration: 600,
-              easing: Easing.out(Easing.cubic),
-            })
-          );
-        }, [index]);
-
-        // Animated styles
-        const animatedStyle = useAnimatedStyle(() => {
-          return {
-            opacity: opacity.value,
-            transform: [{ translateY: translateY.value }],
-          };
-        });
-
-        // Handle card press animations
-        const handlePressIn = () => {
-          Animated.parallel([
-            Animated.spring(scaleAnim, {
-              toValue: 0.95,
-              useNativeDriver: true,
-              friction: 8,
-              tension: 100,
-            }),
-            Animated.timing(elevationAnim, {
-              toValue: 8,
-              duration: 150,
-              useNativeDriver: false,
-            }),
-          ]).start();
-        };
-
-        const handlePressOut = () => {
-          Animated.parallel([
-            Animated.spring(scaleAnim, {
-              toValue: 1,
-              useNativeDriver: true,
-              friction: 8,
-              tension: 100,
-            }),
-            Animated.timing(elevationAnim, {
-              toValue: 4,
-              duration: 150,
-              useNativeDriver: false,
-            }),
-          ]).start();
-        };
-
-        if (item.empty) {
-          return <View style={[styles.item, styles.itemInvisible]} />;
-        }
-
-        const remaining = getRemainingPeriod(item.rental_period_end);
-        const rentalState = getRentalState(item.rental_period_end);
-        const statusText = getRentalStatusText(rentalState, remaining, {
-          compact: true,
-        });
-
-        return (
-          <RNAAnimated.View style={[styles.gridItemContainer, animatedStyle]}>
-            <Surface
-              style={[styles.item, { elevation: elevationAnim }]}
-              className="bg-primary-200 rounded-2xl overflow-hidden"
-            >
-              {/* Image Section with Overlay */}
-              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={
-                    isBulkSelectionMode
-                      ? () => onToggleSelection?.(item.$id)
-                      : () => handleOnClickItem(item)
-                  }
-                  onPressIn={isBulkSelectionMode ? undefined : handlePressIn}
-                  onPressOut={isBulkSelectionMode ? undefined : handlePressOut}
-                  style={styles.imageContainer}
-                >
-                  <Image
-                    source={{ uri: item.image_url }}
-                    style={styles.image}
-                    resizeMode="cover"
-                    placeholder={images.empty}
-                    placeholderContentFit="cover"
-                  />
-
-                  {/* Gradient Overlay */}
-                  <View style={styles.imageOverlay} />
-
-                  {/* Top Action Buttons */}
-                  <View style={styles.topActions}>
-                    {/* Selection Checkbox (only in bulk mode) */}
-                    {isBulkSelectionMode && (
-                      <TouchableOpacity
-                        onPress={() => onToggleSelection?.(item.$id)}
-                        style={[
-                          styles.actionButton,
-                          {
-                            backgroundColor: isSelected
-                              ? SECONDARY_COLOR
-                              : "rgba(0, 0, 0, 0.6)",
-                          },
-                        ]}
-                        activeOpacity={0.7}
-                      >
-                        <View
-                          style={{
-                            width: 16,
-                            height: 16,
-                            borderRadius: 8,
-                            borderWidth: 2,
-                            borderColor: "white",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: isSelected
-                              ? "#161622"
-                              : "transparent",
-                          }}
-                        >
-                          {isSelected && (
-                            <Image
-                              source={icons.close}
-                              style={{
-                                width: 10,
-                                height: 10,
-                                tintColor: "white",
-                              }}
-                              resizeMode="contain"
-                            />
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                    )}
-
-                    {/* Menu Button (only when not in bulk mode) */}
-                    {!isBulkSelectionMode && (
-                      <View style={styles.menuContainer}>
-                        <Menu
-                          style={styles.menu}
-                          visible={visibleMenuId === item.$id}
-                          onDismiss={closeMenu}
-                          anchor={
-                            <TouchableOpacity
-                              onPress={() => openMenu(item.$id)}
-                              style={styles.actionButton}
-                              activeOpacity={0.7}
-                            >
-                              <Image
-                                source={icons.menu}
-                                style={[
-                                  styles.actionIcon,
-                                  { tintColor: "#CDCDE0" },
-                                ]}
-                                resizeMode="contain"
-                              />
-                            </TouchableOpacity>
-                          }
-                        >
-                          <Menu.Item
-                            onPress={() => handleOnClickEditMenu(item)}
-                            title="Edit"
-                            leadingIcon={() => (
-                              <IconButton
-                                icon={icons.pencil}
-                                size={16}
-                                iconColor={SECONDARY_COLOR}
-                                style={styles.menuItemIcon}
-                              />
-                            )}
-                            titleStyle={{ color: "#CDCDE0" }}
-                          />
-                          <Menu.Item
-                            onPress={() => handleOnClickDeleteMenu(item)}
-                            title="Delete"
-                            leadingIcon={() => (
-                              <IconButton
-                                icon={icons.trash}
-                                size={16}
-                                iconColor="#ef4444"
-                                style={styles.menuItemIcon}
-                              />
-                            )}
-                            titleStyle={{ color: "#CDCDE0" }}
-                          />
-                        </Menu>
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Status Badge */}
-                  {statusText && (
-                    <View style={styles.statusBadge}>
-                      <View
-                        style={[
-                          styles.statusDot,
-                          {
-                            backgroundColor: getRentalStatusColor(
-                              rentalState,
-                              remaining
-                            ),
-                          },
-                        ]}
-                      />
-                      <Text style={styles.statusText}>{statusText}</Text>
-                    </View>
-                  )}
-
-                  {/* Category Badge */}
-                  <View style={styles.categoryBadge}>
-                    <View
-                      style={[
-                        styles.categoryIconContainer,
-                        {
-                          backgroundColor:
-                            item.category === PIANO_CATEGORY.RENTABLE
-                              ? CATEGORY_COLORS.RENTABLE
-                              : item.category === PIANO_CATEGORY.EVENTS
-                              ? CATEGORY_COLORS.EVENTS
-                              : item.category === PIANO_CATEGORY.ON_SALE
-                              ? CATEGORY_COLORS.ON_SALE
-                              : item.category === PIANO_CATEGORY.WAREHOUSE
-                              ? CATEGORY_COLORS.WAREHOUSE
-                              : SECONDARY_COLOR,
-                        },
-                      ]}
-                    >
-                      <Image
-                        source={getCategoryIcon(item.category)}
-                        style={styles.categoryIcon}
-                        tintColor={PRIMARY_COLOR}
-                        resizeMode="contain"
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </Animated.View>
-
-              {/* Content Section */}
-              <View style={styles.contentContainer}>
-                <Text
-                  className="text-white font-psemibold text-sm mb-1"
-                  numberOfLines={2}
-                  style={styles.titleText}
-                >
-                  {item.title}
-                </Text>
-
-                <Text
-                  className="text-xs text-gray-100 font-pregular mb-1"
-                  numberOfLines={1}
-                  style={styles.categoryText}
-                >
-                  {getStatusLabel(item)}
-                </Text>
-
-                {item.company_associated && (
-                  <Text
-                    className="text-xs text-gray-100 font-pregular"
-                    numberOfLines={1}
-                    style={styles.companyText}
-                  >
-                    {item.company_associated}
-                  </Text>
-                )}
-              </View>
-            </Surface>
-          </RNAAnimated.View>
-        );
-      }
+    const handleOnClickDeleteMenu = useCallback(
+      (item: PianoItem) => {
+        closeMenu();
+        confirmDelete(item, onDelete);
+      },
+      [closeMenu, confirmDelete, onDelete]
     );
 
     const renderItem = useCallback(
-      ({
-        item,
-        index,
-      }: {
-        item: PianoItem & { empty?: boolean };
-        index: number;
-      }) => (
+      ({ item, index }: { item: GridPiano; index: number }) => (
         <GridItemCard
           item={item}
           index={index}
-          visibleMenuId={visibleMenuId}
+          menuVisible={visibleMenuId === item.$id}
           openMenu={openMenu}
           closeMenu={closeMenu}
-          onDelete={onDelete}
-          handleOnClickItem={handleOnClickItem}
+          onOpen={handleOnClickItem}
+          onEdit={handleOnClickEditMenu}
+          onDeleteItem={handleOnClickDeleteMenu}
           isBulkSelectionMode={isBulkSelectionMode}
           isSelected={selectedItems.includes(item.$id)}
           onToggleSelection={onToggleSelection}
@@ -421,38 +431,36 @@ const GridItem: React.FC<GridItemProps> = React.memo(
         visibleMenuId,
         openMenu,
         closeMenu,
-        onDelete,
         handleOnClickItem,
+        handleOnClickEditMenu,
+        handleOnClickDeleteMenu,
         isBulkSelectionMode,
         selectedItems,
         onToggleSelection,
       ]
     );
 
-    const formatData = useCallback(
-      (data: (PianoItem & { empty?: boolean })[], numColumns: number) => {
-        const newData = [...data]; // Create a copy to avoid mutating the original
-        const numberOfFullRows = Math.floor(newData.length / numColumns);
-        let numberOfElementsLastRow =
-          newData.length - numberOfFullRows * numColumns;
-        while (
-          numberOfElementsLastRow !== numColumns &&
-          numberOfElementsLastRow !== 0
-        ) {
-          newData.push({
-            title: `blank-${numberOfElementsLastRow}`,
-            empty: true,
-          } as PianoItem & { empty?: boolean });
-          numberOfElementsLastRow++;
-        }
-        return newData;
-      },
-      []
-    );
+    const formatData = useCallback((data: GridPiano[], numColumns: number) => {
+      const newData = [...data]; // Create a copy to avoid mutating the original
+      const numberOfFullRows = Math.floor(newData.length / numColumns);
+      let numberOfElementsLastRow =
+        newData.length - numberOfFullRows * numColumns;
+      while (
+        numberOfElementsLastRow !== numColumns &&
+        numberOfElementsLastRow !== 0
+      ) {
+        newData.push({
+          title: `blank-${numberOfElementsLastRow}`,
+          empty: true,
+        } as GridPiano);
+        numberOfElementsLastRow++;
+      }
+      return newData;
+    }, []);
 
     const formattedData = React.useMemo(
       () => formatData(item, numColumns),
-      [item, numColumns, formatData]
+      [item, formatData]
     );
 
     return (
@@ -470,7 +478,7 @@ const GridItem: React.FC<GridItemProps> = React.memo(
           maxToRenderPerBatch={10}
           windowSize={10}
           removeClippedSubviews={true}
-          renderItem={({ item, index }) => renderItem({ item, index })}
+          renderItem={renderItem}
           keyExtractor={(item) => item.$id}
         />
       </View>
@@ -492,6 +500,7 @@ const GridItem: React.FC<GridItemProps> = React.memo(
     return true;
   }
 );
+GridItem.displayName = "GridItem";
 
 export default GridItem;
 
