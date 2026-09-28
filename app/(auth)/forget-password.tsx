@@ -6,14 +6,11 @@ import {
   Animated,
   Dimensions,
   StyleSheet,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image } from "expo-image";
-import { icons, images } from "@/constants";
 import { SECONDARY_COLOR, PRIMARY_COLOR } from "@/constants/colors";
 import Logo from "../components/Logo";
 import EnhancedFormField from "../components/EnhancedFormField";

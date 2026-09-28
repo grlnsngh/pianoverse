@@ -13,18 +13,15 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   Alert,
   Modal,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
   ScrollView,
   Animated,
   Easing,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import CustomButton from "../components/CustomButton";
 import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
 import { CATEGORY_COLORS } from "../../constants/colors";
 import { exportPianosToCSV } from "@/utils/csvExport";
@@ -101,13 +98,6 @@ const Profile = () => {
   };
 
   // Calculate additional stats
-  const calculateTotalValue = () => {
-    return items.reduce((total, item) => {
-      const price = item.event_purchase_price || item.on_sale_price || 0;
-      return total + price;
-    }, 0);
-  };
-
   const calculateActiveRentals = () => {
     return items.filter(isCurrentlyRented).length;
   };
@@ -169,7 +159,6 @@ const Profile = () => {
     },
   ].filter((item) => item.count > 0); // Only show categories with items
 
-  const totalValue = calculateTotalValue();
   const activeRentals = calculateActiveRentals();
   const activeRent = rentFromActiveRentals(items);
   const salesThisMonth = salesInMonth(items);

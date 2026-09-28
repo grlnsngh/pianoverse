@@ -5,7 +5,7 @@ import { RootState } from "@/redux/store";
 import {
   formatDate,
   formatDateString,
-  printCategoryLabel,
+  getCategoryLabel,
 } from "@/utils/ObjectManipulation";
 import {
   getRemainingPeriod,
@@ -31,7 +31,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { PIANO_CATEGORY } from "../constants/Piano";
 import CustomButton from "../components/CustomButton";
 import ExtendRentalSheet from "../components/ExtendRentalSheet";
@@ -589,7 +589,6 @@ const SaleDetails = ({
 const DetailScreen = () => {
   const { id } = useLocalSearchParams();
   const pianosList = useSelector((state: RootState) => state.pianos.items);
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
@@ -734,7 +733,7 @@ const DetailScreen = () => {
               className={`absolute top-4 right-4 ${getCategoryColor()} rounded-full px-4 py-2 shadow-lg`}
             >
               <Text className="text-white font-pbold text-sm">
-                {printCategoryLabel(category)}
+                {getCategoryLabel(category)}
               </Text>
             </View>
             {sold && (

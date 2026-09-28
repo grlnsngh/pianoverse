@@ -529,59 +529,6 @@ export async function deleteMultiplePianoEntries(
 }
 
 /**
- * Updates multiple piano entries in the database.
- *
- * @param {Array<{id: string, data: Partial<PianoItemFormStateType>}>} updates - Array of update objects with id and data.
- * @returns {Promise<void>} - Resolves when all updates are completed.
- * @throws {Error} - Throws an error if any update fails.
- */
-export async function updateMultiplePianoEntries(
-  updates: Array<{ id: string; data: Partial<PianoItemFormStateType> }>
-): Promise<void> {
-  try {
-    const updatePromises = updates.map(async ({ id, data }) => {
-      try {
-        let imageUrl = data?.image_url || "";
-
-        // Check if image_url is a local file path
-        if (imageUrl.startsWith("file://")) {
-          const uploadedUrl = await uploadFile({
-            ...data,
-            image_url: imageUrl,
-          });
-          imageUrl = uploadedUrl ? String(uploadedUrl) : imageUrl;
-        }
-
-        await databases.updateDocument(
-          appwriteConfig.databaseId,
-          appwriteConfig.pianoCollectionId,
-          id,
-          { ...data, image_url: imageUrl }
-        );
-
-        return { success: true, id };
-      } catch (error) {
-        console.error(`Failed to update item ${id}:`, error);
-        return { success: false, id, error };
-      }
-    });
-
-    const results = await Promise.all(updatePromises);
-    const failedUpdates = results.filter((result) => !result.success);
-
-    if (failedUpdates.length > 0) {
-      throw new Error(
-        `Failed to update ${failedUpdates.length} out of ${updates.length} items`
-      );
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Error in bulk update:", errorMessage);
-    throw new Error(`Bulk update failed: ${errorMessage}`);
-  }
-}
-
-/**
  * Deletes a piano entry from the database and its associated file from the storage.
  *
  * @param {object} item - The piano entry object to be deleted.

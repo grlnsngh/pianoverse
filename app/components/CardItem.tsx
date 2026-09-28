@@ -219,21 +219,6 @@ const CardItem: React.FC<CardItemProps> = React.memo(
       confirmDelete(item, onDelete);
     }, [item, onDelete, closeMenu, confirmDelete]);
 
-    const getCategoryGradient = useCallback((category: string) => {
-      switch (category) {
-        case PIANO_CATEGORY.RENTABLE:
-          return ["#efeaab", "#d4c96a"];
-        case PIANO_CATEGORY.EVENTS:
-          return ["#abd8ef", "#7bb8d8"];
-        case PIANO_CATEGORY.ON_SALE:
-          return ["#eebec0", "#d89fa1"];
-        case PIANO_CATEGORY.WAREHOUSE:
-          return ["#c0eebe", "#9bd49a"];
-        default:
-          return [SECONDARY_COLOR, "#e68a00"];
-      }
-    }, []);
-
     if (item.empty) {
       return <View style={styles.itemInvisible} />;
     }

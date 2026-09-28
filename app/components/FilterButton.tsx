@@ -1,9 +1,5 @@
 import { icons } from "@/constants";
-import {
-  PRIMARY_COLOR,
-  SECONDARY_COLOR,
-  CATEGORY_COLORS,
-} from "@/constants/colors";
+import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { FiltersType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
@@ -167,21 +163,6 @@ const FilterButton = () => {
         filterForm.category.replace(/\s+/g, "_").toLowerCase() ===
           formattedLabel) ||
       (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label === "Rentable");
-
-    const getCategoryColor = (label: string) => {
-      switch (label) {
-        case "Rentable":
-          return CATEGORY_COLORS.RENTABLE;
-        case "Events":
-          return CATEGORY_COLORS.EVENTS;
-        case "On Sale":
-          return CATEGORY_COLORS.ON_SALE;
-        case "Warehouse":
-          return CATEGORY_COLORS.WAREHOUSE;
-        default:
-          return PRIMARY_COLOR;
-      }
-    };
 
     return (
       <TouchableOpacity

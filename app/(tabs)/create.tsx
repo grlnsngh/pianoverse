@@ -1,5 +1,4 @@
 import { icons } from "@/constants";
-import { useGlobalContext } from "@/context/GlobalProvider";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { Image } from "expo-image";
@@ -93,7 +92,6 @@ const createEmptyForm = (): FormState => ({
 });
 
 const Create = () => {
-  const { user } = useGlobalContext();
   const params = useLocalSearchParams();
   const [imageError, setImageError] = useState(false);
   const [form, setForm] = useState<FormState>(() => {

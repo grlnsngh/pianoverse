@@ -10,7 +10,6 @@ import {
   setPianoListItems,
   setBulkSelectionMode,
   toggleItemSelection,
-  selectAllItems,
   clearSelectedItems,
   setPianoFilters,
 } from "@/redux/pianos/actions";
@@ -40,7 +39,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { useFocusEffect } from "@react-navigation/native";
 import CardItem from "../components/CardItem";
 import EmptyState from "../components/EmptyState";
 import FilterButton from "../components/FilterButton";
@@ -48,9 +46,6 @@ import ListItem from "../components/ListItem";
 import SearchInput from "../components/SearchInput";
 import BulkOperationsBar from "../components/BulkOperationsBar";
 import { scheduleAllRentalNotifications } from "../services/notifications";
-import NotificationTest from "../components/NotificationTest";
-import { usePathname } from "expo-router";
-import { router } from "expo-router";
 
 // Sorts by a key worked out once per piano, instead of parsing dates again
 // on every comparison
@@ -101,25 +96,13 @@ const Home = () => {
   const [savedAt, setSavedAt] = useState<string | null>(null);
   // Once the pianos have loaded from the server, the saved copy follows them
   const hasLoadedRef = useRef(false);
-  const [showNotificationTest, setShowNotificationTest] = useState(false);
   const [layoutKey, setLayoutKey] = useState<string>("card");
-  const [layoutCounter, setLayoutCounter] = useState<number>(0);
 
   const onRefresh = async () => {
     setRefreshing(true);
     await refetch();
     setRefreshing(false);
   };
-
-  // Refetch data when screen comes into focus (e.g., after publishing)
-  // Removed automatic refetch to prevent duplicate fetches when navigating from profile
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     refetch();
-  //     // Note: Notification scheduling is handled in the main useEffect below
-  //     // to prevent duplicate scheduling and infinite console logs
-  //   }, [])
-  // );
 
   // Android's back button leaves selection mode before it leaves the app
   useEffect(() => {
@@ -384,7 +367,6 @@ const Home = () => {
         ? "list"
         : "card";
     setLayoutKey(newKey);
-    setLayoutCounter((prev) => prev + 1);
   }, [layoutView]);
 
   const [visibleMenuId, setVisibleMenuId] = useState<string | null>(null);
@@ -393,7 +375,6 @@ const Home = () => {
     []
   );
   const closeMenu = useCallback(() => setVisibleMenuId(null), []);
-  const pathname = usePathname();
 
   // Improved sorting function that handles numbers more intuitively
   const smartSortTitles = useCallback(
@@ -434,70 +415,6 @@ const Home = () => {
     },
     []
   );
-
-  const testSorting = useCallback(() => {
-    // Simple test data for demonstration
-    const testTitles = ["10", "6", "ABC", "2nd Piano", "Apple Piano"];
-
-    console.log("🧪 Current Test Data:", testTitles);
-
-    console.log("\n🔤 Testing A-Z sorting (localeCompare):");
-    const sortedAZ = [...testTitles].sort((a, b) => a.localeCompare(b));
-    console.log("A-Z result:", sortedAZ);
-
-    console.log("\n🔤 Testing Z-A sorting (localeCompare):");
-    const sortedZA = [...testTitles].sort((a, b) => b.localeCompare(a));
-    console.log("Z-A result:", sortedZA);
-
-    // Test numeric sorting
-    console.log("\n🔢 Testing Numeric-Aware A-Z sorting:");
-    const sortedNumericAZ = [...testTitles].sort((a, b) => {
-      const numA = parseFloat(a);
-      const numB = parseFloat(b);
-
-      // If both start with numbers, sort numerically
-      if (!isNaN(numA) && !isNaN(numB)) {
-        return numA - numB;
-      }
-
-      // If one starts with number and other doesn't, numbers first
-      if (!isNaN(numA) && isNaN(numB)) return -1;
-      if (isNaN(numA) && !isNaN(numB)) return 1;
-
-      // Both are text, use localeCompare
-      return a.localeCompare(b);
-    });
-    console.log("Numeric-aware A-Z result:", sortedNumericAZ);
-
-    console.log("\n🎯 Testing IMPROVED Smart A-Z sorting:");
-    const sortedSmartAZ = [...testTitles].sort((a, b) => {
-      // Extract leading numbers
-      const numMatchA = a.match(/^(\d+)/);
-      const numMatchB = b.match(/^(\d+)/);
-
-      const numA = numMatchA ? parseFloat(numMatchA[1]) : null;
-      const numB = numMatchB ? parseFloat(numMatchB[1]) : null;
-
-      // If both have leading numbers, sort numerically
-      if (numA !== null && numB !== null) {
-        const numCompare = numA - numB;
-        if (numCompare !== 0) return numCompare;
-
-        // If numbers are equal, compare the rest of the string
-        const restA = a.replace(/^(\d+)/, "");
-        const restB = b.replace(/^(\d+)/, "");
-        return restA.localeCompare(restB);
-      }
-
-      // If only one has leading number, numbers come first
-      if (numA !== null && numB === null) return -1;
-      if (numA === null && numB !== null) return 1;
-
-      // Both are text, use localeCompare
-      return a.localeCompare(b);
-    });
-    console.log("Smart A-Z result:", sortedSmartAZ);
-  }, []);
 
   const renderItem = useCallback(
     ({

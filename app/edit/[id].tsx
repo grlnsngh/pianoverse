@@ -158,29 +158,7 @@ const EditScreen = () => {
     );
   }
 
-  const {
-    title,
-    image_url,
-    category,
-    make,
-    description,
-    company_associated,
-    rental_customer_name,
-    rental_customer_address,
-    rental_customer_mobile,
-    rental_period_start,
-    rental_period_end,
-    rental_price,
-    warehouse_since_date,
-    event_purchase_price,
-    event_purchase_from,
-    event_model_number,
-    event_b_number,
-    on_sale_purchase_from,
-    on_sale_import_date,
-    on_sale_price,
-    date_of_purchase,
-  } = filteredPiano;
+  const { image_url } = filteredPiano;
 
   const onDateOfPurchaseChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || form.dateOfPurchase;
@@ -436,6 +414,7 @@ const EditScreen = () => {
                         className="w-full rounded-2xl"
                         resizeMode="cover"
                         style={{ height: 180 }}
+                        onError={() => setExistingImageError(true)}
                       />
                     )}
                     <TouchableOpacity

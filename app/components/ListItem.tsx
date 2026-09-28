@@ -10,13 +10,7 @@ import { getEntranceDelay } from "@/utils/animation";
 import { getRemainingPeriod, getRentalState } from "@/utils/dates";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -65,7 +59,6 @@ const ListItem: React.FC<ListItemProps> = React.memo(
     const {
       title = "",
       image_url = "",
-      users = {},
       company_associated = "",
       category = "",
       rental_period_end,
