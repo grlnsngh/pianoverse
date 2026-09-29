@@ -1,7 +1,7 @@
 jest.mock("@/lib/appwrite", () => ({
   getCurrentUser: jest.fn(),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   requestNotificationPermissions: jest.fn(() => Promise.resolve(false)),
   handleNotificationResponse: jest.fn(),
 }));

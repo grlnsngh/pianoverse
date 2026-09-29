@@ -5,7 +5,7 @@ jest.mock("@/lib/appwrite", () => ({
 jest.mock("@/context/GlobalProvider", () => ({
   useGlobalContext: () => ({ user: require("./helpers/fixtures").testUser }),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   scheduleAllRentalNotifications: jest.fn(() => Promise.resolve([])),
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
 }));
@@ -20,7 +20,8 @@ import { PaperProvider } from "react-native-paper";
 import * as Reanimated from "react-native-reanimated";
 import { act } from "react-test-renderer";
 import Home from "@/app/(tabs)/home";
-import CardItem from "@/app/components/CardItem";
+import CardItem from "@/components/CardItem";
+import GridItem from "@/components/GridItem";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { SET_FILTERED_PIANO_LIST_ITEMS } from "@/redux/pianos/types";
 import { getEntranceDelay } from "@/utils/animation";
@@ -67,6 +68,35 @@ describe("entrance animation", () => {
 
     expect(withDelay).toHaveBeenCalled();
     withDelay.mock.calls.forEach(([delay]) => expect(delay).toBe(0));
+  });
+
+  it("doesn't replay on every search card when a menu opens", () => {
+    const withDelay = jest.spyOn(Reanimated, "withDelay");
+    let openMenu!: (id: string) => void;
+    const SearchGrid = () => {
+      const [visibleMenuId, setVisibleMenuId] = React.useState<string | null>(
+        null
+      );
+      openMenu = setVisibleMenuId;
+      return (
+        <GridItem
+          item={pianos.slice(0, 2)}
+          visibleMenuId={visibleMenuId}
+          openMenu={setVisibleMenuId}
+          closeMenu={() => setVisibleMenuId(null)}
+        />
+      );
+    };
+    renderWithStore(
+      <SearchGrid />,
+      createTestStore({ user: testUser, items: pianos })
+    );
+    const entrances = withDelay.mock.calls.length;
+    expect(entrances).toBeGreaterThan(0);
+
+    act(() => openMenu("piano-0"));
+
+    expect(withDelay).toHaveBeenCalledTimes(entrances);
   });
 });
 

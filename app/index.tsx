@@ -14,8 +14,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useEffect, useRef } from "react";
-import CustomButton from "./components/CustomButton";
-import Logo from "./components/Logo";
+import CustomButton from "@/components/CustomButton";
+import Logo from "@/components/Logo";
 
 const { width, height } = Dimensions.get("window");
 

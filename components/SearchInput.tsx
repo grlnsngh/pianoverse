@@ -67,5 +67,6 @@ const SearchInput: React.FC<SearchInputProps> = React.memo(
     );
   }
 );
+SearchInput.displayName = "SearchInput";
 
 export default SearchInput;

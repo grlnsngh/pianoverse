@@ -5,12 +5,12 @@ jest.mock("expo-router", () => ({
   usePathname: jest.fn(() => "/search/Yamaha"),
 }));
 // Render results as plain titles; the real cards are covered elsewhere.
-jest.mock("@/app/components/ListItem", () => {
+jest.mock("@/components/ListItem", () => {
   const React = require("react");
   const { Text } = require("react-native");
   return ({ item }: any) => React.createElement(Text, null, item.title);
 });
-jest.mock("@/app/components/CardItem", () => {
+jest.mock("@/components/CardItem", () => {
   const React = require("react");
   const { Text } = require("react-native");
   return ({ item }: any) => React.createElement(Text, null, item.title);

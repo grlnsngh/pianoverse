@@ -1,4 +1,4 @@
-import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/app/constants/Piano";
+import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/constants/Piano";
 import { FiltersType } from "@/redux/pianos/types";
 
 /**

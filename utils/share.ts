@@ -1,4 +1,4 @@
-import { PIANO_CATEGORY } from "@/app/constants/Piano";
+import { PIANO_CATEGORY } from "@/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
 import { formatRupees } from "@/utils/money";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";

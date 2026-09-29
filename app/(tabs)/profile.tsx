@@ -4,7 +4,7 @@ import { signOut } from "@/lib/appwrite";
 import { clearPianoCache } from "@/lib/pianoCache";
 import { setActiveTab } from "@/redux/navigation/actions";
 import { resetPianoState, setPianoFilters } from "@/redux/pianos/actions";
-import { scheduleAllRentalNotifications } from "../services/notifications";
+import { scheduleAllRentalNotifications } from "@/services/notifications";
 import { FiltersType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
@@ -13,20 +13,17 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   Alert,
   Modal,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
   ScrollView,
   Animated,
   Easing,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import CustomButton from "../components/CustomButton";
-import { PIANO_CATEGORY, DEFAULT_FILTERS } from "../constants/Piano";
-import { CATEGORY_COLORS } from "../../constants/colors";
+import { PIANO_CATEGORY } from "@/constants/Piano";
+import { CATEGORY_COLORS } from "@/constants/colors";
 import { exportPianosToCSV } from "@/utils/csvExport";
 import { formatRupees } from "@/utils/money";
 import { isCurrentlyRented, isOverdue, isSold } from "@/utils/pianoStatus";
@@ -101,13 +98,6 @@ const Profile = () => {
   };
 
   // Calculate additional stats
-  const calculateTotalValue = () => {
-    return items.reduce((total, item) => {
-      const price = item.event_purchase_price || item.on_sale_price || 0;
-      return total + price;
-    }, 0);
-  };
-
   const calculateActiveRentals = () => {
     return items.filter(isCurrentlyRented).length;
   };
@@ -169,18 +159,12 @@ const Profile = () => {
     },
   ].filter((item) => item.count > 0); // Only show categories with items
 
-  const totalValue = calculateTotalValue();
   const activeRentals = calculateActiveRentals();
   const activeRent = rentFromActiveRentals(items);
   const salesThisMonth = salesInMonth(items);
   const overdueCount = items.filter(isOverdue).length;
 
-  const showOverdueRentals = () => {
-    dispatch(
-      setPianoFilters({ ...clearFilters(filters), isOverdue: true }) as any
-    );
-    dispatch(setActiveTab("home") as any);
-  };
+  const showOverdueRentals = () => showOnHome({ isOverdue: true });
   const recentAdditions = calculateRecentAdditions();
 
   const handleConfirmLogout = async () => {
@@ -216,14 +200,17 @@ const Profile = () => {
     await exportPianosToCSV(items);
   };
 
-  const navigateToHomeWithFilter = (category: string) => {
-    const filters: FiltersType = {
-      ...DEFAULT_FILTERS,
-      category: category,
-    };
-    dispatch(setPianoFilters(filters) as any);
+  // Shortcuts to Home start from the default filters but keep the chosen
+  // layout (card, list or grid)
+  const showOnHome = (shortcutFilters: Partial<FiltersType>) => {
+    dispatch(
+      setPianoFilters({ ...clearFilters(filters), ...shortcutFilters }) as any
+    );
     dispatch(setActiveTab("home") as any);
   };
+
+  const navigateToHomeWithFilter = (category: string) =>
+    showOnHome({ category });
 
   const formatMemberSince = (dateString: string) => {
     const date = new Date(dateString);
@@ -633,15 +620,12 @@ const Profile = () => {
 
                 {activeRentals > 0 && (
                   <TouchableOpacity
-                    onPress={() => {
-                      const filters: FiltersType = {
-                        ...DEFAULT_FILTERS,
+                    onPress={() =>
+                      showOnHome({
                         category: "Rentable",
                         isActiveRentals: true,
-                      };
-                      dispatch(setPianoFilters(filters) as any);
-                      dispatch(setActiveTab("home") as any);
-                    }}
+                      })
+                    }
                     className="bg-green-500/20 border border-green-500/40 rounded-xl p-4 flex-row items-center justify-between"
                     activeOpacity={0.7}
                   >

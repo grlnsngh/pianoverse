@@ -5,7 +5,7 @@ import GlobalProvider from "@/context/GlobalProvider";
 import { Provider } from "react-redux";
 import { PaperProvider } from "react-native-paper";
 import store from "@/redux/store";
-import ToastHost from "./components/ToastHost";
+import ToastHost from "@/components/ToastHost";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

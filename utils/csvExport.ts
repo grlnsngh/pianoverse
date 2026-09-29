@@ -261,8 +261,6 @@ export const exportPianosToCSV = async (pianos: PianoItem[]): Promise<void> => {
       encoding: FileSystem.EncodingType.UTF8,
     });
 
-    console.log("CSV file saved to:", fileUri);
-
     // Try to open directly in spreadsheet apps
     if (Platform.OS === "android") {
       try {
@@ -275,11 +273,9 @@ export const exportPianosToCSV = async (pianos: PianoItem[]): Promise<void> => {
           flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
           type: "text/csv",
         });
-
-        console.log("Opened CSV with spreadsheet app");
       } catch (intentError) {
-        console.log(
-          "Intent launcher failed, falling back to share:",
+        console.warn(
+          "No app opened the CSV directly, sharing it instead:",
           intentError
         );
         // If direct opening fails, use share as fallback

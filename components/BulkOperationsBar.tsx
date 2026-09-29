@@ -9,7 +9,7 @@ import {
   selectAllItems,
 } from "@/redux/pianos/actions";
 import { deleteMultiplePianoEntries } from "@/lib/appwrite";
-import { cancelRentalNotification } from "../services/notifications";
+import { cancelRentalNotification } from "@/services/notifications";
 import { icons } from "@/constants";
 import { Image } from "expo-image";
 import CustomAlertModal from "./CustomAlertModal";

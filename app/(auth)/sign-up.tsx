@@ -6,24 +6,21 @@ import {
   Animated,
   Dimensions,
   StyleSheet,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image } from "expo-image";
-import { icons, images } from "@/constants";
 import { SECONDARY_COLOR, PRIMARY_COLOR } from "@/constants/colors";
-import Logo from "../components/Logo";
-import EnhancedFormField from "../components/EnhancedFormField";
-import CustomButton from "../components/CustomButton";
+import Logo from "@/components/Logo";
+import EnhancedFormField from "@/components/EnhancedFormField";
+import CustomButton from "@/components/CustomButton";
 import { Link, router } from "expo-router";
 import { createUser } from "@/lib/appwrite";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { showToast } from "@/utils/toast";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 const SignUp = () => {
   const { setUser, setIsLogged } = useGlobalContext();

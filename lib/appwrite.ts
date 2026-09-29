@@ -120,8 +120,8 @@ export async function getCurrentUser() {
     if (!currentUser) throw Error;
 
     return currentUser.documents[0];
-  } catch (error) {
-    console.log(error);
+  } catch {
+    // Nobody is signed in (or the session has expired)
     return null;
   }
 }
@@ -240,9 +240,11 @@ export interface LocalImageAsset {
  */
 export type PianoEntryInput = Omit<
   Partial<PianoItemFormStateType>,
-  "image_url"
+  "image_url" | "users"
 > & {
   image_url?: string | LocalImageAsset | null;
+  // The owner's user document ID
+  users?: string;
 };
 
 const IMAGE_MIME_TYPES: Record<string, string> = {
@@ -333,17 +335,13 @@ export async function uploadFile(pianoData: PianoEntryInput) {
 }
 
 /**
- * Creates a new piano entry in the database.
+ * The URL for viewing an uploaded file in the storage bucket.
  *
- * @param {Object} pianoData - The data for the piano entry.
- * @param {string} pianoData.name - The name of the piano.
- * @param {string} pianoData.type - The type of the piano.
- * @param {string} pianoData.manufacturer - The manufacturer of the piano.
- * @param {string} pianoData.image - The image file of the piano.
- * @returns {Promise<Object>} The response from the database after creating the document.
- * @throws {Error} If there is an error creating the piano entry.
+ * @param {string} fileId - The ID of the uploaded file.
+ * @returns {Promise<URL>} The file's view URL.
+ * @throws {Error} If no URL could be made for the file.
  */
-export async function getFilePreview(fileId) {
+export async function getFilePreview(fileId: string) {
   let fileUrl;
 
   try {
@@ -526,59 +524,6 @@ export async function deleteMultiplePianoEntries(
       .filter((result) => !result.deleted)
       .map((result) => result.id),
   };
-}
-
-/**
- * Updates multiple piano entries in the database.
- *
- * @param {Array<{id: string, data: Partial<PianoItemFormStateType>}>} updates - Array of update objects with id and data.
- * @returns {Promise<void>} - Resolves when all updates are completed.
- * @throws {Error} - Throws an error if any update fails.
- */
-export async function updateMultiplePianoEntries(
-  updates: Array<{ id: string; data: Partial<PianoItemFormStateType> }>
-): Promise<void> {
-  try {
-    const updatePromises = updates.map(async ({ id, data }) => {
-      try {
-        let imageUrl = data?.image_url || "";
-
-        // Check if image_url is a local file path
-        if (imageUrl.startsWith("file://")) {
-          const uploadedUrl = await uploadFile({
-            ...data,
-            image_url: imageUrl,
-          });
-          imageUrl = uploadedUrl ? String(uploadedUrl) : imageUrl;
-        }
-
-        await databases.updateDocument(
-          appwriteConfig.databaseId,
-          appwriteConfig.pianoCollectionId,
-          id,
-          { ...data, image_url: imageUrl }
-        );
-
-        return { success: true, id };
-      } catch (error) {
-        console.error(`Failed to update item ${id}:`, error);
-        return { success: false, id, error };
-      }
-    });
-
-    const results = await Promise.all(updatePromises);
-    const failedUpdates = results.filter((result) => !result.success);
-
-    if (failedUpdates.length > 0) {
-      throw new Error(
-        `Failed to update ${failedUpdates.length} out of ${updates.length} items`
-      );
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Error in bulk update:", errorMessage);
-    throw new Error(`Bulk update failed: ${errorMessage}`);
-  }
 }
 
 /**

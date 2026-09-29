@@ -16,7 +16,7 @@ jest.mock("expo-router", () => ({
 jest.mock("@/context/GlobalProvider", () => ({
   useGlobalContext: () => ({ user: require("./helpers/fixtures").testUser }),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   scheduleAllRentalNotifications: jest.fn(() => Promise.resolve([])),
   scheduleRentalDueNotification: jest.fn(() => Promise.resolve([])),
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
@@ -241,6 +241,21 @@ describe("rental details", () => {
       );
     });
 
+    it("checks the same rental details as the Create screen", async () => {
+      const renderer = renderEdit();
+
+      typeInto(renderer, "Customer Address", "  ");
+      await pressText(renderer.root, "Save Changes");
+
+      expect(alerts.titles()).toEqual(["Missing Details"]);
+      expect(alerts.spy.mock.calls[0][1]).toBe(
+        "Please fill all rental details."
+      );
+      expect(
+        fakeBackend.documents.get("piano-1")?.rental_customer_address
+      ).toBe("12 MG Road");
+    });
+
     it("saves a mobile number written with the country code", async () => {
       const renderer = renderEdit();
 
@@ -357,7 +372,10 @@ describe("going back to the tabs", () => {
         if (entry.isDirectory()) return sourceFiles(full);
         return /\.tsx?$/.test(entry.name) ? [full] : [];
       });
-    const pushesToTabs = sourceFiles(appDir).filter((file) =>
+    const pushesToTabs = [
+      ...sourceFiles(appDir),
+      ...sourceFiles(path.join(__dirname, "..", "components")),
+    ].filter((file) =>
       /router\.(push|navigate)\(\s*["'`]\/(home|create|profile|\(tabs\))/.test(
         fs.readFileSync(file, "utf8")
       )

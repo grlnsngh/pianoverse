@@ -4,15 +4,15 @@ jest.mock("expo-router", () => ({
   useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
   usePathname: jest.fn(() => "/detail/piano-1"),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
 }));
 
 import React from "react";
 import { Linking, Share } from "react-native";
 import { act } from "react-test-renderer";
-import CardItem from "@/app/components/CardItem";
-import GridItem from "@/app/components/GridItem";
+import CardItem from "@/components/CardItem";
+import GridItem from "@/components/GridItem";
 import DetailScreen from "@/app/detail/[id]";
 import icons from "@/constants/icons";
 import { PianoItem } from "@/redux/pianos/types";

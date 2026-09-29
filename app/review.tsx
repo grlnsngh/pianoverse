@@ -15,15 +15,14 @@ import {
   View,
 } from "react-native";
 import { useDispatch } from "react-redux";
-import CustomButton from "./components/CustomButton";
-import { COMPANY_ASSOCIATED, PIANO_CATEGORY } from "./constants/Piano";
-import { toStoredDate } from "@/utils/dates";
-import { scheduleRentalDueNotification } from "./services/notifications";
+import { PIANO_CATEGORY } from "@/constants/Piano";
+import {
+  createEmptyPianoForm,
+  parsePianoForm,
+  toPianoEntryInput,
+} from "@/utils/pianoForm";
+import { scheduleRentalDueNotification } from "@/services/notifications";
 import { showToast } from "@/utils/toast";
-
-interface ReviewParams {
-  formData?: string;
-}
 
 const Review = () => {
   const { user } = useGlobalContext();
@@ -36,7 +35,10 @@ const Review = () => {
 
   // Parse the form data from the navigation params (once, not on every render)
   const form = useMemo(
-    () => (params.formData ? JSON.parse(params.formData as string) : {}),
+    () =>
+      params.formData
+        ? parsePianoForm(params.formData as string)
+        : createEmptyPianoForm(),
     [params.formData]
   );
   const imageUri: string | undefined = form.image?.uri;
@@ -65,57 +67,11 @@ const Review = () => {
       return;
     }
 
-    const basicDetails = {
-      users: user.$id,
-      category: form.category,
-      make: form.make,
-      title: form.title,
-      description: form.description,
-      image_url: form.image,
-      creator: user.accountId,
-      company_associated: form.companyAssociated,
-      date_of_purchase: toStoredDate(new Date(form.dateOfPurchase)),
-    };
-
-    let finalDetails = { ...basicDetails };
-
-    if (form.category === PIANO_CATEGORY.RENTABLE) {
-      const rentalDetails = {
-        rental_customer_name: form.rentalCustomerName,
-        rental_customer_address: form.rentalCustomerAddress,
-        rental_customer_mobile: form.rentalCustomerMobileNumber,
-        rental_period_start: toStoredDate(new Date(form.rentalStartDate)),
-        rental_period_end: toStoredDate(new Date(form.rentalEndDate)),
-        rental_price: form.rentalPrice,
-      };
-      finalDetails = { ...finalDetails, ...rentalDetails };
-    } else if (form.category === PIANO_CATEGORY.WAREHOUSE) {
-      const warehouseDetails = {
-        warehouse_since_date: toStoredDate(
-          new Date(form.warehouseStoredSinceDate)
-        ),
-      };
-      finalDetails = { ...finalDetails, ...warehouseDetails };
-    } else if (form.category === PIANO_CATEGORY.EVENTS) {
-      const eventDetails = {
-        event_purchase_price: form.eventPurchasePrice,
-        event_purchase_from: form.eventPurchaseFrom,
-        event_model_number: form.eventModelNumber,
-        event_b_number: form.eventBNumber,
-      };
-      finalDetails = { ...finalDetails, ...eventDetails };
-    } else if (form.category === PIANO_CATEGORY.ON_SALE) {
-      const onSaleDetails = {
-        on_sale_purchase_from: form.onSalePurchaseFrom,
-        on_sale_import_date: toStoredDate(new Date(form.onSaleImportDate)),
-        on_sale_price: form.onSalePrice,
-      };
-      finalDetails = { ...finalDetails, ...onSaleDetails };
-    }
-
     try {
       setUploading(true);
-      const createdPiano = await createPianoEntry(finalDetails);
+      const createdPiano = await createPianoEntry(
+        toPianoEntryInput(form, { user, image: form.image })
+      );
       await scheduleRentalDueNotification(createdPiano);
       dispatch(addPianoItem(toPianoItem(createdPiano)) as any);
       dispatch(resetCreateForm() as any);

@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { Alert } from "react-native";
 import { useDispatch } from "react-redux";
-import { scheduleRentalDueNotification } from "@/app/services/notifications";
+import { scheduleRentalDueNotification } from "@/services/notifications";
 import { PianoFieldsUpdate, updatePianoFields } from "@/lib/appwrite";
 import { updatePianoItem } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";

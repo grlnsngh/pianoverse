@@ -11,7 +11,7 @@ jest.mock("expo-router", () => ({
   router: { push: jest.fn(), setParams: jest.fn() },
   usePathname: jest.fn(() => "/home"),
 }));
-jest.mock("@/app/components/ListItem", () => {
+jest.mock("@/components/ListItem", () => {
   const React = require("react");
   const { Text } = require("react-native");
   return ({ item }: any) => React.createElement(Text, null, `row:${item.title}`);
@@ -23,8 +23,8 @@ import React from "react";
 import { act } from "react-test-renderer";
 import * as Notifications from "expo-notifications";
 import Home from "@/app/(tabs)/home";
-import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/app/constants/Piano";
-import { scheduleAllRentalNotifications } from "@/app/services/notifications";
+import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/constants/Piano";
+import { scheduleAllRentalNotifications } from "@/services/notifications";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { fakeNotifications } from "./helpers/fakeNotifications";

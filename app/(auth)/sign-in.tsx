@@ -12,18 +12,16 @@ import {
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image } from "expo-image";
-import { icons, images } from "@/constants";
 import { SECONDARY_COLOR, PRIMARY_COLOR } from "@/constants/colors";
-import Logo from "../components/Logo";
-import EnhancedFormField from "../components/EnhancedFormField";
+import Logo from "@/components/Logo";
+import EnhancedFormField from "@/components/EnhancedFormField";
 import { Link, router } from "expo-router";
-import CustomButton from "../components/CustomButton";
+import CustomButton from "@/components/CustomButton";
 import { getCurrentUser, signIn } from "@/lib/appwrite";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { showToast } from "@/utils/toast";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 const SignIn = () => {
   const { setUser, setIsLogged } = useGlobalContext();

@@ -9,7 +9,7 @@ jest.mock("@/context/GlobalProvider", () => ({
     setIsLogged: jest.fn(),
   }),
 }));
-jest.mock("@/app/services/notifications", () => ({
+jest.mock("@/services/notifications", () => ({
   scheduleAllRentalNotifications: jest.fn(() => Promise.resolve([])),
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
 }));
@@ -22,7 +22,7 @@ import React from "react";
 import { addDays, subMonths } from "date-fns";
 import Home from "@/app/(tabs)/home";
 import Profile from "@/app/(tabs)/profile";
-import { DEFAULT_FILTERS } from "@/app/constants/Piano";
+import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
@@ -163,6 +163,49 @@ describe("income", () => {
       ...DEFAULT_FILTERS,
       layoutStatus,
       isOverdue: true,
+    });
+  });
+});
+
+describe("the profile's shortcuts", () => {
+  const layoutStatus = {
+    card: "unchecked",
+    list: "unchecked",
+    grid: "checked",
+  };
+
+  const renderProfile = () => {
+    const store = createTestStore({ user: testUser, items: pianos });
+    store.dispatch(
+      setPianoFilters({ ...DEFAULT_FILTERS, layoutStatus, isSold: true })
+    );
+    return { store, renderer: renderWithStore(<Profile />, store) };
+  };
+
+  it("filter by category but keep the chosen layout", async () => {
+    const { store, renderer } = renderProfile();
+
+    await pressText(renderer.root, "Storage");
+
+    expect(store.getState().navigation.activeTab).toBe("home");
+    // Other filters start over, the layout stays
+    expect(store.getState().pianos.filters).toEqual({
+      ...DEFAULT_FILTERS,
+      layoutStatus,
+      category: "Warehouse",
+    });
+  });
+
+  it("show active rentals but keep the chosen layout", async () => {
+    const { store, renderer } = renderProfile();
+
+    await pressText(renderer.root, "Active Rentals");
+
+    expect(store.getState().pianos.filters).toEqual({
+      ...DEFAULT_FILTERS,
+      layoutStatus,
+      category: "Rentable",
+      isActiveRentals: true,
     });
   });
 });

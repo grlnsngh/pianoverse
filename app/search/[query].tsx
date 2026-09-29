@@ -6,11 +6,11 @@ import React, { useEffect, useState } from "react";
 import { FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import EmptyState from "../components/EmptyState";
-import CardItem from "../components/CardItem";
+import EmptyState from "@/components/EmptyState";
+import CardItem from "@/components/CardItem";
 import { SECONDARY_COLOR } from "@/constants/colors";
-import ListItem from "../components/ListItem";
-import GridItem from "../components/GridItem";
+import ListItem from "@/components/ListItem";
+import GridItem from "@/components/GridItem";
 
 const Search = () => {
   const { query } = useLocalSearchParams();

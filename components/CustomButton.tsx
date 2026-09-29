@@ -45,5 +45,6 @@ const CustomButton: React.FC<CustomButtonProps> = React.memo(
     );
   }
 );
+CustomButton.displayName = "CustomButton";
 
 export default CustomButton;

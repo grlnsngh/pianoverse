@@ -1,4 +1,4 @@
-import { PIANO_CATEGORY } from "@/app/constants/Piano";
+import { PIANO_CATEGORY } from "@/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
 import { getRentalState, isRentalActive } from "@/utils/dates";
 import { getCategoryLabel } from "@/utils/ObjectManipulation";
