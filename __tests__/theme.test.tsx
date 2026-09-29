@@ -49,7 +49,7 @@ describe("styling", () => {
   // Utilities NativeWind v2 silently drops: animations, transitions, blur,
   // pseudo-classes on plain Views, and sizes missing from the theme
   const unsupported =
-    /\b(animate-[a-z]+|transition(-[a-z]+)?|duration-\d+|ease-[a-z-]+|backdrop-[a-z-]+|focus:[a-z0-9/-]+|hover:[a-z0-9/-]+|[hw]-15)\b/;
+    /\b(animate-[a-z]+|transition(-[a-z]+)?|duration-\d+|ease-[a-z-]+|backdrop-[a-z-]+|focus:[a-z0-9/-]+|hover:[a-z0-9/-]+|[hw]-15|border(-[trblxy])?-[35679])\b/;
 
   const sourceFiles = (dir: string): string[] =>
     fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -57,6 +57,27 @@ describe("styling", () => {
       if (entry.isDirectory()) return sourceFiles(full);
       return entry.name.endsWith(".tsx") ? [full] : [];
     });
+
+  it("doesn't make something full width and give it side margins too", () => {
+    // It would be wider than the screen by its margins
+    const offenders = ["app", "components"]
+      .flatMap((dir) => sourceFiles(path.join(root, dir)))
+      .flatMap((file) =>
+        fs
+          .readFileSync(file, "utf8")
+          .split("\n")
+          .map((line, i) => ({
+            line,
+            at: `${path.relative(root, file)}:${i + 1}`,
+          }))
+      )
+      .filter(
+        ({ line }) => /\bw-full\b/.test(line) && /\b(mx|m)-(\d|px)/.test(line)
+      )
+      .map(({ at, line }) => `${at} ${line.trim()}`);
+
+    expect(offenders).toEqual([]);
+  });
 
   it("only uses classes NativeWind v2 can apply", () => {
     const offenders = ["app", "components"]

@@ -176,6 +176,21 @@ describe("income", () => {
   });
 });
 
+it("says pianos added in the last 30 days were added in the last 30 days", () => {
+  const recent = makePiano({
+    $id: "recent",
+    $createdAt: new Date().toISOString(),
+  });
+  const renderer = renderWithStore(
+    <Profile />,
+    createTestStore({ user: testUser, items: [recent] })
+  );
+
+  const texts = allTexts(renderer.root);
+  expect(texts).toContain("LAST 30 DAYS");
+  expect(texts).not.toContain("THIS MONTH");
+});
+
 describe("the profile's shortcuts", () => {
   const layoutStatus = {
     card: "unchecked",

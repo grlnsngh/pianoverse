@@ -127,6 +127,27 @@ describe("the filter panel", () => {
     expect(store.getState().pianos.filters.isSold).toBe(true);
   });
 
+  it("has a close button big enough to tap that drops the changes", async () => {
+    const store = createTestStore();
+    const renderer = renderWithStore(<FilterButton />, store);
+    await openPanel(renderer);
+    flip(renderer, "Sold Pianos");
+
+    const close = byLabel(renderer, "Close filters");
+    // The icon is 16 points; with the extra touch area around it the button
+    // reaches the 44-point minimum
+    const { top, bottom, left, right } = close.props.hitSlop;
+    expect(16 + top + bottom).toBeGreaterThanOrEqual(44);
+    expect(16 + left + right).toBeGreaterThanOrEqual(44);
+
+    await act(async () => close.props.onPress());
+    await settle();
+    await openPanel(renderer);
+
+    expect(switchValue(renderer, "Sold Pianos")).toBe(false);
+    expect(store.getState().pianos.filters.isSold).toBe(false);
+  });
+
   describe("Active Rentals", () => {
     it("keeps Rentable when it was chosen first", async () => {
       const store = createTestStore();
