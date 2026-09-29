@@ -205,6 +205,39 @@ describe("the profile's shortcuts", () => {
     });
   });
 
+  it.each([
+    ["Rentable", "Rentable"],
+    ["Events", "Events"],
+    ["On Sale", "On Sale"],
+    ["Storage", "Warehouse"],
+  ])("open the %s pianos", async (row, category) => {
+    const store = createTestStore({
+      user: testUser,
+      items: [
+        ...pianos,
+        makePiano({ $id: "event", category: "events" }),
+        makePiano({ $id: "for-sale", category: "on_sale" }),
+      ],
+    });
+    const renderer = renderWithStore(<Profile />, store);
+
+    await pressText(renderer.root, row);
+
+    expect(store.getState().pianos.filters.category).toBe(category);
+  });
+
+  it("show every piano with View All Pianos, whatever was filtered", async () => {
+    const { store, renderer } = renderProfile();
+
+    await pressText(renderer.root, "View All Pianos");
+
+    expect(store.getState().navigation.activeTab).toBe("home");
+    expect(store.getState().pianos.filters).toEqual({
+      ...DEFAULT_FILTERS,
+      layoutStatus,
+    });
+  });
+
   it("show active rentals but keep the chosen layout", async () => {
     const { store, renderer } = renderProfile();
 

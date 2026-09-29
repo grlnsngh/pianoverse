@@ -116,11 +116,13 @@ const Profile = () => {
   const onSaleCount = filterItemsByCategory(PIANO_CATEGORY.ON_SALE);
   const warehouseCount = filterItemsByCategory(PIANO_CATEGORY.WAREHOUSE);
 
-  // Prepare pie chart data with percentages
+  // Prepare pie chart data with percentages. `filter` is the category Home
+  // shows when a row is tapped.
   const totalItems = rentableCount + eventsCount + onSaleCount + warehouseCount;
   const pieChartData = [
     {
       name: "Rentable",
+      filter: "Rentable",
       count: rentableCount,
       percentage:
         totalItems > 0 ? Math.round((rentableCount / totalItems) * 100) : 0,
@@ -131,6 +133,7 @@ const Profile = () => {
     },
     {
       name: "Events",
+      filter: "Events",
       count: eventsCount,
       percentage:
         totalItems > 0 ? Math.round((eventsCount / totalItems) * 100) : 0,
@@ -141,6 +144,7 @@ const Profile = () => {
     },
     {
       name: "On Sale",
+      filter: "On Sale",
       count: onSaleCount,
       percentage:
         totalItems > 0 ? Math.round((onSaleCount / totalItems) * 100) : 0,
@@ -151,6 +155,7 @@ const Profile = () => {
     },
     {
       name: "Storage",
+      filter: "Warehouse",
       count: warehouseCount,
       percentage:
         totalItems > 0 ? Math.round((warehouseCount / totalItems) * 100) : 0,
@@ -508,17 +513,7 @@ const Profile = () => {
                   {pieChartData.map((item, index) => (
                     <TouchableOpacity
                       key={index}
-                      onPress={() =>
-                        navigateToHomeWithFilter(
-                          item.name === "Rented Out"
-                            ? "Rentable"
-                            : item.name === "Storage"
-                            ? "Warehouse"
-                            : item.name === "Events"
-                            ? "Events"
-                            : "On Sale"
-                        )
-                      }
+                      onPress={() => navigateToHomeWithFilter(item.filter)}
                       className="bg-black-100/50 rounded-xl p-4 flex-row items-center justify-between"
                       activeOpacity={0.7}
                     >
@@ -593,7 +588,8 @@ const Profile = () => {
             ) : (
               <View className="space-y-3">
                 <TouchableOpacity
-                  onPress={() => dispatch(setActiveTab("home") as any)}
+                  // Every piano, not whatever Home was last filtered to
+                  onPress={() => showOnHome({})}
                   className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
                   activeOpacity={0.7}
                 >
