@@ -664,28 +664,19 @@ export async function createRentPayment(
   return document as unknown as RentPayment;
 }
 
-/**
- * Retrieves every rent payment of a piano, page by page, newest first.
- *
- * @param {string} pianoId - The ID of the piano.
- * @returns {Promise<RentPayment[]>} The payments, most recently paid first.
- */
-export async function getRentPayments(pianoId: string): Promise<RentPayment[]> {
+/** Every rent payment matching the queries, fetched page by page. */
+const listRentPayments = async (queries: string[]): Promise<RentPayment[]> => {
   const payments: RentPayment[] = [];
   let cursor: string | undefined;
 
   for (let page = 0; page < MAX_PAYMENT_PAGES; page++) {
-    const queries = [
-      Query.equal("piano_id", pianoId),
-      Query.orderDesc("paid_on"),
-      Query.limit(PAYMENT_PAGE_SIZE),
-    ];
-    if (cursor) queries.push(Query.cursorAfter(cursor));
+    const pageQueries = [...queries, Query.limit(PAYMENT_PAGE_SIZE)];
+    if (cursor) pageQueries.push(Query.cursorAfter(cursor));
 
     const { documents } = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.rentPaymentsCollectionId,
-      queries
+      pageQueries
     );
     payments.push(...(documents as unknown as RentPayment[]));
 
@@ -694,6 +685,43 @@ export async function getRentPayments(pianoId: string): Promise<RentPayment[]> {
   }
 
   return payments;
+};
+
+/**
+ * Retrieves every rent payment of a piano, page by page, newest first.
+ *
+ * @param {string} pianoId - The ID of the piano.
+ * @returns {Promise<RentPayment[]>} The payments, most recently paid first.
+ */
+export async function getRentPayments(pianoId: string): Promise<RentPayment[]> {
+  return listRentPayments([
+    Query.equal("piano_id", pianoId),
+    Query.orderDesc("paid_on"),
+  ]);
+}
+
+/** A calendar day as the start of that day, the way paid_on is stored. */
+const startOfStoredDay = (day: Date) => `${toStoredDate(day)}T00:00:00.000+00:00`;
+
+/**
+ * Retrieves every rent payment an owner recorded, for all their pianos, that
+ * was paid from `from` up to but not including `to`.
+ *
+ * @param {string} creator - The owner's account ID.
+ * @param {Date} from - The first day of the period.
+ * @param {Date} to - The day the period ends on (not part of it).
+ * @returns {Promise<RentPayment[]>} The payments paid in the period.
+ */
+export async function getRentPaymentsBetween(
+  creator: string,
+  from: Date,
+  to: Date
+): Promise<RentPayment[]> {
+  return listRentPayments([
+    Query.equal("creator", creator),
+    Query.greaterThanEqual("paid_on", startOfStoredDay(from)),
+    Query.lessThan("paid_on", startOfStoredDay(to)),
+  ]);
 }
 
 /** Deletes one rent payment. */

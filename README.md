@@ -20,7 +20,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Rent payments:** Record each payment for a rented piano (amount, date, note) and see what has been received.
 - **Sales:** Mark a piano as sold with the buyer, price and date; sold pianos leave the stock and can be shown with a filter.
 - **Search and filters:** Search by title, make, customer, mobile, model or B-number; filter by category, active or overdue rentals, and sold pianos.
-- **Income:** Profile shows the rent from active rentals and this month's sales.
+- **Income:** Profile shows the rent received this month (from the payments you record), this month's sales, and the rent of the rentals out now.
 - **Photos:** Add up to 10 photos to a piano by taking them with the camera or choosing them. The first is the cover shown in the lists, and the piano's page lets you swipe through all of them. Photos are resized before upload.
 - **Customers:** Call or WhatsApp a rental customer from the piano's page.
 - **Sharing and export:** Share a piano's details, or export the whole list as CSV.

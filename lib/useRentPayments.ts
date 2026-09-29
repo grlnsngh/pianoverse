@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   createRentPayment,
   deleteRentPayment,
   getRentPayments,
   RentPayment,
 } from "@/lib/appwrite";
+import { paymentsChanged } from "@/redux/payments/actions";
 import { RootState } from "@/redux/store";
 import { showToast } from "@/utils/toast";
 
@@ -32,6 +33,7 @@ const newestFirst = (payments: RentPayment[]) =>
  */
 const useRentPayments = (pianoId: string) => {
   const user = useSelector((state: RootState) => state.users.user);
+  const dispatch = useDispatch();
   const [payments, setPayments] = useState<RentPayment[]>([]);
   const [status, setStatus] = useState<PaymentsStatus>("loading");
   const mounted = useRef(true);
@@ -72,6 +74,7 @@ const useRentPayments = (pianoId: string) => {
           note,
         });
         setPayments((current) => newestFirst([created, ...current]));
+        dispatch(paymentsChanged() as any);
         showToast("Payment recorded");
         return true;
       } catch (error) {
@@ -82,25 +85,29 @@ const useRentPayments = (pianoId: string) => {
         return false;
       }
     },
-    [pianoId, user]
+    [pianoId, user, dispatch]
   );
 
-  const remove = useCallback(async (payment: RentPayment) => {
-    try {
-      await deleteRentPayment(payment.$id);
-      setPayments((current) =>
-        current.filter((candidate) => candidate.$id !== payment.$id)
-      );
-      showToast("Payment deleted");
-      return true;
-    } catch (error) {
-      Alert.alert(
-        "Couldn't Delete",
-        error instanceof Error ? error.message : "Please try again."
-      );
-      return false;
-    }
-  }, []);
+  const remove = useCallback(
+    async (payment: RentPayment) => {
+      try {
+        await deleteRentPayment(payment.$id);
+        setPayments((current) =>
+          current.filter((candidate) => candidate.$id !== payment.$id)
+        );
+        dispatch(paymentsChanged() as any);
+        showToast("Payment deleted");
+        return true;
+      } catch (error) {
+        Alert.alert(
+          "Couldn't Delete",
+          error instanceof Error ? error.message : "Please try again."
+        );
+        return false;
+      }
+    },
+    [dispatch]
+  );
 
   return { payments, status, reload: load, add, remove };
 };

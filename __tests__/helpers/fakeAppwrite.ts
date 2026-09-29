@@ -3,7 +3,8 @@
  *
  * It mirrors the real SDK/server behaviour these tests depend on:
  *  - `listDocuments` returns at most 25 documents unless a `limit()` query is given
- *  - `equal()`, `orderDesc()`, `limit()` and `cursorAfter()` queries are honoured
+ *  - `equal()`, `greaterThanEqual()`, `lessThan()`, `orderDesc()`, `limit()` and
+ *    `cursorAfter()` queries are honoured (dates are compared as dates)
  *  - `storage.createFile` resolves to `undefined` when `file.size` is not a number,
  *    because the real SDK skips its upload loop in that case
  *  - the price columns of the pianos collection are numbers (double) and the
@@ -99,6 +100,16 @@ class Databases {
     for (const query of parsed) {
       if (query.method === "equal") {
         docs = docs.filter((doc) => query.values.includes(doc[query.attribute]));
+      }
+      if (query.method === "greaterThanEqual") {
+        docs = docs.filter(
+          (doc) => Date.parse(doc[query.attribute]) >= Date.parse(query.values[0])
+        );
+      }
+      if (query.method === "lessThan") {
+        docs = docs.filter(
+          (doc) => Date.parse(doc[query.attribute]) < Date.parse(query.values[0])
+        );
       }
     }
 

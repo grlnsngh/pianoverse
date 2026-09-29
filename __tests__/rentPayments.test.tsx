@@ -268,6 +268,29 @@ describe("rent payments on the Detail screen", () => {
     expect(texts).not.toContain("No payments recorded yet");
   });
 
+  it("lets the rest of the app know when a payment is recorded or deleted", async () => {
+    const { store, renderer } = await openDetail();
+    expect(store.getState().payments.changeCount).toBe(0);
+
+    await pressText(renderer.root, "Record Payment");
+    await pressButton(renderer, "Save Payment");
+    expect(store.getState().payments.changeCount).toBe(1);
+
+    await pressText(renderer.root, "Delete");
+    await alerts.pressButton("Delete");
+    expect(store.getState().payments.changeCount).toBe(2);
+  });
+
+  it("doesn't say anything changed when saving fails", async () => {
+    const { store, renderer } = await openDetail();
+
+    await pressText(renderer.root, "Record Payment");
+    fakeBackend.missingCollections.add("rent_payments");
+    await pressButton(renderer, "Save Payment");
+
+    expect(store.getState().payments.changeCount).toBe(0);
+  });
+
   it("records a different amount than the rent", async () => {
     const { renderer } = await openDetail();
 
