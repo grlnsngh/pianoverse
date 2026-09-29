@@ -97,6 +97,39 @@ describe("the review screen", () => {
     return { renderer, image };
   };
 
+  it.each([
+    ["rentable", "Rentable", { rentalPrice: 4000 }, "₹4,000"],
+    ["events", "Events", { eventPurchasePrice: 150000 }, "₹1,50,000"],
+    ["on_sale", "On Sale", { onSalePrice: 250000 }, "₹2,50,000"],
+  ])(
+    "shows a %s piano's category by name, its description and prices in rupees",
+    (category, label, price, shown) => {
+      jest.mocked(useLocalSearchParams).mockReturnValue({
+        formData: JSON.stringify({
+          ...JSON.parse(formData),
+          category,
+          description: "Black polish, recently tuned",
+          rentalStartDate: new Date(),
+          rentalEndDate: new Date(),
+          onSaleImportDate: new Date(),
+          ...price,
+        }),
+      });
+
+      const renderer = renderWithStore(
+        <Review />,
+        createTestStore({ user: testUser })
+      );
+
+      const texts = allTexts(renderer.root);
+      expect(texts).toContain(label);
+      expect(texts).not.toContain(category);
+      expect(texts).toContain("Black polish, recently tuned");
+      expect(texts).toContain(shown);
+      expect(texts.join(" ")).not.toContain("$");
+    }
+  );
+
   it("reads the form once, not on every render", () => {
     const parse = jest.spyOn(JSON, "parse");
     const { renderer, image } = renderReview();
