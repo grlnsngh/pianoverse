@@ -107,10 +107,12 @@ const SignUp = () => {
     }
 
     // Email validation
-    if (!form.email) {
+    // Keyboards often add a space after a suggested address
+    const email = form.email.trim();
+    if (!email) {
       newErrors.email = "Email is required";
       isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
       newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
@@ -156,7 +158,11 @@ const SignUp = () => {
     }).start();
 
     try {
-      const result = await createUser(form.email, form.password, form.username);
+      const result = await createUser(
+        form.email.trim(),
+        form.password,
+        form.username
+      );
       setUser(result);
       setIsLogged(true);
       router.replace("/home");
