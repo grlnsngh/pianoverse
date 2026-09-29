@@ -105,27 +105,25 @@ export async function signIn(email: string, password: string): Promise<any> {
 /**
  * Retrieves the current user's account and user document from the database.
  *
- * @returns {Promise<Object|null>} A promise that resolves to the current user's document, or null if an error occurs.
- * @throws {Error} If there is an error retrieving the current user's account or document.
+ * @returns {Promise<Object|null>} A promise that resolves to the current user's document, or null if nobody is signed in.
+ * @throws {Error} If Appwrite can't be reached (e.g. there is no connection), since who is signed in is then unknown.
  */
 export async function getCurrentUser() {
+  let currentAccount: Models.User<Models.Preferences>;
   try {
-    const currentAccount = await account.get();
-    if (!currentAccount) throw Error;
-
-    const currentUser = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      [Query.equal("accountId", currentAccount.$id)]
-    );
-
-    if (!currentUser) throw Error;
-
-    return currentUser.documents[0];
-  } catch {
+    currentAccount = await account.get();
+  } catch (error) {
     // Nobody is signed in (or the session has expired)
-    return null;
+    if ((error as { code?: number })?.code === 401) return null;
+    throw error;
   }
+
+  const { documents } = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.userCollectionId,
+    [Query.equal("accountId", currentAccount.$id)]
+  );
+  return documents[0] ?? null;
 }
 
 /**

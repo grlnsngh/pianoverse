@@ -10,6 +10,7 @@ jest.mock("expo-notifications", () =>
 );
 
 import React from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act } from "react-test-renderer";
 import GlobalProvider, { useGlobalContext } from "@/context/GlobalProvider";
 import { getCurrentUser } from "@/lib/appwrite";
@@ -34,9 +35,10 @@ const renderProvider = async () => {
   return store;
 };
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
   jest.mocked(getCurrentUser).mockResolvedValue(null as any);
+  await AsyncStorage.clear();
 });
 
 it("stores a freshly signed-in user in Redux (used by the Edit screen)", async () => {
@@ -76,4 +78,87 @@ it("replaces the Redux user when a different account signs in", async () => {
 
   expect(store.getState().users.user).toEqual(otherUser);
   expect(context.user).toEqual(otherUser);
+});
+
+describe("opening the app", () => {
+  const offline = () =>
+    jest
+      .mocked(getCurrentUser)
+      .mockRejectedValue(new Error("Network request failed"));
+
+  beforeEach(() => {
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("without a connection, carries on as the user signed in on this phone", async () => {
+    // Opened once while online
+    jest.mocked(getCurrentUser).mockResolvedValue(testUser as any);
+    await renderProvider();
+
+    offline();
+    const store = await renderProvider();
+
+    expect(context.loading).toBe(false);
+    expect(context.isLogged).toBe(true);
+    expect(context.user).toEqual(testUser);
+    expect(store.getState().users.user).toEqual(testUser);
+  });
+
+  it("remembers someone who just signed in", async () => {
+    await renderProvider();
+    // What the sign-in screen does
+    act(() => {
+      context.setIsLogged(true);
+      context.setUser(testUser);
+    });
+    await flushPromises();
+
+    offline();
+    await renderProvider();
+
+    expect(context.isLogged).toBe(true);
+    expect(context.user).toEqual(testUser);
+  });
+
+  it("without a connection, asks to sign in when nobody signed in on this phone", async () => {
+    offline();
+    await renderProvider();
+
+    expect(context.loading).toBe(false);
+    expect(context.isLogged).toBe(false);
+    expect(context.user).toBeNull();
+  });
+
+  it("forgets the user who signed out", async () => {
+    jest.mocked(getCurrentUser).mockResolvedValue(testUser as any);
+    await renderProvider();
+    act(() => {
+      context.setIsLogged(false);
+      context.setUser(null);
+    });
+    await flushPromises();
+
+    offline();
+    await renderProvider();
+
+    expect(context.isLogged).toBe(false);
+  });
+
+  it("forgets the user when Appwrite says nobody is signed in any more", async () => {
+    jest.mocked(getCurrentUser).mockResolvedValue(testUser as any);
+    await renderProvider();
+    // The session has ended, e.g. it was signed out on the server
+    jest.mocked(getCurrentUser).mockResolvedValue(null as any);
+    await renderProvider();
+    expect(context.isLogged).toBe(false);
+
+    offline();
+    await renderProvider();
+
+    expect(context.isLogged).toBe(false);
+  });
 });
