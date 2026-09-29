@@ -144,7 +144,7 @@ describe("marking a piano as sold", () => {
     expect(saved).toMatchObject({
       sold_to_name: "Ravi Kumar",
       sold_to_address: "5 Park Street",
-      sold_price: "185000",
+      sold_price: 185000,
       sold_date: toStoredDate(new Date()),
       // Only the sale fields change
       image_url: fileViewUrl("old-file"),
@@ -158,6 +158,18 @@ describe("marking a piano as sold", () => {
     expect(texts).toContain("Ravi Kumar");
     expect(texts).toContain("₹1,85,000");
     expect(texts).toContain("Undo Sale");
+  });
+
+  it("saves the price as a number, the way the database stores it", async () => {
+    const { renderer } = await openDetail();
+
+    await openSoldSheet(renderer);
+    typeInto(renderer, "Buyer Name", "Ravi Kumar");
+    typeInto(renderer, "Sale Price", "185000");
+    await pressButton(renderer, "Mark as Sold");
+
+    expect(alerts.titles()).toEqual([]);
+    expect(fakeBackend.documents.get("piano-1")?.sold_price).toBe(185000);
   });
 
   it("stops the rental reminders of a sold piano", async () => {
@@ -204,7 +216,7 @@ describe("marking a piano as sold", () => {
     const sold = {
       ...rental,
       sold_date: inDays(-2),
-      sold_price: "185000",
+      sold_price: 185000,
       sold_to_name: "Ravi Kumar",
     } as any;
     const { store, renderer } = await openDetail(sold);

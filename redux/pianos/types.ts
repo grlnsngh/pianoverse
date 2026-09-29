@@ -42,7 +42,7 @@ export interface PianoItem {
   rental_period_start?: Date | null;
   rental_price?: number | null;
   sold_date?: Date | null;
-  sold_price?: string | null;
+  sold_price?: number | null;
   sold_to_address?: string | null;
   sold_to_name?: string | null;
   title: string;
@@ -73,7 +73,7 @@ export interface PianoItemFormStateType {
   rental_period_start?: string | null; // Changed to string
   rental_price?: number | null;
   sold_date?: string | null; // Changed to string
-  sold_price?: string | null;
+  sold_price?: number | null;
   sold_to_address?: string | null;
   sold_to_name?: string | null;
   title: string;

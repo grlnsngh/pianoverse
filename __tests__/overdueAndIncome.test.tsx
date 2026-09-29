@@ -61,12 +61,12 @@ const dueToday = rental("due-today", 0, { rental_price: 3000 });
 const overdue = rental("overdue", -3, { rental_price: 7000 });
 const soldRental = rental("sold", -3, {
   sold_date: inDays(-1),
-  sold_price: "90000",
+  sold_price: 90000,
 });
 const soldLastMonth = makePiano({
   $id: "sold-earlier",
   sold_date: toStoredDate(subMonths(new Date(), 1)) as any,
-  sold_price: "50000",
+  sold_price: 50000,
 });
 const warehouse = makePiano({ $id: "warehouse" });
 const pianos = [
