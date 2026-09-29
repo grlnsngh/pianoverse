@@ -9,7 +9,6 @@ import {
 } from "@/utils/ObjectManipulation";
 import {
   getRemainingPeriod,
-  getRentalState,
   parseStoredDate,
   periodBetween,
 } from "@/utils/dates";
@@ -17,7 +16,7 @@ import useUpdatePiano from "@/lib/useUpdatePiano";
 import { callNumber, messageOnWhatsApp } from "@/utils/contact";
 import { formatRupees } from "@/utils/money";
 import { getPianoPhotos } from "@/utils/photos";
-import { isSold } from "@/utils/pianoStatus";
+import { getPianoRentalState, isSold } from "@/utils/pianoStatus";
 import { formatPeriod, isEndingSoon } from "@/utils/rentalStatus";
 import { buildShareMessage } from "@/utils/share";
 import { Ionicons } from "@expo/vector-icons";
@@ -54,7 +53,8 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
       ? periodBetween(start, end)
       : { days: 0, weeks: 0, months: 0, years: 0 };
   const remaining = getRemainingPeriod(rental_period_end);
-  const rentalState = getRentalState(rental_period_end);
+  // None for a sold piano, whose rental is over
+  const rentalState = getPianoRentalState(piano);
   const isExpiringSoon =
     rentalState === "due_today" ||
     rentalState === "ended" ||

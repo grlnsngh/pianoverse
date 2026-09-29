@@ -5,9 +5,9 @@ import {
   SECONDARY_COLOR,
 } from "@/constants/colors";
 import useDeletePiano from "@/lib/useDeletePiano";
-import { getStatusLabel } from "@/utils/pianoStatus";
+import { getPianoRentalState, getStatusLabel } from "@/utils/pianoStatus";
 import { getEntranceDelay } from "@/utils/animation";
-import { getRemainingPeriod, getRentalState } from "@/utils/dates";
+import { getRemainingPeriod } from "@/utils/dates";
 import {
   getCategoryIcon,
   getRentalStatusColor,
@@ -156,7 +156,7 @@ const GridItemCard: React.FC<GridItemCardProps> = React.memo(
     }
 
     const remaining = getRemainingPeriod(item.rental_period_end);
-    const rentalState = getRentalState(item.rental_period_end);
+    const rentalState = getPianoRentalState(item);
     const statusText = getRentalStatusText(rentalState, remaining, {
       compact: true,
     });

@@ -1,4 +1,4 @@
-import { categoryOptions } from "@/constants/Piano";
+import { categoryOptions, PIANO_CATEGORY } from "@/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate } from "./dates";
 
@@ -25,8 +25,9 @@ export const formatDate = (
 /**
  * Searches an array of PianoItems based on a search input.
  * @param items - The array of PianoItems to search.
- * @param searchInput - Matched against the title, make, customer name and
- *   mobile, model number and B-number.
+ * @param searchInput - Matched against the title, make, a rental's customer
+ *   name and mobile, and an event piano's model number and B-number (not
+ *   details left from when a piano was in another category).
  * @returns An array of PianoItems that match the search input.
  */
 export const searchPianoItems = (
@@ -41,10 +42,12 @@ export const searchPianoItems = (
     [
       item.title,
       item.make,
-      item.rental_customer_name,
-      item.rental_customer_mobile,
-      item.event_model_number,
-      item.event_b_number,
+      ...(item.category === PIANO_CATEGORY.RENTABLE
+        ? [item.rental_customer_name, item.rental_customer_mobile]
+        : []),
+      ...(item.category === PIANO_CATEGORY.EVENTS
+        ? [item.event_model_number, item.event_b_number]
+        : []),
     ].some(
       (field) => field != null && String(field).toLowerCase().includes(term)
     )

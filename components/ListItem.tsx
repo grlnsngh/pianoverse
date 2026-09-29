@@ -5,9 +5,9 @@ import {
   SECONDARY_COLOR,
 } from "@/constants/colors";
 import useDeletePiano from "@/lib/useDeletePiano";
-import { getStatusLabel } from "@/utils/pianoStatus";
+import { getPianoRentalState, getStatusLabel } from "@/utils/pianoStatus";
 import { getEntranceDelay } from "@/utils/animation";
-import { getRemainingPeriod, getRentalState } from "@/utils/dates";
+import { getRemainingPeriod } from "@/utils/dates";
 import {
   getCategoryIcon,
   getRentalStatusColor,
@@ -67,6 +67,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(
       company_associated = "",
       category = "",
       rental_period_end,
+      sold_date,
     } = item;
     const pathname = usePathname();
     const confirmDelete = useDeletePiano();
@@ -144,9 +145,10 @@ const ListItem: React.FC<ListItemProps> = React.memo(
       [rental_period_end]
     );
 
+    // Only for a piano rented out now, not one sold or no longer a rental
     const rentalState = useMemo(
-      () => getRentalState(rental_period_end),
-      [rental_period_end]
+      () => getPianoRentalState({ category, rental_period_end, sold_date }),
+      [category, rental_period_end, sold_date]
     );
 
     const statusText = getRentalStatusText(rentalState, remaining);

@@ -23,6 +23,8 @@ import {
   toPianoEntryInput,
 } from "@/utils/pianoForm";
 import { scheduleRentalDueNotification } from "@/services/notifications";
+import { formatRupees } from "@/utils/money";
+import { getCategoryLabel } from "@/utils/ObjectManipulation";
 import { showToast } from "@/utils/toast";
 
 const Review = () => {
@@ -181,7 +183,7 @@ const Review = () => {
                     Category:
                   </Text>
                   <Text className="text-white font-psemibold flex-1">
-                    {form.category}
+                    {getCategoryLabel(form.category)}
                   </Text>
                 </View>
 
@@ -191,6 +193,15 @@ const Review = () => {
                   </Text>
                   <Text className="text-white font-psemibold flex-1">
                     {form.title}
+                  </Text>
+                </View>
+
+                <View className="flex-row items-start py-2 border-b border-black-100/50">
+                  <Text className="text-gray-100 font-pmedium w-24">
+                    Description:
+                  </Text>
+                  <Text className="text-white font-pregular flex-1">
+                    {form.description}
                   </Text>
                 </View>
 
@@ -350,7 +361,7 @@ const Review = () => {
                           Price:
                         </Text>
                         <Text className="text-secondary font-psemibold flex-1 text-lg">
-                          ${form.rentalPrice}
+                          {formatRupees(form.rentalPrice)}
                         </Text>
                       </View>
                     </>
@@ -376,7 +387,7 @@ const Review = () => {
                           Purchase Price:
                         </Text>
                         <Text className="text-secondary font-psemibold flex-1">
-                          ${form.eventPurchasePrice}
+                          {formatRupees(form.eventPurchasePrice)}
                         </Text>
                       </View>
 
@@ -434,7 +445,7 @@ const Review = () => {
                           Price:
                         </Text>
                         <Text className="text-secondary font-psemibold flex-1 text-lg">
-                          ${form.onSalePrice}
+                          {formatRupees(form.onSalePrice)}
                         </Text>
                       </View>
                     </>

@@ -124,6 +124,35 @@ describe("the piano rows", () => {
     );
   });
 
+  // Every row a piano can appear in
+  const allRowTexts = (piano: PianoItem) => [
+    ...textsOf(<CardItem item={piano} {...rowProps} />, piano),
+    ...textsOf(<CardItem item={piano} {...rowProps} isGridView />, piano),
+    ...textsOf(<ListItem item={piano} {...rowProps} />, piano),
+    ...textsOf(<GridItem item={[piano]} {...rowProps} />, piano),
+  ];
+
+  it("say nothing about a rental for a piano that is no longer rented out", () => {
+    // Rental dates left over from when it was a rental
+    const onSale = makePiano({
+      $id: "on-sale",
+      category: "on_sale",
+      rental_period_start: inDays(-400) as any,
+      rental_period_end: inDays(-365) as any,
+    });
+
+    const texts = allRowTexts(onSale).join(" ");
+    expect(texts).not.toMatch(/Expired|remaining|left|Due today/);
+  });
+
+  it("say nothing about the rental of a sold piano", () => {
+    const sold = { ...rental(inDays(20)), sold_date: inDays(-1) as any };
+
+    const texts = allRowTexts(sold).join(" ");
+    expect(texts).not.toMatch(/Expired|remaining|left|Due today/);
+    expect(texts).toContain("Rentable · Sold");
+  });
+
   it("show one icon per category", () => {
     expect(getCategoryIcon("rentable")).toBe(icons.card);
     expect(getCategoryIcon("events")).toBe(icons.play);

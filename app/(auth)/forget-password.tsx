@@ -91,10 +91,12 @@ const ForgetPassword = () => {
     let isValid = true;
 
     // Email validation
-    if (!form.email) {
+    // Keyboards often add a space after a suggested address
+    const email = form.email.trim();
+    if (!email) {
       newErrors.email = "Email is required";
       isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
       newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
@@ -131,7 +133,7 @@ const ForgetPassword = () => {
     }).start();
 
     try {
-      await sendPasswordRecovery(form.email);
+      await sendPasswordRecovery(form.email.trim());
 
       showToast(
         "Password reset email sent! Please check your inbox.",

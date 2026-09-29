@@ -168,9 +168,19 @@ export const pianoFormProblem = (
   }
 };
 
+// A customer belongs to a rental; the rest of a category's details are
+// kept when the category changes, but only shown for their own category
+const NO_CUSTOMER = {
+  rental_customer_name: null,
+  rental_customer_address: null,
+  rental_customer_mobile: null,
+};
+
 /**
  * The piano to save: the details every piano has plus those of its category.
  * Its photos are the saved ones to keep and the newly picked ones to upload.
+ * A piano that isn't a rental has no customer, so any customer details left
+ * from when it was one are cleared.
  */
 export const toPianoEntryInput = (
   form: PianoFormState,
@@ -202,11 +212,13 @@ export const toPianoEntryInput = (
     case PIANO_CATEGORY.WAREHOUSE:
       return {
         ...basics,
+        ...NO_CUSTOMER,
         warehouse_since_date: toStoredDate(form.warehouseStoredSinceDate),
       };
     case PIANO_CATEGORY.EVENTS:
       return {
         ...basics,
+        ...NO_CUSTOMER,
         event_purchase_price: form.eventPurchasePrice,
         event_purchase_from: form.eventPurchaseFrom,
         event_model_number: form.eventModelNumber,
@@ -215,11 +227,12 @@ export const toPianoEntryInput = (
     case PIANO_CATEGORY.ON_SALE:
       return {
         ...basics,
+        ...NO_CUSTOMER,
         on_sale_purchase_from: form.onSalePurchaseFrom,
         on_sale_import_date: toStoredDate(form.onSaleImportDate),
         on_sale_price: form.onSalePrice,
       };
     default:
-      return basics;
+      return { ...basics, ...NO_CUSTOMER };
   }
 };

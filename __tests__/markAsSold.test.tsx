@@ -212,6 +212,21 @@ describe("marking a piano as sold", () => {
     expect(field(renderer, "Sale Price").props.value).toBe("250000");
   });
 
+  it("no longer counts down the rental on the piano's page", async () => {
+    const sold = {
+      ...rental,
+      sold_date: inDays(-2),
+      sold_price: 185000,
+      sold_to_name: "Ravi Kumar",
+    } as any;
+    const { renderer } = await openDetail(sold);
+
+    const texts = allTexts(renderer.root).join(" ");
+    expect(texts).not.toMatch(/Active Rental|remaining|Expiring Soon/);
+    // The rental's details are still there
+    expect(texts).toContain("Asha Mehta");
+  });
+
   it("can be undone", async () => {
     const sold = {
       ...rental,
