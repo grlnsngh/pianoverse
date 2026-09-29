@@ -16,6 +16,7 @@ import {
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { callNumber, messageOnWhatsApp } from "@/utils/contact";
 import { formatRupees } from "@/utils/money";
+import { getPianoPhotos } from "@/utils/photos";
 import { isSold } from "@/utils/pianoStatus";
 import { formatPeriod, isEndingSoon } from "@/utils/rentalStatus";
 import { buildShareMessage } from "@/utils/share";
@@ -37,6 +38,7 @@ import { PIANO_CATEGORY } from "@/constants/Piano";
 import CustomButton from "@/components/CustomButton";
 import ExtendRentalSheet from "@/components/ExtendRentalSheet";
 import MarkAsSoldSheet from "@/components/MarkAsSoldSheet";
+import PhotoGallery from "@/components/PhotoGallery";
 import RentPayments from "@/components/RentPayments";
 import icons from "@/constants/icons";
 
@@ -583,7 +585,6 @@ const DetailScreen = () => {
 
   const {
     title,
-    image_url,
     category,
     make,
     description,
@@ -669,12 +670,7 @@ const DetailScreen = () => {
         <View className="w-full flex min-h-[90vh] px-4 space-y-4 pb-24">
           {/* Image Section with Category Badge */}
           <View className="relative mt-2">
-            <Image
-              source={{ uri: image_url }}
-              style={{ height: 280 }}
-              className="w-full rounded-2xl"
-              resizeMode="cover"
-            />
+            <PhotoGallery photos={getPianoPhotos(filteredPiano)} height={280} />
             <View
               className={`absolute top-4 right-4 ${getCategoryColor()} rounded-full px-4 py-2 shadow-lg`}
             >

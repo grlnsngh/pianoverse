@@ -5,6 +5,7 @@ import {
   pianoFormProblem,
   PianoFormState,
   pianoToForm,
+  photoUri,
   toPianoEntryInput,
 } from "@/utils/pianoForm";
 
@@ -15,7 +16,7 @@ const completeForm = (changes: Partial<PianoFormState> = {}) => ({
   category: "warehouse",
   title: "Yamaha U1",
   description: "Upright piano",
-  image: photo,
+  photos: [photo],
   make: "Yamaha",
   companyAssociated: "Shamshersons",
   ...changes,
@@ -28,7 +29,7 @@ describe("filling in a piano", () => {
 
   it.each([
     [{ category: "" }, "Please choose a category."],
-    [{ image: null }, "Please add a photo."],
+    [{ photos: [] }, "Please add a photo."],
     [{ title: "   " }, "Please enter a title."],
     [{ description: "" }, "Please enter a description."],
     [{ make: "" }, "Please choose the make."],
@@ -40,9 +41,9 @@ describe("filling in a piano", () => {
     });
   });
 
-  it("doesn't need a new photo when the piano already has one", () => {
+  it("is complete with a saved photo and no new one", () => {
     expect(
-      pianoFormProblem(completeForm({ image: null }), { hasSavedPhoto: true })
+      pianoFormProblem(completeForm({ photos: ["https://example.com/a.jpg"] }))
     ).toBeNull();
   });
 
@@ -121,10 +122,7 @@ describe("saving a piano", () => {
         ...(details as any),
       });
 
-      const input = toPianoEntryInput(pianoToForm(piano), {
-        user,
-        image: piano.image_url,
-      });
+      const input = toPianoEntryInput(pianoToForm(piano), { user });
 
       expect(input).toEqual({
         users: "user-doc-1",
@@ -134,7 +132,7 @@ describe("saving a piano", () => {
         title: piano.title,
         description: piano.description,
         company_associated: piano.company_associated,
-        image_url: piano.image_url,
+        photos: [piano.image_url],
         date_of_purchase: "2026-01-15",
         ...details,
       });
@@ -144,10 +142,49 @@ describe("saving a piano", () => {
   it("sends a newly picked photo for upload", () => {
     const input = toPianoEntryInput(completeForm(), {
       user: { $id: testUser.$id, accountId: testUser.accountId },
-      image: photo,
     });
 
-    expect(input.image_url).toBe(photo);
+    expect(input.photos).toEqual([photo]);
+  });
+
+  it("sends every photo in the order shown, the saved ones as URLs", () => {
+    const input = toPianoEntryInput(
+      completeForm({ photos: ["https://example.com/a.jpg", photo] }),
+      { user: { $id: testUser.$id, accountId: testUser.accountId } }
+    );
+
+    expect(input.photos).toEqual(["https://example.com/a.jpg", photo]);
+  });
+});
+
+describe("editing a piano's photos", () => {
+  it("starts with every saved photo, the cover first", () => {
+    const piano = makePiano({
+      image_url: "https://example.com/a.jpg",
+      image_urls: ["https://example.com/a.jpg", "https://example.com/b.jpg"],
+    });
+
+    expect(pianoToForm(piano).photos).toEqual([
+      "https://example.com/a.jpg",
+      "https://example.com/b.jpg",
+    ]);
+  });
+
+  it("starts with the one photo of a piano saved before there were several", () => {
+    const piano = makePiano({ image_url: "https://example.com/a.jpg" });
+
+    expect(pianoToForm(piano).photos).toEqual(["https://example.com/a.jpg"]);
+  });
+
+  it("finds a photo's place whether saved or just picked", () => {
+    expect(photoUri("https://example.com/a.jpg")).toBe("https://example.com/a.jpg");
+    expect(photoUri(photo)).toBe(photo.uri);
+  });
+
+  it("keeps its photos when passed between screens", () => {
+    const form = completeForm({ photos: ["https://example.com/a.jpg", photo] });
+
+    expect(parsePianoForm(JSON.stringify(form)).photos).toEqual(form.photos);
   });
 });
 

@@ -21,7 +21,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Sales:** Mark a piano as sold with the buyer, price and date; sold pianos leave the stock and can be shown with a filter.
 - **Search and filters:** Search by title, make, customer, mobile, model or B-number; filter by category, active or overdue rentals, and sold pianos.
 - **Income:** Profile shows the rent from active rentals and this month's sales.
-- **Photos:** Take a photo with the camera or choose one; photos are resized before upload.
+- **Photos:** Add up to 10 photos to a piano by taking them with the camera or choosing them. The first is the cover shown in the lists, and the piano's page lets you swipe through all of them. Photos are resized before upload.
 - **Customers:** Call or WhatsApp a rental customer from the piano's page.
 - **Sharing and export:** Share a piano's details, or export the whole list as CSV.
 - **Offline list:** The piano list is kept on the device and shown when there is no connection.
@@ -102,6 +102,8 @@ Besides the `users` and `pianos` tables, the app needs a `rent_payments` table (
 | `note`     | string, optional  |
 
 Permissions: **Create** for All users only, with **Row level security** on. Each payment then belongs to the account that recorded it. Without the table, a rented piano's page shows "Couldn't load payments" and deleting a piano still works.
+
+The `pianos` table also needs an `image_urls` column: an array of varchar (size 1000), not required. It holds the link of every photo in the order shown, and `image_url` stays the cover (the first photo). Pianos saved before this column existed simply have one photo. **Create the column before using this version**: creating or editing a piano writes to it, and fails while it is missing.
 
 ## Project Structure
 

@@ -31,8 +31,6 @@ import { makePiano, testUser } from "./helpers/fixtures";
 import {
   captureAlerts,
   createTestStore,
-  findByImageSource,
-  press,
   pressText,
   renderWithStore,
 } from "./helpers/render";
@@ -103,7 +101,7 @@ it("keeps the sale details of an On Sale piano when it is saved", async () => {
   });
 });
 
-it("uploads a newly picked image when the piano is saved", async () => {
+it("uploads a newly picked photo when the piano is saved, keeping the saved one as the cover", async () => {
   jest.mocked(ImagePicker.launchImageLibraryAsync).mockResolvedValue({
     canceled: false,
     assets: [
@@ -124,9 +122,7 @@ it("uploads a newly picked image when the piano is saved", async () => {
     .mockResolvedValue({ blob: async () => ({ size: 3000 }) } as any);
   const renderer = renderEditScreenFor(makePiano());
 
-  await press(
-    findByImageSource(renderer.root, (source) => source.uri === fileViewUrl("old-file"))
-  );
+  await pressText(renderer.root, "Choose a file");
   await pressText(renderer.root, "Save Changes");
 
   expect(alerts.titles()).toEqual([]);
@@ -138,9 +134,12 @@ it("uploads a newly picked image when the piano is saved", async () => {
     size: 3000,
     type: "image/jpeg",
   });
-  expect(fakeBackend.documents.get("piano-1")?.image_url).toBe(fileViewUrl(newFileId));
-  // The replaced image is no longer referenced, so it is cleaned up
-  expect(fakeBackend.files.has("old-file")).toBe(false);
+  // The new photo comes after the saved one, which stays the cover
+  expect(fakeBackend.documents.get("piano-1")).toMatchObject({
+    image_url: fileViewUrl("old-file"),
+    image_urls: [fileViewUrl("old-file"), fileViewUrl(newFileId)],
+  });
+  expect(fakeBackend.files.has("old-file")).toBe(true);
   // Back to where the edit started, not a new copy of Home
   expect(router.back).toHaveBeenCalled();
   expect(router.push).not.toHaveBeenCalled();

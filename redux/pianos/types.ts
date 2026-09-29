@@ -31,6 +31,8 @@ export interface PianoItem {
   event_purchase_from?: string | null;
   event_purchase_price?: number | null;
   image_url: string;
+  // Every photo in the order shown; the first is the cover, i.e. `image_url`
+  image_urls?: string[] | null;
   make: string;
   on_sale_import_date?: Date | null;
   on_sale_price?: number | null;
@@ -62,6 +64,7 @@ export interface PianoItemFormStateType {
   event_purchase_from?: string | null;
   event_purchase_price?: number | null;
   image_url: string;
+  image_urls?: string[];
   make: string;
   on_sale_import_date?: string | null; // Changed to string
   on_sale_price?: number | null;

@@ -1,30 +1,39 @@
 import { icons } from "@/constants";
-import { PianoFormImage } from "@/utils/pianoForm";
+import { MAX_PHOTOS } from "@/utils/photos";
 import { PhotoSource } from "@/utils/photo";
+import { PianoFormPhoto, photoUri } from "@/utils/pianoForm";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useState } from "react";
-import { Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import {
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 
 interface PianoPhotoFieldProps {
-  // A photo picked on this screen, not uploaded yet
-  image: PianoFormImage | null;
-  // The piano's current photo, when editing
-  savedPhotoUrl?: string;
+  // The piano's photos, saved or picked on this screen; the first is the cover
+  photos: PianoFormPhoto[];
   onPick: (source: PhotoSource) => void;
-  onRemove: () => void;
+  onRemove: (index: number) => void;
+  onMakeCover: (index: number) => void;
 }
 
-const overlayButton = (position: ViewStyle): ViewStyle => ({
+const THUMBNAIL_SIZE = 64;
+
+const removeBadge: ViewStyle = {
   position: "absolute",
-  backgroundColor: "rgba(0,0,0,0.5)",
-  borderRadius: 15,
-  width: 32,
-  height: 32,
+  top: -6,
+  right: -6,
+  backgroundColor: "rgba(0,0,0,0.8)",
+  borderRadius: 11,
+  width: 22,
+  height: 22,
   alignItems: "center",
   justifyContent: "center",
-  ...position,
-});
+};
 
 const PhotoError = ({ message }: { message: string }) => (
   <View
@@ -38,102 +47,26 @@ const PhotoError = ({ message }: { message: string }) => (
   </View>
 );
 
-const CameraButton = ({
-  left,
-  onPress,
-}: {
-  left: number;
-  onPress: () => void;
-}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    accessibilityLabel="Take a new photo"
-    style={overlayButton({ bottom: 16, left })}
-  >
-    <Ionicons name="camera" size={16} color="white" />
-  </TouchableOpacity>
-);
-
 /**
- * The photo part of the piano forms: the picked or saved photo with buttons
- * to replace it, or buttons to take or choose one.
+ * The photos part of the piano forms: the cover, a strip with every photo
+ * (tap one to make it the cover, or remove it) and buttons to take or choose
+ * another photo, up to the limit.
  */
 const PianoPhotoField: React.FC<PianoPhotoFieldProps> = ({
-  image,
-  savedPhotoUrl,
+  photos,
   onPick,
   onRemove,
+  onMakeCover,
 }) => {
-  // The photo that failed to load; a different photo gets a fresh try
-  const [failedUri, setFailedUri] = useState<string | null>(null);
+  // The photos that failed to load; a different photo gets a fresh try
+  const [failedUris, setFailedUris] = useState<string[]>([]);
+  const markFailed = (uri: string) =>
+    setFailedUris((current) => (current.includes(uri) ? current : [...current, uri]));
 
-  const pickFromLibrary = () => onPick("library");
-  const takePhoto = () => onPick("camera");
-
-  if (image) {
-    return (
-      <TouchableOpacity onPress={pickFromLibrary}>
-        {failedUri === image.uri ? (
-          <PhotoError message="The image may be corrupted or too small." />
-        ) : (
-          <Image
-            style={{ height: 180 }}
-            source={{ uri: image.uri }}
-            resizeMode="cover"
-            className="w-full h-64 rounded-2xl"
-            onError={() => setFailedUri(image.uri)}
-          />
-        )}
-        <TouchableOpacity
-          onPress={onRemove}
-          style={overlayButton({ top: 16, right: 16 })}
-        >
-          <Image
-            source={icons.close}
-            className="w-3 h-3 absolute"
-            tintColor="white"
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <CameraButton left={16} onPress={takePhoto} />
-      </TouchableOpacity>
-    );
-  }
-
-  if (savedPhotoUrl) {
-    return (
-      <TouchableOpacity onPress={pickFromLibrary}>
-        {failedUri === savedPhotoUrl ? (
-          <PhotoError message="The existing image may be corrupted." />
-        ) : (
-          <Image
-            source={{ uri: savedPhotoUrl }}
-            className="w-full rounded-2xl"
-            resizeMode="cover"
-            style={{ height: 180 }}
-            onError={() => setFailedUri(savedPhotoUrl)}
-          />
-        )}
-        <TouchableOpacity
-          onPress={pickFromLibrary}
-          style={overlayButton({ bottom: 16, left: 16 })}
-        >
-          <Image
-            source={icons.pencil}
-            className="w-3 h-3 absolute"
-            tintColor="white"
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <CameraButton left={56} onPress={takePhoto} />
-      </TouchableOpacity>
-    );
-  }
-
-  return (
+  const addButtons = (
     <View className="flex-row space-x-3">
       <TouchableOpacity
-        onPress={takePhoto}
+        onPress={() => onPick("camera")}
         style={{ height: 60 }}
         className="flex-1 px-4 bg-black-100 rounded-2xl border-2 border-black-200 flex justify-center items-center flex-row space-x-2"
       >
@@ -141,7 +74,7 @@ const PianoPhotoField: React.FC<PianoPhotoFieldProps> = ({
         <Text className="text-sm text-gray-100 font-pmedium">Take Photo</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={pickFromLibrary}
+        onPress={() => onPick("library")}
         style={{ height: 60 }}
         className="flex-1 px-4 bg-black-100 rounded-2xl border-2 border-black-200 flex justify-center items-center flex-row space-x-2"
       >
@@ -155,6 +88,87 @@ const PianoPhotoField: React.FC<PianoPhotoFieldProps> = ({
           Choose a file
         </Text>
       </TouchableOpacity>
+    </View>
+  );
+
+  if (photos.length === 0) return addButtons;
+
+  const cover = photoUri(photos[0]);
+
+  return (
+    <View className="space-y-3">
+      {failedUris.includes(cover) ? (
+        <PhotoError message="The image may be corrupted or too small." />
+      ) : (
+        <Image
+          source={{ uri: cover }}
+          className="w-full rounded-2xl"
+          resizeMode="cover"
+          style={{ height: 180 }}
+          onError={() => markFailed(cover)}
+        />
+      )}
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: 8, paddingRight: 8 }}
+      >
+        <View className="flex-row space-x-3">
+          {photos.map((photo, index) => {
+            const uri = photoUri(photo);
+            return (
+              <View key={`${index}-${uri}`}>
+                <TouchableOpacity
+                  onPress={() => onMakeCover(index)}
+                  disabled={index === 0}
+                  accessibilityLabel={
+                    index === 0 ? "Cover photo" : `Make photo ${index + 1} the cover`
+                  }
+                >
+                  <Image
+                    source={{ uri }}
+                    resizeMode="cover"
+                    className="rounded-xl bg-black-100"
+                    style={{
+                      width: THUMBNAIL_SIZE,
+                      height: THUMBNAIL_SIZE,
+                      borderWidth: index === 0 ? 2 : 0,
+                      borderColor: "#FF9C01",
+                    }}
+                  />
+                  {index === 0 && (
+                    <View className="absolute bottom-1 left-1 right-1 rounded-md bg-black/70 items-center">
+                      <Text className="text-secondary text-xs font-pmedium">
+                        Cover
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => onRemove(index)}
+                  accessibilityLabel={`Remove photo ${index + 1}`}
+                  style={removeBadge}
+                >
+                  <Image
+                    source={icons.close}
+                    className="w-2 h-2"
+                    tintColor="white"
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
+
+      <Text className="text-xs text-gray-100 font-pregular">
+        {photos.length} of {MAX_PHOTOS} photos
+        {photos.length > 1 ? " · Tap a photo to make it the cover" : ""}
+      </Text>
+
+      {photos.length < MAX_PHOTOS && addButtons}
     </View>
   );
 };

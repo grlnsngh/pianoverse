@@ -10,10 +10,10 @@ import {
   pianoFormProblem,
   PianoFormState,
 } from "@/utils/pianoForm";
-import { PhotoSource, pickPianoPhoto } from "@/utils/photo";
 import CustomButton from "@/components/CustomButton";
 import PianoFormFields from "@/components/PianoFormFields";
 import PianoPhotoField from "@/components/PianoPhotoField";
+import usePianoPhotos from "@/lib/usePianoPhotos";
 import { PIANO_CATEGORY } from "@/constants/Piano";
 
 const CATEGORY_STEP_NAMES: Record<string, string> = {
@@ -52,15 +52,16 @@ const Create = () => {
       form.category,
       form.title.trim(),
       form.description.trim(),
-      form.image,
       form.make,
       form.companyAssociated,
       form.dateOfPurchase,
     ];
 
-    const basicComplete = basicFields.every(
-      (field) => field !== null && field !== undefined && field !== ""
-    );
+    const basicComplete =
+      form.photos.length > 0 &&
+      basicFields.every(
+        (field) => field !== null && field !== undefined && field !== ""
+      );
 
     const currentStep = basicComplete ? 2 : 1;
     const totalSteps = 3;
@@ -77,10 +78,7 @@ const Create = () => {
   };
   const progress = calculateProgress();
 
-  const addPhoto = async (source: PhotoSource) => {
-    const image = await pickPianoPhoto(source);
-    if (image) updateForm({ image });
-  };
+  const { addPhoto, removePhoto, makeCover } = usePianoPhotos(setForm);
 
   const handleReview = () => {
     const problem = pianoFormProblem(form);
@@ -169,9 +167,10 @@ const Create = () => {
             onChange={updateForm}
             photo={
               <PianoPhotoField
-                image={form.image}
+                photos={form.photos}
                 onPick={addPhoto}
-                onRemove={() => updateForm({ image: null })}
+                onRemove={removePhoto}
+                onMakeCover={makeCover}
               />
             }
           />
