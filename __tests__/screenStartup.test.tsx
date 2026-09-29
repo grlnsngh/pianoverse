@@ -130,6 +130,18 @@ describe("the review screen", () => {
     }
   );
 
+  it("centres its step under the step circles", () => {
+    const { renderer } = renderReview();
+
+    // The text component carrying the classes, around the drawn text
+    const [step] = renderer.root.findAll(
+      (node) =>
+        typeof node.props.className === "string" &&
+        allTexts(node).join("") === "Step 3 of 3"
+    );
+    expect(step.props.className).toMatch(/\btext-center\b/);
+  });
+
   it("reads the form once, not on every render", () => {
     const parse = jest.spyOn(JSON, "parse");
     const { renderer, image } = renderReview();

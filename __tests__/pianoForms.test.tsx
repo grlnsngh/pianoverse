@@ -87,6 +87,35 @@ describe("Create screen", () => {
   const renderCreate = () =>
     renderWithStore(<Create />, createTestStore({ user: testUser }));
 
+  it("says what's missing instead of offering a button that does nothing", async () => {
+    const alerts = captureAlerts();
+    const renderer = renderCreate();
+
+    const [button] = renderer.root.findAll(
+      (node) =>
+        node.props.title === "Review & Publish" &&
+        typeof node.props.handlePress === "function"
+    );
+    expect(button.props.disabled).toBeFalsy();
+    await pressText(renderer.root, "Review & Publish");
+
+    expect(alerts.titles()).toEqual(["Missing Details"]);
+    expect(alerts.spy.mock.calls[0][1]).toBe("Please add a photo.");
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("centres the step it is on under the step circles", () => {
+    const renderer = renderCreate();
+
+    // The text component carrying the classes, around the drawn text
+    const [step] = renderer.root.findAll(
+      (node) =>
+        typeof node.props.className === "string" &&
+        allTexts(node).join("") === "Step 1 of 3"
+    );
+    expect(step.props.className).toMatch(/\btext-center\b/);
+  });
+
   it("sets the On Sale import date from its own date picker", () => {
     const renderer = renderCreate();
     chooseCategory(renderer, "on_sale");
