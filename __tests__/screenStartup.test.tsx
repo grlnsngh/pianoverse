@@ -80,7 +80,7 @@ describe("the review screen", () => {
     companyAssociated: "Shamshersons",
     dateOfPurchase: new Date(),
     warehouseStoredSinceDate: new Date(),
-    image: { uri, fileName: "piano.jpeg", fileSize: 1000 },
+    photos: [{ uri, fileName: "piano.jpeg", fileSize: 1000 }],
   });
 
   const renderReview = () => {
@@ -119,6 +119,34 @@ describe("the review screen", () => {
       jest.advanceTimersByTime(2000);
     });
     expect(allTexts(renderer.root)).not.toContain("Loading image...");
+  });
+
+  it("shows the cover and says how many more photos there are", () => {
+    const morePhotos = JSON.stringify({
+      ...JSON.parse(formData),
+      photos: [
+        { uri, fileName: "piano.jpeg", fileSize: 1000 },
+        { uri: "file:///cache/ImagePicker/two.jpeg" },
+        "https://example.com/three.jpg",
+      ],
+    });
+    jest.mocked(useLocalSearchParams).mockReturnValue({ formData: morePhotos });
+
+    const renderer = renderWithStore(
+      <Review />,
+      createTestStore({ user: testUser })
+    );
+
+    expect(allTexts(renderer.root)).toContain("+ 2 more photos");
+    expect(
+      findByImageSource(renderer.root, (source) => source.uri === uri)
+    ).toBeTruthy();
+  });
+
+  it("says nothing about more photos when there is only one", () => {
+    const { renderer } = renderReview();
+
+    expect(allTexts(renderer.root).join(" ")).not.toContain("more photo");
   });
 
   it("explains when the image can't be shown", () => {

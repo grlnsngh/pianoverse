@@ -2,6 +2,7 @@ import { PIANO_CATEGORY } from "@/constants/Piano";
 import { LocalImageAsset, PianoEntryInput } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate, toStoredDate } from "@/utils/dates";
+import { getPianoPhotos } from "@/utils/photos";
 import { rentalDetailsError } from "@/utils/validation";
 
 /** A photo picked on the device that hasn't been uploaded yet. */
@@ -10,12 +11,20 @@ export type PianoFormImage = LocalImageAsset & {
   height?: number;
 };
 
+/** A photo in the form: the URL of a saved one, or one picked just now. */
+export type PianoFormPhoto = string | PianoFormImage;
+
+/** Where to find a photo of the form, whether saved or just picked. */
+export const photoUri = (photo: PianoFormPhoto) =>
+  typeof photo === "string" ? photo : photo.uri;
+
 /** What the Create and Edit screens hold while a piano is being filled in. */
 export interface PianoFormState {
   category: string;
   title: string;
   description: string;
-  image: PianoFormImage | null;
+  // In the order they are shown; the first is the cover
+  photos: PianoFormPhoto[];
   make: string;
   companyAssociated: string;
   dateOfPurchase: Date;
@@ -47,7 +56,7 @@ export const createEmptyPianoForm = (): PianoFormState => ({
   category: PIANO_CATEGORY.RENTABLE,
   title: "",
   description: "",
-  image: null,
+  photos: [],
   make: "",
   companyAssociated: "",
   dateOfPurchase: new Date(),
@@ -67,12 +76,12 @@ export const createEmptyPianoForm = (): PianoFormState => ({
   onSalePrice: 0,
 });
 
-/** The form for editing a saved piano (its photo stays until a new one is picked). */
+/** The form for editing a saved piano, with its saved photos. */
 export const pianoToForm = (piano: PianoItem): PianoFormState => ({
   category: piano.category || "",
   title: piano.title || "",
   description: piano.description || "",
-  image: null,
+  photos: getPianoPhotos(piano),
   make: piano.make || "",
   companyAssociated: piano.company_associated || "",
   dateOfPurchase: parseStoredDate(piano.date_of_purchase) ?? new Date(),
@@ -114,16 +123,12 @@ const missing = (message: string): PianoFormProblem => ({
 
 const isBlank = (value: string) => !value.trim();
 
-/**
- * Why the form can't be saved yet, or null if it's complete. A piano that
- * already has a photo (when editing) doesn't need a new one.
- */
+/** Why the form can't be saved yet, or null if it's complete. */
 export const pianoFormProblem = (
-  form: PianoFormState,
-  { hasSavedPhoto = false } = {}
+  form: PianoFormState
 ): PianoFormProblem | null => {
   if (!form.category) return missing("Please choose a category.");
-  if (!form.image && !hasSavedPhoto) return missing("Please add a photo.");
+  if (form.photos.length === 0) return missing("Please add a photo.");
   if (isBlank(form.title)) return missing("Please enter a title.");
   if (isBlank(form.description)) return missing("Please enter a description.");
   if (!form.make) return missing("Please choose the make.");
@@ -165,17 +170,11 @@ export const pianoFormProblem = (
 
 /**
  * The piano to save: the details every piano has plus those of its category.
- * `image` is the photo to keep (its URL) or a newly picked one to upload.
+ * Its photos are the saved ones to keep and the newly picked ones to upload.
  */
 export const toPianoEntryInput = (
   form: PianoFormState,
-  {
-    user,
-    image,
-  }: {
-    user: { $id: string; accountId: string };
-    image: PianoEntryInput["image_url"];
-  }
+  { user }: { user: { $id: string; accountId: string } }
 ): PianoEntryInput => {
   const basics: PianoEntryInput = {
     users: user.$id,
@@ -185,7 +184,7 @@ export const toPianoEntryInput = (
     title: form.title,
     description: form.description,
     company_associated: form.companyAssociated,
-    image_url: image,
+    photos: form.photos,
     date_of_purchase: toStoredDate(form.dateOfPurchase),
   };
 

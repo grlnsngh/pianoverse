@@ -19,6 +19,7 @@ import { PIANO_CATEGORY } from "@/constants/Piano";
 import {
   createEmptyPianoForm,
   parsePianoForm,
+  photoUri,
   toPianoEntryInput,
 } from "@/utils/pianoForm";
 import { scheduleRentalDueNotification } from "@/services/notifications";
@@ -41,7 +42,11 @@ const Review = () => {
         : createEmptyPianoForm(),
     [params.formData]
   );
-  const imageUri: string | undefined = form.image?.uri;
+  // The cover, and how many more photos there are
+  const imageUri: string | undefined = form.photos[0]
+    ? photoUri(form.photos[0])
+    : undefined;
+  const morePhotos = form.photos.length - 1;
 
   // Give a new image a fresh start, and stop showing "Loading image..." if it
   // hasn't loaded within 2 seconds
@@ -70,7 +75,7 @@ const Review = () => {
     try {
       setUploading(true);
       const createdPiano = await createPianoEntry(
-        toPianoEntryInput(form, { user, image: form.image })
+        toPianoEntryInput(form, { user })
       );
       await scheduleRentalDueNotification(createdPiano);
       dispatch(addPianoItem(toPianoItem(createdPiano)) as any);
@@ -215,13 +220,13 @@ const Review = () => {
                 </View>
               </View>
 
-              {form.image && (
+              {imageUri && (
                 <View className="mt-4 pt-4 border-t border-black-100/50">
                   <Text className="text-gray-100 font-pmedium mb-3">
                     Piano Image:
                   </Text>
                   <View className="rounded-xl overflow-hidden shadow-md">
-                    {form.image ? (
+                    {imageUri ? (
                       <>
                         {imageLoading && (
                           <View className="absolute inset-0 bg-black-100 items-center justify-center z-10">
@@ -232,7 +237,7 @@ const Review = () => {
                         )}
                         {!imageError ? (
                           <Image
-                            source={{ uri: form.image.uri }}
+                            source={{ uri: imageUri }}
                             className="w-full h-48"
                             resizeMode="cover"
                             onError={() => {
@@ -259,6 +264,11 @@ const Review = () => {
                       </>
                     ) : null}
                   </View>
+                  {morePhotos > 0 && (
+                    <Text className="text-gray-100 font-pregular mt-2">
+                      + {morePhotos} more photo{morePhotos === 1 ? "" : "s"}
+                    </Text>
+                  )}
                 </View>
               )}
             </View>

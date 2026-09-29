@@ -33,7 +33,7 @@ jest.mock("@react-native-picker/picker", () => {
 import fs from "fs";
 import path from "path";
 import React from "react";
-import { act, ReactTestRenderer } from "react-test-renderer";
+import { ReactTestRenderer } from "react-test-renderer";
 import * as ImagePicker from "expo-image-picker";
 import Create from "@/app/(tabs)/create";
 import EditScreen from "@/app/edit/[id]";
@@ -42,7 +42,6 @@ import { makePiano, testUser } from "./helpers/fixtures";
 import {
   captureAlerts,
   createTestStore,
-  flushPromises,
   pressText,
   renderWithStore,
 } from "./helpers/render";
@@ -78,19 +77,6 @@ afterEach(() => {
 
 const shows = (renderer: ReactTestRenderer, uri: string) =>
   renderer.root.findAll((node) => node.props.source?.uri === uri).length > 0;
-
-const pressLabel = async (renderer: ReactTestRenderer, label: string) => {
-  const [node] = renderer.root.findAll(
-    (candidate) =>
-      candidate.props.accessibilityLabel === label &&
-      typeof candidate.props.onPress === "function"
-  );
-  if (!node) throw new Error(`Nothing labelled "${label}"`);
-  await act(async () => {
-    await node.props.onPress();
-  });
-  await flushPromises();
-};
 
 describe("taking a photo on the Create screen", () => {
   const renderCreate = () =>
@@ -146,7 +132,7 @@ describe("taking a photo on the Create screen", () => {
     expect(shows(renderer, cameraPhoto.uri)).toBe(false);
   });
 
-  it("can retake a photo that was already chosen", async () => {
+  it("adds a camera photo after one that was already chosen", async () => {
     jest.mocked(ImagePicker.launchImageLibraryAsync).mockResolvedValue({
       canceled: false,
       assets: [{ ...cameraPhoto, uri: "file:///cache/ImagePicker/old.jpg" }],
@@ -155,14 +141,16 @@ describe("taking a photo on the Create screen", () => {
     await pressText(renderer.root, "Choose a file");
     expect(shows(renderer, "file:///cache/ImagePicker/old.jpg")).toBe(true);
 
-    await pressLabel(renderer, "Take a new photo");
+    await pressText(renderer.root, "Take Photo");
 
     expect(shows(renderer, cameraPhoto.uri)).toBe(true);
+    // The first photo is still there, and still the cover
+    expect(shows(renderer, "file:///cache/ImagePicker/old.jpg")).toBe(true);
   });
 });
 
 describe("taking a photo on the Edit screen", () => {
-  it("replaces the piano's photo with one from the camera", async () => {
+  it("adds a photo from the camera to the piano's photos", async () => {
     const piano = makePiano();
     fakeBackend.documents.set(piano.$id, { ...piano });
     const renderer = renderWithStore(
@@ -170,10 +158,11 @@ describe("taking a photo on the Edit screen", () => {
       createTestStore({ user: testUser, items: [piano] })
     );
 
-    await pressLabel(renderer, "Take a new photo");
+    await pressText(renderer.root, "Take Photo");
 
     expect(ImagePicker.launchCameraAsync).toHaveBeenCalledTimes(1);
     expect(shows(renderer, cameraPhoto.uri)).toBe(true);
+    expect(shows(renderer, piano.image_url)).toBe(true);
   });
 });
 

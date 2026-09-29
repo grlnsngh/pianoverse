@@ -155,8 +155,8 @@ export function convertImageUrl(oldUrl: string): string | null {
 }
 
 /**
- * Prepares a piano document for the app: converts its image URL to one
- * without transformations.
+ * Prepares a piano document for the app: converts the URLs of its photos to
+ * ones without transformations.
  */
 export const toPianoItem = (document: Models.Document): PianoItem =>
   ({
@@ -164,6 +164,11 @@ export const toPianoItem = (document: Models.Document): PianoItem =>
     image_url: document.image_url
       ? convertImageUrl(document.image_url)
       : document.image_url,
+    ...(Array.isArray(document.image_urls) && {
+      image_urls: document.image_urls
+        .map(convertImageUrl)
+        .filter((url: string | null): url is string => !!url),
+    }),
   }) as unknown as PianoItem;
 
 // Appwrite returns 25 documents per request unless a limit is given, so piano
@@ -237,14 +242,20 @@ export interface LocalImageAsset {
 }
 
 /**
- * Piano data as sent by the forms. `image_url` is either the stored image URL
- * or a newly picked image (an image picker asset or a file:// URI).
+ * A photo of a piano: the URL of one that is already stored, or a newly picked
+ * one (an image picker asset or a file:// URI) that still has to be uploaded.
+ */
+export type PianoPhoto = string | LocalImageAsset;
+
+/**
+ * Piano data as sent by the forms. `photos` are all the piano's photos in the
+ * order they are shown; the first is the cover.
  */
 export type PianoEntryInput = Omit<
   Partial<PianoItemFormStateType>,
-  "image_url" | "users"
+  "image_url" | "image_urls" | "users"
 > & {
-  image_url?: string | LocalImageAsset | null;
+  photos?: PianoPhoto[];
   // The owner's user document ID
   users?: string;
 };
@@ -264,7 +275,7 @@ const getFileExtension = (value?: string | null) =>
 
 /** Returns the picked image to upload, or null if `image` is already stored. */
 const toLocalImage = (
-  image: PianoEntryInput["image_url"]
+  image: PianoPhoto | null | undefined
 ): LocalImageAsset | null => {
   if (!image) return null;
   if (typeof image === "string") {
@@ -282,17 +293,15 @@ const getLocalFileSize = async (uri: string) => {
 /**
  * Uploads a picked image to the storage.
  *
- * @param {PianoEntryInput} pianoData - The data object containing file and user information.
- * @param {LocalImageAsset | string} pianoData.image_url - The picked image (asset or file:// URI) to be uploaded.
- * @param {string} pianoData.users - The user ID.
- * @param {string} pianoData.title - The title of the item.
- * @returns {Promise<URL | void>} - The URL of the uploaded file or void if there is no image to upload.
+ * @param {LocalImageAsset} file - The picked image (asset or file:// URI) to be uploaded.
+ * @param {{ users?: string; title?: string }} owner - The user ID and the title of the piano, used to name the file.
+ * @returns {Promise<URL>} - The URL of the uploaded file.
  * @throws {Error} - Throws an error if the upload fails.
  */
-export async function uploadFile(pianoData: PianoEntryInput) {
-  const file = toLocalImage(pianoData.image_url);
-  if (!file) return;
-
+export async function uploadFile(
+  file: LocalImageAsset,
+  owner: { users?: string; title?: string }
+) {
   try {
     // Extract the file extension from the original file name
     const fileExtension =
@@ -306,11 +315,11 @@ export async function uploadFile(pianoData: PianoEntryInput) {
     const sanitizeFileName = (input: string) => {
       return input.replace(/[^a-zA-Z0-9-_]/g, "_");
     };
-    const userId = sanitizeFileName(String(pianoData.users ?? ""));
-    const itemTitle = sanitizeFileName(pianoData.title ?? "");
+    const userId = sanitizeFileName(String(owner.users ?? ""));
+    const itemTitle = sanitizeFileName(owner.title ?? "");
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-"); // Optional: Add timestamp for uniqueness
 
-    // Create a new file name using pianoData.title and the extracted file extension
+    // Create a new file name using the piano title and the extracted file extension
     const newFileName = `userId_${userId}_itemTitle_${itemTitle}_${timestamp}.${fileExtension}`;
 
     const asset = {
@@ -359,23 +368,76 @@ export async function getFilePreview(fileId: string) {
 }
 
 /**
+ * Deletes the files behind the given photo URLs. A file that can't be deleted
+ * (e.g. it is already gone) is only logged, so this never throws.
+ */
+const deletePhotoFiles = async (urls: string[]) => {
+  await Promise.all(
+    urls.map((url) =>
+      deleteFileByUrl(url).catch((error) =>
+        console.warn("Could not delete a photo:", error)
+      )
+    )
+  );
+};
+
+/**
+ * Uploads the newly picked photos and returns the URL of every photo in the
+ * order given, plus the URLs of the files that were just uploaded. If an
+ * upload fails, the ones already uploaded are deleted again.
+ */
+const uploadPhotos = async (
+  photos: PianoPhoto[],
+  owner: { users?: string; title?: string }
+) => {
+  const urls: string[] = [];
+  const uploaded: string[] = [];
+
+  try {
+    for (const photo of photos) {
+      const local = toLocalImage(photo);
+      if (!local) {
+        urls.push(photo as string);
+        continue;
+      }
+      const url = String(await uploadFile(local, owner));
+      uploaded.push(url);
+      urls.push(url);
+    }
+  } catch (error) {
+    await deletePhotoFiles(uploaded);
+    throw error;
+  }
+
+  return { urls, uploaded };
+};
+
+/**
  * Creates a new piano entry in the database.
  *
  * @param {PianoEntryInput} pianoData - The data for the piano entry.
+ * @param {PianoPhoto[]} [pianoData.photos] - The piano's photos, the first being the cover. Newly picked ones are uploaded.
  * @returns {Promise<Object>} The response from the database after creating the document.
  * @throws {Error} If there is an error creating the piano entry.
  */
 export async function createPianoEntry(pianoData: PianoEntryInput) {
+  let uploaded: string[] = [];
+
   try {
-    const imageUrl = await uploadFile(pianoData);
+    const { photos = [], ...fields } = pianoData;
+    const result = await uploadPhotos(photos, pianoData);
+    uploaded = result.uploaded;
+
     const response = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.pianoCollectionId,
       ID.unique(),
-      { ...pianoData, image_url: imageUrl || "" }
+      { ...fields, image_url: result.urls[0] ?? "", image_urls: result.urls }
     );
     return response;
   } catch (error) {
+    // Don't leave the uploads behind if the piano could not be saved
+    await deletePhotoFiles(uploaded);
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error creating piano entry:", errorMessage);
     throw new Error(errorMessage);
@@ -410,50 +472,38 @@ export async function updatePianoFields(
  *
  * @param {string} documentId - The ID of the document to update.
  * @param {PianoEntryInput} pianoData - The data of the piano entry to update.
- * @param {string | LocalImageAsset} [pianoData.image_url] - The stored image URL, or a newly picked image to upload.
- * @param {string} [previousImageUrl] - The piano's current image; deleted once a new image has been saved.
+ * @param {PianoPhoto[]} [pianoData.photos] - All the piano's photos, the first being the cover: stored URLs to keep and newly picked images to upload.
+ * @param {string[]} [previousPhotoUrls] - The URLs of the piano's current photos; the files of those no longer in `photos` are deleted once the piano has been saved.
  * @returns {Promise<Object>} The updated document response from the database.
  * @throws {Error} If there is an error updating the piano entry.
  */
 export async function updatePianoEntry(
   documentId: string,
   pianoData: PianoEntryInput,
-  previousImageUrl?: string | null
+  previousPhotoUrls: string[] = []
 ) {
-  let uploadedImageUrl: string | undefined;
+  let uploaded: string[] = [];
 
   try {
-    let imageUrl =
-      typeof pianoData.image_url === "string" ? pianoData.image_url : "";
+    const { photos = [], ...fields } = pianoData;
+    const result = await uploadPhotos(photos, pianoData);
+    uploaded = result.uploaded;
 
-    // Upload a newly picked image
-    if (toLocalImage(pianoData.image_url)) {
-      const uploadedUrl = await uploadFile(pianoData);
-      if (uploadedUrl) {
-        uploadedImageUrl = String(uploadedUrl);
-        imageUrl = uploadedImageUrl;
-      }
-    }
     const response = await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.pianoCollectionId,
       documentId,
-      { ...pianoData, image_url: imageUrl }
+      { ...fields, image_url: result.urls[0] ?? "", image_urls: result.urls }
     );
 
-    // The piano now points at the new image, so the old file is unused
-    if (uploadedImageUrl && previousImageUrl) {
-      await deleteFileByUrl(previousImageUrl).catch((error) =>
-        console.warn("Could not delete the replaced image:", error)
-      );
-    }
+    // The piano no longer uses the photos that were taken out or replaced
+    const kept = new Set(result.urls);
+    await deletePhotoFiles(previousPhotoUrls.filter((url) => !kept.has(url)));
 
     return response;
   } catch (error) {
-    // Don't leave the new upload behind if the piano could not be saved
-    if (uploadedImageUrl) {
-      await deleteFileByUrl(uploadedImageUrl).catch(() => {});
-    }
+    // Don't leave the new uploads behind if the piano could not be saved
+    await deletePhotoFiles(uploaded);
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error updating piano entry:", errorMessage);
     throw new Error(errorMessage);
@@ -547,12 +597,11 @@ export async function deletePianoEntry(item: any) {
       item.$id
     );
 
-    // Then its image; a missing image must not keep the piano from being deleted
-    if (item.image_url) {
-      await deleteFileByUrl(item.image_url).catch((error) =>
-        console.warn("Could not delete the piano's image:", error)
-      );
-    }
+    // Then its photos; a missing one must not keep the piano from being deleted
+    const photoUrls = new Set<string>(
+      [item.image_url, ...(item.image_urls ?? [])].filter(Boolean)
+    );
+    await deletePhotoFiles([...photoUrls]);
 
     // And its rent payments, which mean nothing without the piano
     await deleteRentPaymentsForPiano(item.$id).catch((error) =>

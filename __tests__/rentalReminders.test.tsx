@@ -282,11 +282,13 @@ describe("publishing and editing", () => {
       category: "rentable",
       title: "Kawai K-300",
       description: "Black polish",
-      image: {
-        uri: "file:///cache/ImagePicker/piano.jpeg",
-        fileName: "piano.jpeg",
-        fileSize: 1000,
-      },
+      photos: [
+        {
+          uri: "file:///cache/ImagePicker/piano.jpeg",
+          fileName: "piano.jpeg",
+          fileSize: 1000,
+        },
+      ],
       make: "Other",
       companyAssociated: "Shamshersons",
       dateOfPurchase: new Date(),
