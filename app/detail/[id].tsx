@@ -498,7 +498,7 @@ const SaleDetails = ({
   piano: PianoItem;
   onUndo: () => void;
 }) => {
-  const price = Number(piano.sold_price);
+  const price = piano.sold_price ?? 0;
   const rows = [
     ["Sold On", formatDate(piano.sold_date)],
     ["Buyer", piano.sold_to_name],

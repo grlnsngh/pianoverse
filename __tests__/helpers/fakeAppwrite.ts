@@ -6,6 +6,8 @@
  *  - `equal()`, `orderDesc()`, `limit()` and `cursorAfter()` queries are honoured
  *  - `storage.createFile` resolves to `undefined` when `file.size` is not a number,
  *    because the real SDK skips its upload loop in that case
+ *  - the price columns of the pianos collection are numbers (double) and the
+ *    server rejects anything else, e.g. the text "185000"
  *
  * `Query` and `ID` are the real SDK implementations, so query strings are genuine.
  */
@@ -31,6 +33,25 @@ export const fakeBackend = {
     this.failNextDocumentUpdate = false;
     this.signOutError = null;
   },
+};
+
+// Columns the pianos collection stores as `double`
+const NUMBER_COLUMNS = [
+  "rental_price",
+  "event_purchase_price",
+  "on_sale_price",
+  "sold_price",
+];
+
+const rejectNonNumbers = (data: Record<string, unknown>) => {
+  for (const column of NUMBER_COLUMNS) {
+    const value = data[column];
+    if (value !== undefined && value !== null && typeof value !== "number") {
+      throw new Error(
+        `Invalid document structure: Attribute "${column}" has invalid type. Value must be a valid float`
+      );
+    }
+  }
 };
 
 export const fileViewUrl = (fileId: string) =>
@@ -87,6 +108,7 @@ class Databases {
   }
 
   async createDocument(_databaseId: string, _collectionId: string, id: string, data: object) {
+    rejectNonNumbers(data as Record<string, unknown>);
     const doc = { ...data, $id: id, $createdAt: new Date().toISOString() };
     fakeBackend.documents.set(id, doc);
     return doc;
@@ -99,6 +121,7 @@ class Databases {
     }
     const existing = fakeBackend.documents.get(id);
     if (!existing) throw new Error("Document with the requested ID could not be found.");
+    rejectNonNumbers(data as Record<string, unknown>);
     const updated = { ...existing, ...JSON.parse(JSON.stringify(data)) };
     fakeBackend.documents.set(id, updated);
     return updated;

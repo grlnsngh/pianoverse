@@ -54,8 +54,7 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
       {
         sold_to_name: buyerName.trim(),
         sold_to_address: buyerAddress.trim() || null,
-        // Stored as text in the database
-        sold_price: String(price),
+        sold_price: price,
         sold_date: toStoredDate(saleDate),
       },
       `Marked ${piano.title} as sold`

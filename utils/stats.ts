@@ -17,10 +17,6 @@ export const salesInMonth = (pianos: PianoItem[], month = new Date()) => {
   });
   return {
     count: sold.length,
-    // Sale prices are stored as text
-    total: sold.reduce(
-      (total, piano) => total + (Number(piano.sold_price) || 0),
-      0
-    ),
+    total: sold.reduce((total, piano) => total + (piano.sold_price ?? 0), 0),
   };
 };
