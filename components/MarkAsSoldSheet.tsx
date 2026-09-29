@@ -1,11 +1,11 @@
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import BottomSheet from "./BottomSheet";
 import CustomButton from "./CustomButton";
+import DateField from "./DateField";
 import FormField from "./FormField";
 import PriceField from "./PriceField";
 
@@ -26,7 +26,6 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
   const [buyerAddress, setBuyerAddress] = useState("");
   const [price, setPrice] = useState(0);
   const [saleDate, setSaleDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Start afresh each time, suggesting the asking price of a piano on sale
@@ -80,25 +79,13 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
         otherStyles="mt-5"
       />
       <PriceField title="Sale Price" value={price} onChangeValue={setPrice} />
-      <FormField
+      <DateField
         title="Sale Date"
-        value={saleDate.toDateString()}
-        handleChangeText={() => {}}
-        onFocus={() => setShowDatePicker(true)}
+        value={saleDate}
+        onChange={setSaleDate}
+        maximumDate={new Date()}
         otherStyles="mt-5"
       />
-      {showDatePicker && (
-        <DateTimePicker
-          value={saleDate}
-          mode="date"
-          display="default"
-          maximumDate={new Date()}
-          onChange={(_event: any, date?: Date) => {
-            setShowDatePicker(false);
-            if (date) setSaleDate(date);
-          }}
-        />
-      )}
       <CustomButton
         title="Mark as Sold"
         handlePress={handleSave}

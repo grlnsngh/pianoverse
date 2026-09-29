@@ -47,6 +47,7 @@ import { fakeNotifications, reminderTapFor } from "./helpers/fakeNotifications";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   captureAlerts,
+  chooseDate,
   createTestStore,
   flushPromises,
   pressText,
@@ -335,14 +336,7 @@ describe("publishing and editing", () => {
     const renderer = await renderEdit(rental(day(20)));
     const newEnd = addDays(new Date(), 40);
 
-    act(() => {
-      renderer.root
-        .findAll((node) => node.props.title === "Rental Period End Date" && node.props.onFocus)[0]
-        .props.onFocus();
-    });
-    act(() => {
-      hostNodes(renderer, "DateTimePicker")[0].props.onChange({ type: "set" }, newEnd);
-    });
+    chooseDate(renderer.root, "Rental Period End Date", newEnd);
     await pressText(renderer.root, "Save Changes");
 
     expect(reminderTimes("piano-1")).toContain(`${format(newEnd, "yyyy-MM-dd")} 09:00`);
