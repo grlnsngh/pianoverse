@@ -8,6 +8,8 @@
  *    because the real SDK skips its upload loop in that case
  *  - the price columns of the pianos collection are numbers (double) and the
  *    server rejects anything else, e.g. the text "185000"
+ *  - pianos and rent payments live in separate collections, and a collection
+ *    that does not exist yet (`missingCollections`) rejects every request
  *
  * `Query` and `ID` are the real SDK implementations, so query strings are genuine.
  */
@@ -16,18 +18,24 @@ const sdk = jest.requireActual("react-native-appwrite");
 export const ENDPOINT = "https://cloud.appwrite.io/v1";
 export const PROJECT_ID = "66b2693000154e2fa3c8";
 export const BUCKET_ID = "66b26b77003445e612b4";
+export const PAYMENTS_COLLECTION_ID = "rent_payments";
 
 type StoredFile = { name: string; type: string; size: number; uri: string };
 type Doc = Record<string, any> & { $id: string; $createdAt: string };
 
 export const fakeBackend = {
+  // Pianos
   documents: new Map<string, Doc>(),
+  payments: new Map<string, Doc>(),
+  missingCollections: new Set<string>(),
   files: new Map<string, StoredFile>(),
   listCalls: [] as string[][],
   failNextDocumentUpdate: false,
   signOutError: null as Error | null,
   reset() {
     this.documents.clear();
+    this.payments.clear();
+    this.missingCollections.clear();
     this.files.clear();
     this.listCalls = [];
     this.failNextDocumentUpdate = false;
@@ -35,13 +43,23 @@ export const fakeBackend = {
   },
 };
 
-// Columns the pianos collection stores as `double`
+// Columns the collections store as `double`
 const NUMBER_COLUMNS = [
   "rental_price",
   "event_purchase_price",
   "on_sale_price",
   "sold_price",
+  "amount",
 ];
+
+const storeFor = (collectionId: string) => {
+  if (fakeBackend.missingCollections.has(collectionId)) {
+    throw new Error("Collection with the requested ID could not be found.");
+  }
+  return collectionId === PAYMENTS_COLLECTION_ID
+    ? fakeBackend.payments
+    : fakeBackend.documents;
+};
 
 const rejectNonNumbers = (data: Record<string, unknown>) => {
   for (const column of NUMBER_COLUMNS) {
@@ -73,11 +91,11 @@ class Client {
 }
 
 class Databases {
-  async listDocuments(_databaseId: string, _collectionId: string, queries: string[] = []) {
+  async listDocuments(_databaseId: string, collectionId: string, queries: string[] = []) {
     fakeBackend.listCalls.push(queries);
     const parsed = queries.map((query) => JSON.parse(query));
 
-    let docs = [...fakeBackend.documents.values()];
+    let docs = [...storeFor(collectionId).values()];
     for (const query of parsed) {
       if (query.method === "equal") {
         docs = docs.filter((doc) => query.values.includes(doc[query.attribute]));
@@ -107,28 +125,30 @@ class Databases {
     return { total, documents: docs.slice(0, limit) };
   }
 
-  async createDocument(_databaseId: string, _collectionId: string, id: string, data: object) {
+  async createDocument(_databaseId: string, collectionId: string, id: string, data: object) {
+    const store = storeFor(collectionId);
     rejectNonNumbers(data as Record<string, unknown>);
     const doc = { ...data, $id: id, $createdAt: new Date().toISOString() };
-    fakeBackend.documents.set(id, doc);
+    store.set(id, doc);
     return doc;
   }
 
-  async updateDocument(_databaseId: string, _collectionId: string, id: string, data: object) {
+  async updateDocument(_databaseId: string, collectionId: string, id: string, data: object) {
     if (fakeBackend.failNextDocumentUpdate) {
       fakeBackend.failNextDocumentUpdate = false;
       throw new Error("Network request failed");
     }
-    const existing = fakeBackend.documents.get(id);
+    const store = storeFor(collectionId);
+    const existing = store.get(id);
     if (!existing) throw new Error("Document with the requested ID could not be found.");
     rejectNonNumbers(data as Record<string, unknown>);
     const updated = { ...existing, ...JSON.parse(JSON.stringify(data)) };
-    fakeBackend.documents.set(id, updated);
+    store.set(id, updated);
     return updated;
   }
 
-  async deleteDocument(_databaseId: string, _collectionId: string, id: string) {
-    if (!fakeBackend.documents.delete(id)) {
+  async deleteDocument(_databaseId: string, collectionId: string, id: string) {
+    if (!storeFor(collectionId).delete(id)) {
       throw new Error("Document with the requested ID could not be found.");
     }
     return {};

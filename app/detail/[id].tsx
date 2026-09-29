@@ -37,6 +37,7 @@ import { PIANO_CATEGORY } from "@/constants/Piano";
 import CustomButton from "@/components/CustomButton";
 import ExtendRentalSheet from "@/components/ExtendRentalSheet";
 import MarkAsSoldSheet from "@/components/MarkAsSoldSheet";
+import RentPayments from "@/components/RentPayments";
 import icons from "@/constants/icons";
 
 const RentableDetails = ({ piano }: { piano: PianoItem }) => {
@@ -745,7 +746,10 @@ const DetailScreen = () => {
 
           {/* Category Specific Details */}
           {category === PIANO_CATEGORY.RENTABLE && (
-            <RentableDetails piano={filteredPiano} />
+            <>
+              <RentableDetails piano={filteredPiano} />
+              <RentPayments piano={filteredPiano} />
+            </>
           )}
           {category === PIANO_CATEGORY.WAREHOUSE && (
             <WarehouseDetails piano={filteredPiano} />

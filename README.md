@@ -17,6 +17,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Category Management:** Rentable, events, on sale and warehouse pianos, each with their own details.
 - **Rentals:** Due dates with reminders at 9:00 a week before, the day before, on the day, and when overdue. Extend a rental by 1, 3 or 6 months in one tap.
 - **Overdue view:** Home points out rentals that have ended but not been extended.
+- **Rent payments:** Record each payment for a rented piano (amount, date, note) and see what has been received.
 - **Sales:** Mark a piano as sold with the buyer, price and date; sold pianos leave the stock and can be shown with a filter.
 - **Search and filters:** Search by title, make, customer, mobile, model or B-number; filter by category, active or overdue rentals, and sold pianos.
 - **Income:** Profile shows the rent from active rentals and this month's sales.
@@ -87,6 +88,20 @@ You will see options to open the app in:
 - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+
+## Backend (Appwrite)
+
+Besides the `users` and `pianos` tables, the app needs a `rent_payments` table (use `rent_payments` as its ID when creating it):
+
+| Column     | Type              |
+| ---------- | ----------------- |
+| `piano_id` | string, required  |
+| `creator`  | string, required  |
+| `amount`   | float, required   |
+| `paid_on`  | datetime, required |
+| `note`     | string, optional  |
+
+Permissions: **Create** for All users only, with **Row level security** on. Each payment then belongs to the account that recorded it. Without the table, a rented piano's page shows "Couldn't load payments" and deleting a piano still works.
 
 ## Project Structure
 
