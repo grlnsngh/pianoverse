@@ -7,8 +7,10 @@ import {
   NativeSyntheticEvent,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+import PhotoViewer from "./PhotoViewer";
 
 interface PhotoGalleryProps {
   // The URLs of the photos, the cover first
@@ -21,13 +23,25 @@ const SCREEN_PADDING = 32;
 
 /**
  * A piano's photos: one photo is shown as it is, several can be swiped
- * through, with a counter such as "2 / 5".
+ * through, with a counter such as "2 / 5". Tapping a photo opens it on the
+ * whole screen.
  */
 const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, height }) => {
   const [width, setWidth] = useState(
     Dimensions.get("window").width - SCREEN_PADDING
   );
   const [index, setIndex] = useState(0);
+  // The photo open in the full-screen viewer, if any
+  const [viewing, setViewing] = useState<number | null>(null);
+
+  const viewer = (
+    <PhotoViewer
+      photos={photos}
+      startIndex={viewing ?? 0}
+      visible={viewing !== null}
+      onClose={() => setViewing(null)}
+    />
+  );
 
   if (photos.length === 0) {
     return <View className="w-full rounded-2xl bg-black-100" style={{ height }} />;
@@ -35,12 +49,21 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, height }) => {
 
   if (photos.length === 1) {
     return (
-      <Image
-        source={{ uri: photos[0] }}
-        style={{ height }}
-        className="w-full rounded-2xl"
-        resizeMode="cover"
-      />
+      <>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => setViewing(0)}
+          accessibilityLabel="Open photo 1"
+        >
+          <Image
+            source={{ uri: photos[0] }}
+            style={{ height }}
+            className="w-full rounded-2xl"
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
+        {viewer}
+      </>
     );
   }
 
@@ -66,12 +89,18 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, height }) => {
         onMomentumScrollEnd={handleScrollEnd}
       >
         {photos.map((uri, position) => (
-          <Image
+          <TouchableOpacity
             key={`${position}-${uri}`}
-            source={{ uri }}
-            style={{ width, height }}
-            resizeMode="cover"
-          />
+            activeOpacity={0.9}
+            onPress={() => setViewing(position)}
+            accessibilityLabel={`Open photo ${position + 1}`}
+          >
+            <Image
+              source={{ uri }}
+              style={{ width, height }}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
         ))}
       </ScrollView>
       <View className="absolute bottom-3 right-3 bg-black/60 rounded-full px-3 py-1">
@@ -79,6 +108,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, height }) => {
           {index + 1} / {photos.length}
         </Text>
       </View>
+      {viewer}
     </View>
   );
 };
