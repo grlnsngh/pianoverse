@@ -11,6 +11,7 @@ import {
 import { deleteMultiplePianoEntries } from "@/lib/appwrite";
 import { cancelRentalNotification } from "@/services/notifications";
 import { icons } from "@/constants";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import CustomAlertModal from "./CustomAlertModal";
 import { showToast } from "@/utils/toast";
@@ -105,11 +106,7 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
             activeOpacity={0.8}
             accessibilityLabel="Select all pianos"
           >
-            <Image
-              source={icons.grid}
-              className="w-5 h-5"
-              tintColor="#CDCDE0"
-            />
+            <Ionicons name="checkmark-done" size={20} color="#CDCDE0" />
           </TouchableOpacity>
         )}
 

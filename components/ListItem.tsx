@@ -10,6 +10,7 @@ import {
   getRentalStatusColor,
   getRentalStatusText,
 } from "@/utils/rentalStatus";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
@@ -286,12 +287,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(
                         }`}
                       >
                         {isSelected && (
-                          <Image
-                            source={icons.close}
-                            className="w-3 h-3"
-                            tintColor="#161622"
-                            resizeMode="contain"
-                          />
+                          <Ionicons name="checkmark" size={14} color="#161622" />
                         )}
                       </View>
                     </TouchableOpacity>
