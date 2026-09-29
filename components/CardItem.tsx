@@ -1,14 +1,11 @@
 import { icons, images } from "@/constants";
-import {
-  CATEGORY_COLORS,
-  PRIMARY_COLOR,
-  SECONDARY_COLOR,
-} from "@/constants/colors";
+import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
 import useDeletePiano from "@/lib/useDeletePiano";
 import { getPianoRentalState, getStatusLabel } from "@/utils/pianoStatus";
 import { getEntranceDelay } from "@/utils/animation";
 import { getRemainingPeriod } from "@/utils/dates";
 import {
+  getCategoryColor,
   getCategoryIcon,
   getRentalStatusColor,
   getRentalStatusText,
@@ -228,16 +225,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                   <View
                     className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center border border-white"
                     style={{
-                      backgroundColor:
-                        category === PIANO_CATEGORY.RENTABLE
-                          ? CATEGORY_COLORS.RENTABLE
-                          : category === PIANO_CATEGORY.EVENTS
-                          ? CATEGORY_COLORS.EVENTS
-                          : category === PIANO_CATEGORY.ON_SALE
-                          ? CATEGORY_COLORS.ON_SALE
-                          : category === PIANO_CATEGORY.WAREHOUSE
-                          ? CATEGORY_COLORS.WAREHOUSE
-                          : SECONDARY_COLOR,
+                      backgroundColor: getCategoryColor(category),
                     }}
                   >
                     <Image
@@ -410,16 +398,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                       <View
                         className="px-3 py-1 rounded-full"
                         style={{
-                          backgroundColor:
-                            category === PIANO_CATEGORY.RENTABLE
-                              ? `${CATEGORY_COLORS.RENTABLE}90`
-                              : category === PIANO_CATEGORY.EVENTS
-                              ? `${CATEGORY_COLORS.EVENTS}90`
-                              : category === PIANO_CATEGORY.ON_SALE
-                              ? `${CATEGORY_COLORS.ON_SALE}90`
-                              : category === PIANO_CATEGORY.WAREHOUSE
-                              ? `${CATEGORY_COLORS.WAREHOUSE}90`
-                              : `${SECONDARY_COLOR}90`,
+                          backgroundColor: `${getCategoryColor(category)}90`,
                         }}
                       >
                         <Text className="text-white text-xs font-psemibold">
@@ -458,16 +437,7 @@ const CardItem: React.FC<CardItemProps> = React.memo(
                   <View
                     className="px-3 py-1.5 rounded-full self-start"
                     style={{
-                      backgroundColor:
-                        category === PIANO_CATEGORY.RENTABLE
-                          ? `${CATEGORY_COLORS.RENTABLE}E0`
-                          : category === PIANO_CATEGORY.EVENTS
-                          ? `${CATEGORY_COLORS.EVENTS}E0`
-                          : category === PIANO_CATEGORY.ON_SALE
-                          ? `${CATEGORY_COLORS.ON_SALE}E0`
-                          : category === PIANO_CATEGORY.WAREHOUSE
-                          ? `${CATEGORY_COLORS.WAREHOUSE}E0`
-                          : `${SECONDARY_COLOR}E0`,
+                      backgroundColor: `${getCategoryColor(category)}E0`,
                     }}
                   >
                     <Text className="text-white text-xs font-psemibold">

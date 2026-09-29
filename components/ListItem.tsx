@@ -1,14 +1,11 @@
 import { icons, images } from "@/constants";
-import {
-  CATEGORY_COLORS,
-  PRIMARY_COLOR,
-  SECONDARY_COLOR,
-} from "@/constants/colors";
+import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/constants/colors";
 import useDeletePiano from "@/lib/useDeletePiano";
 import { getPianoRentalState, getStatusLabel } from "@/utils/pianoStatus";
 import { getEntranceDelay } from "@/utils/animation";
 import { getRemainingPeriod } from "@/utils/dates";
 import {
+  getCategoryColor,
   getCategoryIcon,
   getRentalStatusColor,
   getRentalStatusText,
@@ -32,7 +29,6 @@ import RNAAnimated, {
   Easing,
 } from "react-native-reanimated";
 import { PianoItem } from "@/redux/pianos/types";
-import { PIANO_CATEGORY } from "@/constants/Piano";
 
 interface ListItemProps {
   item: PianoItem & { empty?: boolean };
@@ -213,16 +209,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(
                   <View
                     className="absolute -top-1 -right-1 w-6 h-6 rounded-full items-center justify-center"
                     style={{
-                      backgroundColor:
-                        category === PIANO_CATEGORY.RENTABLE
-                          ? CATEGORY_COLORS.RENTABLE
-                          : category === PIANO_CATEGORY.EVENTS
-                          ? CATEGORY_COLORS.EVENTS
-                          : category === PIANO_CATEGORY.ON_SALE
-                          ? CATEGORY_COLORS.ON_SALE
-                          : category === PIANO_CATEGORY.WAREHOUSE
-                          ? CATEGORY_COLORS.WAREHOUSE
-                          : SECONDARY_COLOR,
+                      backgroundColor: getCategoryColor(category),
                     }}
                   >
                     <Image
@@ -249,26 +236,8 @@ const ListItem: React.FC<ListItemProps> = React.memo(
                     <Text
                       className="text-xs font-pmedium px-2 py-1 rounded-full mr-2"
                       style={{
-                        backgroundColor:
-                          category === PIANO_CATEGORY.RENTABLE
-                            ? `${CATEGORY_COLORS.RENTABLE}20`
-                            : category === PIANO_CATEGORY.EVENTS
-                            ? `${CATEGORY_COLORS.EVENTS}20`
-                            : category === PIANO_CATEGORY.ON_SALE
-                            ? `${CATEGORY_COLORS.ON_SALE}20`
-                            : category === PIANO_CATEGORY.WAREHOUSE
-                            ? `${CATEGORY_COLORS.WAREHOUSE}20`
-                            : `${SECONDARY_COLOR}20`,
-                        color:
-                          category === PIANO_CATEGORY.RENTABLE
-                            ? CATEGORY_COLORS.RENTABLE
-                            : category === PIANO_CATEGORY.EVENTS
-                            ? CATEGORY_COLORS.EVENTS
-                            : category === PIANO_CATEGORY.ON_SALE
-                            ? CATEGORY_COLORS.ON_SALE
-                            : category === PIANO_CATEGORY.WAREHOUSE
-                            ? CATEGORY_COLORS.WAREHOUSE
-                            : SECONDARY_COLOR,
+                        backgroundColor: `${getCategoryColor(category)}20`,
+                        color: getCategoryColor(category),
                       }}
                     >
                       {getStatusLabel(item)}
