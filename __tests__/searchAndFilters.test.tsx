@@ -76,6 +76,28 @@ describe("what search matches", () => {
     expect(search(term)).toEqual(expected);
   });
 
+  it("ignores details left over from another category", () => {
+    // Once a rental and an event piano, now both on sale
+    const onSale = makePiano({
+      $id: "on-sale",
+      title: "Upright 3",
+      make: "Yamaha",
+      category: "on_sale",
+      rental_customer_name: "Ravi Kumar",
+      rental_customer_mobile: "9123456789",
+      event_model_number: "Model X",
+      event_b_number: "B-99",
+    });
+    const find = (term: string) =>
+      searchPianoItems([onSale], term).map((piano) => piano.$id);
+
+    expect(find("ravi")).toEqual([]);
+    expect(find("91234")).toEqual([]);
+    expect(find("model x")).toEqual([]);
+    expect(find("b-99")).toEqual([]);
+    expect(find("yamaha")).toEqual(["on-sale"]);
+  });
+
   it("ignores surrounding spaces and finds nothing for an unknown term", () => {
     expect(search("  steinway  ")).toEqual(["event"]);
     expect(search("bösendorfer")).toEqual([]);

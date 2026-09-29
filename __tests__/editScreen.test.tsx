@@ -23,6 +23,7 @@ jest.mock("expo-image-manipulator", () => ({
 }));
 
 import React from "react";
+import { act } from "react-test-renderer";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import EditScreen from "@/app/edit/[id]";
@@ -153,4 +154,34 @@ it("saves the rest of the piano without touching the image when none was picked"
   expect(alerts.titles()).toEqual([]);
   expect(fakeBackend.documents.get("piano-1")?.image_url).toBe(fileViewUrl("old-file"));
   expect([...fakeBackend.files.keys()]).toEqual(["old-file"]);
+});
+
+it("clears the customer's details when a rental is changed into another kind of piano", async () => {
+  const renderer = renderEditScreenFor(
+    makePiano({
+      category: "rentable",
+      rental_customer_name: "Asha Mehta",
+      rental_customer_address: "12 MG Road",
+      rental_customer_mobile: "9876543210",
+      rental_period_start: "2026-09-01" as any,
+      rental_period_end: "2026-12-01" as any,
+      rental_price: 4000,
+    })
+  );
+  const [categoryPicker] = renderer.root.findAll(
+    (node) =>
+      node.props.selectedValue === "rentable" &&
+      typeof node.props.onValueChange === "function"
+  );
+
+  act(() => categoryPicker.props.onValueChange("warehouse"));
+  await pressText(renderer.root, "Save Changes");
+
+  expect(alerts.titles()).toEqual([]);
+  expect(fakeBackend.documents.get("piano-1")).toMatchObject({
+    category: "warehouse",
+    rental_customer_name: null,
+    rental_customer_address: null,
+    rental_customer_mobile: null,
+  });
 });

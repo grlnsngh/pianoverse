@@ -82,6 +82,11 @@ describe("filling in a piano", () => {
 
 describe("saving a piano", () => {
   const user = { $id: "user-doc-1", accountId: "account-1" };
+  const noCustomer = {
+    rental_customer_name: null,
+    rental_customer_address: null,
+    rental_customer_mobile: null,
+  };
 
   it.each([
     [
@@ -135,9 +140,27 @@ describe("saving a piano", () => {
         photos: [piano.image_url],
         date_of_purchase: "2026-01-15",
         ...details,
+        // Only a rental keeps a customer
+        ...(category !== "rentable" && noCustomer),
       });
     }
   );
+
+  it("clears the customer's details when a rental becomes another kind of piano", () => {
+    const rental = makePiano({
+      category: "rentable",
+      rental_customer_name: "Asha Mehta",
+      rental_customer_address: "12 MG Road",
+      rental_customer_mobile: "9876543210",
+    });
+
+    const input = toPianoEntryInput(
+      { ...pianoToForm(rental), category: "warehouse" },
+      { user }
+    );
+
+    expect(input).toMatchObject({ category: "warehouse", ...noCustomer });
+  });
 
   it("sends a newly picked photo for upload", () => {
     const input = toPianoEntryInput(completeForm(), {
