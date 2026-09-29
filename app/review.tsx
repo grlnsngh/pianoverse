@@ -153,11 +153,11 @@ const Review = () => {
             </View>
 
             {/* Step Information */}
-            <View className="text-center">
-              <Text className="text-gray-100 text-base font-psemibold mb-1">
+            <View className="items-center">
+              <Text className="text-gray-100 text-base font-psemibold mb-1 text-center">
                 Step 3 of 3
               </Text>
-              <Text className="text-secondary text-sm font-pmedium">
+              <Text className="text-secondary text-sm font-pmedium text-center">
                 Final Review
               </Text>
             </View>

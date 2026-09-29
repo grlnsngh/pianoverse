@@ -12,7 +12,6 @@ jest.mock("@/services/notifications", () => ({
 
 import React from "react";
 import CardItem from "@/components/CardItem";
-import GridItem from "@/components/GridItem";
 import ListItem from "@/components/ListItem";
 import { cancelRentalNotification } from "@/services/notifications";
 import icons from "@/constants/icons";
@@ -102,7 +101,6 @@ it("keeps the piano when the user cancels", async () => {
 
 describe.each([
   ["list row", ListItem, piano],
-  ["search grid", GridItem, [piano]],
 ])("delete from the %s menu", (_name, Component: any, itemProp) => {
   const renderWithOpenMenu = () => {
     const store = createTestStore({ user: testUser, items: [piano] });

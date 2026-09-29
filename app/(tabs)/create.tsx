@@ -152,11 +152,11 @@ const Create = () => {
             </View>
 
             {/* Step Information */}
-            <View className="text-center">
-              <Text className="text-gray-100 text-base font-psemibold mb-1">
+            <View className="items-center">
+              <Text className="text-gray-100 text-base font-psemibold mb-1 text-center">
                 Step {progress.currentStep} of {progress.totalSteps}
               </Text>
-              <Text className="text-secondary text-sm font-pmedium">
+              <Text className="text-secondary text-sm font-pmedium text-center">
                 {progress.stepName}
               </Text>
             </View>
@@ -175,15 +175,11 @@ const Create = () => {
             }
           />
 
+          {/* Always pressable: it says what's still missing */}
           <CustomButton
-            title={
-              progress.currentStep === 2
-                ? "Review & Publish"
-                : "Continue Filling Form"
-            }
-            handlePress={progress.currentStep === 2 ? handleReview : () => {}}
+            title="Review & Publish"
+            handlePress={handleReview}
             containerStyles="mt-7"
-            disabled={progress.currentStep !== 2}
           />
         </View>
       </ScrollView>

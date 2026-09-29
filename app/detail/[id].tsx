@@ -17,7 +17,12 @@ import { callNumber, messageOnWhatsApp } from "@/utils/contact";
 import { formatRupees } from "@/utils/money";
 import { getPianoPhotos } from "@/utils/photos";
 import { getPianoRentalState, isSold } from "@/utils/pianoStatus";
-import { formatPeriod, isEndingSoon } from "@/utils/rentalStatus";
+import {
+  formatPeriod,
+  getCategoryColor,
+  getCategoryIcon,
+  isEndingSoon,
+} from "@/utils/rentalStatus";
 import { buildShareMessage } from "@/utils/share";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -269,7 +274,7 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
                 <Text className="text-3xl text-secondary font-pbold">
                   {piano.rental_price !== null &&
                   piano.rental_price !== undefined
-                    ? `₹${piano.rental_price.toLocaleString()}`
+                    ? formatRupees(piano.rental_price)
                     : "N/A"}
                 </Text>
               </View>
@@ -291,11 +296,18 @@ const WarehouseDetails = ({ piano }: { piano: PianoItem }) => {
         className="flex-row items-center justify-between p-4 border-b border-gray-700"
       >
         <View className="flex-row items-center space-x-3">
-          <View className="p-2 bg-blue-500/20 rounded-lg">
+          <View
+            className="p-2 rounded-lg"
+            style={{
+              backgroundColor: `${getCategoryColor(
+                PIANO_CATEGORY.WAREHOUSE
+              )}33`,
+            }}
+          >
             <Image
-              source={icons.home}
+              source={getCategoryIcon(PIANO_CATEGORY.WAREHOUSE)}
               className="w-6 h-6"
-              tintColor="#3B82F6"
+              tintColor={getCategoryColor(PIANO_CATEGORY.WAREHOUSE)}
             />
           </View>
           <Text className="text-lg text-white font-psemibold">
@@ -335,11 +347,16 @@ const EventDetails = ({ piano }: { piano: PianoItem }) => {
         className="flex-row items-center justify-between p-4 border-b border-gray-700"
       >
         <View className="flex-row items-center space-x-3">
-          <View className="p-2 bg-purple-500/20 rounded-lg">
+          <View
+            className="p-2 rounded-lg"
+            style={{
+              backgroundColor: `${getCategoryColor(PIANO_CATEGORY.EVENTS)}33`,
+            }}
+          >
             <Image
-              source={icons.bookmark}
+              source={getCategoryIcon(PIANO_CATEGORY.EVENTS)}
               className="w-6 h-6"
-              tintColor="#A855F7"
+              tintColor={getCategoryColor(PIANO_CATEGORY.EVENTS)}
             />
           </View>
           <View>
@@ -349,7 +366,7 @@ const EventDetails = ({ piano }: { piano: PianoItem }) => {
             {piano.event_purchase_price !== null &&
               piano.event_purchase_price !== undefined && (
                 <Text className="text-sm text-gray-400 font-pregular">
-                  {`₹${piano.event_purchase_price.toLocaleString()}`}
+                  {formatRupees(piano.event_purchase_price)}
                 </Text>
               )}
           </View>
@@ -365,12 +382,22 @@ const EventDetails = ({ piano }: { piano: PianoItem }) => {
         <View className="p-4 space-y-4">
           {piano.event_purchase_price !== null &&
             piano.event_purchase_price !== undefined && (
-              <View className="bg-purple-500/10 rounded-lg p-4">
+              <View
+                className="rounded-lg p-4"
+                style={{
+                  backgroundColor: `${getCategoryColor(
+                    PIANO_CATEGORY.EVENTS
+                  )}1A`,
+                }}
+              >
                 <Text className="text-sm text-gray-400 font-pmedium mb-1">
                   Purchase Price
                 </Text>
-                <Text className="text-2xl text-purple-400 font-pbold">
-                  {`₹${piano.event_purchase_price.toLocaleString()}`}
+                <Text
+                  className="text-2xl font-pbold"
+                  style={{ color: getCategoryColor(PIANO_CATEGORY.EVENTS) }}
+                >
+                  {formatRupees(piano.event_purchase_price)}
                 </Text>
               </View>
             )}
@@ -425,11 +452,16 @@ const OnSaleDetails = ({ piano }: { piano: PianoItem }) => {
         className="flex-row items-center justify-between p-4 border-b border-gray-700"
       >
         <View className="flex-row items-center space-x-3">
-          <View className="p-2 bg-green-500/20 rounded-lg">
+          <View
+            className="p-2 rounded-lg"
+            style={{
+              backgroundColor: `${getCategoryColor(PIANO_CATEGORY.ON_SALE)}33`,
+            }}
+          >
             <Image
-              source={icons.card}
+              source={getCategoryIcon(PIANO_CATEGORY.ON_SALE)}
               className="w-6 h-6"
-              tintColor="#10B981"
+              tintColor={getCategoryColor(PIANO_CATEGORY.ON_SALE)}
             />
           </View>
           <View>
@@ -438,8 +470,11 @@ const OnSaleDetails = ({ piano }: { piano: PianoItem }) => {
             </Text>
             {piano.on_sale_price !== null &&
               piano.on_sale_price !== undefined && (
-                <Text className="text-sm text-green-400 font-psemibold">
-                  {`₹${piano.on_sale_price.toLocaleString()}`}
+                <Text
+                  className="text-sm font-psemibold"
+                  style={{ color: getCategoryColor(PIANO_CATEGORY.ON_SALE) }}
+                >
+                  {formatRupees(piano.on_sale_price)}
                 </Text>
               )}
           </View>
@@ -455,12 +490,22 @@ const OnSaleDetails = ({ piano }: { piano: PianoItem }) => {
         <View className="p-4 space-y-4">
           {piano.on_sale_price !== null &&
             piano.on_sale_price !== undefined && (
-              <View className="bg-green-500/10 rounded-lg p-4">
+              <View
+                className="rounded-lg p-4"
+                style={{
+                  backgroundColor: `${getCategoryColor(
+                    PIANO_CATEGORY.ON_SALE
+                  )}1A`,
+                }}
+              >
                 <Text className="text-sm text-gray-400 font-pmedium mb-1">
                   Sale Price
                 </Text>
-                <Text className="text-2xl text-green-400 font-pbold">
-                  {`₹${piano.on_sale_price.toLocaleString()}`}
+                <Text
+                  className="text-2xl font-pbold"
+                  style={{ color: getCategoryColor(PIANO_CATEGORY.ON_SALE) }}
+                >
+                  {formatRupees(piano.on_sale_price)}
                 </Text>
               </View>
             )}
@@ -649,21 +694,6 @@ const DetailScreen = () => {
     }
   };
 
-  const getCategoryColor = () => {
-    switch (category) {
-      case PIANO_CATEGORY.RENTABLE:
-        return "bg-orange-500";
-      case PIANO_CATEGORY.WAREHOUSE:
-        return "bg-blue-500";
-      case PIANO_CATEGORY.EVENTS:
-        return "bg-purple-500";
-      case PIANO_CATEGORY.ON_SALE:
-        return "bg-green-500";
-      default:
-        return "bg-secondary";
-    }
-  };
-
   return (
     <SafeAreaView className="bg-primary h-full">
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -672,9 +702,12 @@ const DetailScreen = () => {
           <View className="relative mt-2">
             <PhotoGallery photos={getPianoPhotos(filteredPiano)} height={280} />
             <View
-              className={`absolute top-4 right-4 ${getCategoryColor()} rounded-full px-4 py-2 shadow-lg`}
+              testID="category-badge"
+              className="absolute top-4 right-4 rounded-full px-4 py-2 shadow-lg"
+              // The category's colour in the lists too
+              style={{ backgroundColor: getCategoryColor(category) }}
             >
-              <Text className="text-white font-pbold text-sm">
+              <Text className="text-primary font-pbold text-sm">
                 {getCategoryLabel(category)}
               </Text>
             </View>

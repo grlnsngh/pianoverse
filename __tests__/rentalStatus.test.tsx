@@ -6,7 +6,6 @@ jest.mock("expo-router", () => ({
 import React from "react";
 import { addDays, addMonths, addYears } from "date-fns";
 import CardItem from "@/components/CardItem";
-import GridItem from "@/components/GridItem";
 import ListItem from "@/components/ListItem";
 import { icons } from "@/constants";
 import { PianoItem } from "@/redux/pianos/types";
@@ -119,9 +118,9 @@ describe("the piano rows", () => {
     expect(textsOf(<ListItem item={piano} {...rowProps} />, piano)).toContain(
       "Expired 3 days ago"
     );
-    expect(textsOf(<GridItem item={[piano]} {...rowProps} />, piano)).toContain(
-      "Expired"
-    );
+    expect(
+      textsOf(<CardItem item={piano} {...rowProps} isGridView />, piano)
+    ).toContain("Expired 3 days ago");
   });
 
   // Every row a piano can appear in
@@ -129,7 +128,6 @@ describe("the piano rows", () => {
     ...textsOf(<CardItem item={piano} {...rowProps} />, piano),
     ...textsOf(<CardItem item={piano} {...rowProps} isGridView />, piano),
     ...textsOf(<ListItem item={piano} {...rowProps} />, piano),
-    ...textsOf(<GridItem item={[piano]} {...rowProps} />, piano),
   ];
 
   it("say nothing about a rental for a piano that is no longer rented out", () => {

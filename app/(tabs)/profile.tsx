@@ -283,7 +283,7 @@ const Profile = () => {
             <View className="bg-primary-400 rounded-2xl p-6 shadow-lg">
               <View className="flex-row items-center">
                 {/* Profile Picture */}
-                <View className="w-20 h-20 border-3 border-secondary rounded-full flex justify-center items-center mr-4">
+                <View className="w-20 h-20 border-2 border-secondary rounded-full flex justify-center items-center mr-4">
                   <Image
                     source={{ uri: user?.avatar }}
                     className="w-[90%] h-[90%] rounded-full"
@@ -432,7 +432,7 @@ const Profile = () => {
                   {recentAdditions > 0 && (
                     <View className="pt-4 border-t border-gray-700">
                       <Text className="text-gray-400 text-xs font-pmedium mb-2">
-                        THIS MONTH
+                        LAST 30 DAYS
                       </Text>
                       <Text className="text-white text-base font-psemibold">
                         {recentAdditions} piano
@@ -686,8 +686,8 @@ const Profile = () => {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View className="flex-1 justify-center items-center bg-black/60">
-          <Animated.View className="bg-primary-100 rounded-3xl p-8 mx-6 w-full max-w-sm shadow-2xl border border-primary-200">
+        <View className="flex-1 justify-center items-center bg-black/60 px-6">
+          <Animated.View className="bg-primary-100 rounded-3xl p-8 w-full max-w-sm shadow-2xl border border-primary-200">
             <View className="items-center mb-6">
               <View className="bg-secondary-100/20 p-4 rounded-full mb-4 border border-secondary-100/30">
                 <Image

@@ -1,6 +1,6 @@
 import { icons } from "@/constants";
 import { PIANO_CATEGORY } from "@/constants/Piano";
-import { SECONDARY_COLOR } from "@/constants/colors";
+import { CATEGORY_COLORS, SECONDARY_COLOR } from "@/constants/colors";
 import { Period, RentalState } from "@/utils/dates";
 
 // Shared by the list, card, grid and detail views, so they all describe a
@@ -92,5 +92,21 @@ export const getCategoryIcon = (category: string) => {
       return icons.home;
     default:
       return icons.card;
+  }
+};
+
+/** The colour a piano's category is shown in, the same on every screen. */
+export const getCategoryColor = (category: string) => {
+  switch (category) {
+    case PIANO_CATEGORY.RENTABLE:
+      return CATEGORY_COLORS.RENTABLE;
+    case PIANO_CATEGORY.EVENTS:
+      return CATEGORY_COLORS.EVENTS;
+    case PIANO_CATEGORY.ON_SALE:
+      return CATEGORY_COLORS.ON_SALE;
+    case PIANO_CATEGORY.WAREHOUSE:
+      return CATEGORY_COLORS.WAREHOUSE;
+    default:
+      return SECONDARY_COLOR;
   }
 };

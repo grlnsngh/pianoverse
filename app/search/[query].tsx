@@ -1,16 +1,17 @@
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { searchPianoItems } from "@/utils/ObjectManipulation";
+import { padToFullRows } from "@/utils/grid";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FlatList } from "react-native";
+import { FlatList, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import EmptyState from "@/components/EmptyState";
 import CardItem from "@/components/CardItem";
 import { SECONDARY_COLOR } from "@/constants/colors";
 import ListItem from "@/components/ListItem";
-import GridItem from "@/components/GridItem";
+import SearchInput from "@/components/SearchInput";
 
 const Search = () => {
   const { query } = useLocalSearchParams();
@@ -39,18 +40,47 @@ const Search = () => {
   const layoutView = useSelector(
     (state: RootState) => state.pianos.filters.layoutStatus
   );
+  const isGrid = layoutView.grid === "checked";
+
+  const emptyState = () => (
+    <EmptyState title="No Pianos Found" subtitle="Try other search terms" />
+  );
 
   return (
     <SafeAreaView className="bg-primary h-full">
-      {layoutView.grid === "checked" ? (
-        <GridItem
-          item={items}
-          visibleMenuId={visibleMenuId}
-          openMenu={openMenu}
-          closeMenu={closeMenu}
+      {/* Search again without going back */}
+      <View className="px-4 pt-4 pb-2">
+        <SearchInput initialQuery={searchQuery} />
+      </View>
+
+      {isGrid ? (
+        // The same cards as Home's grid
+        <FlatList
+          key="grid"
+          data={padToFullRows(items, 2)}
+          keyExtractor={(item) => item.$id}
+          numColumns={2}
+          columnWrapperStyle={{ gap: 12, paddingHorizontal: 12 }}
+          contentContainerStyle={{ gap: 12, paddingBottom: 20, paddingTop: 8 }}
+          renderItem={({ item, index }) =>
+            item.empty ? (
+              <View style={{ flex: 1, margin: 4 }} />
+            ) : (
+              <CardItem
+                item={item}
+                index={index}
+                visibleMenuId={visibleMenuId}
+                openMenu={openMenu}
+                closeMenu={closeMenu}
+                isGridView
+              />
+            )
+          }
+          ListEmptyComponent={emptyState}
         />
       ) : (
         <FlatList
+          key="list"
           data={items}
           keyExtractor={(item) => item.$id}
           renderItem={({ item }) => {
@@ -76,12 +106,7 @@ const Search = () => {
               return null; // Render nothing if no view is checked
             }
           }}
-          ListEmptyComponent={() => (
-            <EmptyState
-              title="No Pianos Found"
-              subtitle="Try other search terms"
-            />
-          )}
+          ListEmptyComponent={emptyState}
         />
       )}
     </SafeAreaView>

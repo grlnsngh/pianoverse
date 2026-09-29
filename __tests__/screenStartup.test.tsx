@@ -4,7 +4,10 @@ jest.mock("react-native-appwrite", () =>
 jest.mock("expo-router", () => ({
   router: { push: jest.fn(), back: jest.fn(), replace: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({})),
-  useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
+  useNavigation: jest.fn(() => ({
+    setOptions: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+  })),
 }));
 jest.mock("@/context/GlobalProvider", () => ({
   useGlobalContext: () => ({
@@ -129,6 +132,18 @@ describe("the review screen", () => {
       expect(texts.join(" ")).not.toContain("$");
     }
   );
+
+  it("centres its step under the step circles", () => {
+    const { renderer } = renderReview();
+
+    // The text component carrying the classes, around the drawn text
+    const [step] = renderer.root.findAll(
+      (node) =>
+        typeof node.props.className === "string" &&
+        allTexts(node).join("") === "Step 3 of 3"
+    );
+    expect(step.props.className).toMatch(/\btext-center\b/);
+  });
 
   it("reads the form once, not on every render", () => {
     const parse = jest.spyOn(JSON, "parse");

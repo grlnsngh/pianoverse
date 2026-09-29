@@ -10,7 +10,10 @@ jest.mock("expo-router", () => ({
     setParams: jest.fn(),
   },
   useLocalSearchParams: jest.fn(() => ({ id: "piano-1" })),
-  useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
+  useNavigation: jest.fn(() => ({
+    setOptions: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+  })),
   usePathname: jest.fn(() => "/edit/piano-1"),
 }));
 jest.mock("expo-image-picker", () => ({
@@ -25,7 +28,7 @@ jest.mock("expo-image-manipulator", () => ({
 import React from "react";
 import { act } from "react-test-renderer";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import EditScreen from "@/app/edit/[id]";
 import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
@@ -183,5 +186,86 @@ it("clears the customer's details when a rental is changed into another kind of 
     rental_customer_name: null,
     rental_customer_address: null,
     rental_customer_mobile: null,
+  });
+});
+
+describe("leaving the Edit screen", () => {
+  // A navigation object that remembers what listens for leaving the screen
+  const listeners: Record<string, (event: any) => void> = {};
+  const navigation = {
+    setOptions: jest.fn(),
+    dispatch: jest.fn(),
+    addListener: jest.fn((name: string, listener: (event: any) => void) => {
+      listeners[name] = listener;
+      return jest.fn();
+    }),
+  };
+
+  const tryToLeave = () => {
+    const event = {
+      preventDefault: jest.fn(),
+      data: { action: { type: "GO_BACK" } },
+    };
+    act(() => listeners.beforeRemove(event));
+    return event;
+  };
+
+  const typeTitle = (renderer: any, text: string) =>
+    act(() => {
+      renderer.root
+        .findAll(
+          (node: any) =>
+            node.props.title === "Title" &&
+            typeof node.props.handleChangeText === "function"
+        )[0]
+        .props.handleChangeText(text);
+    });
+
+  beforeEach(() => {
+    jest.mocked(useNavigation).mockReturnValue(navigation as any);
+  });
+
+  it("asks before throwing away changes that weren't saved", async () => {
+    const renderer = renderEditScreenFor(makePiano({ title: "Yamaha U1" }));
+    typeTitle(renderer, "Yamaha U3");
+
+    const event = tryToLeave();
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(alerts.titles()).toEqual(["Discard Changes?"]);
+    await alerts.pressButton("Discard");
+    expect(navigation.dispatch).toHaveBeenCalledWith(event.data.action);
+    expect(fakeBackend.documents.get("piano-1")?.title).toBe("Yamaha U1");
+  });
+
+  it("stays when the user keeps editing", async () => {
+    const renderer = renderEditScreenFor(makePiano({ title: "Yamaha U1" }));
+    typeTitle(renderer, "Yamaha U3");
+
+    tryToLeave();
+    await alerts.pressButton("Keep Editing");
+
+    expect(navigation.dispatch).not.toHaveBeenCalled();
+  });
+
+  it("leaves without asking when nothing was changed", () => {
+    renderEditScreenFor(makePiano({ title: "Yamaha U1" }));
+
+    const event = tryToLeave();
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(alerts.titles()).toEqual([]);
+  });
+
+  it("leaves without asking once the changes are saved", async () => {
+    const renderer = renderEditScreenFor(makePiano({ title: "Yamaha U1" }));
+    typeTitle(renderer, "Yamaha U3");
+
+    await pressText(renderer.root, "Save Changes");
+    expect(router.back).toHaveBeenCalled();
+    const event = tryToLeave();
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(alerts.titles()).toEqual([]);
   });
 });

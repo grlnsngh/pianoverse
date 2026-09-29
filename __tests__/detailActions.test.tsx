@@ -1,7 +1,10 @@
 jest.mock("expo-router", () => ({
   router: { push: jest.fn(), back: jest.fn(), setParams: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({ id: "piano-1" })),
-  useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
+  useNavigation: jest.fn(() => ({
+    setOptions: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+  })),
   usePathname: jest.fn(() => "/detail/piano-1"),
 }));
 jest.mock("@/services/notifications", () => ({
@@ -12,7 +15,6 @@ import React from "react";
 import { Linking, Share } from "react-native";
 import { act } from "react-test-renderer";
 import CardItem from "@/components/CardItem";
-import GridItem from "@/components/GridItem";
 import DetailScreen from "@/app/detail/[id]";
 import icons from "@/constants/icons";
 import { PianoItem } from "@/redux/pianos/types";
@@ -187,19 +189,5 @@ describe("bookmarks", () => {
 
     expect(hasBookmarkButton(renderer)).toBe(false);
     expect(allTexts(renderer.root)).not.toContain("Save");
-  });
-
-  it("aren't offered in the grid", () => {
-    const renderer = renderWithStore(
-      <GridItem
-        item={[warehousePiano]}
-        visibleMenuId={null}
-        openMenu={jest.fn()}
-        closeMenu={jest.fn()}
-      />,
-      createTestStore({ user: testUser, items: [warehousePiano] })
-    );
-
-    expect(hasBookmarkButton(renderer)).toBe(false);
   });
 });

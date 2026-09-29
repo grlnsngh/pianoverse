@@ -6,6 +6,7 @@ import * as IntentLauncher from "expo-intent-launcher";
 import { Alert, Platform } from "react-native";
 import { differenceInCalendarDays, startOfToday } from "date-fns";
 import { parseStoredDate } from "./dates";
+import { isSold } from "./pianoStatus";
 
 /**
  * Escapes CSV field values by wrapping them in quotes if they contain special characters
@@ -99,6 +100,12 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
     "Purchased From (Sale)",
     "Import Date",
 
+    // Once sold
+    "Sold On",
+    "Sold For",
+    "Buyer",
+    "Buyer Address",
+
     // Additional Info
     "Notes/Description",
     "Date Added",
@@ -107,7 +114,11 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
 
   // Create CSV rows with conditional logic
   const rows = pianos.map((piano) => {
-    const rentalStatus = getRentalStatus(piano.rental_period_end);
+    const sold = isSold(piano);
+    // A sold piano's rental is over, so it is neither running nor due
+    const rentalStatus = sold
+      ? { status: "", daysRemaining: 0 }
+      : getRentalStatus(piano.rental_period_end);
 
     // Calculate days in warehouse
     let daysInWarehouse = "";
@@ -120,7 +131,7 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
     return [
       // Basic Info
       escapeCSVField(piano.title),
-      escapeCSVField(formatCategory(piano.category)),
+      escapeCSVField(sold ? "Sold" : formatCategory(piano.category)),
       escapeCSVField(piano.make),
       escapeCSVField(piano.company_associated),
       escapeCSVField(
@@ -218,6 +229,14 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
           ? formatDate(piano.on_sale_import_date)
           : ""
       ),
+
+      // Sale Information (only for sold pianos)
+      escapeCSVField(sold ? formatDate(piano.sold_date) : ""),
+      escapeCSVField(
+        sold && piano.sold_price ? formatPrice(piano.sold_price) : ""
+      ),
+      escapeCSVField(sold ? piano.sold_to_name : ""),
+      escapeCSVField(sold ? piano.sold_to_address : ""),
 
       // Additional Info
       escapeCSVField(piano.description),

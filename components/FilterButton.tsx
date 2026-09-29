@@ -276,7 +276,12 @@ const FilterButton = () => {
               }}
             >
               <Text style={styles.title}>Filters</Text>
-              <TouchableOpacity onPress={toggleAndResetModal}>
+              <TouchableOpacity
+                onPress={toggleAndResetModal}
+                accessibilityLabel="Close filters"
+                // The icon is small; this makes it easy to tap
+                hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+              >
                 <Image
                   source={icons.close}
                   className="w-4 h-4"

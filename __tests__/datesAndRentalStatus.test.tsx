@@ -11,7 +11,10 @@ jest.mock("expo-router", () => ({
     setParams: jest.fn(),
   },
   useLocalSearchParams: jest.fn(() => ({ id: "piano-1" })),
-  useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
+  useNavigation: jest.fn(() => ({
+    setOptions: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+  })),
   usePathname: jest.fn(() => "/"),
 }));
 jest.mock("@/context/GlobalProvider", () => ({
@@ -25,7 +28,6 @@ jest.mock("@/context/GlobalProvider", () => ({
 import React from "react";
 import { addDays, format } from "date-fns";
 import CardItem from "@/components/CardItem";
-import GridItem from "@/components/GridItem";
 import ListItem from "@/components/ListItem";
 import Profile from "@/app/(tabs)/profile";
 import DetailScreen from "@/app/detail/[id]";
@@ -165,12 +167,8 @@ describe("rental status", () => {
     expect(allTexts(renderer.root).join(" ")).not.toMatch(/Expired/);
   });
 
-  it("a search grid tile shows a rental ending today as due today", () => {
-    const piano = rental(day(0));
-    const renderer = renderWithStore(
-      <GridItem item={[piano]} visibleMenuId={null} openMenu={jest.fn()} closeMenu={jest.fn()} />,
-      createTestStore({ user: testUser, items: [piano] })
-    );
+  it("a grid card shows a rental ending today as due today", () => {
+    const renderer = renderCard(CardItem, rental(day(0)), { isGridView: true });
 
     expect(allTexts(renderer.root)).toContain("Due today");
   });
