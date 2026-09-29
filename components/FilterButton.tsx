@@ -108,8 +108,9 @@ const FilterButton = () => {
     },
     onPanResponderRelease: (evt, gestureState) => {
       if (gestureState.dy > 100 || gestureState.vy > 0.5) {
-        // Close if dragged down enough or with enough velocity
-        toggleModal();
+        // Close if dragged down enough or with enough velocity, dropping
+        // what wasn't applied, like the close button
+        toggleAndResetModal();
       } else {
         // Snap back to open position
         Animated.parallel([
@@ -164,27 +165,23 @@ const FilterButton = () => {
           formattedLabel) ||
       (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label === "Rentable");
 
+    const isDisabled =
+      (filterForm.isActiveRentals && label !== "Rentable") ||
+      (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE && label !== "Rentable");
+
     return (
       <TouchableOpacity
         onPress={() => handleCategoryPress(label)}
-        disabled={
-          (filterForm.isActiveRentals && label !== "Rentable") ||
-          (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE &&
-            label !== "Rentable")
-        }
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={`${label} category`}
+        accessibilityState={{ selected: !!isSelected, disabled: isDisabled }}
         className={`px-3 py-1 rounded-full border ${
           isSelected
             ? "bg-secondary border-secondary"
             : "bg-primary-200 border-primary-300"
         }`}
-        style={{
-          opacity:
-            (filterForm.isActiveRentals && label !== "Rentable") ||
-            (filterForm.sortBy === SORT_BY_OPTIONS.DUE_DATE &&
-              label !== "Rentable")
-              ? 0.5
-              : 1,
-        }}
+        style={{ opacity: isDisabled ? 0.5 : 1 }}
       >
         <Text
           className={`text-xs font-pmedium ${
@@ -211,7 +208,8 @@ const FilterButton = () => {
   return (
     <View className="flex items-center justify-center">
       <TouchableOpacity
-        onPress={toggleModal}
+        // Start from the filters in use, however the panel was last closed
+        onPress={toggleAndResetModal}
         className="w-10 h-10 bg-primary-200 rounded-full flex items-center justify-center border border-secondary"
         activeOpacity={0.7}
         accessibilityLabel={
@@ -266,6 +264,7 @@ const FilterButton = () => {
                 ],
               },
             ]}
+            testID="filter-sheet"
             {...panResponder.panHandlers}
           >
             <View
@@ -454,18 +453,20 @@ const FilterButton = () => {
               <Text style={styles.option}>Active Rentals</Text>
               <Switch
                 value={filterForm.isActiveRentals}
-                onValueChange={() => {
-                  const newCategory =
-                    filterForm.category === "Rentable" ? "" : "Rentable";
-
+                accessibilityLabel="Active Rentals"
+                onValueChange={(isActiveRentals) =>
                   setFilterForm({
                     ...filterForm,
-                    category: newCategory,
-                    isActiveRentals: !filterForm.isActiveRentals,
+                    // Only rentals can be active; turning it off keeps the
+                    // category shown as chosen
+                    category: isActiveRentals
+                      ? "Rentable"
+                      : filterForm.category,
+                    isActiveRentals,
                     // A rental can't be both active and overdue
                     isOverdue: false,
-                  });
-                }}
+                  })
+                }
                 trackColor={{ false: PRIMARY_COLOR, true: SECONDARY_COLOR }}
                 thumbColor={
                   filterForm.isActiveRentals ? PRIMARY_COLOR : "white"
@@ -484,6 +485,7 @@ const FilterButton = () => {
               <Text style={styles.option}>Overdue Rentals</Text>
               <Switch
                 value={filterForm.isOverdue}
+                accessibilityLabel="Overdue Rentals"
                 onValueChange={() =>
                   setFilterForm({
                     ...filterForm,
@@ -508,6 +510,7 @@ const FilterButton = () => {
               <Text style={styles.option}>Sold Pianos</Text>
               <Switch
                 value={filterForm.isSold}
+                accessibilityLabel="Sold Pianos"
                 onValueChange={() =>
                   setFilterForm({ ...filterForm, isSold: !filterForm.isSold })
                 }
