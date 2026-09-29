@@ -1,5 +1,6 @@
 jest.mock("@/lib/appwrite", () => ({
   getUserPianoEntries: jest.fn(),
+  getRentPaymentsBetween: jest.fn(() => Promise.resolve([])),
   signOut: jest.fn(),
 }));
 jest.mock("@/context/GlobalProvider", () => ({
@@ -23,7 +24,7 @@ import { addDays, subMonths } from "date-fns";
 import Home from "@/app/(tabs)/home";
 import Profile from "@/app/(tabs)/profile";
 import { DEFAULT_FILTERS } from "@/constants/Piano";
-import { getUserPianoEntries } from "@/lib/appwrite";
+import { getRentPaymentsBetween, getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
@@ -148,9 +149,17 @@ describe("income", () => {
       grid: "unchecked",
     };
     store.dispatch(setPianoFilters({ ...DEFAULT_FILTERS, layoutStatus }));
+    jest
+      .mocked(getRentPaymentsBetween)
+      .mockResolvedValue([{ amount: 3000 }, { amount: 1500 }] as any);
     const renderer = renderWithStore(<Profile />, store);
+    await flushPromises();
 
     const texts = allTexts(renderer.root);
+    expect(texts).toContain("₹4,500");
+    expect(texts).toContain("Received this month");
+    expect(texts).toContain("2 payments");
+    // The rent of the rentals out now is still there, as an estimate
     expect(texts).toContain("₹8,000");
     expect(texts).toContain("Rent from 2 active rentals");
     expect(texts).toContain("₹90,000");

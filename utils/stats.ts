@@ -1,3 +1,4 @@
+import type { RentPayment } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate } from "@/utils/dates";
 import { isCurrentlyRented, isSold } from "@/utils/pianoStatus";
@@ -20,3 +21,9 @@ export const salesInMonth = (pianos: PianoItem[], month = new Date()) => {
     total: sold.reduce((total, piano) => total + (piano.sold_price ?? 0), 0),
   };
 };
+
+/** How many rent payments there are, and how much they add up to. */
+export const totalReceived = (payments: Pick<RentPayment, "amount">[]) => ({
+  count: payments.length,
+  total: payments.reduce((total, payment) => total + payment.amount, 0),
+});

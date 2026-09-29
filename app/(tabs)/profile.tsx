@@ -2,6 +2,7 @@ import { icons, images } from "@/constants";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { signOut } from "@/lib/appwrite";
 import { clearPianoCache } from "@/lib/pianoCache";
+import useRentReceived from "@/lib/useRentReceived";
 import { setActiveTab } from "@/redux/navigation/actions";
 import { resetPianoState, setPianoFilters } from "@/redux/pianos/actions";
 import { scheduleAllRentalNotifications } from "@/services/notifications";
@@ -36,6 +37,7 @@ const Profile = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const items = useSelector((state: RootState) => state.pianos.items);
   const filters = useSelector((state: RootState) => state.pianos.filters);
+  const received = useRentReceived();
 
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -443,12 +445,22 @@ const Profile = () => {
                   <View className="flex-row">
                     <View className="flex-1">
                       <Text className="text-2xl font-pbold text-secondary">
-                        {formatRupees(activeRent)}
+                        {received.loaded ? formatRupees(received.total) : "—"}
                       </Text>
                       <Text className="text-gray-400 text-sm font-pmedium">
-                        Rent from {activeRentals} active rental
-                        {activeRentals === 1 ? "" : "s"}
+                        Received this month
                       </Text>
+                      {received.failed && (
+                        <Text className="text-gray-500 text-xs font-pregular">
+                          Couldn't load payments
+                        </Text>
+                      )}
+                      {received.loaded && (
+                        <Text className="text-gray-500 text-xs font-pregular">
+                          {received.count} payment
+                          {received.count === 1 ? "" : "s"}
+                        </Text>
+                      )}
                     </View>
                     <View className="w-px bg-gray-700 mx-4" />
                     <View className="flex-1">
@@ -459,6 +471,16 @@ const Profile = () => {
                         {salesThisMonth.count} sold this month
                       </Text>
                     </View>
+                  </View>
+
+                  <View className="mt-4 pt-4 border-t border-gray-700 flex-row items-center justify-between">
+                    <Text className="text-gray-400 text-sm font-pmedium">
+                      Rent from {activeRentals} active rental
+                      {activeRentals === 1 ? "" : "s"}
+                    </Text>
+                    <Text className="text-white font-psemibold">
+                      {formatRupees(activeRent)}
+                    </Text>
                   </View>
 
                   {overdueCount > 0 && (
