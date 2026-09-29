@@ -17,6 +17,7 @@ import { setActiveTab } from "@/redux/navigation/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { isRentalActive, parseStoredDate } from "@/utils/dates";
 import { clearFilters, countActiveFilters } from "@/utils/filters";
+import { padToFullRows } from "@/utils/grid";
 import { isOverdue, isSold } from "@/utils/pianoStatus";
 import { SORT_BY_OPTIONS } from "@/constants/Piano";
 import { RootState } from "@/redux/store";
@@ -203,31 +204,12 @@ const Home = () => {
     [hasPianos, isLoading, loadError, refetch, filters, dispatch]
   );
 
-  const formatData = useCallback((data: PianoItem[], numColumns: number) => {
-    const newData = [...data];
-    const numberOfFullRows = Math.floor(newData.length / numColumns);
-    let numberOfElementsLastRow =
-      newData.length - numberOfFullRows * numColumns;
-    while (
-      numberOfElementsLastRow !== numColumns &&
-      numberOfElementsLastRow !== 0
-    ) {
-      newData.push({
-        $id: `blank-${numberOfElementsLastRow}`,
-        title: `blank-${numberOfElementsLastRow}`,
-        empty: true,
-      } as PianoItem & { empty?: boolean });
-      numberOfElementsLastRow++;
-    }
-    return newData;
-  }, []);
-
   const displayData = useMemo(() => {
     if (layoutView.grid === "checked") {
-      return formatData(filteredPianoReduxItems, 2);
+      return padToFullRows(filteredPianoReduxItems, 2);
     }
     return filteredPianoReduxItems;
-  }, [layoutView.grid, filteredPianoReduxItems, formatData]);
+  }, [layoutView.grid, filteredPianoReduxItems]);
 
   const applyFilters = useCallback(() => {
     // Sold pianos are no longer stock, so they only show with the Sold filter

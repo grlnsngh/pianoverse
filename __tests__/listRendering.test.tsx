@@ -21,7 +21,6 @@ import * as Reanimated from "react-native-reanimated";
 import { act } from "react-test-renderer";
 import Home from "@/app/(tabs)/home";
 import CardItem from "@/components/CardItem";
-import GridItem from "@/components/GridItem";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { SET_FILTERED_PIANO_LIST_ITEMS } from "@/redux/pianos/types";
 import { getEntranceDelay } from "@/utils/animation";
@@ -70,21 +69,30 @@ describe("entrance animation", () => {
     withDelay.mock.calls.forEach(([delay]) => expect(delay).toBe(0));
   });
 
-  it("doesn't replay on every search card when a menu opens", () => {
+  it("doesn't replay on every grid card when a menu opens", () => {
     const withDelay = jest.spyOn(Reanimated, "withDelay");
     let openMenu!: (id: string) => void;
+    // Like the Home and search grids: one card per piano, and only the card
+    // whose menu is open sees the change
     const SearchGrid = () => {
       const [visibleMenuId, setVisibleMenuId] = React.useState<string | null>(
         null
       );
       openMenu = setVisibleMenuId;
       return (
-        <GridItem
-          item={pianos.slice(0, 2)}
-          visibleMenuId={visibleMenuId}
-          openMenu={setVisibleMenuId}
-          closeMenu={() => setVisibleMenuId(null)}
-        />
+        <>
+          {pianos.slice(0, 2).map((piano, index) => (
+            <CardItem
+              key={piano.$id}
+              item={piano}
+              index={index}
+              visibleMenuId={visibleMenuId === piano.$id ? visibleMenuId : null}
+              openMenu={setVisibleMenuId}
+              closeMenu={() => setVisibleMenuId(null)}
+              isGridView
+            />
+          ))}
+        </>
       );
     };
     renderWithStore(
