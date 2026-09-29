@@ -2,7 +2,7 @@ jest.mock("react-native-appwrite", () =>
   require("./helpers/fakeAppwrite").createFakeAppwriteModule()
 );
 
-import { getCurrentUser } from "@/lib/appwrite";
+import { getCurrentUser, signIn } from "@/lib/appwrite";
 import {
   appwriteError,
   fakeAccount,
@@ -58,3 +58,38 @@ describe("finding out who is signed in", () => {
   });
 });
 
+describe("signing in", () => {
+  it("replaces a session that is still there", async () => {
+    fakeAccount.createEmailPasswordSession
+      .mockRejectedValueOnce(
+        appwriteError(
+          "Creation of a session is prohibited when a session is active.",
+          401,
+          "user_session_already_exists"
+        )
+      )
+      .mockResolvedValueOnce({ $id: "session-2" });
+
+    await expect(signIn("tester@example.com", "12345678")).resolves.toEqual({
+      $id: "session-2",
+    });
+    expect(fakeAccount.deleteSession).toHaveBeenCalledWith("current");
+    expect(fakeAccount.createEmailPasswordSession).toHaveBeenCalledTimes(2);
+  });
+
+  it("reports a wrong password without touching any session", async () => {
+    fakeAccount.createEmailPasswordSession.mockRejectedValue(
+      appwriteError(
+        "Invalid credentials. Please check the email and password.",
+        401,
+        "user_invalid_credentials"
+      )
+    );
+
+    await expect(signIn("tester@example.com", "wrong-pass")).rejects.toThrow(
+      "Invalid credentials"
+    );
+    expect(fakeAccount.deleteSession).not.toHaveBeenCalled();
+    expect(fakeAccount.createEmailPasswordSession).toHaveBeenCalledTimes(1);
+  });
+});

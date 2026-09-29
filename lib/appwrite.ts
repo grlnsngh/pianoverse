@@ -93,10 +93,14 @@ export async function createUser(
  */
 export async function signIn(email: string, password: string): Promise<any> {
   try {
-    const session = await account.createEmailPasswordSession(email, password);
-
-    return session;
+    return await account.createEmailPasswordSession(email, password);
   } catch (error) {
+    // A session left from before (e.g. the app opened without a connection
+    // and asked to sign in) blocks a new one, so end it and try again
+    if ((error as { type?: string })?.type === "user_session_already_exists") {
+      await account.deleteSession("current").catch(() => {});
+      return account.createEmailPasswordSession(email, password);
+    }
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(errorMessage);
   }
