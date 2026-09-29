@@ -57,6 +57,8 @@ import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   captureAlerts,
+  chooseDate as chooseDateIn,
+  openDatePicker as openDateField,
   createTestStore,
   flushPromises,
   pressText,
@@ -78,21 +80,11 @@ const typeInto = (renderer: ReactTestRenderer, title: string, text: string) =>
     field(renderer, title).props.handleChangeText(text);
   });
 
-const openDatePicker = (renderer: ReactTestRenderer, title: string) => {
-  act(() => {
-    field(renderer, title).props.onFocus();
-  });
-  return renderer.root.findAll(
-    (node) => (node.type as unknown) === "DateTimePicker"
-  )[0];
-};
+const openDatePicker = (renderer: ReactTestRenderer, title: string) =>
+  openDateField(renderer.root, title);
 
-const chooseDate = (renderer: ReactTestRenderer, title: string, date: Date) => {
-  const picker = openDatePicker(renderer, title);
-  act(() => {
-    picker.props.onChange({ type: "set" }, date);
-  });
-};
+const chooseDate = (renderer: ReactTestRenderer, title: string, date: Date) =>
+  chooseDateIn(renderer.root, title, date);
 
 let alerts: ReturnType<typeof captureAlerts>;
 

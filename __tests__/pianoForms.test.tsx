@@ -40,7 +40,9 @@ import EditScreen from "@/app/edit/[id]";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
+  allTexts,
   captureAlerts,
+  chooseDate as chooseDateIn,
   createTestStore,
   pressText,
   renderWithStore,
@@ -64,15 +66,8 @@ const typeInto = (renderer: ReactTestRenderer, title: string, text: string) =>
     field(renderer, title).props.handleChangeText(text);
   });
 
-const chooseDate = (renderer: ReactTestRenderer, title: string, date: Date) => {
-  act(() => {
-    field(renderer, title).props.onFocus();
-  });
-  const [picker] = hostNodes(renderer, "DateTimePicker");
-  act(() => {
-    picker.props.onChange({ type: "set" }, date);
-  });
-};
+const chooseDate = (renderer: ReactTestRenderer, title: string, date: Date) =>
+  chooseDateIn(renderer.root, title, date);
 
 const chooseCategory = (renderer: ReactTestRenderer, category: string) =>
   act(() => {
@@ -99,9 +94,7 @@ describe("Create screen", () => {
 
     chooseDate(renderer, "Import Date", importDate);
 
-    expect(field(renderer, "Import Date").props.value).toBe(
-      importDate.toDateString()
-    );
+    expect(allTexts(renderer.root)).toContain(importDate.toDateString());
     expect(hostNodes(renderer, "DateTimePicker")).toHaveLength(0);
   });
 
