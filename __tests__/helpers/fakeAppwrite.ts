@@ -41,6 +41,9 @@ export const fakeBackend = {
     this.listCalls = [];
     this.failNextDocumentUpdate = false;
     this.signOutError = null;
+    fakeAccount.get.mockReset();
+    fakeAccount.createEmailPasswordSession.mockReset();
+    fakeAccount.deleteSession.mockReset().mockImplementation(deleteSessionAsUsual);
   },
 };
 
@@ -191,14 +194,34 @@ class Storage {
   }
 }
 
+const deleteSessionAsUsual = async () => {
+  if (fakeBackend.signOutError) throw fakeBackend.signOutError;
+  return {};
+};
+
+/**
+ * The account calls, shared by every Account the app creates so tests can
+ * say what they answer (e.g. who is signed in). Reset with the backend.
+ */
+export const fakeAccount: Record<
+  "get" | "createEmailPasswordSession" | "deleteSession",
+  jest.Mock
+> = {
+  get: jest.fn(),
+  createEmailPasswordSession: jest.fn(),
+  deleteSession: jest.fn(deleteSessionAsUsual),
+};
+
+/** An error as the SDK throws it: `code` is the HTTP status, 0 when offline. */
+export const appwriteError = (message: string, code = 0, type = "") =>
+  Object.assign(new Error(message), { name: "AppwriteException", code, type });
+
 class Account {
-  get = jest.fn();
+  get = (...args: unknown[]) => fakeAccount.get(...args);
   create = jest.fn();
-  createEmailPasswordSession = jest.fn();
-  deleteSession = jest.fn(async () => {
-    if (fakeBackend.signOutError) throw fakeBackend.signOutError;
-    return {};
-  });
+  createEmailPasswordSession = (...args: unknown[]) =>
+    fakeAccount.createEmailPasswordSession(...args);
+  deleteSession = (...args: unknown[]) => fakeAccount.deleteSession(...args);
   createRecovery = jest.fn();
   updateRecovery = jest.fn();
 }
