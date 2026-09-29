@@ -1,4 +1,5 @@
 import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
+import { toStoredDate } from "@/utils/dates";
 import {
   Account,
   Client,
@@ -17,6 +18,7 @@ export const appwriteConfig = {
   databaseId: "66b26b1300171b9140be",
   userCollectionId: "66b26b2a00163be2e73a",
   pianoCollectionId: "66b26b3c002284a5a862",
+  rentPaymentsCollectionId: "rent_payments",
   storageId: "66b26b77003445e612b4",
 };
 
@@ -552,12 +554,112 @@ export async function deletePianoEntry(item: any) {
       );
     }
 
+    // And its rent payments, which mean nothing without the piano
+    await deleteRentPaymentsForPiano(item.$id).catch((error) =>
+      console.warn("Could not delete the piano's rent payments:", error)
+    );
+
     return response;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error deleting piano entry:", errorMessage);
     throw new Error(errorMessage);
   }
+}
+
+/** A rent payment received for a rented piano. */
+export interface RentPayment {
+  $id: string;
+  $createdAt: string;
+  piano_id: string;
+  // The owner's account ID
+  creator: string;
+  amount: number;
+  // A calendar day, e.g. "2026-09-05"
+  paid_on: string;
+  note?: string | null;
+}
+
+export interface NewRentPayment {
+  pianoId: string;
+  creator: string;
+  amount: number;
+  paidOn: Date;
+  note?: string;
+}
+
+const PAYMENT_PAGE_SIZE = 100;
+const MAX_PAYMENT_PAGES = 50;
+
+/**
+ * Records a rent payment received for a piano.
+ *
+ * @param {NewRentPayment} payment - The piano, its owner's account ID, the amount and the day it was paid.
+ * @returns {Promise<RentPayment>} The saved payment.
+ */
+export async function createRentPayment(
+  payment: NewRentPayment
+): Promise<RentPayment> {
+  const document = await databases.createDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.rentPaymentsCollectionId,
+    ID.unique(),
+    {
+      piano_id: payment.pianoId,
+      creator: payment.creator,
+      amount: payment.amount,
+      paid_on: toStoredDate(payment.paidOn),
+      ...(payment.note ? { note: payment.note } : {}),
+    }
+  );
+  return document as unknown as RentPayment;
+}
+
+/**
+ * Retrieves every rent payment of a piano, page by page, newest first.
+ *
+ * @param {string} pianoId - The ID of the piano.
+ * @returns {Promise<RentPayment[]>} The payments, most recently paid first.
+ */
+export async function getRentPayments(pianoId: string): Promise<RentPayment[]> {
+  const payments: RentPayment[] = [];
+  let cursor: string | undefined;
+
+  for (let page = 0; page < MAX_PAYMENT_PAGES; page++) {
+    const queries = [
+      Query.equal("piano_id", pianoId),
+      Query.orderDesc("paid_on"),
+      Query.limit(PAYMENT_PAGE_SIZE),
+    ];
+    if (cursor) queries.push(Query.cursorAfter(cursor));
+
+    const { documents } = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.rentPaymentsCollectionId,
+      queries
+    );
+    payments.push(...(documents as unknown as RentPayment[]));
+
+    if (documents.length < PAYMENT_PAGE_SIZE) break;
+    cursor = documents[documents.length - 1].$id;
+  }
+
+  return payments;
+}
+
+/** Deletes one rent payment. */
+export async function deleteRentPayment(paymentId: string) {
+  return databases.deleteDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.rentPaymentsCollectionId,
+    paymentId
+  );
+}
+
+/** Deletes every rent payment of a piano, e.g. because the piano is deleted. */
+export async function deleteRentPaymentsForPiano(pianoId: string) {
+  const payments = await getRentPayments(pianoId);
+  await Promise.all(payments.map((payment) => deleteRentPayment(payment.$id)));
 }
 
 /**
