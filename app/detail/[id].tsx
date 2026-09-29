@@ -269,7 +269,7 @@ const RentableDetails = ({ piano }: { piano: PianoItem }) => {
                 <Text className="text-3xl text-secondary font-pbold">
                   {piano.rental_price !== null &&
                   piano.rental_price !== undefined
-                    ? `₹${piano.rental_price.toLocaleString()}`
+                    ? formatRupees(piano.rental_price)
                     : "N/A"}
                 </Text>
               </View>
@@ -349,7 +349,7 @@ const EventDetails = ({ piano }: { piano: PianoItem }) => {
             {piano.event_purchase_price !== null &&
               piano.event_purchase_price !== undefined && (
                 <Text className="text-sm text-gray-400 font-pregular">
-                  {`₹${piano.event_purchase_price.toLocaleString()}`}
+                  {formatRupees(piano.event_purchase_price)}
                 </Text>
               )}
           </View>
@@ -370,7 +370,7 @@ const EventDetails = ({ piano }: { piano: PianoItem }) => {
                   Purchase Price
                 </Text>
                 <Text className="text-2xl text-purple-400 font-pbold">
-                  {`₹${piano.event_purchase_price.toLocaleString()}`}
+                  {formatRupees(piano.event_purchase_price)}
                 </Text>
               </View>
             )}
@@ -439,7 +439,7 @@ const OnSaleDetails = ({ piano }: { piano: PianoItem }) => {
             {piano.on_sale_price !== null &&
               piano.on_sale_price !== undefined && (
                 <Text className="text-sm text-green-400 font-psemibold">
-                  {`₹${piano.on_sale_price.toLocaleString()}`}
+                  {formatRupees(piano.on_sale_price)}
                 </Text>
               )}
           </View>
@@ -460,7 +460,7 @@ const OnSaleDetails = ({ piano }: { piano: PianoItem }) => {
                   Sale Price
                 </Text>
                 <Text className="text-2xl text-green-400 font-pbold">
-                  {`₹${piano.on_sale_price.toLocaleString()}`}
+                  {formatRupees(piano.on_sale_price)}
                 </Text>
               </View>
             )}
