@@ -1,7 +1,10 @@
 jest.mock("expo-router", () => ({
   router: { push: jest.fn(), back: jest.fn(), setParams: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({ id: "piano-1" })),
-  useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
+  useNavigation: jest.fn(() => ({
+    setOptions: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+  })),
   usePathname: jest.fn(() => "/detail/piano-1"),
 }));
 jest.mock("@/services/notifications", () => ({

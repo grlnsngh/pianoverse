@@ -13,7 +13,10 @@ jest.mock("expo-router", () => ({
     setParams: jest.fn(),
   },
   useLocalSearchParams: jest.fn(() => ({})),
-  useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
+  useNavigation: jest.fn(() => ({
+    setOptions: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+  })),
   usePathname: jest.fn(() => "/"),
 }));
 jest.mock("@/context/GlobalProvider", () => ({

@@ -13,8 +13,8 @@ import {
 import { getPianoPhotos } from "@/utils/photos";
 import { showToast } from "@/utils/toast";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Alert, Platform, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import CustomButton from "@/components/CustomButton";
@@ -41,6 +41,37 @@ const EditScreen = () => {
   const updateForm = (changes: Partial<PianoFormState>) =>
     setForm((current) => ({ ...current, ...changes }));
   const { addPhoto, removePhoto, makeCover } = usePianoPhotos(setForm);
+
+  // The form as it was opened, to tell whether anything has been changed
+  const [openedForm] = useState(form);
+  const hasChanges = useRef(false);
+  hasChanges.current = JSON.stringify(form) !== JSON.stringify(openedForm);
+  // Set once the changes are saved, so leaving doesn't ask about them
+  const saved = useRef(false);
+
+  // Going back (the header's arrow or Android's back button) with changes
+  // that weren't saved asks first, instead of losing them
+  useEffect(
+    () =>
+      navigation.addListener("beforeRemove", (event) => {
+        if (saved.current || !hasChanges.current) return;
+        event.preventDefault();
+        const discard = () => navigation.dispatch(event.data.action);
+        const message = "Your changes to this piano haven't been saved.";
+
+        // Alert.alert does nothing on web
+        if (Platform.OS === "web") {
+          if (window.confirm(`${message} Discard them?`)) discard();
+          return;
+        }
+
+        Alert.alert("Discard Changes?", message, [
+          { text: "Keep Editing", style: "cancel" },
+          { text: "Discard", style: "destructive", onPress: discard },
+        ]);
+      }),
+    [navigation]
+  );
 
   useEffect(() => {
     navigation.setOptions({
@@ -82,6 +113,7 @@ const EditScreen = () => {
       // The end date or category may have changed
       await scheduleRentalDueNotification(updatedPiano);
       dispatch(updatePianoItem(toPianoItem(updatedPiano)) as any);
+      saved.current = true;
       if (router.canGoBack()) router.back();
       else router.replace("/home");
       showToast("Piano entry updated successfully");

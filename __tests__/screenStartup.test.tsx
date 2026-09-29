@@ -4,7 +4,10 @@ jest.mock("react-native-appwrite", () =>
 jest.mock("expo-router", () => ({
   router: { push: jest.fn(), back: jest.fn(), replace: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({})),
-  useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
+  useNavigation: jest.fn(() => ({
+    setOptions: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+  })),
 }));
 jest.mock("@/context/GlobalProvider", () => ({
   useGlobalContext: () => ({

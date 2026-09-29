@@ -1,7 +1,10 @@
 jest.mock("expo-router", () => ({
   router: { push: jest.fn(), setParams: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({ query: "Yamaha" })),
-  useNavigation: jest.fn(() => ({ setOptions: jest.fn() })),
+  useNavigation: jest.fn(() => ({
+    setOptions: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+  })),
   usePathname: jest.fn(() => "/search/Yamaha"),
 }));
 // Render results as plain titles; the real cards are covered elsewhere.
