@@ -130,26 +130,42 @@ describe("bulk selection", () => {
     return { testStore, renderer, onRefresh };
   };
 
-  const deleteSelected = async (renderer: ReturnType<typeof renderBar>["renderer"]) => {
+  const pressablesLabelled = (
+    renderer: ReturnType<typeof renderBar>["renderer"],
+    label: string
+  ) =>
+    renderer.root.findAll(
+      (node) =>
+        node.props.accessibilityLabel === label &&
+        typeof node.props.onPress === "function"
+    );
+
+  // Taps the red bar, then the same words on the confirmation, drawn after it
+  const deleteSelected = async (
+    renderer: ReturnType<typeof renderBar>["renderer"],
+    label: string
+  ) => {
     await act(async () => {
-      renderer.root
-        .findAll((node) => node.props.accessibilityLabel === "Delete selected pianos")[0]
-        .props.onPress();
+      pressablesLabelled(renderer, label)[0].props.onPress();
     });
-    await pressText(renderer.root, "Delete");
+    const rows = pressablesLabelled(renderer, label);
+    await act(async () => {
+      await rows[rows.length - 1].props.onPress();
+    });
   };
 
-  it("stays visible with nothing selected, so selection mode can be left", async () => {
-    const { testStore, renderer } = renderBar([piano("a")], []);
+  it("can't be pressed with nothing selected", async () => {
+    const { renderer } = renderBar([piano("a")], []);
 
-    expect(allTexts(renderer.root)).toContain("0 selected");
-
-    await act(async () => {
-      renderer.root
-        .findAll((node) => node.props.accessibilityLabel === "Leave selection mode")[0]
-        .props.onPress();
-    });
-    expect(testStore.getState().pianos.isBulkSelectionMode).toBe(false);
+    // A disabled button has no press handler at all
+    expect(pressablesLabelled(renderer, "Delete pianos")).toEqual([]);
+    const [button] = renderer.root.findAll(
+      (node) =>
+        node.props.accessibilityLabel === "Delete pianos" &&
+        node.props.accessibilityState?.disabled === true
+    );
+    expect(button).toBeDefined();
+    expect(allTexts(renderer.root)).not.toContain("Delete 0 pianos?");
   });
 
   it("deletes the selected pianos and their reminders, then leaves selection mode", async () => {
@@ -158,7 +174,7 @@ describe("bulk selection", () => {
     const toasts = captureToasts();
     const { testStore, renderer, onRefresh } = renderBar(pianos, ["a", "b"]);
 
-    await deleteSelected(renderer);
+    await deleteSelected(renderer, "Delete 2 pianos");
 
     expect([...fakeBackend.documents.keys()]).toEqual(["c"]);
     expect(testStore.getState().pianos.items.map((item) => item.$id)).toEqual(["c"]);
@@ -175,7 +191,7 @@ describe("bulk selection", () => {
     const { testStore, renderer } = renderBar(pianos, ["a", "b"]);
     fakeBackend.documents.delete("b");
 
-    await deleteSelected(renderer);
+    await deleteSelected(renderer, "Delete 2 pianos");
 
     expect(alerts.titles()).toEqual(["Delete Failed"]);
     expect(testStore.getState().pianos.items.map((item) => item.$id)).toEqual(["b"]);

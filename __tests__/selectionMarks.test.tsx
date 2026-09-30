@@ -8,15 +8,9 @@ jest.mock("react-native-appwrite", () =>
 
 import React from "react";
 import { ReactTestRenderer } from "react-test-renderer";
-import BulkOperationsBar from "@/components/BulkOperationsBar";
 import CardItem from "@/components/CardItem";
 import ListItem from "@/components/ListItem";
 import { icons } from "@/constants";
-import {
-  selectAllItems,
-  setBulkSelectionMode,
-  setFilteredPianoListItems,
-} from "@/redux/pianos/actions";
 import { makePiano, testUser } from "./helpers/fixtures";
 import { createTestStore, renderWithStore } from "./helpers/render";
 
@@ -60,24 +54,4 @@ describe.each([
 
     expect(hasIcon(renderer, "checkmark")).toBe(false);
   });
-});
-
-it("the selection bar's Select All button shows a double tick, not the grid icon", () => {
-  const store = createTestStore({ user: testUser, items: [piano] });
-  store.dispatch(setFilteredPianoListItems([piano, makePiano({ $id: "b" })]) as any);
-  store.dispatch(setBulkSelectionMode(true) as any);
-  store.dispatch(selectAllItems([]) as any);
-  const renderer = renderWithStore(<BulkOperationsBar onRefresh={jest.fn()} />, store);
-
-  const [selectAll] = renderer.root.findAll(
-    (node) =>
-      node.props.accessibilityLabel === "Select all pianos" &&
-      typeof node.props.onPress === "function"
-  );
-  const inside = (name: string) =>
-    selectAll.findAll((node) => node.props.name === name).length > 0;
-  expect(inside("checkmark-done")).toBe(true);
-  expect(
-    selectAll.findAll((node) => node.props.source === icons.grid).length
-  ).toBe(0);
 });

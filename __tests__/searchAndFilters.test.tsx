@@ -14,11 +14,9 @@ jest.mock("expo-router", () => ({
 }));
 
 import React from "react";
-import { TextInput } from "react-native";
 import { act } from "react-test-renderer";
 import { router, usePathname } from "expo-router";
 import Home from "@/app/(tabs)/home";
-import SearchInput from "@/components/SearchInput";
 import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
@@ -100,54 +98,6 @@ describe("what search matches", () => {
   it("ignores surrounding spaces and finds nothing for an unknown term", () => {
     expect(search("  steinway  ")).toEqual(["event"]);
     expect(search("bösendorfer")).toEqual([]);
-  });
-});
-
-describe("the search box", () => {
-  const renderSearchInput = () => {
-    const renderer = renderWithStore(<SearchInput />, createTestStore());
-    const input = renderer.root.findByType(TextInput);
-    return {
-      type: (text: string) => act(() => input.props.onChangeText(text)),
-      submit: () => act(() => input.props.onSubmitEditing()),
-      input,
-    };
-  };
-
-  it("searches when Enter is pressed on the keyboard", () => {
-    const { input, type, submit } = renderSearchInput();
-    expect(input.props.returnKeyType).toBe("search");
-
-    type("  B-12/34 #2 ");
-    submit();
-
-    // The router encodes the query, so "/" and "#" can't break the route
-    expect(router.push).toHaveBeenCalledWith({
-      pathname: "/search/[query]",
-      params: { query: "B-12/34 #2" },
-    });
-  });
-
-  it("updates the results in place when already searching", () => {
-    jest.mocked(usePathname).mockReturnValue("/search/yamaha");
-    const { type, submit } = renderSearchInput();
-
-    type("kawai ");
-    submit();
-
-    expect(router.setParams).toHaveBeenCalledWith({ query: "kawai" });
-    expect(router.push).not.toHaveBeenCalled();
-  });
-
-  it("asks for a search term instead of searching for spaces", () => {
-    const alerts = captureAlerts();
-    const { type, submit } = renderSearchInput();
-
-    type("   ");
-    submit();
-
-    expect(alerts.titles()).toEqual(["Missing Query"]);
-    expect(router.push).not.toHaveBeenCalled();
   });
 });
 

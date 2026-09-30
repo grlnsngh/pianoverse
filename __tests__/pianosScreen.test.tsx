@@ -13,11 +13,12 @@ jest.mock("expo-router", () => ({
 }));
 
 import React from "react";
-import { FlatList, Pressable } from "react-native";
+import { FlatList, Pressable, RefreshControl } from "react-native";
 import { act } from "react-test-renderer";
 import { router } from "expo-router";
 import Home from "@/app/(tabs)/home";
 import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/constants/Piano";
+import { colors } from "@/constants/theme";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { savePianosToCache } from "@/lib/pianoCache";
 import { setPianoFilters } from "@/redux/pianos/actions";
@@ -442,6 +443,72 @@ describe("opening and choosing pianos", () => {
 
     act(() => cardFor(renderer, "Rameau Upright").props.onPress());
     expect(store.getState().pianos.selectedItems).toEqual(["estonia"]);
+  });
+
+  it("swaps the search field and tabs for Cancel, the count and Select all, with the red Delete bar below", async () => {
+    const { renderer } = await renderHome();
+    expect(has(renderer, "Search pianos")).toBe(true);
+    expect(allTexts(renderer.root)).not.toContain("Cancel");
+
+    act(() => cardFor(renderer, "Rameau Upright").props.onLongPress());
+
+    expect(allTexts(renderer.root)).toEqual(
+      expect.arrayContaining(["Cancel", "1 selected", "Select all", "Delete 1 piano"])
+    );
+    expect(has(renderer, "Search pianos")).toBe(false);
+    expect(has(renderer, "Add piano")).toBe(false);
+    expect(has(renderer, "Filters")).toBe(false);
+    expect(tabs(renderer)).toHaveLength(0);
+  });
+
+  it("puts the search field and tabs back on Cancel, with nothing chosen", async () => {
+    const { store, renderer } = await renderHome();
+    act(() => cardFor(renderer, "Rameau Upright").props.onLongPress());
+
+    press(renderer, "Cancel");
+
+    expect(store.getState().pianos.isBulkSelectionMode).toBe(false);
+    expect(store.getState().pianos.selectedItems).toEqual([]);
+    expect(has(renderer, "Search pianos")).toBe(true);
+    expect(tabs(renderer).length).toBeGreaterThan(0);
+    expect(allTexts(renderer.root)).not.toContain("Delete 1 piano");
+  });
+
+  it("chooses every piano in the list from Select all", async () => {
+    const { store, renderer } = await renderHome();
+    act(() => cardFor(renderer, "Rameau Upright").props.onLongPress());
+
+    press(renderer, "Select all");
+
+    expect(store.getState().pianos.selectedItems.sort()).toEqual(
+      ["estonia", "rameau", "ronish", "weber"].sort()
+    );
+    expect(allTexts(renderer.root)).toEqual(
+      expect.arrayContaining(["4 selected", "Deselect all", "Delete 4 pianos"])
+    );
+  });
+});
+
+describe("pulling down to refresh", () => {
+  it("uses the system's spinner, drawn in the app's ink colour", async () => {
+    const { renderer } = await renderHome();
+
+    const [control] = renderer.root.findAllByType(RefreshControl);
+    expect(control.props.tintColor).toBe(colors.ink);
+    expect(control.props.colors).toEqual([colors.ink]);
+    expect(control.props.progressBackgroundColor).toBe(colors.white);
+    expect(control.props.refreshing).toBe(false);
+  });
+
+  it("loads the pianos again when it is pulled", async () => {
+    const { renderer } = await renderHome();
+    expect(getUserPianoEntries).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await renderer.root.findAllByType(RefreshControl)[0].props.onRefresh();
+    });
+
+    expect(getUserPianoEntries).toHaveBeenCalledTimes(2);
   });
 });
 

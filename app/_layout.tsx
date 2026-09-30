@@ -61,6 +61,9 @@ export default function RootLayout() {
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             {/* The Add flow: its own screen above the tabs, with its own back button */}
             <Stack.Screen name="create" options={{ headerShown: false }} />
+            {/* Search draws its own field and Cancel button; /search and /search/<words> are the one screen */}
+            <Stack.Screen name="search/index" options={{ headerShown: false }} />
+            <Stack.Screen name="search/[query]" options={{ headerShown: false }} />
           </Stack>
           <ToastHost />
         </PaperProvider>

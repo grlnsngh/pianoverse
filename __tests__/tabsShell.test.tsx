@@ -23,6 +23,7 @@ import { act } from "react-test-renderer";
 import TabsLayout from "@/app/(tabs)/_layout";
 import { TabScenes } from "@/components/ui";
 import { setActiveTab } from "@/redux/navigation/actions";
+import { setBulkSelectionMode } from "@/redux/pianos/actions";
 import { advance, hostByTestId, mount, textContent, update } from "./helpers/ui";
 import { allTexts, createTestStore, renderWithStore } from "./helpers/render";
 
@@ -301,6 +302,25 @@ describe("the tabs layout", () => {
         (node: any) => typeof node.type === "string" && /^scene-/.test(node.props.testID ?? "")
       ).every((scene: any) => !scene.findAll((n: any) => n === bar).length)
     ).toBe(true);
+  });
+
+  it("hides the bar while pianos are being chosen, so the Delete bar takes its place, and brings it back after", () => {
+    const { store, renderer } = open();
+    const bars = () =>
+      renderer.root.findAll(
+        (node: any) => node.props.accessibilityRole === "tablist" && typeof node.type === "string"
+      ).length;
+    expect(bars()).toBe(1);
+
+    act(() => {
+      store.dispatch(setBulkSelectionMode(true) as any);
+    });
+    expect(bars()).toBe(0);
+
+    act(() => {
+      store.dispatch(setBulkSelectionMode(false) as any);
+    });
+    expect(bars()).toBe(1);
   });
 
   it("no longer uses the swipeable pager, so tabs fade instead of sliding", () => {

@@ -71,6 +71,37 @@ Status key: **Open** = waiting for you. **Later** = not asked yet, comes up in a
 - **Options for the backup:** **push `redesign/v2` to GitHub** now (does not touch `main`), or keep it local.
 - **Your answer:**
 
+### Q10. Should search show results as you type, or only when you press the keyboard's search key?
+- **Status:** Open. Look at this on your phone first.
+- **Raised:** Batch 5.
+- **What the app does now (default):** results update **as you type**, and the keyboard's search key just closes the keyboard. The Search board draws a field with a clear button and a "3 results" line and no Search button. It used to run the search only when you pressed the search key.
+- **Options:** **A.** as you type (now). **B.** only on the search key, as before (a small change back).
+- **Your answer:**
+
+### Q11. Should search also look at the company?
+- **Status:** Open. Look at this on your phone first.
+- **Raised:** Batch 5 (Search board vs the app).
+- **What the app does now (default):** search looks at the **title and make**, a rental's **customer name and mobile number**, and an event piano's **model and B-number**. It does **not** look at the company. The hint under the results says exactly that.
+- **The conflict:** the Search board's hint says "title, make, company, and the customer's name or mobile number", and its example finds pianos by the company name.
+- **Options:** **A.** leave the company out (now). **B.** add the company (a small change to what search finds).
+- **Your answer:**
+
+### Q12. What should the "Sold pianos" switch in Filters mean?
+- **Status:** Open.
+- **Raised:** Batch 5.
+- **What the app does now (default):** off hides sold pianos; on shows **only** the sold ones. The switch's line says "Show only pianos that were sold".
+- **The design says:** "Include them in the list", which reads as sold pianos **added to** the others.
+- **Options:** **A.** only the sold ones (now, nothing changes). **B.** include them with the others (changes what the list shows when the switch is on).
+- **Your answer:**
+
+### Q13. Is the system's pull-to-refresh spinner good enough?
+- **Status:** Open. Look at this on your phone first.
+- **Raised:** Batch 5.
+- **What the app does now (default):** pulling down shows the phone's **own** refresh spinner, coloured to match the app. The RefreshPianos board draws a custom ink spinner in a band under the tabs.
+- **Why:** the custom one means replacing the system pull gesture, which feels different and can't be checked without a device.
+- **Options:** **A.** the system spinner (now). **B.** the board's spinner (more work, and I would want to try it on your phone).
+- **Your answer:**
+
 ---
 
 ## Later (not asked yet, the default is set)
@@ -104,6 +135,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 - **Batch 2:** the sheet and dialog (drag down a sheet, keyboard against a sheet with a text field). They are not used by any screen yet.
 - **Batch 3:** the new tab bar (84 high), the tab fade (no flash), the Add screen opening and closing, the Android back button, publishing landing on Pianos.
 - **Batch 4:** the Pianos header, tabs, grid and list, photo fallback, filter panel opening from the pill and the sort link, select mode, offline strip, empty states.
+- **Batch 5:** the filter sheet (Sort by list on top of it, the "Show N pianos" button), select mode (top bar, red Delete bar in the tab bar's place, the dialog, Android back), the refresh spinner, and Search (keyboard up at once, results as you type, bold matches, Clear, Cancel, no results).
 - The full step-by-step list for each batch is in the chat message that ended that batch and in [PLAN.md](PLAN.md)'s Session log.
 
 ---

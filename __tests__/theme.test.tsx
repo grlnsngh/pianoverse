@@ -10,7 +10,6 @@ import React from "react";
 import { TextInput } from "react-native";
 import { act, create, ReactTestRenderer } from "react-test-renderer";
 import FormField from "@/components/FormField";
-import SearchInput from "@/components/SearchInput";
 
 const root = path.join(__dirname, "..");
 const PRIMARY = "#161622";
@@ -131,17 +130,6 @@ describe("focus highlight", () => {
     act(() => renderer.root.findByType(TextInput).props.onBlur({}));
     expect(borderOf(renderer)).toBe("border-black-200");
     expect(onBlur).toHaveBeenCalled();
-  });
-
-  it("highlights the search box while it is being typed in", () => {
-    let renderer!: ReactTestRenderer;
-    act(() => {
-      renderer = create(<SearchInput />);
-    });
-    expect(borderOf(renderer)).toBe("border-black-200");
-
-    act(() => renderer.root.findByType(TextInput).props.onFocus({}));
-    expect(borderOf(renderer)).toBe("border-secondary");
   });
 });
 

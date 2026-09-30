@@ -43,3 +43,7 @@ export { default as StateView } from "./StateView";
 export type { StateViewProps } from "./StateView";
 export { default as PickerSheet } from "./PickerSheet";
 export type { PickerOption, PickerSheetProps } from "./PickerSheet";
+export { default as SearchField } from "./SearchField";
+export type { SearchFieldProps } from "./SearchField";
+export { default as HighlightedText } from "./HighlightedText";
+export type { HighlightedTextProps } from "./HighlightedText";

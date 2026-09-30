@@ -1,116 +1,191 @@
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { router, useLocalSearchParams } from "expo-router";
+import { useSelector } from "react-redux";
+import PianoCard from "@/components/PianoCard";
+import PianoRow from "@/components/PianoRow";
+import { SearchField, StateView } from "@/components/ui";
+import { colors, fonts, spacing } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
-import { searchPianoItems } from "@/utils/ObjectManipulation";
 import { padToFullRows } from "@/utils/grid";
-import { useLocalSearchParams, useNavigation } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { FlatList, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useSelector } from "react-redux";
-import EmptyState from "@/components/EmptyState";
-import CardItem from "@/components/CardItem";
-import { SECONDARY_COLOR } from "@/constants/colors";
-import ListItem from "@/components/ListItem";
-import SearchInput from "@/components/SearchInput";
+import { layoutOf } from "@/utils/filters";
+import { searchPianoItems } from "@/utils/ObjectManipulation";
 
+// What the search really looks at (see searchPianoItems)
+const HINT =
+  "Searches title and make, a rental’s customer name or mobile number, and an event’s model or B-number.";
+
+const countText = (count: number, typed: boolean) =>
+  typed
+    ? `${count} ${count === 1 ? "result" : "results"}`
+    : `${count} ${count === 1 ? "piano" : "pianos"}`;
+
+/**
+ * Search: a field you type in, and the pianos that match under it, as you type.
+ * It opens with the keyboard up and every piano listed, in the same grid or
+ * list as the Pianos tab. The letters that matched are bold.
+ */
 const Search = () => {
   const { query } = useLocalSearchParams();
-  const searchQuery = (Array.isArray(query) ? query[0] : query) ?? "";
-  const navigation = useNavigation();
-  const pianoItems = useSelector((state: RootState) => state.pianos.items);
-  const [items, setItems] = useState<PianoItem[]>([]);
+  const initialText = (Array.isArray(query) ? query[0] : query) ?? "";
+  const [text, setText] = useState(initialText);
+  const inputRef = useRef<TextInput>(null);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerStyle: {
-        backgroundColor: SECONDARY_COLOR,
-      },
-      headerTintColor: "#161622",
-      title: `Search results for ${searchQuery}`,
-    });
-    const searchResults = searchPianoItems(pianoItems, searchQuery);
-    setItems(searchResults);
-  }, [searchQuery, pianoItems]);
+  const pianos = useSelector((state: RootState) => state.pianos.items);
+  const filters = useSelector((state: RootState) => state.pianos.filters);
+  const isGrid = layoutOf(filters) === "grid";
 
-  const [visibleMenuId, setVisibleMenuId] = useState<string | null>(null);
-
-  const openMenu = (menuId: string) => setVisibleMenuId(menuId);
-  const closeMenu = () => setVisibleMenuId(null);
-
-  const layoutView = useSelector(
-    (state: RootState) => state.pianos.filters.layoutStatus
+  const term = text.trim();
+  const results = useMemo(() => searchPianoItems(pianos, text), [pianos, text]);
+  const data = useMemo(
+    () => (isGrid ? padToFullRows(results, 2) : results),
+    [isGrid, results]
   );
-  const isGrid = layoutView.grid === "checked";
 
-  const emptyState = () => (
-    <EmptyState title="No Pianos Found" subtitle="Try other search terms" />
+  const cancel = useCallback(() => {
+    if (router.canGoBack()) router.back();
+    else router.replace("/home");
+  }, []);
+  const clear = useCallback(() => {
+    setText("");
+    inputRef.current?.focus();
+  }, []);
+  const openPiano = useCallback((id: string) => router.push(`/detail/${id}`), []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: PianoItem | (PianoItem & { empty?: boolean }) }) => {
+      // A blank cell that keeps the last card of the grid from stretching
+      if ((item as { empty?: boolean }).empty) return <View style={styles.blankCell} />;
+      const piano = item as PianoItem;
+      return isGrid ? (
+        <PianoCard item={piano} onOpen={openPiano} highlight={term} />
+      ) : (
+        <PianoRow item={piano} onOpen={openPiano} highlight={term} />
+      );
+    },
+    [isGrid, openPiano, term]
   );
+
+  const renderEmpty = () =>
+    pianos.length === 0 ? (
+      <StateView
+        icon="tabPianos"
+        title="No pianos yet"
+        message="Pianos you add will show up here."
+      />
+    ) : (
+      <StateView
+        icon="searchOff"
+        title={`No pianos match “${term}”`}
+        message="Check the spelling, or try a make or a customer’s name."
+        actionLabel="Clear search"
+        actionVariant="secondary"
+        onAction={clear}
+      />
+    );
+
+  const header =
+    results.length > 0 ? (
+      <Text style={styles.count} accessibilityLiveRegion="polite">
+        {countText(results.length, term !== "")}
+      </Text>
+    ) : null;
+  const footer =
+    results.length > 0 ? <Text style={styles.hint}>{HINT}</Text> : null;
+
+  const shared = {
+    data,
+    keyExtractor: (item: PianoItem) => item.$id || item.title,
+    renderItem,
+    ListHeaderComponent: header,
+    ListFooterComponent: footer,
+    ListEmptyComponent: renderEmpty,
+    keyboardShouldPersistTaps: "handled" as const,
+    keyboardDismissMode: "on-drag" as const,
+  };
 
   return (
-    <SafeAreaView className="bg-primary h-full">
-      {/* Search again without going back */}
-      <View className="px-4 pt-4 pb-2">
-        <SearchInput initialQuery={searchQuery} autoFocus={searchQuery === ""} />
+    <SafeAreaView edges={["top"]} style={styles.page}>
+      <View style={styles.searchRow}>
+        <SearchField
+          ref={inputRef}
+          style={styles.field}
+          value={text}
+          onChangeText={setText}
+          onClear={clear}
+          // Straight to typing, unless the search came with words already in it
+          autoFocus={initialText === ""}
+        />
+        <Pressable
+          onPress={cancel}
+          accessibilityRole="button"
+          accessibilityLabel="Cancel"
+          style={styles.cancel}
+        >
+          <Text style={styles.cancelText}>Cancel</Text>
+        </Pressable>
       </View>
 
       {isGrid ? (
-        // The same cards as Home's grid
         <FlatList
           key="grid"
-          data={padToFullRows(items, 2)}
-          keyExtractor={(item) => item.$id}
+          {...shared}
           numColumns={2}
-          columnWrapperStyle={{ gap: 12, paddingHorizontal: 12 }}
-          contentContainerStyle={{ gap: 12, paddingBottom: 20, paddingTop: 8 }}
-          renderItem={({ item, index }) =>
-            item.empty ? (
-              <View style={{ flex: 1, margin: 4 }} />
-            ) : (
-              <CardItem
-                item={item}
-                index={index}
-                visibleMenuId={visibleMenuId}
-                openMenu={openMenu}
-                closeMenu={closeMenu}
-                isGridView
-              />
-            )
-          }
-          ListEmptyComponent={emptyState}
+          columnWrapperStyle={styles.gridRow}
+          contentContainerStyle={styles.gridContent}
         />
       ) : (
         <FlatList
           key="list"
-          data={items}
-          keyExtractor={(item) => item.$id}
-          renderItem={({ item }) => {
-            if (layoutView.card === "checked") {
-              return (
-                <CardItem
-                  item={item}
-                  visibleMenuId={visibleMenuId}
-                  openMenu={openMenu}
-                  closeMenu={closeMenu}
-                />
-              );
-            } else if (layoutView.list === "checked") {
-              return (
-                <ListItem
-                  item={item}
-                  visibleMenuId={visibleMenuId}
-                  openMenu={openMenu}
-                  closeMenu={closeMenu}
-                />
-              );
-            } else {
-              return null; // Render nothing if no view is checked
-            }
-          }}
-          ListEmptyComponent={emptyState}
+          {...shared}
+          numColumns={1}
+          contentContainerStyle={styles.listContent}
         />
       )}
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  page: { flex: 1, backgroundColor: colors.page },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingTop: spacing.md,
+    paddingLeft: spacing.screen,
+    paddingRight: spacing.sm,
+  },
+  field: { flex: 1, minWidth: 0 },
+  cancel: {
+    height: spacing.minTarget,
+    paddingHorizontal: spacing.md,
+    justifyContent: "center",
+  },
+  cancelText: { fontFamily: fonts.semibold, fontSize: 16, color: colors.ink },
+  count: {
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.screen,
+    fontFamily: fonts.medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.ink2,
+  },
+  hint: {
+    paddingTop: 24,
+    paddingHorizontal: spacing.screen,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.ink2,
+  },
+  gridRow: { gap: 12, paddingHorizontal: spacing.screen },
+  gridContent: { rowGap: 20, paddingBottom: 32, flexGrow: 1 },
+  listContent: { paddingBottom: 32, flexGrow: 1 },
+  blankCell: { flex: 1 },
+});
 
 export default Search;

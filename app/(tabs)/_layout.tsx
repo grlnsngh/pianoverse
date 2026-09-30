@@ -29,7 +29,11 @@ const TabsLayout = () => {
   // Kept in the store so other screens can switch tabs instead of pushing
   // another copy of the tabs
   const activeTab = useSelector(
-    (state: RootState) => state.navigation.activeTab
+    (state: RootState) => state.navigation.activeTab,
+  );
+  // While choosing pianos to delete, the Delete bar takes the tab bar's place
+  const choosingPianos = useSelector(
+    (state: RootState) => state.pianos.isBulkSelectionMode,
   );
 
   // Start on the first tab after signing in or opening the app
@@ -40,11 +44,13 @@ const TabsLayout = () => {
   return (
     <View style={{ flex: 1, backgroundColor: colors.page }}>
       <TabScenes scenes={SCENES} active={activeTab} />
-      <TabBar
-        tabs={TABS}
-        active={activeTab}
-        onSelect={(tab) => dispatch(setActiveTab(tab) as any)}
-      />
+      {!choosingPianos && (
+        <TabBar
+          tabs={TABS}
+          active={activeTab}
+          onSelect={(tab) => dispatch(setActiveTab(tab) as any)}
+        />
+      )}
     </View>
   );
 };

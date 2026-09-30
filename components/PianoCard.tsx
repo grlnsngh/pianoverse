@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Badge, Icon, PianoPhoto } from "@/components/ui";
+import { Badge, HighlightedText, Icon, PianoPhoto } from "@/components/ui";
 import { colors, fonts, radii } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { getPianoDisplay } from "@/utils/pianoDisplay";
@@ -16,9 +16,12 @@ export type PianoCardProps = {
   selecting?: boolean;
   selected?: boolean;
   onOpen: (id: string) => void;
-  onToggle: (id: string) => void;
-  /** A long press starts choosing pianos */
-  onSelectStart: (id: string) => void;
+  /** Left out where pianos can't be chosen, such as the search results */
+  onToggle?: (id: string) => void;
+  /** A long press starts choosing pianos. Left out, a long press does nothing. */
+  onSelectStart?: (id: string) => void;
+  /** The words that were searched for, made bold in the title and company */
+  highlight?: string;
 };
 
 /**
@@ -33,6 +36,7 @@ const PianoCard = ({
   onOpen,
   onToggle,
   onSelectStart,
+  highlight,
 }: PianoCardProps) => {
   const display = getPianoDisplay(item);
   const id = item.$id;
@@ -49,8 +53,8 @@ const PianoCard = ({
 
   return (
     <Pressable
-      onPress={() => (selecting ? onToggle(id) : onOpen(id))}
-      onLongPress={selecting ? undefined : () => onSelectStart(id)}
+      onPress={() => (selecting ? onToggle?.(id) : onOpen(id))}
+      onLongPress={selecting || !onSelectStart ? undefined : () => onSelectStart(id)}
       accessibilityRole="button"
       accessibilityLabel={summary}
       accessibilityHint={selecting ? "Chooses this piano" : "Opens this piano"}
@@ -73,11 +77,11 @@ const PianoCard = ({
       </PianoPhoto>
 
       <Text style={styles.title} numberOfLines={1}>
-        {item.title}
+        <HighlightedText text={item.title} term={highlight} matchStyle={styles.titleMatch} />
       </Text>
       {!!company && (
         <Text style={styles.line} numberOfLines={1}>
-          {company}
+          <HighlightedText text={company} term={highlight} matchStyle={styles.lineMatch} />
         </Text>
       )}
       {!selecting && (display.price || display.cardRest) ? (
@@ -112,12 +116,14 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: colors.ink,
   },
+  titleMatch: { fontFamily: fonts.bold },
   line: {
     fontFamily: fonts.regular,
     fontSize: 14,
     lineHeight: 20,
     color: colors.ink2,
   },
+  lineMatch: { fontFamily: fonts.bold, color: colors.ink },
   price: {
     fontFamily: fonts.bold,
     color: colors.ink,

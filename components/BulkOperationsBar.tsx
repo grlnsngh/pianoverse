@@ -1,29 +1,36 @@
 import React, { useState } from "react";
-import { Alert, View, Text, TouchableOpacity } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import {
   clearSelectedItems,
   removePianoItems,
   setBulkSelectionMode,
-  selectAllItems,
 } from "@/redux/pianos/actions";
 import { deleteMultiplePianoEntries } from "@/lib/appwrite";
 import { cancelRentalNotification } from "@/services/notifications";
-import { icons } from "@/constants";
-import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import CustomAlertModal from "./CustomAlertModal";
+import { Button, Dialog } from "@/components/ui";
+import { colors, spacing } from "@/constants/theme";
 import { showToast } from "@/utils/toast";
 
 interface BulkOperationsBarProps {
   onRefresh: () => void;
 }
 
+const pianos = (count: number) =>
+  `${count} ${count === 1 ? "piano" : "pianos"}`;
+
+/**
+ * The red Delete bar at the bottom of the Pianos tab while choosing pianos. It
+ * takes the place of the tab bar. It asks before it deletes, and names how
+ * many.
+ */
 const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
   const dispatch = useDispatch();
+  const insets = useSafeAreaInsets();
   const { selectedItems, filteredItems, isBulkSelectionMode } = useSelector(
-    (state: RootState) => state.pianos
+    (state: RootState) => state.pianos,
   );
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -37,12 +44,11 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
     setShowDeleteModal(false);
     setIsDeleting(true);
     const itemsToDelete = filteredItems.filter((item) =>
-      selectedItems.includes(item.$id)
+      selectedItems.includes(item.$id),
     );
 
-    const { deletedIds, failedIds } = await deleteMultiplePianoEntries(
-      itemsToDelete
-    );
+    const { deletedIds, failedIds } =
+      await deleteMultiplePianoEntries(itemsToDelete);
     await Promise.all(deletedIds.map((id) => cancelRentalNotification(id)));
     dispatch(removePianoItems(deletedIds) as any);
     setIsDeleting(false);
@@ -52,13 +58,13 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
       dispatch(clearSelectedItems() as any);
       dispatch(setBulkSelectionMode(false) as any);
       showToast(
-        `Deleted ${deletedIds.length} piano${deletedIds.length === 1 ? "" : "s"}`
+        `Deleted ${deletedIds.length} piano${deletedIds.length === 1 ? "" : "s"}`,
       );
     } else {
       // The pianos that could not be deleted stay selected to try again
       Alert.alert(
         "Delete Failed",
-        `Couldn't delete ${failedIds.length} of ${itemsToDelete.length} pianos. Check your connection and try again.`
+        `Couldn't delete ${failedIds.length} of ${itemsToDelete.length} pianos. Check your connection and try again.`,
       );
     }
 
@@ -66,88 +72,62 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
     onRefresh();
   };
 
-  const handleCancelDelete = () => {
-    setShowDeleteModal(false);
-  };
-
-  const handleSelectAll = () => {
-    if (selectedItems.length === filteredItems.length) {
-      dispatch(clearSelectedItems() as any);
-    } else {
-      const allIds = filteredItems.map((item) => item.$id);
-      dispatch(selectAllItems(allIds) as any);
-    }
-  };
-
-  const handleCancelSelection = () => {
-    dispatch(clearSelectedItems() as any);
-    dispatch(setBulkSelectionMode(false) as any);
-  };
-
-  // Stay visible in selection mode, even with nothing selected, so it can
-  // always be cancelled
+  // Only while choosing pianos. Leaving is Cancel in the bar at the top.
   if (!isBulkSelectionMode) {
     return null;
   }
 
+  const count = selectedItems.length;
+  const deleteLabel = count > 0 ? `Delete ${pianos(count)}` : "Delete pianos";
+
   return (
-    <View className="bg-secondary px-4 py-3 flex-row items-center justify-between">
-      <View className="flex-row items-center">
-        <Text className="text-primary font-psemibold text-base mr-2">
-          {selectedItems.length} selected
-        </Text>
-      </View>
-
-      <View className="flex-row items-center space-x-2">
-        {selectedItems.length !== filteredItems.length && (
-          <TouchableOpacity
-            onPress={handleSelectAll}
-            className="bg-primary-300 w-10 h-10 rounded-lg items-center justify-center"
-            activeOpacity={0.8}
-            accessibilityLabel="Select all pianos"
-          >
-            <Ionicons name="checkmark-done" size={20} color="#CDCDE0" />
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
+    <>
+      <View
+        style={[
+          styles.bar,
+          // 28 below the button on an iPhone with a home indicator, 16 elsewhere
+          { paddingBottom: Math.max(insets.bottom - 6, spacing.lg) },
+        ]}
+      >
+        <Button
+          title={deleteLabel}
+          variant="destructive"
+          disabled={count === 0}
+          loading={isDeleting}
+          loadingTitle="Deleting"
           onPress={handleBulkDelete}
-          disabled={selectedItems.length === 0 || isDeleting}
-          className={`bg-red-600 w-10 h-10 rounded-lg items-center justify-center ${
-            selectedItems.length === 0 || isDeleting ? "opacity-50" : ""
-          }`}
-          activeOpacity={0.8}
-          accessibilityLabel="Delete selected pianos"
-        >
-          <Image source={icons.trash} className="w-5 h-5" tintColor="#ffffff" />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleCancelSelection}
-          className="bg-gray-600 w-10 h-10 rounded-lg items-center justify-center"
-          activeOpacity={0.8}
-          accessibilityLabel="Leave selection mode"
-        >
-          <Image source={icons.close} className="w-5 h-5" tintColor="#ffffff" />
-        </TouchableOpacity>
+        />
       </View>
 
-      <CustomAlertModal
+      <Dialog
         visible={showDeleteModal}
-        title="Confirm Bulk Delete"
-        message={`Are you sure you want to delete ${
-          selectedItems.length
-        } piano${
-          selectedItems.length > 1 ? "s" : ""
-        }? This action cannot be undone.`}
-        onCancel={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-        cancelText="Cancel"
-        confirmText="Delete"
-        type="destructive"
+        title={`Delete ${pianos(count)}?`}
+        message={`${
+          count === 1
+            ? "Its photos and payments are"
+            : "Their photos and payments are"
+        } removed too. This can’t be undone.`}
+        actions={[
+          {
+            label: deleteLabel,
+            tone: "destructive",
+            onPress: handleConfirmDelete,
+          },
+          { label: "Cancel", onPress: () => setShowDeleteModal(false) },
+        ]}
       />
-    </View>
+    </>
   );
 };
+
+const styles = StyleSheet.create({
+  bar: {
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.screen,
+    borderTopWidth: 1,
+    borderTopColor: colors.hairline,
+    backgroundColor: colors.page,
+  },
+});
 
 export default BulkOperationsBar;

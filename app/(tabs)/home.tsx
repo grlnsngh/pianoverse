@@ -62,6 +62,7 @@ import PianoCard from "@/components/PianoCard";
 import PianoRow from "@/components/PianoRow";
 import PianosSkeleton from "@/components/PianosSkeleton";
 import BulkOperationsBar from "@/components/BulkOperationsBar";
+import SelectionHeader from "@/components/SelectionHeader";
 import { scheduleAllRentalNotifications } from "@/services/notifications";
 
 const CATEGORY_TABS: readonly IconTabItem<CategoryTab>[] = [
@@ -78,7 +79,7 @@ const EMPTY_LIST_ART_ID = "piano-1";
 /** "28 Sep, 6:40 pm" */
 const formatSavedAt = (savedAt: string) =>
   format(new Date(savedAt), "d MMM, h:mm a").replace(/AM|PM/, (m) =>
-    m.toLowerCase()
+    m.toLowerCase(),
   );
 
 const Home = () => {
@@ -100,13 +101,13 @@ const Home = () => {
   } = useAppwrite(fetchFunction);
 
   const pianoReduxItems: PianoItem[] = useSelector(
-    (state: RootState) => state.pianos.items
+    (state: RootState) => state.pianos.items,
   );
   const filteredPianoReduxItems: PianoItem[] = useSelector(
-    (state: RootState) => state.pianos.filteredItems
+    (state: RootState) => state.pianos.filteredItems,
   );
   const { selectedItems, isBulkSelectionMode } = useSelector(
-    (state: RootState) => state.pianos
+    (state: RootState) => state.pianos,
   );
   const filters = useSelector((state: RootState) => state.pianos.filters);
 
@@ -131,7 +132,7 @@ const Home = () => {
         dispatch(clearSelectedItems() as any);
         dispatch(setBulkSelectionMode(false) as any);
         return true;
-      }
+      },
     );
     return () => subscription.remove();
   }, [isBulkSelectionMode, dispatch]);
@@ -142,7 +143,7 @@ const Home = () => {
     (itemId: string) => {
       dispatch(toggleItemSelection(itemId) as any);
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleEnterBulkSelection = useCallback(
@@ -157,19 +158,19 @@ const Home = () => {
         dispatch(toggleItemSelection(itemId) as any);
       }
     },
-    [dispatch, store]
+    [dispatch, store],
   );
 
   const overdueCount = useMemo(
     () => pianoReduxItems.filter(isOverdue).length,
-    [pianoReduxItems]
+    [pianoReduxItems],
   );
   const showOverdue = useCallback(
     () =>
       dispatch(
-        setPianoFilters({ ...clearFilters(filters), isOverdue: true }) as any
+        setPianoFilters({ ...clearFilters(filters), isOverdue: true }) as any,
       ),
-    [filters, dispatch]
+    [filters, dispatch],
   );
 
   const hasPianos = pianoReduxItems.length > 0;
@@ -187,7 +188,7 @@ const Home = () => {
         ...tab,
         disabled: rentalsOnly && tab.key !== "rentable",
       })),
-    [rentalsOnly]
+    [rentalsOnly],
   );
 
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -196,16 +197,16 @@ const Home = () => {
   const selectCategory = useCallback(
     (tab: CategoryTab) =>
       dispatch(
-        setPianoFilters({ ...filters, category: categoryFilterOf(tab) }) as any
+        setPianoFilters({ ...filters, category: categoryFilterOf(tab) }) as any,
       ),
-    [filters, dispatch]
+    [filters, dispatch],
   );
   const toggleLayout = useCallback(
     () =>
       dispatch(
-        setPianoFilters(withLayout(filters, isGrid ? "list" : "grid")) as any
+        setPianoFilters(withLayout(filters, isGrid ? "list" : "grid")) as any,
       ),
-    [filters, isGrid, dispatch]
+    [filters, isGrid, dispatch],
   );
   const openAdd = useCallback(() => router.push("/create"), []);
   // (The typed routes are generated when the dev server starts, so a new
@@ -213,7 +214,7 @@ const Home = () => {
   const openSearch = useCallback(() => router.push("/search" as Href), []);
   const openPiano = useCallback(
     (id: string) => router.push(`/detail/${id}`),
-    []
+    [],
   );
 
   // The very first load, with no saved copy on this device to show yet. The
@@ -280,7 +281,9 @@ const Home = () => {
 
   const applyFilters = useCallback(() => {
     dispatch(
-      setFilteredPianoListItems(applyPianoFilters(pianoReduxItems, filters)) as any
+      setFilteredPianoListItems(
+        applyPianoFilters(pianoReduxItems, filters),
+      ) as any,
     );
   }, [pianoReduxItems, filters, dispatch]);
 
@@ -354,108 +357,127 @@ const Home = () => {
       openPiano,
       handleToggleItemSelection,
       handleEnterBulkSelection,
-    ]
+    ],
   );
 
   const count = filteredPianoReduxItems.length;
   const refreshControl = (
-    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      // iOS draws the spinner in tintColor; Android in colors, on a white disc
+      tintColor={colors.ink}
+      colors={[colors.ink]}
+      progressBackgroundColor={colors.white}
+    />
   );
 
   return (
     <SafeAreaView edges={["top"]} style={styles.page}>
-      <View style={styles.searchRow}>
-        <SearchPill
-          style={styles.pill}
-          onPress={openSearch}
-          // Nothing to filter until there are pianos (or they are on their way)
-          onFilterPress={hasPianos || loadingFirstTime ? openFilters : undefined}
-          filterCount={activeFilterCount}
-        />
-        <AddButton onPress={openAdd} />
-      </View>
-
-      {(hasPianos || loadingFirstTime) && (
-        <IconTabs
-          style={styles.tabs}
-          tabs={tabs}
-          active={activeTab}
-          onSelect={selectCategory}
-          accessibilityLabel="Category"
-        />
-      )}
-
-      {/* Offline: say the list may be out of date */}
-      {!!loadError && hasPianos && (
-        <Banner
-          variant="offline"
-          lead="Offline."
-          message={
-            savedAt
-              ? `Showing pianos saved on ${formatSavedAt(savedAt)}.`
-              : "Showing the last loaded pianos."
-          }
-          style={styles.offline}
-        />
-      )}
-
-      {/* Rentals that should have come back by now */}
-      {overdueCount > 0 && !filters.isOverdue && (
-        <Pressable
-          onPress={showOverdue}
-          accessibilityRole="button"
-          style={styles.overdue}
-        >
-          <Icon name="alert" size={18} color={colors.late} strokeWidth={2} />
-          <Text style={styles.overdueText}>
-            {overdueCount} {overdueCount === 1 ? "rental is" : "rentals are"}{" "}
-            overdue
-          </Text>
-          <Text style={styles.overdueAction}>View</Text>
-        </Pressable>
-      )}
-
-      {hasPianos && (
-        <View style={styles.countRow}>
-          <Text style={styles.count}>
-            {count === 0
-              ? "No pianos"
-              : `${count} ${count === 1 ? "piano" : "pianos"}`}
-          </Text>
-          <View style={styles.countActions}>
-            <Pressable
-              onPress={openFilters}
-              accessibilityRole="button"
-              accessibilityLabel={`Sort by ${sortLabelOf(filters.sortBy)}`}
-              style={styles.sort}
-            >
-              <Text style={styles.sortText}>{sortLabelOf(filters.sortBy)}</Text>
-              <Icon
-                name="chevronDown"
-                size={14}
-                color={colors.ink}
-                strokeWidth={2.4}
-              />
-            </Pressable>
-            <Pressable
-              onPress={toggleLayout}
-              accessibilityRole="button"
-              accessibilityLabel={isGrid ? "Show as list" : "Show as grid"}
-              style={styles.layoutToggle}
-            >
-              <Icon
-                name={isGrid ? "list" : "categoryAll"}
-                size={22}
-                color={colors.ink}
-                strokeWidth={1.9}
-              />
-            </Pressable>
+      {isBulkSelectionMode ? (
+        <SelectionHeader />
+      ) : (
+        <>
+          <View style={styles.searchRow}>
+            <SearchPill
+              style={styles.pill}
+              onPress={openSearch}
+              // Nothing to filter until there are pianos (or they are on their way)
+              onFilterPress={
+                hasPianos || loadingFirstTime ? openFilters : undefined
+              }
+              filterCount={activeFilterCount}
+            />
+            <AddButton onPress={openAdd} />
           </View>
-        </View>
-      )}
 
-      {/* Bulk Operations Bar */}
-      <BulkOperationsBar onRefresh={onRefresh} />
+          {(hasPianos || loadingFirstTime) && (
+            <IconTabs
+              style={styles.tabs}
+              tabs={tabs}
+              active={activeTab}
+              onSelect={selectCategory}
+              accessibilityLabel="Category"
+            />
+          )}
+
+          {/* Offline: say the list may be out of date */}
+          {!!loadError && hasPianos && (
+            <Banner
+              variant="offline"
+              lead="Offline."
+              message={
+                savedAt
+                  ? `Showing pianos saved on ${formatSavedAt(savedAt)}.`
+                  : "Showing the last loaded pianos."
+              }
+              style={styles.offline}
+            />
+          )}
+
+          {/* Rentals that should have come back by now */}
+          {overdueCount > 0 && !filters.isOverdue && (
+            <Pressable
+              onPress={showOverdue}
+              accessibilityRole="button"
+              style={styles.overdue}
+            >
+              <Icon
+                name="alert"
+                size={18}
+                color={colors.late}
+                strokeWidth={2}
+              />
+              <Text style={styles.overdueText}>
+                {overdueCount}{" "}
+                {overdueCount === 1 ? "rental is" : "rentals are"} overdue
+              </Text>
+              <Text style={styles.overdueAction}>View</Text>
+            </Pressable>
+          )}
+
+          {hasPianos && (
+            <View style={styles.countRow}>
+              <Text style={styles.count}>
+                {count === 0
+                  ? "No pianos"
+                  : `${count} ${count === 1 ? "piano" : "pianos"}`}
+              </Text>
+              <View style={styles.countActions}>
+                <Pressable
+                  onPress={openFilters}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Sort by ${sortLabelOf(filters.sortBy)}`}
+                  style={styles.sort}
+                >
+                  <Text style={styles.sortText}>
+                    {sortLabelOf(filters.sortBy)}
+                  </Text>
+                  <Icon
+                    name="chevronDown"
+                    size={14}
+                    color={colors.ink}
+                    strokeWidth={2.4}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={toggleLayout}
+                  accessibilityRole="button"
+                  accessibilityLabel={isGrid ? "Show as list" : "Show as grid"}
+                  style={styles.layoutToggle}
+                >
+                  <Icon
+                    name={isGrid ? "list" : "categoryAll"}
+                    size={22}
+                    color={colors.ink}
+                    strokeWidth={1.9}
+                  />
+                </Pressable>
+              </View>
+            </View>
+          )}
+        </>
+      )}
 
       {loadingFirstTime ? (
         showSkeleton ? (
@@ -493,6 +515,9 @@ const Home = () => {
           refreshControl={refreshControl}
         />
       )}
+
+      {/* The red Delete bar, in place of the tab bar, while choosing pianos */}
+      <BulkOperationsBar onRefresh={onRefresh} />
 
       {/* The sheet behind the filter button and the sort link */}
       <FilterSheet visible={filtersOpen} onClose={closeFilters} />
