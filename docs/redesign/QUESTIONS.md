@@ -13,15 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q20. Should the phone's own splash screen show the logo too?
-- **Status:** Open. Look at this on your phone first (it needs the new build).
-- **Raised:** Batch 11 (the Splash board).
-- **In simple terms:** when you open the app, the phone shows its own launch screen for a moment, before the app itself has started. The Splash board draws the orange screen with the logo tile and the name "Pianoverse". The phone's launch screen can only show a picture, so showing the logo there needs an image file made for it. Without one, the phone shows plain orange and, a moment later, the app's own splash makes the logo pop in on the same orange.
-- **What the app does now (default):** plain brand orange on the phone's launch screen (no picture), then the logo pops in. It is seamless, but for a moment there is no logo.
-- **Options:**
-  - **A. Plain orange, then the logo pops in** (now).
-  - **B. Put the logo on the phone's launch screen too.** I would make a picture of the tile and the name to match the board. The logo would then be there from the first moment, and the pop would start from it. It needs a picture file in the project and a new build to check.
-- **Your answer:**
+_(Nothing is waiting for you right now.)_
 
 ---
 
@@ -120,3 +112,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q19. Should the category list come back on the Account tab?
 - **Answer:** No, leave Account as the board draws it (option A, the default) (2026-09-30).
 - **Why it stays:** the Pianos tab already has the category tabs that do the same filtering, and Today shows the money and what needs attention. Nothing to build.
+
+### Q20. Should the phone's own splash screen show the logo too?
+- **Answer:** No, plain orange and then the logo pops in (option A, the default) (2026-09-30).
+- **Why it stays:** it is seamless, and a launch picture would be one more file to keep in step with the logo. Nothing to build.
