@@ -22,10 +22,7 @@ jest.mock("expo-router", () => ({
 import React from "react";
 import { addDays, subMonths } from "date-fns";
 import Home from "@/app/(tabs)/home";
-import Profile from "@/app/(tabs)/profile";
-import { DEFAULT_FILTERS } from "@/constants/Piano";
-import { getRentPaymentsBetween, getUserPianoEntries } from "@/lib/appwrite";
-import { setPianoFilters } from "@/redux/pianos/actions";
+import { getUserPianoEntries } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
 import { isOverdue } from "@/utils/pianoStatus";
@@ -35,7 +32,6 @@ import {
   allTexts,
   createTestStore,
   flushPromises,
-  pressText,
   renderWithStore,
 } from "./helpers/render";
 
@@ -135,128 +131,4 @@ describe("income", () => {
     });
   });
 
-  it("is shown on the profile, with a link to the overdue rentals", async () => {
-    const store = createTestStore({ user: testUser, items: pianos });
-    const layoutStatus = {
-      card: "checked",
-      list: "unchecked",
-      grid: "unchecked",
-    };
-    store.dispatch(setPianoFilters({ ...DEFAULT_FILTERS, layoutStatus }));
-    jest
-      .mocked(getRentPaymentsBetween)
-      .mockResolvedValue([{ amount: 3000 }, { amount: 1500 }] as any);
-    const renderer = renderWithStore(<Profile />, store);
-    await flushPromises();
-
-    const texts = allTexts(renderer.root);
-    expect(texts).toContain("₹4,500");
-    expect(texts).toContain("Received this month");
-    expect(texts).toContain("2 payments");
-    // The rent of the rentals out now is still there, as an estimate
-    expect(texts).toContain("₹8,000");
-    expect(texts).toContain("Rent from 2 active rentals");
-    expect(texts).toContain("₹90,000");
-    expect(texts).toContain("1 sold this month");
-
-    await pressText(renderer.root, "1 rental is overdue");
-
-    expect(store.getState().navigation.activeTab).toBe("pianos");
-    expect(store.getState().pianos.filters).toEqual({
-      ...DEFAULT_FILTERS,
-      layoutStatus,
-      isOverdue: true,
-    });
-  });
-});
-
-it("says pianos added in the last 30 days were added in the last 30 days", () => {
-  const recent = makePiano({
-    $id: "recent",
-    $createdAt: new Date().toISOString(),
-  });
-  const renderer = renderWithStore(
-    <Profile />,
-    createTestStore({ user: testUser, items: [recent] })
-  );
-
-  const texts = allTexts(renderer.root);
-  expect(texts).toContain("LAST 30 DAYS");
-  expect(texts).not.toContain("THIS MONTH");
-});
-
-describe("the profile's shortcuts", () => {
-  const layoutStatus = {
-    card: "unchecked",
-    list: "unchecked",
-    grid: "checked",
-  };
-
-  const renderProfile = () => {
-    const store = createTestStore({ user: testUser, items: pianos });
-    store.dispatch(
-      setPianoFilters({ ...DEFAULT_FILTERS, layoutStatus, isSold: true })
-    );
-    return { store, renderer: renderWithStore(<Profile />, store) };
-  };
-
-  it("filter by category but keep the chosen layout", async () => {
-    const { store, renderer } = renderProfile();
-
-    await pressText(renderer.root, "Storage");
-
-    expect(store.getState().navigation.activeTab).toBe("pianos");
-    // Other filters start over, the layout stays
-    expect(store.getState().pianos.filters).toEqual({
-      ...DEFAULT_FILTERS,
-      layoutStatus,
-      category: "Warehouse",
-    });
-  });
-
-  it.each([
-    ["Rentable", "Rentable"],
-    ["Events", "Events"],
-    ["On Sale", "On Sale"],
-    ["Storage", "Warehouse"],
-  ])("open the %s pianos", async (row, category) => {
-    const store = createTestStore({
-      user: testUser,
-      items: [
-        ...pianos,
-        makePiano({ $id: "event", category: "events" }),
-        makePiano({ $id: "for-sale", category: "on_sale" }),
-      ],
-    });
-    const renderer = renderWithStore(<Profile />, store);
-
-    await pressText(renderer.root, row);
-
-    expect(store.getState().pianos.filters.category).toBe(category);
-  });
-
-  it("show every piano with View All Pianos, whatever was filtered", async () => {
-    const { store, renderer } = renderProfile();
-
-    await pressText(renderer.root, "View All Pianos");
-
-    expect(store.getState().navigation.activeTab).toBe("pianos");
-    expect(store.getState().pianos.filters).toEqual({
-      ...DEFAULT_FILTERS,
-      layoutStatus,
-    });
-  });
-
-  it("show active rentals but keep the chosen layout", async () => {
-    const { store, renderer } = renderProfile();
-
-    await pressText(renderer.root, "Active Rentals");
-
-    expect(store.getState().pianos.filters).toEqual({
-      ...DEFAULT_FILTERS,
-      layoutStatus,
-      category: "Rentable",
-      isActiveRentals: true,
-    });
-  });
 });

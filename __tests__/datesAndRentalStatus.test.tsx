@@ -207,7 +207,7 @@ describe("rental status", () => {
   });
 });
 
-it("the profile counts a rental ending today as currently rented", async () => {
+it("the account tab counts a rental ending today as on rent", async () => {
   const pianos = [
     rental(day(0), { $id: "due-today" }),
     rental(day(10), { $id: "active" }),
@@ -220,5 +220,5 @@ it("the profile counts a rental ending today as currently rented", async () => {
   await flushPromises();
 
   const texts = allTexts(renderer.root);
-  expect(texts[texts.indexOf("Currently Rented") - 1]).toBe("2");
+  expect(texts[texts.indexOf("On rent") - 1]).toBe("2");
 });

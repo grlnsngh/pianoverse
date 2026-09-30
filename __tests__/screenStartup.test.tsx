@@ -50,39 +50,31 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-describe("the profile", () => {
+describe("the account tab", () => {
   const renderProfile = () =>
     renderWithStore(
       <Profile />,
       createTestStore({ user: testUser, items: [makePiano()] })
     );
 
-  it("shows the profile straight away", () => {
+  it("shows the account straight away", () => {
     const renderer = renderProfile();
 
     const texts = allTexts(renderer.root);
     expect(texts).not.toContain("Loading Profile...");
-    expect(texts).toContain("Overview");
-    expect(texts).toContain("Sign Out");
+    expect(texts).toContain("Account");
+    expect(texts).toContain("Your data");
+    expect(texts).toContain("Sign out");
   });
 
-  it("fades in once and leaves no animation running", () => {
+  it("starts no animation of its own", () => {
     const loop = jest.spyOn(Animated, "loop");
-    const realParallel = Animated.parallel;
-    const entrances: Animated.CompositeAnimation[] = [];
-    jest.spyOn(Animated, "parallel").mockImplementation((...args) => {
-      const animation = realParallel(...args);
-      jest.spyOn(animation, "stop");
-      entrances.push(animation);
-      return animation;
-    });
+    const parallel = jest.spyOn(Animated, "parallel");
 
-    const renderer = renderProfile();
-    act(() => renderer.unmount());
+    renderProfile();
 
     expect(loop).not.toHaveBeenCalled();
-    expect(entrances).toHaveLength(1);
-    expect(entrances[0].stop).toHaveBeenCalled();
+    expect(parallel).not.toHaveBeenCalled();
   });
 });
 

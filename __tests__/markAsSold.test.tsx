@@ -319,8 +319,9 @@ describe("sold pianos elsewhere", () => {
     );
 
     const texts = allTexts(renderer.root);
-    expect(texts[texts.indexOf("In Stock") - 1]).toBe("2");
-    expect(texts[texts.indexOf("Currently Rented") - 1]).toBe("1");
+    // Only the piano that is here: the rental is out, and the sold one is gone
+    expect(texts[texts.indexOf("In stock") - 1]).toBe("1");
+    expect(texts[texts.indexOf("On rent") - 1]).toBe("1");
   });
 
   it("are labelled as sold in the list", () => {

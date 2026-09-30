@@ -34,7 +34,6 @@ import { act } from "react-test-renderer";
 import { router, useLocalSearchParams } from "expo-router";
 import Create from "@/app/create";
 import Home from "@/app/(tabs)/home";
-import Profile from "@/app/(tabs)/profile";
 import EditScreen from "@/app/edit/[id]";
 import Review from "@/app/review";
 import * as appwrite from "@/lib/appwrite";
@@ -169,27 +168,6 @@ describe("after saving an edit", () => {
     expect(router.back).toHaveBeenCalledTimes(1);
     expect(router.push).not.toHaveBeenCalled();
     expect(store.getState().pianos.items[0].title).toBe("Yamaha U3");
-  });
-});
-
-describe("the Account tab's shortcuts", () => {
-  it("switch tabs instead of opening new ones, and open the Add screen for a new piano", async () => {
-    const store = createTestStore({ user: testUser, items: [makePiano()] });
-    act(() => {
-      store.dispatch(setActiveTab("account"));
-    });
-    const renderer = renderWithStore(<Profile />, store);
-
-    // Adding a piano is a screen of its own, not a tab
-    await pressText(renderer.root, "Add New Piano");
-    expect(router.push).toHaveBeenCalledTimes(1);
-    expect(router.push).toHaveBeenCalledWith("/create");
-    expect(store.getState().navigation.activeTab).toBe("account");
-
-    await pressText(renderer.root, "View All Pianos");
-    expect(store.getState().navigation.activeTab).toBe("pianos");
-    // Still only the one push, for the Add screen
-    expect(router.push).toHaveBeenCalledTimes(1);
   });
 });
 

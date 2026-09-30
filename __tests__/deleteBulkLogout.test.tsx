@@ -210,9 +210,9 @@ describe("logging out", () => {
   };
 
   const confirmSignOut = async (renderer: any) => {
-    await pressText(renderer.root, "Sign Out");
-    // The confirmation dialog's button
-    const buttons = queryAllByText(renderer.root, "Sign Out");
+    await pressText(renderer.root, "Sign out");
+    // The confirmation sheet's button, drawn after the row that opened it
+    const buttons = queryAllByText(renderer.root, "Sign out");
     await act(async () => {
       let node: any = buttons[buttons.length - 1];
       while (typeof node.props.onPress !== "function") node = node.parent;

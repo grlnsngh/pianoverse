@@ -56,3 +56,5 @@ export type { ProgressBarProps } from "./ProgressBar";
 export { useAmountText } from "./AmountInput";
 export { default as SuccessMark } from "./SuccessMark";
 export type { SuccessMarkProps } from "./SuccessMark";
+export { default as KeyboardMark } from "./KeyboardMark";
+export type { KeyboardMarkProps } from "./KeyboardMark";

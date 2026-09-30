@@ -1,0 +1,61 @@
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { KeyboardMark } from "@/components/ui";
+import { colors, fonts, radii, spacing } from "@/constants/theme";
+
+type ReminderPreviewProps = {
+  /** "Piano Rental Due Soon!" */
+  title: string;
+  /** "9:00 AM" */
+  time: string;
+  body: string;
+};
+
+/**
+ * A drawing of a notification on the grouped background: the orange app
+ * square, the title with its time, and the message. Shows what a reminder
+ * looks like before any has arrived (Account and NotifyPrimer boards).
+ */
+const ReminderPreview = ({ title, time, body }: ReminderPreviewProps) => (
+  <View
+    style={styles.box}
+    accessible
+    accessibilityLabel={`Example reminder. ${title}. ${body}`}
+  >
+    <View style={styles.app}>
+      <KeyboardMark />
+    </View>
+    <View style={styles.text}>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.time}>{time}</Text>
+      </View>
+      <Text style={styles.body}>{body}</Text>
+    </View>
+  </View>
+);
+
+const styles = StyleSheet.create({
+  box: {
+    flexDirection: "row",
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radii.card,
+    backgroundColor: colors.grouped,
+  },
+  app: {
+    width: 36,
+    height: 36,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.brand,
+  },
+  text: { flex: 1, minWidth: 0 },
+  titleRow: { flexDirection: "row", justifyContent: "space-between", gap: spacing.sm },
+  title: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, color: colors.ink },
+  time: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 20, color: colors.ink2 },
+  body: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.inkBody },
+});
+
+export default ReminderPreview;
