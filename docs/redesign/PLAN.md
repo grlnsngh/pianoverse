@@ -63,7 +63,7 @@ Tick `[x]` when done. Add a short note in brackets if something differs from the
   - [x] 4.6 `LoadingPianos` skeleton [`components/PianosSkeleton.tsx`, grid and list shapes, shown after 200 ms]
   - [x] 4.7 Tests, checks, commit [5 new suites (`pianoDisplay`, `pianosFilters`, `pianosUi`, `pianoCardRow`, `pianosScreen`) and new cases in `filterPanel`, 143 more tests in all; `homeScreen`, `logging`, `rowRerenders`, `searchAndFilters`, `offlineCache` and `searchScreen` were updated on purpose]
 - [ ] **Batch 5. Pianos states, filters, search** (M)
-  - [ ] 5.1 Filters sheet (`FilterButton`): Sort by, Show switches, Reset, "Show N pianos"
+  - [x] 5.1 Filters sheet (`FilterButton`): Sort by, Show switches, Reset, "Show N pianos" [built as `components/FilterSheet.tsx` on the `Sheet`, opened by the Home state (no ref); `FilterButton.tsx` is deleted; the count comes from `utils/filterPianos.ts`, the list's filter logic moved out of `home.tsx` unchanged; a reusable `PickerSheet` does the Sort by list]
   - [ ] 5.2 Select mode and the delete bar with the confirmation dialog
   - [ ] 5.3 Pull to refresh (`RefreshPianos`), offline strip (`PianosOffline`) [the offline strip was done in Batch 4 (`Banner`, full width, the board's wording); the pull-to-refresh look is still to do]
   - [x] 5.4 Empty state, load error state [done in Batch 4: the white page can't show the old white-text states. `components/ui/StateView.tsx`; no pianos, couldn't load, filters hid everything, and nothing in stock. The no-results state for search (5.5) can use the same view and the `searchOff` icon]

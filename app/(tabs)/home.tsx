@@ -23,7 +23,6 @@ import {
 import type { IconTabItem } from "@/components/ui";
 import { colors, fonts, radii, spacing } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
-import { isRentalActive, parseStoredDate } from "@/utils/dates";
 import {
   CategoryTab,
   categoryFilterOf,
@@ -34,8 +33,9 @@ import {
   sortLabelOf,
   withLayout,
 } from "@/utils/filters";
+import { applyPianoFilters } from "@/utils/filterPianos";
 import { padToFullRows } from "@/utils/grid";
-import { isOverdue, isSold } from "@/utils/pianoStatus";
+import { isOverdue } from "@/utils/pianoStatus";
 import { SORT_BY_OPTIONS } from "@/constants/Piano";
 import { RootState } from "@/redux/store";
 import { Href, router } from "expo-router";
@@ -57,7 +57,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import FilterButton, { FilterButtonHandle } from "@/components/FilterButton";
+import FilterSheet from "@/components/FilterSheet";
 import PianoCard from "@/components/PianoCard";
 import PianoRow from "@/components/PianoRow";
 import PianosSkeleton from "@/components/PianosSkeleton";
@@ -80,18 +80,6 @@ const formatSavedAt = (savedAt: string) =>
   format(new Date(savedAt), "d MMM, h:mm a").replace(/AM|PM/, (m) =>
     m.toLowerCase()
   );
-
-// Sorts by a key worked out once per piano, instead of parsing dates again
-// on every comparison
-const sortByKey = (
-  items: PianoItem[],
-  getKey: (item: PianoItem) => number,
-  order: "asc" | "desc"
-) => {
-  const keys = new Map(items.map((item) => [item, getKey(item)]));
-  const direction = order === "asc" ? 1 : -1;
-  return [...items].sort((a, b) => direction * (keys.get(a)! - keys.get(b)!));
-};
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -189,19 +177,22 @@ const Home = () => {
   const isGrid = layout === "grid";
   const activeTab = categoryTabOf(filters);
   const activeFilterCount = countActiveFilters(filters);
-  // Sorting by due date only shows rentals, so no other category can be chosen
-  const dueDateSort = filters.sortBy === SORT_BY_OPTIONS.DUE_DATE;
+  // Sorting by due date, or showing only active rentals, only shows rentals,
+  // so no other category can be chosen
+  const rentalsOnly =
+    filters.sortBy === SORT_BY_OPTIONS.DUE_DATE || filters.isActiveRentals;
   const tabs = useMemo(
     () =>
       CATEGORY_TABS.map((tab) => ({
         ...tab,
-        disabled: dueDateSort && tab.key !== "rentable",
+        disabled: rentalsOnly && tab.key !== "rentable",
       })),
-    [dueDateSort]
+    [rentalsOnly]
   );
 
-  const filterPanel = useRef<FilterButtonHandle>(null);
-  const openFilters = useCallback(() => filterPanel.current?.open(), []);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const openFilters = useCallback(() => setFiltersOpen(true), []);
+  const closeFilters = useCallback(() => setFiltersOpen(false), []);
   const selectCategory = useCallback(
     (tab: CategoryTab) =>
       dispatch(
@@ -288,87 +279,9 @@ const Home = () => {
   }, [isGrid, filteredPianoReduxItems]);
 
   const applyFilters = useCallback(() => {
-    // Sold pianos are no longer stock, so they only show with the Sold filter
-    let filteredItems: PianoItem[] = pianoReduxItems.filter(
-      (item) => isSold(item) === filters.isSold
+    dispatch(
+      setFilteredPianoListItems(applyPianoFilters(pianoReduxItems, filters)) as any
     );
-
-    // Apply sorting first
-    if (filters.sortBy) {
-      switch (filters.sortBy) {
-        case SORT_BY_OPTIONS.TITLE_ASC:
-          filteredItems = smartSortTitles(filteredItems, true);
-          break;
-        case SORT_BY_OPTIONS.TITLE_DES:
-          filteredItems = smartSortTitles(filteredItems, false);
-          break;
-        case SORT_BY_OPTIONS.LATEST_ADDED:
-          filteredItems = sortByKey(
-            filteredItems,
-            (item) => new Date(item.$createdAt).getTime(),
-            "desc"
-          );
-          break;
-        case SORT_BY_OPTIONS.PURCHASE_DATE:
-          filteredItems = sortByKey(
-            filteredItems,
-            (item) => parseStoredDate(item.date_of_purchase)?.getTime() ?? 0,
-            "desc"
-          );
-          break;
-        case SORT_BY_OPTIONS.DUE_DATE:
-          // Filter to only rentable items with rental_period_end, then sort by due date
-          const rentableItemsWithDueDate = filteredItems.filter(
-            (item) => item.category === "rentable" && item.rental_period_end
-          );
-
-          if (rentableItemsWithDueDate.length > 0) {
-            // Replace the filtered items with sorted rentable items,
-            // earliest due date first
-            filteredItems = sortByKey(
-              rentableItemsWithDueDate,
-              (item) => parseStoredDate(item.rental_period_end)?.getTime() ?? 0,
-              "asc"
-            );
-          } else {
-            // If no rentable items with due dates, keep original items
-            filteredItems = filteredItems.filter(
-              (item) => item.category === "rentable"
-            );
-          }
-          break;
-        default:
-          console.warn("Unknown sort option:", filters.sortBy);
-          break;
-      }
-    }
-
-    // Apply category filter
-    if (filters.category) {
-      const formattedFilter = filters.category
-        .replace(/\s+/g, "_")
-        .toLowerCase();
-
-      filteredItems = filteredItems.filter(
-        (item) => item.category.toLowerCase() === formattedFilter
-      );
-    }
-
-    // Apply active rentals filter
-    if (filters.isActiveRentals) {
-      filteredItems = filteredItems.filter(
-        (item) =>
-          item.category === "rentable" &&
-          isRentalActive(item.rental_period_end)
-      );
-    }
-
-    // Rentals that have ended but haven't been extended or returned
-    if (filters.isOverdue) {
-      filteredItems = filteredItems.filter(isOverdue);
-    }
-
-    dispatch(setFilteredPianoListItems(filteredItems) as any);
   }, [pianoReduxItems, filters, dispatch]);
 
   // Store the fetched items in redux once loading has finished. An empty
@@ -415,46 +328,6 @@ const Home = () => {
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
-
-  // Improved sorting function that handles numbers more intuitively
-  const smartSortTitles = useCallback(
-    (items: PianoItem[], ascending: boolean = true): PianoItem[] => {
-      return [...items].sort((a, b) => {
-        const titleA = a.title || "";
-        const titleB = b.title || "";
-
-        // Extract leading numbers
-        const numMatchA = titleA.match(/^(\d+)/);
-        const numMatchB = titleB.match(/^(\d+)/);
-
-        const numA = numMatchA ? parseFloat(numMatchA[1]) : null;
-        const numB = numMatchB ? parseFloat(numMatchB[1]) : null;
-
-        // If both have leading numbers, sort numerically
-        if (numA !== null && numB !== null) {
-          const numCompare = numA - numB;
-          if (numCompare !== 0) return ascending ? numCompare : -numCompare;
-
-          // If numbers are equal, compare the rest of the string
-          const restA = titleA.replace(/^(\d+)/, "");
-          const restB = titleB.replace(/^(\d+)/, "");
-          return ascending
-            ? restA.localeCompare(restB)
-            : restB.localeCompare(restA);
-        }
-
-        // If only one has leading number, numbers come first
-        if (numA !== null && numB === null) return ascending ? -1 : 1;
-        if (numA === null && numB !== null) return ascending ? 1 : -1;
-
-        // Both are text, use localeCompare
-        return ascending
-          ? titleA.localeCompare(titleB)
-          : titleB.localeCompare(titleA);
-      });
-    },
-    []
-  );
 
   const renderItem = useCallback(
     ({ item }: { item: PianoItem | (PianoItem & { empty?: boolean }) }) => {
@@ -621,8 +494,8 @@ const Home = () => {
         />
       )}
 
-      {/* The panel behind the filter button and the sort link */}
-      <FilterButton ref={filterPanel} trigger={false} />
+      {/* The sheet behind the filter button and the sort link */}
+      <FilterSheet visible={filtersOpen} onClose={closeFilters} />
     </SafeAreaView>
   );
 };

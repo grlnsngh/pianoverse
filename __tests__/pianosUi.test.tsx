@@ -1,7 +1,8 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
-import { IconTabs, SearchPill, Skeleton, StateView } from "@/components/ui";
+import { IconTabs, PickerSheet, SearchPill, Skeleton, StateView } from "@/components/ui";
 import type { IconTabItem } from "@/components/ui";
 import { ICONS } from "@/components/ui/Icon";
 import PianosSkeleton from "@/components/PianosSkeleton";
@@ -407,5 +408,105 @@ describe("PianosSkeleton", () => {
     expect(renderer.root.findAllByType(Pressable)).toHaveLength(0);
     expect(renderer.root.findAllByType(Text)).toHaveLength(0);
     expect(renderer.root.findAllByType(View).length).toBeGreaterThan(0);
+  });
+});
+
+describe("PickerSheet", () => {
+  const OPTIONS = [
+    { value: "make", label: "Make" },
+    { value: "model", label: "Model" },
+    { value: "year", label: "Year" },
+  ] as const;
+  const setup = (value: "make" | "model" | "year" = "model", visible = true) => {
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    return {
+      onSelect,
+      onClose,
+      mounted: mount(
+        <SafeAreaProvider
+          initialMetrics={{
+            frame: { x: 0, y: 0, width: 390, height: 844 },
+            insets: { top: 47, left: 0, right: 0, bottom: 34 },
+          }}
+        >
+          <PickerSheet
+            visible={visible}
+            title="Sort by"
+            options={OPTIONS}
+            value={value}
+            onSelect={onSelect}
+            onClose={onClose}
+          />
+        </SafeAreaProvider>
+      ),
+    };
+  };
+  const rows = (renderer: Mounted) =>
+    renderer.root.findAllByType(Pressable).filter((node) => node.props.accessibilityRole === "radio");
+
+  it("is a white sheet with the title, a Cancel button and a row per option", async () => {
+    const renderer = await setup().mounted;
+
+    expect(rows(renderer).map((row) => row.props.accessibilityLabel)).toEqual(["Make", "Model", "Year"]);
+    expect(renderer.root.findAllByType(Text).map(textContent)).toEqual(
+      expect.arrayContaining(["Sort by", "Cancel", "Make", "Model", "Year"])
+    );
+    const sheet = renderer.root.find(
+      (node) => typeof node.type === "string" && node.props.accessibilityViewIsModal === true
+    );
+    expect(flat(sheet.props.style).backgroundColor).toBe(colors.white);
+  });
+
+  it("draws 52 px rows with a hairline between them", async () => {
+    const renderer = await setup().mounted;
+
+    expect(flat(rows(renderer)[0].props.style({ pressed: false }))).toMatchObject({
+      height: 52,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.hairline,
+      flexDirection: "row",
+      justifyContent: "space-between",
+    });
+    expect(flat(rows(renderer)[0].props.style({ pressed: true })).backgroundColor).toBe(colors.grouped);
+  });
+
+  it("shows the chosen option in bold with a check, and the others in medium", async () => {
+    const renderer = await setup("model").mounted;
+    const [make, model] = rows(renderer);
+
+    expect(model.props.accessibilityState).toEqual({ selected: true, checked: true });
+    expect(flat(model.findByType(Text).props.style).fontFamily).toBe(fonts.bold);
+    expect(model.findAllByType(Svg)).toHaveLength(1);
+    expect(model.findByType(Svg).props).toMatchObject({ width: 22, height: 22, strokeWidth: 2.6, stroke: colors.ink });
+
+    expect(make.props.accessibilityState).toEqual({ selected: false, checked: false });
+    expect(flat(make.findByType(Text).props.style).fontFamily).toBe(fonts.medium);
+    expect(make.findAllByType(Svg)).toHaveLength(0);
+  });
+
+  it("reports the option pressed, and closes only when told", async () => {
+    const { mounted, onSelect, onClose } = setup();
+    const renderer = await mounted;
+
+    rows(renderer)[2].props.onPress();
+
+    expect(onSelect).toHaveBeenCalledWith("year");
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("is a radio group, for screen readers", async () => {
+    const renderer = await setup().mounted;
+    const group = renderer.root.find(
+      (node) => typeof node.type === "string" && node.props.accessibilityRole === "radiogroup"
+    );
+
+    expect(group.props.accessibilityLabel).toBe("Sort by");
+  });
+
+  it("shows nothing while it is closed", async () => {
+    const renderer = await setup("model", false).mounted;
+
+    expect(rows(renderer)).toHaveLength(0);
   });
 });

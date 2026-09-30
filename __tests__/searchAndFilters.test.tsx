@@ -18,9 +18,8 @@ import { TextInput } from "react-native";
 import { act } from "react-test-renderer";
 import { router, usePathname } from "expo-router";
 import Home from "@/app/(tabs)/home";
-import FilterButton from "@/components/FilterButton";
 import SearchInput from "@/components/SearchInput";
-import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/constants/Piano";
+import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { searchPianoItems } from "@/utils/ObjectManipulation";
@@ -247,48 +246,5 @@ describe("when the Home list is empty", () => {
     await pressText(renderer.root, "Try again");
 
     expect(store.getState().pianos.items).toHaveLength(1);
-  });
-});
-
-describe("the filter button", () => {
-  const badge = (renderer: any) =>
-    renderer.root
-      .findAll((node: any) => node.props.testID === "active-filter-badge")
-      .map((node: any) => allTexts(node).join(""))[0];
-
-  it("shows how many filters are narrowing the list", () => {
-    const store = createTestStore();
-    const renderer = renderWithStore(<FilterButton />, store);
-    expect(badge(renderer)).toBeUndefined();
-
-    act(() => {
-      store.dispatch(
-        setPianoFilters({ ...DEFAULT_FILTERS, category: "rentable" })
-      );
-    });
-    expect(badge(renderer)).toBe("1");
-
-    act(() => {
-      store.dispatch(
-        setPianoFilters({
-          ...DEFAULT_FILTERS,
-          category: "rentable",
-          sortBy: SORT_BY_OPTIONS.DUE_DATE,
-          isActiveRentals: true,
-        })
-      );
-    });
-    expect(badge(renderer)).toBe("3");
-
-    // Sorting alone doesn't hide anything
-    act(() => {
-      store.dispatch(
-        setPianoFilters({
-          ...DEFAULT_FILTERS,
-          sortBy: SORT_BY_OPTIONS.TITLE_ASC,
-        })
-      );
-    });
-    expect(badge(renderer)).toBeUndefined();
   });
 });

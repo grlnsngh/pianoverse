@@ -24,7 +24,7 @@ import React from "react";
 import { Platform, ToastAndroid } from "react-native";
 import { act } from "react-test-renderer";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import FilterButton from "@/components/FilterButton";
+import FilterSheet from "@/components/FilterSheet";
 import ToastHost from "@/components/ToastHost";
 import EditScreen from "@/app/edit/[id]";
 import { showToast } from "@/utils/toast";
@@ -34,7 +34,6 @@ import {
   allTexts,
   captureAlerts,
   createTestStore,
-  press,
   pressText,
   renderWithStore,
 } from "./helpers/render";
@@ -131,12 +130,13 @@ describe("toasts", () => {
 
 describe("filters", () => {
   it("no longer offers a Sold filter, which nothing could fill", async () => {
-    const renderer = renderWithStore(<FilterButton />, createTestStore());
-
-    await press(renderer.root.findAll((node) => typeof node.props.onPress === "function")[0]);
+    const renderer = renderWithStore(
+      withSafeArea(<FilterSheet visible onClose={() => {}} />),
+      createTestStore()
+    );
 
     const texts = allTexts(renderer.root);
-    expect(texts).toContain("Active Rentals");
+    expect(texts).toContain("Active rentals");
     expect(texts).not.toContain("Sold");
   });
 });

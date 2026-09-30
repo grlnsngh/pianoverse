@@ -41,3 +41,5 @@ export { default as SearchPill } from "./SearchPill";
 export type { SearchPillProps } from "./SearchPill";
 export { default as StateView } from "./StateView";
 export type { StateViewProps } from "./StateView";
+export { default as PickerSheet } from "./PickerSheet";
+export type { PickerOption, PickerSheetProps } from "./PickerSheet";

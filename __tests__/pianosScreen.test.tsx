@@ -135,10 +135,12 @@ describe("the header", () => {
 
   it("opens the filter panel from the round button, and from the sort link", async () => {
     const { renderer } = await renderHome();
-    expect(allTexts(renderer.root)).not.toContain("Show Results");
+    expect(allTexts(renderer.root)).not.toContain("Reset");
 
     press(renderer, "Filters");
-    expect(allTexts(renderer.root)).toContain("Show Results");
+    expect(allTexts(renderer.root)).toEqual(
+      expect.arrayContaining(["Reset", "Sort by", "Show 4 pianos"])
+    );
   });
 
   it("opens the same panel from the sort link", async () => {
@@ -146,7 +148,9 @@ describe("the header", () => {
 
     press(renderer, "Sort by Latest added");
 
-    expect(allTexts(renderer.root)).toContain("Show Results");
+    expect(allTexts(renderer.root)).toEqual(
+      expect.arrayContaining(["Reset", "Sort by", "Show 4 pianos"])
+    );
   });
 
   it("says how many filters are on, on the filter button", async () => {
@@ -158,6 +162,26 @@ describe("the header", () => {
     });
 
     expect(has(renderer, "Filters, 1 active")).toBe(true);
+
+    act(() => {
+      store.dispatch(
+        setPianoFilters({
+          ...DEFAULT_FILTERS,
+          category: "rentable",
+          sortBy: SORT_BY_OPTIONS.DUE_DATE,
+          isActiveRentals: true,
+        })
+      );
+    });
+    expect(has(renderer, "Filters, 3 active")).toBe(true);
+
+    // Sorting alone doesn't hide anything
+    act(() => {
+      store.dispatch(
+        setPianoFilters({ ...DEFAULT_FILTERS, sortBy: SORT_BY_OPTIONS.TITLE_ASC })
+      );
+    });
+    expect(has(renderer, "Filters")).toBe(true);
   });
 });
 
@@ -253,6 +277,35 @@ describe("the category tabs", () => {
       "On sale": true,
       Warehouse: true,
     });
+  });
+});
+
+describe("the category tabs while only rentals can be shown", () => {
+  it("leave only Rentable open while showing only active rentals", async () => {
+    const { store, renderer } = await renderHome();
+
+    act(() => {
+      store.dispatch(
+        setPianoFilters({ ...DEFAULT_FILTERS, category: "Rentable", isActiveRentals: true })
+      );
+    });
+
+    const disabled = tabs(renderer)
+      .filter((node: any) => node.props.accessibilityState.disabled)
+      .map((node: any) => node.props.accessibilityLabel);
+    expect(disabled).toEqual(["All", "Events", "On sale", "Warehouse"]);
+  });
+
+  it("open every tab again when overdue is chosen instead", async () => {
+    const { store, renderer } = await renderHome();
+
+    act(() => {
+      store.dispatch(setPianoFilters({ ...DEFAULT_FILTERS, isOverdue: true }));
+    });
+
+    expect(
+      tabs(renderer).filter((node: any) => node.props.accessibilityState.disabled)
+    ).toHaveLength(0);
   });
 });
 

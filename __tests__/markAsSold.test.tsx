@@ -36,7 +36,6 @@ import { act, ReactTestRenderer } from "react-test-renderer";
 import { addDays } from "date-fns";
 import Home from "@/app/(tabs)/home";
 import Profile from "@/app/(tabs)/profile";
-import FilterButton from "@/components/FilterButton";
 import DetailScreen from "@/app/detail/[id]";
 import {
   scheduleAllRentalNotifications,
@@ -46,6 +45,7 @@ import * as appwrite from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { DEFAULT_FILTERS } from "@/constants/Piano";
+import { countActiveFilters } from "@/utils/filters";
 import { toStoredDate } from "@/utils/dates";
 import { getStatusLabel } from "@/utils/pianoStatus";
 import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
@@ -288,17 +288,9 @@ describe("sold pianos elsewhere", () => {
   });
 
   it("count as a filter on the filter button", () => {
-    const store = createTestStore();
-    const renderer = renderWithStore(<FilterButton />, store);
-
-    act(() => {
-      store.dispatch(setPianoFilters({ ...DEFAULT_FILTERS, isSold: true }));
-    });
-
-    const [badge] = renderer.root.findAll(
-      (node) => node.props.testID === "active-filter-badge"
-    );
-    expect(allTexts(badge)).toEqual(["1"]);
+    // The count on the round filter button is the number of filters in use
+    expect(countActiveFilters({ ...DEFAULT_FILTERS, isSold: true })).toBe(1);
+    expect(countActiveFilters(DEFAULT_FILTERS)).toBe(0);
   });
 
   it("get no rental reminders", async () => {
