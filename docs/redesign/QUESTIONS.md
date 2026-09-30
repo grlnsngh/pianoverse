@@ -13,16 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q15. Should Recent payments show the customer's name?
-- **Status:** Open. The owner said to leave it for later and asked for it to be explained simply (below).
-- **Raised:** Batch 6.
-- **In simple terms:** when you record a rent payment, the app saves only three things: **which piano**, **how much**, and **the date**. It does **not** save who paid. On the Today tab, "Recent payments" wants to show a name, so it looks up **who the piano is rented to right now**. That is right for a recent payment, but wrong for an old one if the piano has since been rented to someone else. Example: Asha rents piano X in June and pays ₹4,000. In September you rent piano X to Ravi. The June payment on Today now says "Ravi", although Asha paid it.
-- **What the app does now (default):** shows the piano's current customer name, then the piano and the day. A piano with no customer shows its title instead.
-- **Options:**
-  - **A. Keep it.** Matches the design, but an old payment can show the wrong name after a re-rent.
-  - **B. Show the piano's title only** (for example "Weber W-121 · 5 Jun · ₹4,000"). Always true, but less friendly than a name.
-  - **C. Save the customer's name with each new payment from now on.** Always right for new payments; payments recorded before that change have no name and show the piano title. A small change to what is stored, so it would be its own small task.
-- **Your answer:** (left for later)
+_(Nothing is waiting for you right now.)_
 
 ---
 
@@ -94,6 +85,14 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q14. What should "In stock" count on Today?
 - **Answer:** Only the pianos that are here. Rentals that are out are shown separately as "On rent" (2026-09-30).
 - **Acted on (2026-09-30):** In stock = every piano that is not sold and not out with a customer (a running rental, or one that ended and hasn't come back). A rentable piano with no rental on it counts as in stock.
+
+### Q15. Should Recent payments show the customer's name?
+- **Answer:** Save the customer's name with each new payment from now on (option C) (2026-09-30).
+- **In simple terms:** a payment used to be saved with only the piano, the amount and the date, so Today looked up the piano's *current* customer, which could be the wrong person for an old payment after a re-rent. From now on the name of whoever has the piano is saved *with the payment* when it is recorded, so it is always right for new payments.
+- **To be done in Batch 8.1 (Record payment sheet):**
+  - A new optional column, `customer_name` (string, optional), on the Appwrite `rent_payments` table. **You need to create this column in the Appwrite console** (the README will say so, like `image_urls`). Until it exists the app keeps working: recording a payment retries without the name, so nothing breaks.
+  - New payments are saved with the piano's customer name at that moment.
+  - Today's Recent payments shows the name saved with the payment. **Payments recorded before this change have no name, so they show the piano's title instead** (never the current customer's name, which could be wrong).
 
 ### Q16. A piano's page: things the boards don't draw, or that changed
 - **Answer:** Use my judgment (2026-09-30). The page stays as built in Batch 7: a payment is deleted by pressing and holding it, ⋯ lists every action, the viewer's "Set as cover" and "Delete photo" are not built, a sold rental no longer shows its customer, and "Additional information" is gone.
