@@ -13,16 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q19. Should the category list come back on the Account tab?
-- **Status:** Open. Look at this on your phone first.
-- **Raised:** Batch 10 (the Account board).
-- **In simple terms:** the old Profile screen had a "By Category" list (Rentable, Events, On Sale, Storage, each with how many pianos and a bar) and tapping a row opened the Pianos tab for that category. The new Account board draws none of it: just the card with three counts, your data, the reminders and Sign out. The Pianos tab already has the category tabs (All, Rentable, Events, On sale, Warehouse) that do the same filtering.
-- **What the app does now (default):** the Account tab is exactly as the board draws it. The other old extras (the income block, View All Pianos, Add New Piano, Active Rentals, the overdue link) are gone too: Today shows the money and what needs attention, and the orange + adds a piano.
-- **Options:**
-  - **A. Leave it as the board draws it** (now).
-  - **B. Add a "By category" list** under the three counts, like the old one, with a tap to open Pianos for that category.
-  - **C. Add the category list and a link to the overdue rentals** as well.
-- **Your answer:**
+_(Nothing is waiting for you right now.)_
 
 ---
 
@@ -116,3 +107,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q18. Should Model number, B number and Notes be optional?
 - **Answer:** Keep the default (option A): all three stay required (2026-09-30).
 - **Why it stays:** the design marks Model number and B number as "Optional", but the app has always required them and Notes. They show "Required" in grey and an empty Notes box says "Please add some notes.". Nothing to build.
+
+### Q19. Should the category list come back on the Account tab?
+- **Answer:** No, leave Account as the board draws it (option A, the default) (2026-09-30).
+- **Why it stays:** the Pianos tab already has the category tabs that do the same filtering, and Today shows the money and what needs attention. Nothing to build.
