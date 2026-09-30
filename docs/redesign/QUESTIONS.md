@@ -13,7 +13,34 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-_(Nothing is waiting for you right now.)_
+### Q23. Which email service should send the app's emails, so the reset email can look like the app?
+- **Status:** Open. Nothing is blocked on it, but the new email (`email/password-recovery.html`) stays unused until you answer.
+- **Raised:** Batch 14.
+- **What the app does now (default):** Appwrite's built-in email service sends Appwrite's own plain reset email. Appwrite only lets a custom template be saved when the project uses **your own SMTP server** (the built-in service does not allow it). The reset page that email opens is already the new one after the merge.
+- **Options:**
+  - **A. Leave it as it is** (now). Resetting works; the email stays Appwrite's plain text.
+  - **B. Use an email service** such as Resend, Brevo or Mailgun. Most have a free plan for a small app; you verify a sending address or domain, and paste its SMTP details into the Appwrite Console (Settings, SMTP). I can't do that part for you, because it needs your passwords, but `WEB.md` says every click, and then I paste the template with you.
+  - **C. Use your Gmail account's SMTP** with an app password. No domain needed, but the emails come from your personal Gmail address and Google limits how many it will send a day.
+- **Your answer:**
+
+### Q24. Is support@pianoverse.com a real address?
+- **Status:** Open. Nothing is blocked on it.
+- **Raised:** Batch 14. The old landing page already showed it; I kept it on the new pages and in the email.
+- **What the app does now (default):** both pages and the email say "Questions? support@pianoverse.com". If that mailbox doesn't exist, anyone who writes there gets no answer.
+- **Options:**
+  - **A. Keep it** (now), because it is a real address you read.
+  - **B. Replace it** with another address (tell me which).
+  - **C. Remove the "Questions?" and "Need help?" lines** from the pages and the email until there is an address.
+- **Your answer:**
+
+### Q25. Should the app in a browser (`npm run web`) get a phone-width column?
+- **Status:** Open. Nothing is blocked on it.
+- **Raised:** Batch 14. I built the app for the web and opened it: it starts and the Welcome screen draws, but the phone layout is stretched across the whole window (the piano keys become huge). I have not checked any other screen in a browser.
+- **What the app does now (default):** nothing; the app in a browser is only for you while developing.
+- **Options:**
+  - **A. Leave it as it is** (now). Pianoverse is a phone app.
+  - **B. A phone-width column** (about 480 px) centred on the grey page colour, like the reset page's card. It looks right in a browser, but the app's sheets and dialogs are drawn across the whole window by the browser, so they need extra work, and every screen has to be checked in a browser. That would be its own batch.
+- **Your answer:**
 
 ---
 
@@ -29,6 +56,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 - **Batch 5:** the filter sheet (Sort by list on top of it, the "Show N pianos" button), select mode (top bar, red Delete bar in the tab bar's place, the dialog, Android back), the refresh spinner, and Search (keyboard up at once, results as you type, bold matches, Clear, Cancel, no results).
 - **Batch 6:** the app opening on Today (then switch to Pianos at once: its list should be there), the amount and the three counts against what you know (In stock is now only the pianos that are here), Needs attention (order, red and orange), the Rented out shelf (sideways scroll, the bars, See all), Recent payments, pull down on Today, the skeleton on a slow connection, and airplane mode.
 - **Batch 13 (the whole redesign, on a real phone):** **needs a new native build first.** Build it (`eas build -p android --profile preview --local`, or a development build on iPhone), sign in, and go through each board in `docs/redesign/boards/` next to the real screen: Splash and Welcome; Sign in, Create account and the two reset screens (keyboard up); Today (the amount, the three counts, Needs attention, Recent payments, pull to refresh); Pianos (grid and list, swipe a row, select several and delete, filters and Sort by, Search); a piano's page for a rental, a piano on sale, an events and a warehouse piano, and a sold one (the photo viewer, Record payment, Extend rental, Mark as sold, Undo sale, Edit, Delete); Add a piano (the three steps, the Make list, the calendar, the camera sheet, Publishing and Published); Account (the counts, Download piano list, Last updated, reminders, Sign out). Then the same with **Reduce Motion** on (everything should only fade), with **airplane mode** (the offline strip, Retry), and once with **TalkBack** or **VoiceOver** on a list row and a toast. Anything that differs from a board: tell me which screen and which board.
+- **Batch 14 (the web pages and the email; after the merge into `main`, since GitHub Pages builds from `main`):** open https://grlnsngh.github.io/pianoverse/ and then `reset-password.html` (with no link it should say the link isn't valid), on your phone and on a computer. For a real reset: in the app choose Sign in, then Forgot password, use your own email, open the link from the email on your phone, try a short password and two that differ (the red messages), Show / Hide, then choose a good one and watch the check draw in, then tap **Open Pianoverse**. With Reduce Motion on, the pages should only fade. The email itself can only be looked at once Q23 is answered; `docs/redesign/WEB.md` has the steps.
 - **Batch 12:** **needs a new native build first** (`expo-haptics`, `react-native-gesture-handler`, and the Batch 11 `app.json` changes; one build covers both). In the Pianos list in the list layout: swipe a row left for Edit and Delete (Edit opens the Edit screen, Delete asks first), only one row open at a time, and a long press still starts choosing pianos; the photo grid has no swipe. Pull down on Pianos and on Today: the phone's own spinner should **not** show (look closely on Android for a faint disc at the top), and the ink spinner in its band should show until the refresh ends. Add a piano: the steps slide 24 px and fade, the category choice's white chip slides. Open a piano: its page fades in and grows a little and the bar rises after it. Feel the taps: a light one when a payment is saved, when a piano is published and when an edit is saved; a firmer one when you confirm Delete, Discard or Undo sale and when you press Sign out; none when a save fails. Turn on Reduce Motion (Android: Remove animations; iOS: Reduce Motion): nothing should slide, only fade. With TalkBack or VoiceOver: a row in the list offers Edit and Delete as actions, and a toast is read out.
 - **Batch 11:** **needs a new native build first** (the orange launch screen, the white base and light mode are in `app.json`). The launch screen into the app's own splash (orange, the logo popping in, the keys loader) and then the Welcome screen: the keyboard illustration on a short and a tall phone, Sign in and Create account; each of the four auth screens with the keyboard up (the button still reachable), Show / Hide on passwords, the message under a field when you leave it, pressing the button with fields empty, the red box (try a wrong password, and airplane mode), the greyed "Signing in" state, and opening the reset link from the email; system dialogs and the keyboard now light; and on a fresh install (or after clearing the app's data) the "Get reminders before rentals end" sheet after signing in: Turn on reminders (the phone's own question follows, then a rental's reminders should be set) and Not now (it should not come back).
 - **Batch 10:** the Account tab: the card on a narrow phone (a long email), the three counts against Today, Download piano list (the share sheet on Android and iOS, and the spinner while it works), Last updated (pull down on Pianos, come back, and the time should be new; airplane mode should still show it), the reminders card and its sample notification, and Sign out (the sheet, Cancel, the red button showing "Signing out", what happens in airplane mode, and that signing in again shows a fresh list).

@@ -28,7 +28,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Customers:** Call or WhatsApp a rental customer from the piano's page.
 - **Sharing and export:** Share a piano's details, or export the whole list as CSV.
 - **Offline list:** The piano list is kept on the device and shown when there is no connection.
-- **Password Reset:** Secure password recovery system with web-based interface.
+- **Password Reset:** Secure password recovery with a web page that looks like the app (see below).
 
 ## 🌐 GitHub Pages Deployment
 
@@ -50,8 +50,9 @@ This project includes a **password reset system** that utilizes GitHub Pages for
 
 - **Hosting:** GitHub Pages (Free)
 - **Backend:** Appwrite Cloud
-- **Framework:** Plain HTML/JavaScript for maximum compatibility
-- **Security:** Appwrite handles all authentication and token validation
+- **Framework:** Plain HTML, CSS and JavaScript, no build step; the look (colours, type, motion) is the app's, in `web/site.css`. The pages are `index.html` and `reset-password.html`; the scripts and the mark are in `web/`.
+- **Security:** Appwrite handles all authentication and token validation. The reset page allows only its own files, Google Fonts and Appwrite (Content-Security-Policy) and never passes its link on to another site.
+- **The reset email:** `email/password-recovery.html` is the template for Appwrite's "Reset password" email. Appwrite only lets you save it when the project uses your own SMTP server; how to set it up is in [docs/redesign/WEB.md](docs/redesign/WEB.md).
 
 ## Getting Started
 
@@ -121,6 +122,8 @@ The `pianos` table also needs an `image_urls` column: an array of varchar (size 
 - `redux/`: the store (pianos, filters, signed-in user, active tab).
 - `services/`: rental reminders.
 - `utils/`: dates, rental status, form handling, validation and other helpers.
+- `web/` and the two pages at the top level (`index.html`, `reset-password.html`): what opens in a browser, served by GitHub Pages from `main`.
+- `email/`: the reset email's template.
 - `__tests__/`: Jest tests, with in-memory fakes for Appwrite and notifications.
 
 ## Testing

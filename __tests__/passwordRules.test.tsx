@@ -98,9 +98,13 @@ describe("reset password screen", () => {
   });
 });
 
-it("the web reset page asks for at least 8 characters", () => {
+it("the web reset page asks for at least 8 characters too", () => {
+  // The page runs web/reset-logic.js (its own tests are in resetPage.test.ts)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const webRules = require("../web/reset-logic.js");
   const html = fs.readFileSync(path.join(__dirname, "..", "reset-password.html"), "utf8");
 
-  expect(html.match(/minlength="(\d+)"/g)).toEqual(['minlength="8"', 'minlength="8"']);
-  expect(html).toContain("newPassword.length < 8");
+  expect(webRules.passwordProblem(TOO_SHORT)).not.toBe("");
+  expect(webRules.passwordProblem(LONG_ENOUGH)).toBe("");
+  expect(html).toContain('<script src="web/reset-logic.js"></script>');
 });
