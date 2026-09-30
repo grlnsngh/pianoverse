@@ -13,16 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q18. Should Model number, B number and Notes be optional?
-- **Status:** Open. Look at this on your phone first.
-- **Raised:** Batch 9 (the Add2Details board).
-- **In simple terms:** when you add a piano, the app asks for several things before you can go on. The design marks two of them, **Model number** and **B number** (for an Events piano), as "Optional", and gives the **Notes** box no "Required" mark. The app has always made all three required: you can't press Continue with them empty.
-- **What the app does now (default):** all three are still required, as before. Model number and B number show "Required" in grey where the design says "Optional", and an empty Notes box gets "Please add some notes." when you press Continue.
-- **Options:**
-  - **A. Keep all three required** (now).
-  - **B. Make Model number and B number optional** (Notes stays required). Pianos saved without them would just show nothing for those two lines.
-  - **C. Make Model number, B number and Notes all optional.**
-- **Your answer:**
+_(Nothing is waiting for you right now.)_
 
 ---
 
@@ -111,3 +102,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q17. Should deleting a piano have an Undo?
 - **Answer:** No Undo for a deleted piano (option A), keep it as it is (2026-09-30).
 - **Why:** the piano's photos are removed from the server at once and can't be brought back, so an Undo would not be honest. The "Delete <title>? This can't be undone." question is what protects you. Deleting a payment, marking as sold and extending a rental keep their Undo.
+
+### Q18. Should Model number, B number and Notes be optional?
+- **Answer:** Keep the default (option A): all three stay required (2026-09-30).
+- **Why it stays:** the design marks Model number and B number as "Optional", but the app has always required them and Notes. They show "Required" in grey and an empty Notes box says "Please add some notes.". Nothing to build.
