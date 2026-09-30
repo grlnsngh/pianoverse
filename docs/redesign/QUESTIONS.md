@@ -13,14 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q22. Should react-dom and react-native-web stay in the project?
-- **Status:** Open. Nothing is blocked on it.
-- **Raised:** Batch 13.1 (you asked in Q9 for everything unused to go; these are used by one script, so I asked instead of guessing).
-- **What the app does now (default):** both packages stay. They are only used by `npm run web`, which opens the app in a browser. The redesign is drawn for phones and I have never checked it in a browser, so it may look wrong there. The Android and iPhone apps do not use them.
-- **Options:**
-  - **A. Keep them** (now). `npm run web` still starts, nothing is lost, and removing them later is a two-minute job.
-  - **B. Remove them.** Also drop the `web` script and the `web` part of `app.json`, and the README says Android and iPhone only. The project gets a little smaller; bringing web back later would mean installing them again and checking every screen in a browser.
-- **Your answer:**
+_(Nothing is waiting for you right now.)_
 
 ---
 
@@ -129,3 +122,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q21. Two colours are a little darker than the boards. Is that OK?
 - **Answer:** Stick with the design: use the boards' exact colours (option B) (2026-09-30).
 - **Acted on:** the placeholder grey is the boards' `#77716A` again and the unselected labels of the segmented control are the boards' secondary grey again. Four pairs of these are a little under the usual 4.5:1 for text (4.1 to 4.49); they are listed in `__tests__/colorContrast.test.ts` so that they can't get worse.
+
+### Q22. Should react-dom and react-native-web stay in the project?
+- **Answer:** Keep them (option A, the default) (2026-09-30).
+- **Why it stays:** `npm run web` still starts the app in a browser. Nothing to build for the packages themselves; the pages that open in a browser are listed and planned in `docs/redesign/WEB.md`.
