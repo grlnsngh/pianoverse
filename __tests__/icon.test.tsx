@@ -114,6 +114,13 @@ describe("Icon", () => {
     expect(svgOf(render(<Icon name="tabToday" active={false} />)).props.strokeWidth).toBe(1.75);
   });
 
+  it("takes a stroke width of its own, which wins over the default and active ones", () => {
+    expect(svgOf(render(<Icon name="check" strokeWidth={3.2} />)).props.strokeWidth).toBe(3.2);
+    expect(
+      svgOf(render(<Icon name="check" active strokeWidth={3.2} />)).props.strokeWidth
+    ).toBe(3.2);
+  });
+
   it("draws the search icon as a lens and a handle", () => {
     const renderer = render(<Icon name="search" />);
 

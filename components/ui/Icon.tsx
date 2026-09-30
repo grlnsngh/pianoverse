@@ -104,6 +104,11 @@ export type IconProps = {
   /** Selected tab or control: a slightly heavier stroke (2 instead of 1.75) */
   active?: boolean;
   /**
+   * Stroke in the 24 unit grid, when the default doesn't fit. Small icons need
+   * more: the toast's 13 px check is drawn at 3.2 to look as heavy as the rest.
+   */
+  strokeWidth?: number;
+  /**
    * Set this when the icon stands alone. Without it the icon is hidden from
    * screen readers, since the button or row around it carries the label.
    */
@@ -117,6 +122,7 @@ const Icon = ({
   size = 24,
   color = colors.ink,
   active = false,
+  strokeWidth,
   accessibilityLabel,
   style,
   testID,
@@ -127,7 +133,7 @@ const Icon = ({
     viewBox="0 0 24 24"
     fill="none"
     stroke={color}
-    strokeWidth={active ? 2 : 1.75}
+    strokeWidth={strokeWidth ?? (active ? 2 : 1.75)}
     strokeLinecap="round"
     strokeLinejoin="round"
     style={style}

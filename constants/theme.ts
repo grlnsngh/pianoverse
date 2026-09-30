@@ -44,8 +44,14 @@ export const colors = {
   brandOnInk: "#FFB84D",
   /** Overdue text, badge fill, destructive buttons and text */
   late: "#C4321C",
+  /** Alert icon on the ink toast */
+  lateOnInk: "#FF8F7F",
   lateTint: "#FCEDEA",
   lateTintText: "#7A1F10",
+  /** A pressed secondary button (Feedback board) */
+  fillPressed: "#E4E0D8",
+  /** A pressed destructive button. No board draws it: `late` at 90% brightness */
+  latePressed: "#B02D19",
   disabledFill: "#EFEDE8",
   disabledText: "#A39D92",
   switchOff: "#D9D5CC",
@@ -144,8 +150,10 @@ export const type = {
   badge: { fontFamily: fonts.bold, fontSize: 12, lineHeight: 18 },
   tabLabel: { fontFamily: fonts.semibold, fontSize: 11, lineHeight: 14 },
   tabLabelActive: { fontFamily: fonts.bold, fontSize: 11, lineHeight: 14 },
-  /** Button label */
+  /** Label of a filled button */
   button: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 22 },
+  /** Label of an outline or text button, one weight lighter */
+  buttonQuiet: { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22 },
   /** Centred title in a sheet's header row */
   sheetTitle: { fontFamily: fonts.bold, fontSize: 17, lineHeight: 22 },
 } as const satisfies Record<string, TextStyle>;
@@ -179,10 +187,14 @@ export const motion = {
     toastOut: 180,
     /** How long a toast stays */
     toastHold: 3000,
+    /** The same for a long message, such as one that says an email was sent */
+    toastHoldLong: 5000,
     checkPop: 280,
     checkDraw: 260,
     /** One pass of the skeleton shimmer, looping */
     shimmer: 1500,
+    /** One turn of a spinner, looping (Feedback board) */
+    spinnerTurn: 800,
     /** One loop of the keys loader, with each bar starting `keysStagger` later */
     keysLoop: 1100,
     keysStagger: 120,
@@ -190,6 +202,8 @@ export const motion = {
     reducedFade: 120,
     /** Show a skeleton only after this long */
     skeletonDelay: 200,
+    /** Content replacing a skeleton fades in over this long */
+    contentFade: 150,
   },
   easing: {
     standard: [0.2, 0, 0, 1],
@@ -198,6 +212,9 @@ export const motion = {
   },
   /** How far an add step slides in, in px */
   addStepOffset: 24,
+  /** A toast rises this far as it appears, and sinks this far as it goes, in px */
+  toastRise: 24,
+  toastDrop: 12,
   /** Scale of a pressed button */
   pressedScale: 0.98,
 } as const;

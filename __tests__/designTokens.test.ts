@@ -165,6 +165,7 @@ describe("type styles", () => {
       tabLabel: "11/14",
       tabLabelActive: "11/14",
       button: "16/22",
+      buttonQuiet: "16/22",
       sheetTitle: "17/22",
     });
   });
@@ -211,10 +212,12 @@ describe("motion", () => {
       checkPop: 280,
       checkDraw: 260,
       shimmer: 1500,
+      spinnerTurn: 800,
       keysLoop: 1100,
       keysStagger: 120,
       reducedFade: 120,
       skeletonDelay: 200,
+      contentFade: 150,
     });
   });
 

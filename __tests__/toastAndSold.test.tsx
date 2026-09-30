@@ -71,8 +71,13 @@ describe("toasts", () => {
     act(() => showToast("Piano entry created successfully."));
     expect(allTexts(renderer.root)).toEqual(["Piano entry created successfully."]);
 
+    // It rises in over 220 ms, stays for 3 s, then leaves over 180 ms
     act(() => {
       jest.advanceTimersByTime(3000);
+    });
+    expect(allTexts(renderer.root)).toEqual(["Piano entry created successfully."]);
+    act(() => {
+      jest.advanceTimersByTime(500);
     });
     expect(allTexts(renderer.root)).toEqual([]);
   });
@@ -83,10 +88,14 @@ describe("toasts", () => {
 
     act(() => showToast("Password reset email sent!", "long"));
     act(() => {
-      jest.advanceTimersByTime(3000);
+      jest.advanceTimersByTime(3500);
     });
-
     expect(allTexts(renderer.root)).toEqual(["Password reset email sent!"]);
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+    expect(allTexts(renderer.root)).toEqual([]);
   });
 
   it("uses the native toast on Android", () => {
