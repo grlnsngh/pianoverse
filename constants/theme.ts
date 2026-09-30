@@ -38,11 +38,12 @@ export const colors = {
   /** Secondary text */
   ink2: "#6B665D",
   /**
-   * Placeholders and inactive tab labels. A step darker than the board's
-   * #77716A, which is 4.1:1 on the grey fills that placeholders sit on;
-   * this is 4.6:1 on the darkest of them (4.5:1 is the least for text).
+   * Placeholders and inactive tab labels. This is the boards' colour. On white
+   * it is 4.8:1, but on the grey fills placeholders sit on it is 4.1 to 4.4:1,
+   * a little under the 4.5:1 that text needs; the owner chose the boards' exact
+   * colours (Q21), and __tests__/colorContrast.test.ts records it.
    */
-  ink3: "#6F6A62",
+  ink3: "#77716A",
   /** Primary buttons (ink text on it), the + button, switches on, progress fill */
   brand: "#FF9C01",
   brandPressed: "#E88A00",

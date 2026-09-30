@@ -55,7 +55,7 @@ Colours (replace the old navy and orange scheme):
 | `hairline` | `#E7E4DD` | Dividers. Input borders use `#C9C4B9`. |
 | `ink` | `#1A1814` | Primary text, selected states, active tab |
 | `ink2` | `#6B665D` | Secondary text |
-| `ink3` | `#6F6A62` | Placeholders, inactive tab labels (the boards' `#77716A` darkened a step for 4.5:1 contrast on grey fills, Batch 12.4) |
+| `ink3` | `#77716A` | Placeholders, inactive tab labels |
 | `brand` | `#FF9C01` | Primary buttons (ink text on it), the + button, switches on, progress fill, splash and welcome |
 | `brand-text` | `#A85D00` | Orange used as text or a link on white |
 | `late` | `#C4321C` | Overdue text, badge fill, destructive buttons and text. Tint fill `#FCEDEA`, tint text `#7A1F10`. |

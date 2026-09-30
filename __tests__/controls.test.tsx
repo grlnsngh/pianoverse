@@ -252,7 +252,7 @@ describe("Segmented", () => {
     expect(flat(rentable.props.style).backgroundColor).toBeUndefined();
     expect(flat(rentable.findByType(Text).props.style)).toMatchObject({
       fontFamily: fonts.semibold,
-      color: colors.inkBody,
+      color: colors.ink2,
     });
   });
 

@@ -37,7 +37,7 @@ module.exports = {
         hairline: "#E7E4DD",
         ink: "#1A1814",
         ink2: "#6B665D",
-        ink3: "#6F6A62",
+        ink3: "#77716A",
         brand: "#FF9C01",
         "brand-text": "#A85D00",
         late: "#C4321C",

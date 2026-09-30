@@ -21,14 +21,10 @@ const TEXT: [string, string, string, string][] = [
   ["ink", colors.ink, colors.fill, "secondary buttons, search fields"],
   ["ink", colors.ink, colors.brand, "primary buttons, the + button"],
   ["inkBody", colors.inkBody, colors.grouped, "a sample notification"],
-  ["inkBody", colors.inkBody, colors.hairline, "an option of a segmented control"],
   ["ink2", colors.ink2, colors.white, "secondary text"],
   ["ink2", colors.ink2, colors.grouped, "secondary text on form pages"],
   ["ink2", colors.ink2, colors.fill, "hints on a grey fill"],
   ["ink3", colors.ink3, colors.white, "placeholders, inactive tab labels"],
-  ["ink3", colors.ink3, colors.grouped, "placeholders on form pages"],
-  ["ink3", colors.ink3, colors.fill, "a placeholder in a search field"],
-  ["ink3", colors.ink3, colors.fillInput, "a placeholder in an input"],
   ["brandText", colors.brandText, colors.white, "links and soon-ending rentals"],
   ["brandText", colors.brandText, colors.grouped, "links on form pages"],
   ["white", colors.white, colors.late, "destructive buttons, overdue badges"],
@@ -43,14 +39,32 @@ const TEXT: [string, string, string, string][] = [
 ];
 
 describe("the colours of text", () => {
-  it.each(TEXT)("%s on %s is at least 4.5:1 (%s)", (_name, text, background) => {
+  const pairs = TEXT.map(([name, text, background, where]) => ({ name, text, background, where }));
+
+  it.each(pairs)("$name, $where, is at least 4.5:1", ({ text, background }) => {
     expect(contrast(text, background)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("includes the placeholder grey on the darkest grey it sits on", () => {
-    // Placeholders were 4.1:1 on the grey fills with the board's #77716A
-    expect(contrast("#77716A", colors.fill)).toBeLessThan(4.5);
-    expect(contrast(colors.ink3, colors.fill)).toBeGreaterThanOrEqual(4.5);
+});
+
+// The boards' own colours, which the owner chose to keep exactly (Q21), although
+// they are a little under the 4.5:1 that text needs. They are listed so that
+// nothing gets worse, and so it is clear these are known and chosen.
+const BOARD_CHOICES: [string, string, string, string, number][] = [
+  ["ink3", colors.ink3, colors.grouped, "placeholders on form pages", 4.4],
+  ["ink3", colors.ink3, colors.fillInput, "a placeholder in an input", 4.1],
+  ["ink3", colors.ink3, colors.fill, "a placeholder in a search field", 4.1],
+  ["ink2", colors.ink2, colors.hairline, "an unselected option of a segmented control", 4.4],
+];
+
+describe("the boards' colours that are a little under 4.5:1, kept on purpose", () => {
+  const choices = BOARD_CHOICES.map(([name, text, background, where, floor]) => ({ name, text, background, where, floor }));
+
+  it.each(choices)("$name, $where, is under 4.5 but no worse than $floor", ({ text, background, floor }) => {
+    const ratio = contrast(text, background);
+
+    expect(ratio).toBeLessThan(4.5);
+    expect(ratio).toBeGreaterThanOrEqual(floor);
   });
 });
 

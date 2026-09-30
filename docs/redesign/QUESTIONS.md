@@ -13,15 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q21. Two colours are a little darker than the boards. Is that OK?
-- **Status:** Open. Look at this on your phone first.
-- **Raised:** Batch 12 (the accessibility pass).
-- **In simple terms:** text needs enough contrast against its background to be read by everyone, including in sunlight and by people with poor eyesight (the usual rule is 4.5 to 1). I measured every pair of text and background colour the app uses. Two were just under the line: the grey of **placeholders and inactive tab labels** (it is 4.1 on the grey fills that search and input fields use), and the grey of the **unselected labels of the segmented control** on Add step 2 (4.49, a hair under).
-- **What the app does now (default):** the placeholder grey is a step darker (`#6F6A62` instead of the boards' `#77716A`), and the unselected segmented labels use the darker body grey. You would hardly notice the difference side by side. Something I did **not** change, because the boards chose it: the light grey outline of an empty text field is faint (1.7 to 1), but the field's label and its dark outline when you tap it say where it is.
-- **Options:**
-  - **A. Keep the slightly darker colours** (now).
-  - **B. Go back to the boards' exact colours**, which are a little below the usual contrast rule.
-- **Your answer:**
+_(Nothing is waiting for you right now.)_
 
 ---
 
@@ -125,3 +117,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q20. Should the phone's own splash screen show the logo too?
 - **Answer:** No, plain orange and then the logo pops in (option A, the default) (2026-09-30).
 - **Why it stays:** it is seamless, and a launch picture would be one more file to keep in step with the logo. Nothing to build.
+
+### Q21. Two colours are a little darker than the boards. Is that OK?
+- **Answer:** Stick with the design: use the boards' exact colours (option B) (2026-09-30).
+- **Acted on:** the placeholder grey is the boards' `#77716A` again and the unselected labels of the segmented control are the boards' secondary grey again. Four pairs of these are a little under the usual 4.5:1 for text (4.1 to 4.49); they are listed in `__tests__/colorContrast.test.ts` so that they can't get worse.

@@ -143,8 +143,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     borderRadius: 8,
   },
-  // ink2 on the grey track is 4.49:1, a hair under the 4.5 text needs
-  label: { fontFamily: fonts.semibold, fontSize: 14, color: colors.inkBody },
+  label: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink2 },
   labelSelected: { fontFamily: fonts.bold, color: colors.ink },
 });
 
