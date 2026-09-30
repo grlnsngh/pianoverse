@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import ReminderPreview from "@/components/ReminderPreview";
+import ReminderPreview, { SAMPLE_REMINDER } from "@/components/ReminderPreview";
 import SignOutSheet from "@/components/SignOutSheet";
 import { Group, Icon, Spinner } from "@/components/ui";
 import type { IconName } from "@/components/ui";
@@ -19,13 +19,6 @@ import { scheduleAllRentalNotifications } from "@/services/notifications";
 import { formatLastUpdated, initialOf, memberSince } from "@/utils/account";
 import { exportPianosToCSV } from "@/utils/csvExport";
 import { stockCounts } from "@/utils/today";
-
-// What a reminder looks like, in the words the app really sends at 9:00 AM
-const SAMPLE_REMINDER = {
-  title: "Piano Rental Due Soon!",
-  time: "9:00 AM",
-  body: "“Young Chang U-121” rental ends tomorrow. Please arrange return or extension.",
-};
 
 const CountCell = ({
   value,

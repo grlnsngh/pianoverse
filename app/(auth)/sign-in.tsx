@@ -1,152 +1,51 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  Alert,
-  Animated,
-  Dimensions,
-  StyleSheet,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import React, { useState, useEffect, useRef } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { SECONDARY_COLOR, PRIMARY_COLOR } from "@/constants/colors";
-import Logo from "@/components/Logo";
-import EnhancedFormField from "@/components/EnhancedFormField";
-import { Link, router } from "expo-router";
-import CustomButton from "@/components/CustomButton";
-import { getCurrentUser, signIn } from "@/lib/appwrite";
+import { router } from "expo-router";
+import React, { useRef, useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import AuthScreen, { AuthError, AuthSwitch } from "@/components/AuthScreen";
+import { Button, Field } from "@/components/ui";
+import { colors, fonts, spacing } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
+import { getCurrentUser, signIn } from "@/lib/appwrite";
+import { emailError, signInFailure, signInPasswordError } from "@/utils/authForms";
 import { showToast } from "@/utils/toast";
 
-const { height } = Dimensions.get("window");
+type Key = "email" | "password";
 
+const check = (key: Key, value: string) =>
+  key === "email" ? emailError(value) : signInPasswordError(value);
+
+/**
+ * Sign in (SignIn, SigningIn and SignInError boards). A field's message shows
+ * when it is left or when Sign in is pressed, and goes once it is typed in
+ * again; a failed attempt puts a red box above the fields.
+ */
 const SignIn = () => {
   const { setUser, setIsLogged } = useGlobalContext();
-
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({ email: "", password: "" });
+  const [failure, setFailure] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState({
-    email: "",
-    password: "",
-  });
+  const fields = { email: useRef<TextInput>(null), password: useRef<TextInput>(null) };
 
-  // Animation refs
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const logoAnim = useRef(new Animated.Value(0)).current;
-  const formAnim = useRef(new Animated.Value(30)).current;
-  const buttonAnim = useRef(new Animated.Value(1)).current;
-  const decorAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    // Start animations when component mounts - FAST and SNAPPY
-    Animated.sequence([
-      Animated.timing(logoAnim, {
-        toValue: 1,
-        duration: 400, // Reduced from 1000ms to 400ms
-        useNativeDriver: true,
-      }),
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300, // Reduced from 800ms to 300ms
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 350, // Reduced from 800ms to 350ms
-          useNativeDriver: true,
-        }),
-        Animated.timing(formAnim, {
-          toValue: 0,
-          duration: 400, // Reduced from 900ms to 400ms
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
-
-    // Start decorative animation loop - faster cycle
-    const decorAnimation = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(decorAnim, {
-            toValue: 1.05, // Reduced intensity for better performance
-            duration: 1500, // Reduced from 3000ms to 1500ms
-            useNativeDriver: true,
-          }),
-          Animated.timing(decorAnim, {
-            toValue: 1,
-            duration: 1500, // Reduced from 3000ms to 1500ms
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    };
-
-    decorAnimation();
-  }, []);
-
-  const validateForm = () => {
-    const newErrors = { email: "", password: "" };
-    let isValid = true;
-
-    // Email validation
-    // Keyboards often add a space after a suggested address
-    const email = form.email.trim();
-    if (!email) {
-      newErrors.email = "Email is required";
-      isValid = false;
-    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
-      isValid = false;
-    }
-
-    // Password validation
-    if (!form.password) {
-      newErrors.password = "Password is required";
-      isValid = false;
-    } else if (form.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
+  const change = (key: Key) => (text: string) => {
+    setForm((current) => ({ ...current, [key]: text }));
+    if (errors[key]) setErrors((current) => ({ ...current, [key]: "" }));
+    if (failure) setFailure("");
   };
+  const leave = (key: Key) => () =>
+    setErrors((current) => ({ ...current, [key]: check(key, form[key]) }));
 
   const submit = async () => {
-    if (!validateForm()) {
-      // Button shake animation for validation error
-      Animated.sequence([
-        Animated.timing(buttonAnim, {
-          toValue: 0.95,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(buttonAnim, {
-          toValue: 1,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-      ]).start();
+    const found = { email: check("email", form.email), password: check("password", form.password) };
+    setErrors(found);
+    if (found.email || found.password) {
+      // Take the person to the first thing to fix
+      (found.email ? fields.email : fields.password).current?.focus();
       return;
     }
 
     setSubmitting(true);
-
-    // Button scale animation for successful press
-    Animated.timing(buttonAnim, {
-      toValue: 0.98,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-
+    setFailure("");
     try {
       await signIn(form.email.trim(), form.password);
       const result = await getCurrentUser();
@@ -156,313 +55,101 @@ const SignIn = () => {
       showToast("Welcome back! Successfully logged in");
       router.replace("/home");
     } catch (error) {
-      // Reset button animation on error
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }).start();
-
-      if (error instanceof Error) {
-        Alert.alert("Sign In Failed", error.message);
-      } else {
-        Alert.alert("Error", "An unexpected error occurred. Please try again.");
-      }
+      setFailure(signInFailure(error));
     } finally {
       setSubmitting(false);
-      // Reset button animation
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }).start();
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Background decorative elements */}
-          <Animated.View
-            style={[
-              styles.backgroundDecor,
-              { transform: [{ scale: decorAnim }] },
-            ]}
+    <AuthScreen
+      title="Welcome back"
+      subtitle="Sign in to see your pianos and rentals."
+      busy={isSubmitting}
+      onBack={() => (router.canGoBack?.() ? router.back() : router.replace("/"))}
+      footer={
+        <AuthSwitch
+          question="New to Pianoverse?"
+          action="Create account"
+          onPress={() => router.push("/sign-up")}
+        />
+      }
+    >
+      {failure ? <AuthError message={failure} /> : null}
+
+      <View style={failure ? styles.fieldsAfterError : styles.fields}>
+        <Field
+          ref={fields.email}
+          label="Email"
+          value={form.email}
+          onChangeText={change("email")}
+          onBlur={leave("email")}
+          error={errors.email}
+          disabled={isSubmitting}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          onSubmitEditing={() => fields.password.current?.focus()}
+          blurOnSubmit={false}
+        />
+        <Field
+          ref={fields.password}
+          label="Password"
+          value={form.password}
+          onChangeText={change("password")}
+          onBlur={leave("password")}
+          error={errors.password}
+          disabled={isSubmitting}
+          secureTextEntry
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="password"
+          textContentType="password"
+          returnKeyType="go"
+          onSubmitEditing={submit}
+          style={styles.next}
+        />
+      </View>
+
+      {isSubmitting ? (
+        // The link is gone while signing in, but its room stays so nothing moves
+        <View style={styles.forgotRoom} />
+      ) : (
+        <View style={styles.forgot}>
+          <Pressable
+            onPress={() => router.push("/forget-password")}
+            accessibilityRole="link"
+            accessibilityLabel="Forgot password?"
+            style={styles.forgotPress}
           >
-            <View style={[styles.decorCircle, styles.decorCircle1]} />
-            <View style={[styles.decorCircle, styles.decorCircle2]} />
-            <View style={[styles.decorCircle, styles.decorCircle3]} />
-          </Animated.View>
+            <Text style={styles.forgotText}>Forgot password?</Text>
+          </Pressable>
+        </View>
+      )}
 
-          <View style={styles.contentContainer}>
-            {/* Animated Logo */}
-            <Animated.View
-              style={[
-                styles.logoContainer,
-                {
-                  opacity: logoAnim,
-                  transform: [
-                    {
-                      translateY: logoAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [-30, 0],
-                      }),
-                    },
-                    {
-                      scale: logoAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.8, 1],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            >
-              <Logo />
-            </Animated.View>
-
-            {/* Welcome Section */}
-            <Animated.View
-              style={[
-                styles.welcomeSection,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <Text style={styles.welcomeTitle}>Welcome Back</Text>
-              <Text style={styles.welcomeSubtitle}>
-                Sign in to continue managing your piano inventory
-              </Text>
-            </Animated.View>
-
-            {/* Form Section */}
-            <Animated.View
-              style={[
-                styles.formContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: formAnim }],
-                },
-              ]}
-            >
-              <View style={styles.formWrapper}>
-                <EnhancedFormField
-                  title="Email Address"
-                  value={form.email}
-                  handleChangeText={(e: string) => {
-                    setForm({ ...form, email: e });
-                    if (errors.email) setErrors({ ...errors, email: "" });
-                  }}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  error={errors.email}
-                  otherStyles="mb-4"
-                />
-
-                <EnhancedFormField
-                  title="Password"
-                  value={form.password}
-                  handleChangeText={(e: string) => {
-                    setForm({ ...form, password: e });
-                    if (errors.password) setErrors({ ...errors, password: "" });
-                  }}
-                  autoCapitalize="none"
-                  error={errors.password}
-                  otherStyles="mb-4"
-                />
-
-                <TouchableOpacity
-                  style={styles.forgotPassword}
-                  onPress={() => router.push("/forget-password")}
-                >
-                  <Text style={styles.forgotPasswordText}>
-                    Forgot Password?
-                  </Text>
-                </TouchableOpacity>
-
-                <Animated.View style={{ transform: [{ scale: buttonAnim }] }}>
-                  <CustomButton
-                    title={isSubmitting ? "Signing In..." : "Sign In"}
-                    handlePress={submit}
-                    containerStyles="mt-8"
-                    isLoading={isSubmitting}
-                  />
-                </Animated.View>
-
-                <View style={styles.dividerContainer}>
-                  <View style={styles.divider} />
-                  <Text style={styles.dividerText}>or</Text>
-                  <View style={styles.divider} />
-                </View>
-
-                <View style={styles.signUpContainer}>
-                  <Text style={styles.signUpText}>Don't have an account? </Text>
-                  <Link href="/sign-up" style={styles.signUpLink}>
-                    <Text style={styles.signUpLinkText}>Sign Up</Text>
-                  </Link>
-                </View>
-              </View>
-            </Animated.View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      <Button
+        title="Sign in"
+        loading={isSubmitting}
+        loadingTitle="Signing in"
+        onPress={submit}
+        style={styles.button}
+      />
+    </AuthScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: PRIMARY_COLOR,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    minHeight: height,
-  },
-  backgroundDecor: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  decorCircle: {
-    position: "absolute",
-    borderRadius: 100,
-    opacity: 0.1,
-  },
-  decorCircle1: {
-    width: 200,
-    height: 200,
-    backgroundColor: SECONDARY_COLOR,
-    top: -100,
-    right: -100,
-  },
-  decorCircle2: {
-    width: 150,
-    height: 150,
-    backgroundColor: SECONDARY_COLOR,
-    bottom: 100,
-    left: -75,
-  },
-  decorCircle3: {
-    width: 100,
-    height: 100,
-    backgroundColor: SECONDARY_COLOR,
-    top: height * 0.3,
-    right: -50,
-  },
-  contentContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-  logoContainer: {
-    alignItems: "center",
-    marginBottom: 40,
-  },
-  welcomeSection: {
-    alignItems: "center",
-    marginBottom: 40,
-  },
-  welcomeTitle: {
-    fontSize: 36,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    textAlign: "center",
-    marginBottom: 12,
-    letterSpacing: -0.5,
-  },
-  welcomeSubtitle: {
-    fontSize: 17,
-    color: "#A1A1AA",
-    textAlign: "center",
-    lineHeight: 26,
-    paddingHorizontal: 20,
-    fontWeight: "400",
-  },
-  formContainer: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  formWrapper: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderRadius: 24,
-    padding: 28,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  errorText: {
-    color: "#EF4444",
-    fontSize: 14,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  forgotPassword: {
-    alignSelf: "flex-end",
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  forgotPasswordText: {
-    color: SECONDARY_COLOR,
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 24,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-  },
-  dividerText: {
-    color: "#A1A1AA",
-    paddingHorizontal: 16,
-    fontSize: 14,
-  },
-  signUpContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 16,
-  },
-  signUpText: {
-    color: "#A1A1AA",
-    fontSize: 16,
-  },
-  signUpLink: {
-    marginLeft: 4,
-  },
-  signUpLinkText: {
-    color: SECONDARY_COLOR,
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  fields: { marginTop: spacing.xxxl },
+  fieldsAfterError: { marginTop: spacing.xl },
+  next: { marginTop: spacing.md },
+  forgot: { alignItems: "flex-end", marginTop: spacing.xs },
+  forgotRoom: { height: 48 },
+  forgotPress: { height: spacing.minTarget, justifyContent: "center" },
+  forgotText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.brandText },
+  button: { marginTop: spacing.md },
 });
 
 export default SignIn;

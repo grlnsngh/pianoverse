@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import NotifyPrimerSheet from "@/components/NotifyPrimerSheet";
 import { TabBar, TabScenes } from "@/components/ui";
 import type { TabBarItem } from "@/components/ui";
 import { colors } from "@/constants/theme";
@@ -56,6 +57,8 @@ const TabsLayout = () => {
           onSelect={(tab) => dispatch(setActiveTab(tab) as any)}
         />
       )}
+      {/* Once, before the phone's own question about notifications */}
+      <NotifyPrimerSheet />
     </View>
   );
 };

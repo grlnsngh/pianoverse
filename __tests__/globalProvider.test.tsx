@@ -2,6 +2,7 @@ jest.mock("@/lib/appwrite", () => ({
   getCurrentUser: jest.fn(),
 }));
 jest.mock("@/services/notifications", () => ({
+  prepareRentalReminders: jest.fn(() => Promise.resolve(false)),
   requestNotificationPermissions: jest.fn(() => Promise.resolve(false)),
   handleNotificationResponse: jest.fn(),
 }));
@@ -14,6 +15,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act } from "react-test-renderer";
 import GlobalProvider, { useGlobalContext } from "@/context/GlobalProvider";
 import { getCurrentUser } from "@/lib/appwrite";
+import {
+  prepareRentalReminders,
+  requestNotificationPermissions,
+} from "@/services/notifications";
 import { otherUser, testUser } from "./helpers/fixtures";
 import { createTestStore, flushPromises, renderWithStore } from "./helpers/render";
 
@@ -39,6 +44,14 @@ beforeEach(async () => {
   jest.clearAllMocks();
   jest.mocked(getCurrentUser).mockResolvedValue(null as any);
   await AsyncStorage.clear();
+});
+
+it("gets reminders ready at the start without asking anyone for a permission", async () => {
+  await renderProvider();
+
+  // The question comes later, from the sheet that explains it
+  expect(prepareRentalReminders).toHaveBeenCalled();
+  expect(requestNotificationPermissions).not.toHaveBeenCalled();
 });
 
 it("stores a freshly signed-in user in Redux (used by the Edit screen)", async () => {

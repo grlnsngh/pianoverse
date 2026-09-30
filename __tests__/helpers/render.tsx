@@ -124,6 +124,22 @@ export const pressText = async (root: ReactTestInstance, text: string) => {
   await press(node);
 };
 
+/**
+ * Presses the button with this text, skipping a heading that says the same
+ * ("Create account" is both a title and a button): the last text of that name
+ * that is inside something pressable.
+ */
+export const pressButton = async (root: ReactTestInstance, text: string) => {
+  const pressable = (node: ReactTestInstance) => {
+    let current: ReactTestInstance | null = node;
+    while (current && typeof current.props.onPress !== "function") current = current.parent;
+    return !!current;
+  };
+  const node = queryAllByText(root, text).filter(pressable).pop();
+  if (!node) throw new Error(`No button with text "${text}"`);
+  await press(node);
+};
+
 /** First element rendering the given image source (e.g. an icon or a { uri }). */
 export const findByImageSource = (
   root: ReactTestInstance,

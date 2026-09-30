@@ -17,7 +17,6 @@ jest.mock("expo-router", () => {
 import fs from "fs";
 import path from "path";
 import React from "react";
-import { act, ReactTestRenderer } from "react-test-renderer";
 import SignUp from "@/app/(auth)/sign-up";
 import ResetPassword from "@/app/(auth)/reset-password";
 import { createUser, updatePassword } from "@/lib/appwrite";
@@ -25,24 +24,15 @@ import {
   allTexts,
   captureAlerts,
   createTestStore,
+  pressButton,
   pressText,
   renderWithStore,
+  typeInto,
 } from "./helpers/render";
 
 // Appwrite rejects passwords shorter than 8 characters
 const TOO_SHORT = "1234567";
 const LONG_ENOUGH = "12345678";
-
-const typeInto = (renderer: ReactTestRenderer, title: string, text: string) =>
-  act(() => {
-    renderer.root
-      .findAll(
-        (node) =>
-          node.props.title === title &&
-          typeof node.props.handleChangeText === "function"
-      )[0]
-      .props.handleChangeText(text);
-  });
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -56,25 +46,25 @@ afterEach(() => {
 describe("sign up", () => {
   const fillIn = (password: string) => {
     const renderer = renderWithStore(<SignUp />, createTestStore());
-    typeInto(renderer, "Username", "tester");
-    typeInto(renderer, "Email Address", "tester@example.com");
-    typeInto(renderer, "Password", password);
+    typeInto(renderer.root, "Username", "tester");
+    typeInto(renderer.root, "Email", "tester@example.com");
+    typeInto(renderer.root, "Password", password);
     return renderer;
   };
 
   it("rejects passwords shorter than 8 characters before calling Appwrite", async () => {
     const renderer = fillIn(TOO_SHORT);
 
-    await pressText(renderer.root, "Create Account");
+    await pressButton(renderer.root, "Create account");
 
-    expect(allTexts(renderer.root)).toContain("Password must be at least 8 characters");
+    expect(allTexts(renderer.root)).toContain("Password must be at least 8 characters.");
     expect(createUser).not.toHaveBeenCalled();
   });
 
   it("accepts an 8 character password", async () => {
     const renderer = fillIn(LONG_ENOUGH);
 
-    await pressText(renderer.root, "Create Account");
+    await pressButton(renderer.root, "Create account");
 
     expect(createUser).toHaveBeenCalledWith("tester@example.com", LONG_ENOUGH, "tester");
   });
@@ -85,24 +75,24 @@ describe("reset password screen", () => {
     // The screen also tries to read window.location, which native doesn't have
     jest.spyOn(console, "error").mockImplementation(() => {});
     const renderer = renderWithStore(<ResetPassword />, createTestStore());
-    typeInto(renderer, "New Password", password);
-    typeInto(renderer, "Confirm New Password", password);
+    typeInto(renderer.root, "New password", password);
+    typeInto(renderer.root, "Confirm new password", password);
     return renderer;
   };
 
   it("rejects passwords shorter than 8 characters", async () => {
     const renderer = fillIn(TOO_SHORT);
 
-    await pressText(renderer.root, "Update Password");
+    await pressText(renderer.root, "Update password");
 
-    expect(allTexts(renderer.root)).toContain("Password must be at least 8 characters");
+    expect(allTexts(renderer.root)).toContain("Password must be at least 8 characters.");
     expect(updatePassword).not.toHaveBeenCalled();
   });
 
   it("accepts an 8 character password", async () => {
     const renderer = fillIn(LONG_ENOUGH);
 
-    await pressText(renderer.root, "Update Password");
+    await pressText(renderer.root, "Update password");
 
     expect(updatePassword).toHaveBeenCalledWith("user-1", "secret-1", LONG_ENOUGH);
   });

@@ -56,7 +56,8 @@ const active = rental("active", 20, { rental_price: 5000 });
 const dueToday = rental("due-today", 0, { rental_price: 3000 });
 const overdue = rental("overdue", -3, { rental_price: 7000 });
 const soldRental = rental("sold", -3, {
-  sold_date: inDays(-1),
+  // Today, so it is always this month, even on the 1st
+  sold_date: inDays(0),
   sold_price: 90000,
 });
 const soldLastMonth = makePiano({

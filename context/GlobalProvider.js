@@ -16,7 +16,7 @@ import { useDispatch } from "react-redux";
 import { setCurrentUser } from "@/redux/users/actions";
 import * as Notifications from "expo-notifications";
 import {
-  requestNotificationPermissions,
+  prepareRentalReminders,
   handleNotificationResponse,
 } from "@/services/notifications";
 
@@ -93,9 +93,10 @@ const GlobalProvider = ({ children }) => {
     openFromNotification(response);
   }, [loading, isLogged, openFromNotification]);
 
-  // Ask for permission to send reminders, and open the piano when one is tapped
+  // Get reminders ready (the permission is asked for later, from the sheet
+  // that explains it), and open the piano when one is tapped
   useEffect(() => {
-    requestNotificationPermissions();
+    prepareRentalReminders();
 
     const responseListener =
       Notifications.addNotificationResponseReceivedListener(

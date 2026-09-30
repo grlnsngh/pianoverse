@@ -215,6 +215,8 @@ export const motion = {
     toastHold: 3000,
     /** The same for a long message, such as one that says an email was sent */
     toastHoldLong: 5000,
+    /** The logo popping in on the splash screen */
+    splashPop: 600,
     checkPop: 280,
     checkDraw: 260,
     /** One pass of the skeleton shimmer, looping */

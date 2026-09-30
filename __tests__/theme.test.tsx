@@ -5,42 +5,33 @@ jest.mock("expo-router", () => ({
 
 import fs from "fs";
 import path from "path";
-import zlib from "zlib";
 import React from "react";
 import { TextInput } from "react-native";
 import { act, create, ReactTestRenderer } from "react-test-renderer";
 import FormField from "@/components/FormField";
 
 const root = path.join(__dirname, "..");
-const PRIMARY = "#161622";
+const BRAND = "#FF9C01";
 
 describe("launch and system UI", () => {
   const { expo } = JSON.parse(
     fs.readFileSync(path.join(root, "app.json"), "utf8")
   );
 
-  it("uses the app's dark background for the splash and root view", () => {
-    expect(expo.splash.backgroundColor).toBe(PRIMARY);
-    expect(expo.backgroundColor).toBe(PRIMARY);
+  it("is brand orange on the phone's own splash screen, as on the Splash board", () => {
+    expect(expo.splash.backgroundColor).toBe(BRAND);
   });
 
-  it("asks for dark native pickers and dialogs", () => {
-    expect(expo.userInterfaceStyle).toBe("dark");
+  it("has no splash artwork: the app's Splash draws the logo as soon as it starts", () => {
+    expect(expo.splash.image).toBeUndefined();
   });
 
-  it("draws the splash artwork in a light colour, so it shows on the dark background", () => {
-    const png = fs.readFileSync(path.join(root, expo.splash.image));
-    const { pixels, width, height } = decodeRgba(png);
+  it("has a white root view, since every screen of the design is light", () => {
+    expect(expo.backgroundColor).toBe("#FFFFFF");
+  });
 
-    let opaque = 0;
-    let brightness = 0;
-    for (let i = 0; i < width * height * 4; i += 4) {
-      if (pixels[i + 3] < 128) continue;
-      opaque++;
-      brightness += (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
-    }
-    expect(opaque).toBeGreaterThan(0);
-    expect(brightness / opaque).toBeGreaterThan(200);
+  it("asks for light native pickers, keyboards and dialogs", () => {
+    expect(expo.userInterfaceStyle).toBe("light");
   });
 });
 
@@ -132,55 +123,3 @@ describe("focus highlight", () => {
     expect(onBlur).toHaveBeenCalled();
   });
 });
-
-/** Minimal decoder for 8-bit RGBA, non-interlaced PNGs (like the splash). */
-function decodeRgba(png: Buffer) {
-  const width = png.readUInt32BE(16);
-  const height = png.readUInt32BE(20);
-  expect([png[24], png[25], png[28]]).toEqual([8, 6, 0]);
-
-  const chunks: Buffer[] = [];
-  for (let offset = 8; offset < png.length; ) {
-    const length = png.readUInt32BE(offset);
-    if (png.toString("ascii", offset + 4, offset + 8) === "IDAT") {
-      chunks.push(png.subarray(offset + 8, offset + 8 + length));
-    }
-    offset += 12 + length;
-  }
-  const raw = zlib.inflateSync(Buffer.concat(chunks));
-  const stride = width * 4;
-  const pixels = Buffer.alloc(height * stride);
-  const paeth = (a: number, b: number, c: number) => {
-    const p = a + b - c;
-    const pa = Math.abs(p - a);
-    const pb = Math.abs(p - b);
-    const pc = Math.abs(p - c);
-    return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
-  };
-  for (let y = 0; y < height; y++) {
-    const filter = raw[y * (stride + 1)];
-    for (let x = 0; x < stride; x++) {
-      const value = raw[y * (stride + 1) + 1 + x];
-      const a = x >= 4 ? pixels[y * stride + x - 4] : 0;
-      const b = y > 0 ? pixels[(y - 1) * stride + x] : 0;
-      const c = x >= 4 && y > 0 ? pixels[(y - 1) * stride + x - 4] : 0;
-      let predictor = 0;
-      switch (filter) {
-        case 1:
-          predictor = a;
-          break;
-        case 2:
-          predictor = b;
-          break;
-        case 3:
-          predictor = (a + b) >> 1;
-          break;
-        case 4:
-          predictor = paeth(a, b, c);
-          break;
-      }
-      pixels[y * stride + x] = (value + predictor) & 255;
-    }
-  }
-  return { pixels, width, height };
-}

@@ -3,6 +3,13 @@ import { StyleSheet, Text, View } from "react-native";
 import { KeyboardMark } from "@/components/ui";
 import { colors, fonts, radii, spacing } from "@/constants/theme";
 
+/** What a reminder looks like, in the words the app really sends at 9:00 AM */
+export const SAMPLE_REMINDER = {
+  title: "Piano Rental Due Soon!",
+  time: "9:00 AM",
+  body: "“Young Chang U-121” rental ends tomorrow. Please arrange return or extension.",
+};
+
 type ReminderPreviewProps = {
   /** "Piano Rental Due Soon!" */
   title: string;

@@ -6,12 +6,10 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "pianoverse",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#161622",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FFFFFF",
     "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#161622"
+      "backgroundColor": "#FF9C01"
     },
     "ios": {
       "supportsTablet": true
