@@ -19,10 +19,6 @@ jest.mock("expo-router", () => ({
   })),
   usePathname: jest.fn(() => "/detail/piano-1"),
 }));
-jest.mock("@react-native-community/datetimepicker", () => {
-  const React = require("react");
-  return (props: any) => React.createElement("DateTimePicker", props);
-});
 
 import React from "react";
 import { act, ReactTestRenderer } from "react-test-renderer";

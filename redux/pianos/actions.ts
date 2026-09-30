@@ -5,7 +5,6 @@ import {
   SET_PIANO_FILTERS,
   SET_PIANO_LIST_ITEMS,
   SET_BULK_SELECTION_MODE,
-  SET_SELECTED_ITEMS,
   CLEAR_SELECTED_ITEMS,
   TOGGLE_ITEM_SELECTION,
   SELECT_ALL_ITEMS,
@@ -17,7 +16,6 @@ import {
   SetPianoFiltersAction,
   SetPianoListItemsAction,
   SetBulkSelectionModeAction,
-  SetSelectedItemsAction,
   ClearSelectedItemsAction,
   ToggleItemSelectionAction,
   SelectAllItemsAction,
@@ -54,13 +52,6 @@ export const setBulkSelectionMode = (
 ): SetBulkSelectionModeAction => ({
   type: SET_BULK_SELECTION_MODE,
   payload: isEnabled,
-});
-
-export const setSelectedItems = (
-  itemIds: string[]
-): SetSelectedItemsAction => ({
-  type: SET_SELECTED_ITEMS,
-  payload: itemIds,
 });
 
 export const clearSelectedItems = (): ClearSelectedItemsAction => ({

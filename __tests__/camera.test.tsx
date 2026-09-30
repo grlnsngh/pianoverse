@@ -25,13 +25,6 @@ jest.mock("expo-image-picker", () => ({
   requestCameraPermissionsAsync: jest.fn(),
   MediaTypeOptions: { Images: "Images" },
 }));
-jest.mock("@react-native-picker/picker", () => {
-  const React = require("react");
-  const Picker = (props: any) =>
-    React.createElement("Picker", props, props.children);
-  Picker.Item = (props: any) => React.createElement("PickerItem", props);
-  return { Picker };
-});
 
 import fs from "fs";
 import path from "path";

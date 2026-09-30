@@ -1,7 +1,6 @@
 jest.mock("react-native-appwrite", () =>
   require("./helpers/fakeAppwrite").createFakeAppwriteModule()
 );
-jest.mock("react-native-reanimated", () => require("react-native-reanimated/mock"));
 jest.mock("expo-router", () => ({
   router: { push: jest.fn(), setParams: jest.fn() },
   usePathname: jest.fn(() => "/home"),
@@ -11,41 +10,37 @@ jest.mock("@/services/notifications", () => ({
 }));
 
 import React from "react";
-import CardItem from "@/components/CardItem";
-import ListItem from "@/components/ListItem";
+import { Pressable } from "react-native";
 import { cancelRentalNotification } from "@/services/notifications";
-import icons from "@/constants/icons";
+import useDeletePiano from "@/lib/useDeletePiano";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   createTestStore,
   dialogOf,
-  findByImageSource,
-  press,
   pressDialog,
-  pressText,
+  pressLabel,
   renderWithStore,
 } from "./helpers/render";
 
 const piano = makePiano({ $id: "piano-1", title: "Yamaha U1" });
 
-const renderGridCard = (onDelete = jest.fn()) => {
-  const store = createTestStore({ user: testUser, items: [piano] });
-  const renderer = renderWithStore(
-    <CardItem
-      item={piano}
-      index={0}
-      visibleMenuId={null}
-      openMenu={jest.fn()}
-      closeMenu={jest.fn()}
-      onDelete={onDelete}
-      isGridView
-    />,
-    store
+// Anything that deletes a piano (the swipe rows, a piano's page) does it through this hook
+const Deleter = ({ onDeleted }: { onDeleted: () => void }) => {
+  const confirmDelete = useDeletePiano();
+  return (
+    <Pressable
+      onPress={() => confirmDelete(piano, onDeleted)}
+      accessibilityRole="button"
+      accessibilityLabel="Delete piano"
+    />
   );
-  const pressTrash = () =>
-    press(findByImageSource(renderer.root, (source) => source === icons.trash));
-  return { store, renderer, pressTrash, onDelete };
+};
+
+const setUp = (onDeleted = jest.fn()) => {
+  const store = createTestStore({ user: testUser, items: [piano] });
+  const renderer = renderWithStore(<Deleter onDeleted={onDeleted} />, store);
+  return { store, renderer, onDeleted };
 };
 
 beforeEach(() => {
@@ -64,10 +59,10 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-it("asks for confirmation before deleting from a card", async () => {
-  const { renderer, pressTrash, onDelete } = renderGridCard();
+it("asks for confirmation before deleting", async () => {
+  const { renderer, onDeleted } = setUp();
 
-  await pressTrash();
+  await pressLabel(renderer.root, "Delete piano");
 
   expect(dialogOf(renderer.root)).toEqual({
     title: "Delete Yamaha U1?",
@@ -76,69 +71,29 @@ it("asks for confirmation before deleting from a card", async () => {
     actions: ["Delete", "Cancel"],
   });
   expect(fakeBackend.documents.has("piano-1")).toBe(true);
-  expect(onDelete).not.toHaveBeenCalled();
+  expect(onDeleted).not.toHaveBeenCalled();
 });
 
 it("deletes the piano once the user confirms", async () => {
-  const { store, renderer, pressTrash, onDelete } = renderGridCard();
+  const { store, renderer, onDeleted } = setUp();
 
-  await pressTrash();
+  await pressLabel(renderer.root, "Delete piano");
   await pressDialog(renderer.root, "Delete");
 
   expect(fakeBackend.documents.has("piano-1")).toBe(false);
   expect(fakeBackend.files.has("old-file")).toBe(false);
   expect(store.getState().pianos.items).toEqual([]);
   expect(cancelRentalNotification).toHaveBeenCalledWith("piano-1");
-  expect(onDelete).toHaveBeenCalled();
+  expect(onDeleted).toHaveBeenCalled();
 });
 
 it("keeps the piano when the user cancels", async () => {
-  const { store, renderer, pressTrash, onDelete } = renderGridCard();
+  const { store, renderer, onDeleted } = setUp();
 
-  await pressTrash();
+  await pressLabel(renderer.root, "Delete piano");
   await pressDialog(renderer.root, "Cancel");
 
   expect(fakeBackend.documents.has("piano-1")).toBe(true);
   expect(store.getState().pianos.items).toEqual([piano]);
-  expect(onDelete).not.toHaveBeenCalled();
-});
-
-describe.each([
-  ["list row", ListItem, piano],
-])("delete from the %s menu", (_name, Component: any, itemProp) => {
-  const renderWithOpenMenu = () => {
-    const store = createTestStore({ user: testUser, items: [piano] });
-    const closeMenu = jest.fn();
-    const renderer = renderWithStore(
-      <Component
-        item={itemProp}
-        index={0}
-        visibleMenuId={piano.$id}
-        openMenu={jest.fn()}
-        closeMenu={closeMenu}
-      />,
-      store
-    );
-    return { store, renderer, closeMenu };
-  };
-
-  it("asks for confirmation instead of deleting straight away", async () => {
-    const { renderer, closeMenu } = renderWithOpenMenu();
-
-    await pressText(renderer.root, "Delete");
-
-    expect(closeMenu).toHaveBeenCalled();
-    expect(dialogOf(renderer.root)?.title).toBe("Delete Yamaha U1?");
-    expect(fakeBackend.documents.has("piano-1")).toBe(true);
-  });
-
-  it("deletes the piano once the user confirms", async () => {
-    const { store, renderer } = renderWithOpenMenu();
-
-    await pressText(renderer.root, "Delete");
-    await pressDialog(renderer.root, "Delete");
-
-    expect(fakeBackend.documents.has("piano-1")).toBe(false);
-    expect(store.getState().pianos.items).toEqual([]);
-  });
+  expect(onDeleted).not.toHaveBeenCalled();
 });

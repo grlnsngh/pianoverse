@@ -1,14 +1,8 @@
 import type { RentPayment } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate } from "@/utils/dates";
-import { isCurrentlyRented, isSold } from "@/utils/pianoStatus";
+import { isSold } from "@/utils/pianoStatus";
 import { isSameMonth } from "date-fns";
-
-/** The rent prices of the pianos rented out right now, added up. */
-export const rentFromActiveRentals = (pianos: PianoItem[]) =>
-  pianos
-    .filter(isCurrentlyRented)
-    .reduce((total, piano) => total + (piano.rental_price ?? 0), 0);
 
 /** How many pianos were sold in the month of `month`, and for how much. */
 export const salesInMonth = (pianos: PianoItem[], month = new Date()) => {

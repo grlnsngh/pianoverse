@@ -8,19 +8,22 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Front-end Framework:** [Expo](https://docs.expo.dev/) (SDK 51, Expo Router)
 - **Back-end:** [Appwrite](https://appwrite.io/)
 - **State:** [Redux](https://redux.js.org/)
-- **UI Library:** [React Native Paper](https://callstack.github.io/react-native-paper/)
-- **CSS Framework:** [Tailwind](https://tailwindcss.com/) through [NativeWind v2](https://www.nativewind.dev/v2)
+- **UI:** our own components and design tokens (`components/ui/`, `constants/theme.ts`), drawn with React Native styles, in the [Figtree](https://fonts.google.com/specimen/Figtree) font
+- **Motion:** [Reanimated](https://docs.swmansion.com/react-native-reanimated/) and [Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/), with [Expo Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)
 
 ## Features
 
-- **Cross-platform:** Runs on iOS, Android, and web.
+- **Three tabs:** Today (what is due, overdue and received), Pianos (grid or list, search, filters, select several) and Account (income, reminders, CSV export, sign out). The design is in `docs/redesign/`.
+- **Cross-platform:** Built for iOS and Android phones in light mode; the app also starts on the web.
 - **Category Management:** Rentable, events, on sale and warehouse pianos, each with their own details.
 - **Rentals:** Due dates with reminders at 9:00 a week before, the day before, on the day, and when overdue. Extend a rental by 1, 3 or 6 months in one tap.
-- **Overdue view:** Home points out rentals that have ended but not been extended.
+- **Overdue view:** Today lists rentals that have ended but not been extended, with the rent still to collect.
 - **Rent payments:** Record each payment for a rented piano (amount, date, note) and see what has been received.
 - **Sales:** Mark a piano as sold with the buyer, price and date; sold pianos leave the stock and can be shown with a filter.
 - **Search and filters:** Search by title, make, customer, mobile, model or B-number; filter by category, active or overdue rentals, and sold pianos.
-- **Income:** Profile shows the rent received this month (from the payments you record), this month's sales, and the rent of the rentals out now.
+- **Income:** Today shows the rent received this month (from the payments you record), and Account the piano counts and this month's sales.
+- **Adding a piano:** Three steps with a progress bar (the basics, the category details, a review), a Make list with a letter strip, a calendar for every date, and the camera or library for photos.
+- **Quick actions:** Swipe a piano in the list for Edit and Delete, pull down to refresh, and feel a light tap when something is saved. Everything only fades if the phone asks for Reduce Motion.
 - **Photos:** Add up to 10 photos to a piano by taking them with the camera or choosing them. The first is the cover shown in the lists, and the piano's page lets you swipe through all of them. Tap a photo to see it on the whole screen: pinch or double tap to zoom, swipe or use the arrows for the next photo. Photos are resized before upload.
 - **Customers:** Call or WhatsApp a rental customer from the piano's page.
 - **Sharing and export:** Share a piano's details, or export the whole list as CSV.
@@ -111,8 +114,9 @@ The `pianos` table also needs an `image_urls` column: an array of varchar (size 
 ## Project Structure
 
 - `app/`: screens only. [Expo Router](https://docs.expo.dev/router/introduction/) turns every file here into a route.
-- `components/`: shared UI (piano rows, form fields, sheets, filter button).
-- `constants/`: categories, companies, colours, icons and images.
+- `components/`: the screens' parts (piano cards and rows, sheets, dialogs); `components/ui/` holds the design system (buttons, fields, sheets, segmented control and so on).
+- `constants/`: the theme (colours, radii, spacing, type, motion), categories and companies.
+- `docs/redesign/`: the plan, the spec and the boards the screens follow.
 - `lib/`: Appwrite access and data hooks.
 - `redux/`: the store (pianos, filters, signed-in user, active tab).
 - `services/`: rental reminders.

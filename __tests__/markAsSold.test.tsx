@@ -26,10 +26,6 @@ jest.mock("@/context/GlobalProvider", () => ({
     setIsLogged: jest.fn(),
   }),
 }));
-jest.mock("@react-native-community/datetimepicker", () => {
-  const React = require("react");
-  return (props: any) => React.createElement("DateTimePicker", props);
-});
 
 import React from "react";
 import { act, ReactTestRenderer } from "react-test-renderer";
@@ -47,7 +43,6 @@ import { PianoItem } from "@/redux/pianos/types";
 import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { countActiveFilters } from "@/utils/filters";
 import { toStoredDate } from "@/utils/dates";
-import { getStatusLabel } from "@/utils/pianoStatus";
 import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
 import { fakeNotifications } from "./helpers/fakeNotifications";
 import { makePiano, testUser } from "./helpers/fixtures";
@@ -322,10 +317,5 @@ describe("sold pianos elsewhere", () => {
     // Only the piano that is here: the rental is out, and the sold one is gone
     expect(texts[texts.indexOf("In stock") - 1]).toBe("1");
     expect(texts[texts.indexOf("On rent") - 1]).toBe("1");
-  });
-
-  it("are labelled as sold in the list", () => {
-    expect(getStatusLabel(soldRental)).toBe("Rentable · Sold");
-    expect(getStatusLabel(inStock)).toBe("Warehouse");
   });
 });

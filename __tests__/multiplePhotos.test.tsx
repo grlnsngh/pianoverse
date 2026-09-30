@@ -29,10 +29,6 @@ jest.mock("expo-image-manipulator", () => ({
   manipulateAsync: jest.fn(),
   SaveFormat: { JPEG: "jpeg" },
 }));
-jest.mock("@react-native-community/datetimepicker", () => {
-  const React = require("react");
-  return (props: any) => React.createElement("DateTimePicker", props);
-});
 
 import React from "react";
 import { Dimensions } from "react-native";

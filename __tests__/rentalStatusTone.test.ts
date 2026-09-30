@@ -3,7 +3,6 @@ import { getRemainingPeriod, getRentalState } from "@/utils/dates";
 import {
   getPianoRentalStatus,
   getRentalStatus,
-  getRentalStatusText,
   isEndingSoon,
   STATUS_TONE_COLORS,
 } from "@/utils/rentalStatus";
@@ -79,18 +78,6 @@ describe("the boundary between ending soon and time left", () => {
       const remaining = getRemainingPeriod(stored);
 
       expect(statusOn(stored)?.tone === "soon").toBe(isEndingSoon(remaining));
-    }
-  });
-
-  it("leaves the old status text alone, which the old screens still show", () => {
-    const cases: [string, string][] = [
-      ["2026-09-11", "Expired 2 weeks ago"],
-      ["2026-09-29", "Due today"],
-      ["2026-10-02", "3 days remaining"],
-    ];
-    for (const [end, oldText] of cases) {
-      expect(getRentalStatusText(getRentalState(end), getRemainingPeriod(end))).toBe(oldText);
-      expect(statusOn(end)).not.toBeNull();
     }
   });
 });

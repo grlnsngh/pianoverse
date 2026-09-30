@@ -23,10 +23,8 @@ jest.mock("expo-router", () => ({
 import React from "react";
 import { addDays } from "date-fns";
 import DetailScreen from "@/app/detail/[id]";
-import { CATEGORY_COLORS } from "@/constants/colors";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
-import { getCategoryColor } from "@/utils/rentalStatus";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
@@ -74,19 +72,6 @@ describe("prices on a piano's page", () => {
     const texts = allTexts(renderer.root).join(" ");
     expect(texts).toMatch(/₹(1,25,000|12,50,000)/);
     expect(texts).not.toMatch(/₹(125,000|1,250,000)/);
-  });
-});
-
-describe("category colours", () => {
-  const categories = [
-    ["rentable", "RENTABLE"],
-    ["events", "EVENTS"],
-    ["on_sale", "ON_SALE"],
-    ["warehouse", "WAREHOUSE"],
-  ] as const;
-
-  it.each(categories)("are the same for %s pianos everywhere", (category, key) => {
-    expect(getCategoryColor(category)).toBe(CATEGORY_COLORS[key]);
   });
 });
 

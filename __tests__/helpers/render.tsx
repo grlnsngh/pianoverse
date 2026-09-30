@@ -1,7 +1,7 @@
 import { differenceInCalendarMonths, format, parse } from "date-fns";
 import React from "react";
 import { Alert, AlertButton } from "react-native";
-import { PaperProvider } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import {
   act,
@@ -52,16 +52,21 @@ export type TestStore = ReturnType<typeof createTestStore>;
 
 const mountedRenderers = new Set<ReactTestRenderer>();
 
+const TEST_METRICS = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 0, left: 0, right: 0, bottom: 0 },
+};
+
 export const renderWithStore = (ui: React.ReactElement, store: TestStore) => {
   let renderer!: ReactTestRenderer;
   act(() => {
     renderer = create(
       <Provider store={store}>
-        {/* Like the root layout */}
-        <PaperProvider>
+        {/* The router's root view provides this in the app */}
+        <SafeAreaProvider initialMetrics={TEST_METRICS}>
           {ui}
           <DialogHost />
-        </PaperProvider>
+        </SafeAreaProvider>
       </Provider>
     );
   });
@@ -242,32 +247,6 @@ export const captureToasts = () => {
   const messages: string[] = [];
   setToastListener((message) => messages.push(message));
   return messages;
-};
-
-/** Taps the date field titled `title` and returns the date picker it opens. */
-export const openDatePicker = (root: ReactTestInstance, title: string) => {
-  const [field] = root.findAll(
-    (node) =>
-      node.props.accessibilityLabel === title &&
-      typeof node.props.onPress === "function"
-  );
-  if (!field) throw new Error(`No date field titled "${title}"`);
-  act(() => {
-    field.props.onPress();
-  });
-  const [picker] = root.findAll(
-    (node) => (node.type as unknown) === "DateTimePicker"
-  );
-  if (!picker) throw new Error(`"${title}" didn't open the date picker`);
-  return picker;
-};
-
-/** Picks `date` in the date field titled `title`, like a user would. */
-export const chooseDate = (root: ReactTestInstance, title: string, date: Date) => {
-  const picker = openDatePicker(root, title);
-  act(() => {
-    picker.props.onChange({ type: "set" }, date);
-  });
 };
 
 const buttonsLabelled = (

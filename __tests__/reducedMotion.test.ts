@@ -22,10 +22,6 @@ const ALLOWED: Record<string, string> = {
     "a tab switch is already only a 120 ms cross-fade, which is what reduced motion asks for",
   "components/PhotoViewer.tsx":
     "only fades its hint in and out; the zoom follows the fingers, which is not a slide",
-  // The old screens' animations, all of which go when the dead components are removed (Batch 13.1)
-  "components/CardItem.tsx": "dead code, removed in 13.1",
-  "components/ListItem.tsx": "dead code, removed in 13.1",
-  "components/EnhancedFormField.tsx": "dead code, removed in 13.1",
 };
 
 describe("reduced motion", () => {

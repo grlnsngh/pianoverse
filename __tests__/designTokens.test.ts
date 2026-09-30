@@ -11,7 +11,6 @@ import {
 } from "@/constants/theme";
 
 const root = path.join(__dirname, "..");
-const tailwind = require(path.join(root, "tailwind.config.js")).theme.extend;
 
 const HEX = /^#[0-9A-F]{6}$/i;
 
@@ -45,28 +44,6 @@ describe("colours", () => {
       expect(value).toMatch(/^(#[0-9A-F]{6}|rgba\(.+\))$/i);
     }
   });
-
-  it("are the same in Tailwind, so className and style agree", () => {
-    expect(tailwind.colors).toMatchObject({
-      page: colors.page,
-      grouped: colors.grouped,
-      fill: colors.fill,
-      hairline: colors.hairline,
-      ink: colors.ink,
-      ink2: colors.ink2,
-      ink3: colors.ink3,
-      brand: colors.brand,
-      "brand-text": colors.brandText,
-      late: colors.late,
-      "late-tint": colors.lateTint,
-      "late-tint-text": colors.lateTintText,
-    });
-  });
-
-  it("keep the old scheme in Tailwind until the last screen has moved", () => {
-    expect(tailwind.colors.primary.DEFAULT).toBe("#161622");
-    expect(tailwind.colors.secondary.DEFAULT).toBe("#FF9C01");
-  });
 });
 
 describe("radii", () => {
@@ -78,16 +55,6 @@ describe("radii", () => {
       panel: 20,
       sheet: 24,
       full: 999,
-    });
-  });
-
-  it("are the same in Tailwind", () => {
-    expect(tailwind.borderRadius).toEqual({
-      input: `${radii.input}px`,
-      control: `${radii.control}px`,
-      card: `${radii.card}px`,
-      panel: `${radii.panel}px`,
-      sheet: `${radii.sheet}px`,
     });
   });
 });
@@ -123,10 +90,18 @@ describe("fonts", () => {
   });
 
   it("are installed, one file per weight", () => {
-    expect(require("@expo-google-fonts/figtree/400Regular").Figtree_400Regular).toBeDefined();
-    expect(require("@expo-google-fonts/figtree/500Medium").Figtree_500Medium).toBeDefined();
-    expect(require("@expo-google-fonts/figtree/600SemiBold").Figtree_600SemiBold).toBeDefined();
-    expect(require("@expo-google-fonts/figtree/700Bold").Figtree_700Bold).toBeDefined();
+    expect(
+      require("@expo-google-fonts/figtree/400Regular").Figtree_400Regular
+    ).toBeDefined();
+    expect(
+      require("@expo-google-fonts/figtree/500Medium").Figtree_500Medium
+    ).toBeDefined();
+    expect(
+      require("@expo-google-fonts/figtree/600SemiBold").Figtree_600SemiBold
+    ).toBeDefined();
+    expect(
+      require("@expo-google-fonts/figtree/700Bold").Figtree_700Bold
+    ).toBeDefined();
   });
 
   it("are all loaded by the root layout, under the names the styles use", () => {
@@ -136,12 +111,11 @@ describe("fonts", () => {
     }
   });
 
-  it("have a Tailwind class each, and the Poppins ones are still there", () => {
-    expect(tailwind.fontFamily.figtree[0]).toBe(fonts.regular);
-    expect(tailwind.fontFamily["figtree-medium"][0]).toBe(fonts.medium);
-    expect(tailwind.fontFamily["figtree-semibold"][0]).toBe(fonts.semibold);
-    expect(tailwind.fontFamily["figtree-bold"][0]).toBe(fonts.bold);
-    expect(tailwind.fontFamily.pregular[0]).toBe("Poppins-Regular");
+  it("are the only fonts: Poppins is gone, from the layout and from the project", () => {
+    const layout = fs.readFileSync(path.join(root, "app/_layout.tsx"), "utf8");
+
+    expect(layout).not.toContain("Poppins");
+    expect(fs.existsSync(path.join(root, "assets", "fonts"))).toBe(false);
   });
 });
 

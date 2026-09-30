@@ -26,7 +26,7 @@ import { getUserPianoEntries } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
 import { isOverdue } from "@/utils/pianoStatus";
-import { rentFromActiveRentals, salesInMonth } from "@/utils/stats";
+import { salesInMonth } from "@/utils/stats";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
@@ -119,11 +119,6 @@ describe("overdue rentals", () => {
 });
 
 describe("income", () => {
-  it("adds up the rent of the pianos rented out now", () => {
-    // Active and due today; not overdue or sold
-    expect(rentFromActiveRentals(pianos)).toBe(8000);
-  });
-
   it("adds up this month's sales", () => {
     expect(salesInMonth(pianos)).toEqual({ count: 1, total: 90000 });
     expect(salesInMonth(pianos, subMonths(new Date(), 1))).toEqual({

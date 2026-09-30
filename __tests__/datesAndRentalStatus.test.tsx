@@ -27,8 +27,6 @@ jest.mock("@/context/GlobalProvider", () => ({
 
 import React from "react";
 import { addDays, format } from "date-fns";
-import CardItem from "@/components/CardItem";
-import ListItem from "@/components/ListItem";
 import Profile from "@/app/(tabs)/profile";
 import DetailScreen from "@/app/detail/[id]";
 import EditScreen from "@/app/edit/[id]";
@@ -144,35 +142,6 @@ describe("Detail screen dates", () => {
 });
 
 describe("rental status", () => {
-  const renderCard = (Component: any, piano: PianoItem, extra = {}) =>
-    renderWithStore(
-      <Component
-        item={piano}
-        index={0}
-        visibleMenuId={null}
-        openMenu={jest.fn()}
-        closeMenu={jest.fn()}
-        {...extra}
-      />,
-      createTestStore({ user: testUser, items: [piano] })
-    );
-
-  it.each<[string, React.ComponentType<any>]>([
-    ["card", CardItem],
-    ["list row", ListItem],
-  ])("a %s shows a rental ending today as due today", (_name, Component) => {
-    const renderer = renderCard(Component, rental(day(0)));
-
-    expect(allTexts(renderer.root)).toContain("Due today");
-    expect(allTexts(renderer.root).join(" ")).not.toMatch(/Expired/);
-  });
-
-  it("a grid card shows a rental ending today as due today", () => {
-    const renderer = renderCard(CardItem, rental(day(0)), { isGridView: true });
-
-    expect(allTexts(renderer.root)).toContain("Due today");
-  });
-
   it("the detail screen warns about a rental that ends today", () => {
     const renderer = renderWithStore(
       <DetailScreen />,
