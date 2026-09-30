@@ -116,7 +116,7 @@ describe("Edit screen dates", () => {
       createTestStore({ user: testUser, items: [piano] })
     );
 
-    await pressText(renderer.root, "Save Changes");
+    await pressText(renderer.root, "Save changes");
 
     expect(alerts.titles()).toEqual([]);
     expect(fakeBackend.documents.get("piano-1")).toMatchObject({

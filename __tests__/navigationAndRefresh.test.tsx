@@ -28,12 +28,6 @@ jest.mock("@/context/GlobalProvider", () => ({
     setIsLogged: jest.fn(),
   }),
 }));
-jest.mock("@react-native-picker/picker", () => {
-  const React = require("react");
-  const Picker = (props: any) => React.createElement("Picker", props, props.children);
-  Picker.Item = (props: any) => React.createElement("PickerItem", props);
-  return { Picker };
-});
 import React from "react";
 import { FlatList } from "react-native";
 import { act } from "react-test-renderer";
@@ -48,11 +42,14 @@ import { setActiveTab } from "@/redux/navigation/actions";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
+  allTexts,
   captureAlerts,
   createTestStore,
   flushPromises,
+  inputValue,
   pressText,
   renderWithStore,
+  typeInto,
 } from "./helpers/render";
 
 beforeEach(() => {
@@ -65,12 +62,6 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks();
 });
-
-const fieldValue = (renderer: any, title: string) =>
-  renderer.root.findAll(
-    (node: any) =>
-      node.props.title === title && typeof node.props.handleChangeText === "function"
-  )[0].props.value;
 
 describe("after publishing", () => {
   const form = {
@@ -111,24 +102,37 @@ describe("after publishing", () => {
       </>,
       store
     );
-    expect(fieldValue(renderer, "Title")).toBe("Kawai K-300");
+    expect(inputValue(renderer.root, "Title")).toBe("Kawai K-300");
 
-    await pressText(renderer.root, "Publish");
+    await pressText(renderer.root, "Add piano");
     return { store, renderer };
   };
 
-  it("leaves the whole Add flow for the tabs, instead of opening another copy of them", async () => {
-    await publish();
+  it("says so, and waits for the person to choose what to do next", async () => {
+    const { renderer } = await publish();
 
-    // Back would only return to the form underneath, which is still filled in
+    const texts = allTexts(renderer.root);
+    expect(texts).toContain("Piano added");
+    expect(texts).toContain("Kawai K-300 is now in your stock.");
+    expect(router.dismissAll).not.toHaveBeenCalled();
+  });
+
+  it("leaves the whole Add flow for the tabs when done, instead of opening another copy of them", async () => {
+    const { renderer } = await publish();
+
+    await pressText(renderer.root, "Done");
+
+    // Back would only return to the form underneath
     expect(router.dismissAll).toHaveBeenCalledTimes(1);
     expect(router.back).not.toHaveBeenCalled();
     expect(router.push).not.toHaveBeenCalled();
   });
 
   it("opens the tabs afresh when the app was opened straight on the Add flow", async () => {
-    jest.mocked(router.canDismiss).mockReturnValueOnce(false);
-    await publish();
+    jest.mocked(router.canDismiss).mockReturnValue(false);
+    const { renderer } = await publish();
+
+    await pressText(renderer.root, "Done");
 
     expect(router.dismissAll).not.toHaveBeenCalled();
     expect(router.replace).toHaveBeenCalledWith("/home");
@@ -146,8 +150,8 @@ describe("after publishing", () => {
   it("clears the Create form for the next piano", async () => {
     const { renderer } = await publish();
 
-    expect(fieldValue(renderer, "Title")).toBe("");
-    expect(fieldValue(renderer, "Description")).toBe("");
+    expect(inputValue(renderer.root, "Title")).toBe("");
+    expect(inputValue(renderer.root, "Notes")).toBe("");
   });
 });
 
@@ -159,16 +163,8 @@ describe("after saving an edit", () => {
     const store = createTestStore({ user: testUser, items: [piano] });
     const renderer = renderWithStore(<EditScreen />, store);
 
-    act(() => {
-      renderer.root
-        .findAll(
-          (node: any) =>
-            node.props.title === "Title" &&
-            typeof node.props.handleChangeText === "function"
-        )[0]
-        .props.handleChangeText("Yamaha U3");
-    });
-    await pressText(renderer.root, "Save Changes");
+    typeInto(renderer.root, "Title", "Yamaha U3");
+    await pressText(renderer.root, "Save changes");
 
     expect(router.back).toHaveBeenCalledTimes(1);
     expect(router.push).not.toHaveBeenCalled();

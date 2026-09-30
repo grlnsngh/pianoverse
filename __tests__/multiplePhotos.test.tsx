@@ -46,6 +46,7 @@ import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
 import { fakeNotifications } from "./helpers/fakeNotifications";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
+  addPhotoFrom,
   allTexts,
   captureAlerts,
   createTestStore,
@@ -117,8 +118,16 @@ const hasLabel = (renderer: ReactTestRenderer, label: string) =>
   renderer.root.findAll((node) => node.props.accessibilityLabel === label)
     .length > 0;
 
+// How many photos the form shows: one Remove button each
+const photoCount = (renderer: ReactTestRenderer) =>
+  new Set(
+    renderer.root
+      .findAll((node) => /^Remove photo \d+$/.test(node.props.accessibilityLabel ?? ""))
+      .map((node) => node.props.accessibilityLabel)
+  ).size;
+
 const save = (renderer: ReactTestRenderer) =>
-  pressText(renderer.root, "Save Changes");
+  pressText(renderer.root, "Save changes");
 
 const saved = () => fakeBackend.documents.get("piano-1");
 
@@ -128,9 +137,10 @@ describe("the photos on the Edit screen", () => {
   it("shows every photo of the piano and how many there are", () => {
     const renderer = renderEdit(pianoWithPhotos(fileIds));
 
-    const texts = allTexts(renderer.root);
-    expect(texts.join(" ")).toContain("3 of 10 photos");
-    expect(texts.join(" ")).toContain("Tap a photo to make it the cover");
+    expect(photoCount(renderer)).toBe(3);
+    expect(allTexts(renderer.root)).toContain(
+      "Up to 10 photos. The first one is the cover."
+    );
     expect(hasLabel(renderer, "Cover photo")).toBe(true);
     expect(hasLabel(renderer, "Make photo 2 the cover")).toBe(true);
     expect(hasLabel(renderer, "Make photo 3 the cover")).toBe(true);
@@ -139,7 +149,7 @@ describe("the photos on the Edit screen", () => {
   it("shows the one photo of a piano saved before there were several", async () => {
     const renderer = renderEdit(makePiano({ image_url: urls[0] }));
 
-    expect(allTexts(renderer.root).join(" ")).toContain("1 of 10 photos");
+    expect(photoCount(renderer)).toBe(1);
 
     // Saving keeps it, now as a list of one
     await save(renderer);
@@ -150,7 +160,7 @@ describe("the photos on the Edit screen", () => {
     const renderer = renderEdit(pianoWithPhotos(fileIds));
 
     await pressLabel(renderer, "Remove photo 2");
-    expect(allTexts(renderer.root).join(" ")).toContain("2 of 10 photos");
+    expect(photoCount(renderer)).toBe(2);
     // Nothing is deleted until the piano is saved
     expect(fakeBackend.files.has("b")).toBe(true);
     await save(renderer);
@@ -195,8 +205,9 @@ describe("the photos on the Edit screen", () => {
     await pressLabel(renderer, "Remove photo 1");
     await pressLabel(renderer, "Remove photo 1");
     await pressLabel(renderer, "Remove photo 1");
-    // Back to the buttons that add the first photo
-    expect(allTexts(renderer.root)).toContain("Take Photo");
+    // Back to the Add tile alone
+    expect(photoCount(renderer)).toBe(0);
+    expect(hasLabel(renderer, "Add a photo")).toBe(true);
     await save(renderer);
 
     expect(alerts.titles()).toEqual(["Missing Details"]);
@@ -223,8 +234,8 @@ describe("the photos on the Edit screen", () => {
     } as any);
     const renderer = renderEdit(pianoWithPhotos(fileIds));
 
-    await pressText(renderer.root, "Choose a file");
-    expect(allTexts(renderer.root).join(" ")).toContain("4 of 10 photos");
+    await addPhotoFrom(renderer.root, "library");
+    expect(photoCount(renderer)).toBe(4);
     await save(renderer);
 
     const [newFileId] = [...fakeBackend.files.keys()].filter(
@@ -253,13 +264,12 @@ describe("the photos on the Edit screen", () => {
       ],
     } as any);
     const renderer = renderEdit(pianoWithPhotos(ids));
-    expect(allTexts(renderer.root)).toContain("Choose a file");
+    expect(hasLabel(renderer, "Add a photo")).toBe(true);
 
-    await pressText(renderer.root, "Choose a file");
+    await addPhotoFrom(renderer.root, "library");
 
-    expect(allTexts(renderer.root).join(" ")).toContain("10 of 10 photos");
-    expect(allTexts(renderer.root)).not.toContain("Choose a file");
-    expect(allTexts(renderer.root)).not.toContain("Take Photo");
+    expect(photoCount(renderer)).toBe(MAX_PHOTOS);
+    expect(hasLabel(renderer, "Add a photo")).toBe(false);
   });
 });
 

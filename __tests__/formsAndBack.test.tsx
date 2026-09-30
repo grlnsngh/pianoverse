@@ -24,27 +24,16 @@ jest.mock("@/services/notifications", () => ({
   scheduleRentalDueNotification: jest.fn(() => Promise.resolve([])),
   cancelRentalNotification: jest.fn(() => Promise.resolve()),
 }));
-jest.mock("@react-native-picker/picker", () => {
-  const React = require("react");
-  const Picker = (props: any) =>
-    React.createElement("Picker", props, props.children);
-  Picker.Item = (props: any) => React.createElement("PickerItem", props);
-  return { Picker };
-});
 jest.mock("expo-image-picker", () => ({
   launchImageLibraryAsync: jest.fn(),
   MediaTypeOptions: { Images: "Images" },
 }));
-jest.mock("@react-native-community/datetimepicker", () => {
-  const React = require("react");
-  return (props: any) => React.createElement("DateTimePicker", props);
-});
 
 import fs from "fs";
 import path from "path";
 import React from "react";
 import { BackHandler } from "react-native";
-import { act, ReactTestRenderer } from "react-test-renderer";
+import { act } from "react-test-renderer";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import Home from "@/app/(tabs)/home";
@@ -61,34 +50,17 @@ import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
   captureAlerts,
-  chooseDate as chooseDateIn,
-  openDatePicker as openDateField,
   createTestStore,
+  fillBasics,
   flushPromises,
+  inputLabelled,
+  pickDate,
+  pressLabel,
+  pressRow,
   pressText,
   renderWithStore,
+  typeInto,
 } from "./helpers/render";
-
-const field = (renderer: ReactTestRenderer, title: string) => {
-  const [node] = renderer.root.findAll(
-    (candidate) =>
-      candidate.props.title === title &&
-      typeof candidate.props.handleChangeText === "function"
-  );
-  if (!node) throw new Error(`No field titled "${title}"`);
-  return node;
-};
-
-const typeInto = (renderer: ReactTestRenderer, title: string, text: string) =>
-  act(() => {
-    field(renderer, title).props.handleChangeText(text);
-  });
-
-const openDatePicker = (renderer: ReactTestRenderer, title: string) =>
-  openDateField(renderer.root, title);
-
-const chooseDate = (renderer: ReactTestRenderer, title: string, date: Date) =>
-  chooseDateIn(renderer.root, title, date);
 
 let alerts: ReturnType<typeof captureAlerts>;
 
@@ -206,7 +178,7 @@ describe("rental details", () => {
     it("uses the phone keypad for the mobile number", () => {
       const renderer = renderEdit();
 
-      expect(field(renderer, "Customer Mobile Number").props.keyboardType).toBe(
+      expect(inputLabelled(renderer.root, "Mobile").props.keyboardType).toBe(
         "phone-pad"
       );
     });
@@ -214,8 +186,8 @@ describe("rental details", () => {
     it("won't save a mobile number that isn't 10 digits", async () => {
       const renderer = renderEdit();
 
-      typeInto(renderer, "Customer Mobile Number", "98765");
-      await pressText(renderer.root, "Save Changes");
+      typeInto(renderer.root, "Mobile", "98765");
+      await pressText(renderer.root, "Save changes");
 
       expect(alerts.titles()).toEqual(["Check the rental details"]);
       expect(alerts.spy.mock.calls[0][1]).toMatch(/10-digit mobile/);
@@ -227,8 +199,10 @@ describe("rental details", () => {
     it("won't save a rental that ends before it starts", async () => {
       const renderer = renderEdit();
 
-      chooseDate(renderer, "Rental Period End Date", new Date(2026, 7, 15));
-      await pressText(renderer.root, "Save Changes");
+      // The calendar for the end won't offer earlier days, but moving the
+      // start past the end makes the same mistake
+      await pickDate(renderer.root, "Starts", new Date(2026, 11, 15));
+      await pressText(renderer.root, "Save changes");
 
       expect(alerts.titles()).toEqual(["Check the rental details"]);
       expect(alerts.spy.mock.calls[0][1]).toMatch(/end date must be after/);
@@ -240,8 +214,8 @@ describe("rental details", () => {
     it("checks the same rental details as the Create screen", async () => {
       const renderer = renderEdit();
 
-      typeInto(renderer, "Customer Address", "  ");
-      await pressText(renderer.root, "Save Changes");
+      typeInto(renderer.root, "Address", "  ");
+      await pressText(renderer.root, "Save changes");
 
       expect(alerts.titles()).toEqual(["Missing Details"]);
       expect(alerts.spy.mock.calls[0][1]).toBe(
@@ -255,8 +229,8 @@ describe("rental details", () => {
     it("saves a mobile number written with the country code", async () => {
       const renderer = renderEdit();
 
-      typeInto(renderer, "Customer Mobile Number", "+91 98765 00000");
-      await pressText(renderer.root, "Save Changes");
+      typeInto(renderer.root, "Mobile", "+91 98765 00000");
+      await pressText(renderer.root, "Save changes");
 
       expect(alerts.titles()).toEqual([]);
       expect(fakeBackend.documents.get("piano-1")?.rental_customer_mobile).toBe(
@@ -264,19 +238,27 @@ describe("rental details", () => {
       );
     });
 
-    it("doesn't offer end dates before the day after the start", () => {
+    it("doesn't offer end dates before the day after the start", async () => {
       const renderer = renderEdit();
+      await pressRow(renderer.root, "Ends");
+      // The rental starts on Tuesday 1 September 2026 and ends in December
+      for (let month = 0; month < 3; month++) {
+        await pressLabel(renderer.root, "Previous month");
+      }
 
-      const picker = openDatePicker(renderer, "Rental Period End Date");
-
-      expect(picker.props.minimumDate.toDateString()).toBe(
-        new Date(2026, 8, 2).toDateString()
-      );
+      const day = (label: string) =>
+        renderer.root.find(
+          (node) =>
+            node.props.accessibilityLabel === label &&
+            typeof node.props.onPress === "function"
+        );
+      expect(day("Tuesday 1 September 2026").props.disabled).toBe(true);
+      expect(day("Wednesday 2 September 2026").props.disabled).toBe(false);
     });
   });
 
   describe("on the Create screen", () => {
-    const fillRental = async (mobile: string, endDate: Date) => {
+    const fillRental = async (mobile: string, startDate: Date, endDate: Date) => {
       jest.mocked(ImagePicker.launchImageLibraryAsync).mockResolvedValue({
         canceled: false,
         assets: [
@@ -297,58 +279,45 @@ describe("rental details", () => {
         createTestStore({ user: testUser })
       );
 
-      act(() => {
-        renderer.root
-          .findAll((node) => (node.type as unknown) === "Picker")[0]
-          .props.onValueChange("rentable");
-      });
-      await pressText(renderer.root, "Choose a file");
-      typeInto(renderer, "Title", "Kawai K-300");
-      typeInto(renderer, "Description", "Black polish");
-      act(() => {
-        renderer.root
-          .findAll(
-            (node) =>
-              typeof node.props.onChange === "function" && node.props.data
-          )[0]
-          .props.onChange({ label: "Other", value: "Other" });
-      });
-      act(() => {
-        renderer.root
-          .findAll((node) => node.props.buttons && node.props.onValueChange)[0]
-          .props.onValueChange("Shamshersons");
-      });
-      typeInto(renderer, "Customer Name", "Asha Mehta");
-      typeInto(renderer, "Customer Address", "12 MG Road");
-      typeInto(renderer, "Customer Mobile Number", mobile);
-      chooseDate(renderer, "Rental Period Start Date", new Date(2026, 8, 1));
-      chooseDate(renderer, "Rental Period End Date", endDate);
-      typeInto(renderer, "Rent Price", "4000");
+      await fillBasics(renderer.root);
+      await pressText(renderer.root, "Continue");
+      // Rentable is the choice the second step opens with
+      typeInto(renderer.root, "Customer", "Asha Mehta");
+      typeInto(renderer.root, "Address", "12 MG Road");
+      typeInto(renderer.root, "Mobile", mobile);
+      // The end first: the calendar only offers days after the start
+      await pickDate(renderer.root, "Ends", endDate);
+      await pickDate(renderer.root, "Starts", startDate);
+      typeInto(renderer.root, "Rent", "4000");
 
-      await pressText(renderer.root, "Review & Publish");
+      await pressText(renderer.root, "Continue");
       return renderer;
     };
 
     it("checks the mobile number before going to review", async () => {
-      await fillRental("98765", new Date(2026, 11, 1));
+      await fillRental("98765", new Date(2026, 8, 1), new Date(2026, 11, 1));
 
       expect(alerts.titles()).toEqual(["Check the rental details"]);
       expect(router.push).not.toHaveBeenCalled();
     });
 
     it("checks the dates before going to review", async () => {
-      await fillRental("9876543210", new Date(2026, 8, 1));
+      await fillRental("9876543210", new Date(2026, 11, 1), new Date(2026, 11, 1));
 
       expect(alerts.titles()).toEqual(["Check the rental details"]);
       expect(router.push).not.toHaveBeenCalled();
     });
 
     it("goes to review once the rental is valid", async () => {
-      const renderer = await fillRental("9876543210", new Date(2026, 11, 1));
+      const renderer = await fillRental(
+        "9876543210",
+        new Date(2026, 8, 1),
+        new Date(2026, 11, 1)
+      );
 
       expect(alerts.titles()).toEqual([]);
       expect(router.push).toHaveBeenCalledTimes(1);
-      expect(field(renderer, "Customer Mobile Number").props.keyboardType).toBe(
+      expect(inputLabelled(renderer.root, "Mobile").props.keyboardType).toBe(
         "phone-pad"
       );
     });
@@ -360,25 +329,20 @@ describe("the Add screen", () => {
   const open = () =>
     renderWithStore(<Create />, createTestStore({ user: testUser }));
 
-  it("has a Back button that returns to where it was opened from", () => {
+  it("has a Cancel button that returns to where it was opened from", async () => {
     const renderer = open();
-    const back = renderer.root.find(
-      (node) =>
-        node.props.accessibilityLabel === "Back" &&
-        typeof node.props.onPress === "function"
-    );
 
-    act(() => back.props.onPress());
+    await pressLabel(renderer.root, "Cancel");
 
     expect(router.back).toHaveBeenCalledTimes(1);
     expect(router.push).not.toHaveBeenCalled();
     expect(router.replace).not.toHaveBeenCalled();
   });
 
-  it("is still titled Add Piano", () => {
+  it("is titled New piano", () => {
     const renderer = open();
 
-    expect(allTexts(renderer.root)).toContain("Add Piano");
+    expect(allTexts(renderer.root)).toContain("New piano");
   });
 });
 

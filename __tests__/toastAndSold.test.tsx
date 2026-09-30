@@ -122,7 +122,7 @@ describe("toasts", () => {
       createTestStore({ user: testUser, items: [piano] })
     );
 
-    await pressText(renderer.root, "Save Changes");
+    await pressText(renderer.root, "Save changes");
 
     expect(allTexts(renderer.root)).toContain("Piano entry updated successfully");
   });

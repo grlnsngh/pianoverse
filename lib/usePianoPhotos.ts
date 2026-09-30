@@ -6,11 +6,17 @@ import { PianoFormState } from "@/utils/pianoForm";
 /**
  * The ways the piano forms change their photos: add one taken or chosen just
  * now (at the end, up to the limit), remove one, or make one the cover.
+ * `addPhoto` says "camera-denied" when the camera was refused, so the screen
+ * can explain how to allow it.
  */
 const usePianoPhotos = (setForm: Dispatch<SetStateAction<PianoFormState>>) => {
   const addPhoto = useCallback(
-    async (source: PhotoSource) => {
-      const photo = await pickPianoPhoto(source);
+    async (source: PhotoSource): Promise<"camera-denied" | undefined> => {
+      let denied = false;
+      const photo = await pickPianoPhoto(source, () => {
+        denied = true;
+      });
+      if (denied) return "camera-denied";
       if (!photo) return;
       setForm((current) =>
         current.photos.length >= MAX_PHOTOS

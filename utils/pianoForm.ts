@@ -102,9 +102,12 @@ export const pianoToForm = (piano: PianoItem): PianoFormState => ({
   onSalePrice: piano.on_sale_price || 0,
 });
 
-/** Reads a form passed between screens as JSON, turning its dates back into Dates. */
+/**
+ * Reads a form passed between screens as JSON, turning its dates back into
+ * Dates. Anything the JSON leaves out is what an empty form has.
+ */
 export const parsePianoForm = (json: string): PianoFormState => {
-  const parsed = JSON.parse(json);
+  const parsed = { ...createEmptyPianoForm(), ...JSON.parse(json) };
   DATE_FIELDS.forEach((field) => {
     parsed[field] = new Date(parsed[field]);
   });
@@ -123,17 +126,46 @@ const missing = (message: string): PianoFormProblem => ({
 
 const isBlank = (value: string) => !value.trim();
 
-/** Why the form can't be saved yet, or null if it's complete. */
-export const pianoFormProblem = (
-  form: PianoFormState
-): PianoFormProblem | null => {
+/** Whether anything has been entered: what leaving the Add flow would lose. */
+export const hasEntries = (form: PianoFormState) =>
+  form.photos.length > 0 ||
+  !!form.make ||
+  !!form.companyAssociated ||
+  form.rentalPrice > 0 ||
+  form.eventPurchasePrice > 0 ||
+  form.onSalePrice > 0 ||
+  [
+    form.title,
+    form.description,
+    form.rentalCustomerName,
+    form.rentalCustomerAddress,
+    form.rentalCustomerMobileNumber,
+    form.eventPurchaseFrom,
+    form.eventModelNumber,
+    form.eventBNumber,
+    form.onSalePurchaseFrom,
+  ].some((text) => !isBlank(text));
+
+/** Why the first step of the Add flow can't be left yet, or null if it's complete. */
+export const basicsProblem = (form: PianoFormState): PianoFormProblem | null => {
   if (!form.category) return missing("Please choose a category.");
   if (form.photos.length === 0) return missing("Please add a photo.");
   if (isBlank(form.title)) return missing("Please enter a title.");
-  if (isBlank(form.description)) return missing("Please enter a description.");
   if (!form.make) return missing("Please choose the make.");
   if (!form.companyAssociated) return missing("Please choose the company.");
+  if (isBlank(form.description)) return missing("Please add some notes.");
+  return null;
+};
 
+/** Why the form can't be saved yet, or null if it's complete. */
+export const pianoFormProblem = (
+  form: PianoFormState
+): PianoFormProblem | null => basicsProblem(form) ?? categoryProblem(form);
+
+/** Why the details of the piano's category are not complete, or null. */
+export const categoryProblem = (
+  form: PianoFormState
+): PianoFormProblem | null => {
   switch (form.category) {
     case PIANO_CATEGORY.RENTABLE: {
       if (

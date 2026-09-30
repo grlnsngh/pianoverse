@@ -1,32 +1,59 @@
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { Image } from "expo-image";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Alert,
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useSelector, useStore } from "react-redux";
+import {
+  AddFlowFooter,
+  AddFlowHeading,
+  AddFlowTopBar,
+} from "@/components/AddFlowChrome";
+import PianoBasicsFields from "@/components/PianoBasicsFields";
+import PianoCategoryFields from "@/components/PianoCategoryFields";
+import PianoPhotoField from "@/components/PianoPhotoField";
+import { Button } from "@/components/ui";
+import { colors, spacing } from "@/constants/theme";
+import usePianoPhotos from "@/lib/usePianoPhotos";
+import { RootState } from "@/redux/store";
+import { AddStep, setAddStepListener } from "@/utils/addFlow";
+import { showDialog } from "@/utils/dialog";
+import {
+  basicsProblem,
+  categoryProblem,
   createEmptyPianoForm,
+  hasEntries,
   parsePianoForm,
-  pianoFormProblem,
   PianoFormState,
 } from "@/utils/pianoForm";
-import CustomButton from "@/components/CustomButton";
-import PianoFormFields from "@/components/PianoFormFields";
-import PianoPhotoField from "@/components/PianoPhotoField";
-import usePianoPhotos from "@/lib/usePianoPhotos";
-import { PIANO_CATEGORY } from "@/constants/Piano";
-import { icons } from "@/constants";
 
-const CATEGORY_STEP_NAMES: Record<string, string> = {
-  [PIANO_CATEGORY.RENTABLE]: "Rental Details",
-  [PIANO_CATEGORY.WAREHOUSE]: "Warehouse Details",
-  [PIANO_CATEGORY.EVENTS]: "Event Details",
-  [PIANO_CATEGORY.ON_SALE]: "Sale Details",
+const HEADINGS: Record<AddStep, { title: string; subtitle: string }> = {
+  1: { title: "About the piano", subtitle: "You can change anything later." },
+  2: {
+    title: "How will it be used?",
+    subtitle: "The fields below change with your choice.",
+  },
 };
 
+/**
+ * The first two steps of adding a piano (Add1Basics and Add2Details boards):
+ * the photos and basics, then how it will be used with the details of that.
+ * The third step, the review, is its own screen above this one, so this one
+ * keeps what was typed while the review is open.
+ */
 const Create = () => {
   const params = useLocalSearchParams();
+  const navigation = useNavigation();
+  const store = useStore<RootState>();
+  const scroll = useRef<ScrollView>(null);
+  const [step, setStep] = useState<AddStep>(1);
   const [form, setForm] = useState<PianoFormState>(() => {
     // Coming back from the review screen, carry on with the same form
     if (params.formData) {
@@ -40,164 +67,149 @@ const Create = () => {
   });
   const updateForm = (changes: Partial<PianoFormState>) =>
     setForm((current) => ({ ...current, ...changes }));
+  const { addPhoto, removePhoto, makeCover } = usePianoPhotos(setForm);
 
   // Start over once the piano has been published from the review screen
   const createFormResetCount = useSelector(
     (state: RootState) => state.navigation.createFormResetCount
   );
+  // The count this screen has already started over for
+  const resetsSeen = useRef(createFormResetCount);
   useEffect(() => {
-    if (createFormResetCount > 0) setForm(createEmptyPianoForm());
+    if (createFormResetCount > 0) {
+      setForm(createEmptyPianoForm());
+      setStep(1);
+    }
+    resetsSeen.current = createFormResetCount;
   }, [createFormResetCount]);
 
-  const calculateProgress = () => {
-    const basicFields = [
-      form.category,
-      form.title.trim(),
-      form.description.trim(),
-      form.make,
-      form.companyAssociated,
-      form.dateOfPurchase,
-    ];
+  // The review's Edit links come back to the step they are about
+  useEffect(() => setAddStepListener(setStep), []);
 
-    const basicComplete =
-      form.photos.length > 0 &&
-      basicFields.every(
-        (field) => field !== null && field !== undefined && field !== ""
-      );
+  // Each step starts at the top
+  useEffect(() => {
+    scroll.current?.scrollTo({ y: 0, animated: false });
+  }, [step]);
 
-    const currentStep = basicComplete ? 2 : 1;
-    const totalSteps = 3;
-    const stepName = basicComplete
-      ? CATEGORY_STEP_NAMES[form.category] ?? "Category Details"
-      : "Basic Information";
+  // Android's back button goes back a step before it leaves
+  useEffect(() => {
+    if (step === 1) return;
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      setStep(1);
+      return true;
+    });
+    return () => subscription.remove();
+  }, [step]);
 
-    return {
-      currentStep,
-      totalSteps,
-      stepName,
-      progress: currentStep / totalSteps,
-    };
-  };
-  const progress = calculateProgress();
+  // Leaving with something entered (Cancel, Android's back button on the
+  // first step, or a swipe back) asks first, instead of losing it
+  const latestForm = useRef(form);
+  latestForm.current = form;
+  useEffect(
+    () =>
+      navigation.addListener("beforeRemove", (event) => {
+        if (!hasEntries(latestForm.current)) return;
+        // The piano was published or the flow cancelled from the review: the
+        // form is finished with, even if this screen hasn't cleared it yet
+        if (store.getState().navigation.createFormResetCount !== resetsSeen.current) {
+          return;
+        }
+        event.preventDefault();
+        const discard = () => navigation.dispatch(event.data.action);
 
-  const { addPhoto, removePhoto, makeCover } = usePianoPhotos(setForm);
+        showDialog({
+          title: "Stop adding this piano?",
+          message: "What you entered so far will be lost.",
+          actions: [
+            { label: "Discard", tone: "destructive", onPress: discard },
+            { label: "Keep going", emphasis: true, onPress: () => {} },
+          ],
+        });
+      }),
+    [navigation, store]
+  );
 
-  const handleReview = () => {
-    const problem = pianoFormProblem(form);
+  const goOn = () => {
+    const problem = step === 1 ? basicsProblem(form) : categoryProblem(form);
     if (problem) {
       Alert.alert(problem.title, problem.message);
       return;
     }
-
-    // Navigate to review screen with form data
+    if (step === 1) {
+      setStep(2);
+      return;
+    }
     router.push({
       pathname: "/review",
       params: { formData: JSON.stringify(form) },
     });
   };
 
+  const { title, subtitle } = HEADINGS[step];
+
   return (
-    <SafeAreaView className="bg-primary h-full">
-      <ScrollView>
-        <View className="w-full flex justify-center px-4 my-6">
-          <View className="flex-row items-center mb-4">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="w-10 h-10 bg-black-200 rounded-full items-center justify-center mr-3"
-              accessibilityLabel="Back"
-            >
-              <Image
-                source={icons.leftArrow}
-                className="w-5 h-5"
-                tintColor="#CDCDE0"
+    <SafeAreaView edges={["top"]} style={styles.screen}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.screen}
+      >
+        <AddFlowTopBar onCancel={() => router.back()} />
+
+        <ScrollView
+          ref={scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
+        >
+          <AddFlowHeading step={step} title={title} subtitle={subtitle} />
+
+          <View style={styles.fields}>
+            {step === 1 ? (
+              <PianoBasicsFields
+                form={form}
+                onChange={updateForm}
+                photo={
+                  <PianoPhotoField
+                    photos={form.photos}
+                    onPick={addPhoto}
+                    onRemove={removePhoto}
+                    onMakeCover={makeCover}
+                  />
+                }
               />
-            </TouchableOpacity>
-            <Text className="text-2xl text-white font-psemibold">Add Piano</Text>
+            ) : (
+              <PianoCategoryFields form={form} onChange={updateForm} />
+            )}
           </View>
+        </ScrollView>
 
-          {/* Step Progress Indicator */}
-          <View className="mb-8 px-4">
-            {/* Step Indicators with Connecting Lines */}
-            <View className="flex-row items-center justify-center mb-4">
-              {[1, 2, 3].map((step) => (
-                <View key={step} className="flex-row items-center">
-                  {/* Step Circle */}
-                  <View
-                    className={`w-8 h-8 rounded-full items-center justify-center border-2 ${
-                      progress.currentStep > step
-                        ? "bg-secondary border-secondary shadow-lg"
-                        : progress.currentStep === step
-                        ? "bg-secondary border-white shadow-lg"
-                        : "bg-black-200 border-gray-600"
-                    }`}
-                  >
-                    <Text
-                      className={`font-psemibold text-xs ${
-                        progress.currentStep >= step
-                          ? "text-black-100"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {step}
-                    </Text>
-                  </View>
-
-                  {/* Connecting Line (only between steps 1-2 and 2-3) */}
-                  {step < 3 && (
-                    <View className="w-12 mx-2">
-                      <View className="h-1 bg-gray-600 rounded-full">
-                        <View
-                          className="h-full bg-secondary rounded-full"
-                          style={{
-                            width:
-                              progress.currentStep > step
-                                ? "100%"
-                                : progress.currentStep === step
-                                ? "50%"
-                                : "0%",
-                          }}
-                        />
-                      </View>
-                    </View>
-                  )}
-                </View>
-              ))}
-            </View>
-
-            {/* Step Information */}
-            <View className="items-center">
-              <Text className="text-gray-100 text-base font-psemibold mb-1 text-center">
-                Step {progress.currentStep} of {progress.totalSteps}
-              </Text>
-              <Text className="text-secondary text-sm font-pmedium text-center">
-                {progress.stepName}
-              </Text>
-            </View>
-          </View>
-
-          <PianoFormFields
-            form={form}
-            onChange={updateForm}
-            photo={
-              <PianoPhotoField
-                photos={form.photos}
-                onPick={addPhoto}
-                onRemove={removePhoto}
-                onMakeCover={makeCover}
-              />
-            }
+        {/* Always pressable: it says what's still missing */}
+        <AddFlowFooter>
+          {step === 2 && (
+            <Button
+              title="Back"
+              variant="secondary"
+              onPress={() => setStep(1)}
+              style={styles.back}
+            />
+          )}
+          <Button
+            title="Continue"
+            onPress={goOn}
+            style={styles.primary}
           />
-
-          {/* Always pressable: it says what's still missing */}
-          <CustomButton
-            title="Review & Publish"
-            handlePress={handleReview}
-            containerStyles="mt-7"
-          />
-        </View>
-      </ScrollView>
+        </AddFlowFooter>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.grouped },
+  content: { paddingBottom: spacing.xxl },
+  fields: { paddingHorizontal: spacing.screen, marginTop: spacing.xl },
+  back: { width: 104 },
+  primary: { flex: 1 },
+});
 
 export default Create;

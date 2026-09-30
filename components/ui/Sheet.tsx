@@ -42,6 +42,12 @@ export type SheetProps = {
   tone?: "grouped" | "white";
   /** Stays under the scrolling content: the one main button */
   footer?: React.ReactNode;
+  /**
+   * A tall sheet of a fixed height whose content scrolls itself, for a long
+   * list under a search field (the Make picker). Without it the sheet is as
+   * tall as its content, up to 92% of the screen, and scrolls it for you.
+   */
+  tall?: boolean;
   children: React.ReactNode;
   testID?: string;
 };
@@ -59,6 +65,7 @@ const Sheet = ({
   onLeftPress,
   tone = "grouped",
   footer,
+  tall = false,
   children,
   testID,
 }: SheetProps) => {
@@ -182,7 +189,10 @@ const Sheet = ({
               styles.sheet,
               {
                 backgroundColor: tone === "grouped" ? colors.grouped : colors.white,
-                maxHeight: windowHeight * MAX_HEIGHT_SHARE,
+                // A tall sheet gives way to the keyboard rather than run off the top
+                ...(tall
+                  ? { height: windowHeight * MAX_HEIGHT_SHARE, maxHeight: "100%" }
+                  : { maxHeight: windowHeight * MAX_HEIGHT_SHARE }),
               },
               sheet,
             ]}
@@ -206,14 +216,18 @@ const Sheet = ({
               )}
             </View>
 
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              style={styles.content}
-              contentContainerStyle={styles.contentInner}
-            >
-              {children}
-            </ScrollView>
+            {tall ? (
+              <View style={styles.tallContent}>{children}</View>
+            ) : (
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                style={styles.content}
+                contentContainerStyle={styles.contentInner}
+              >
+                {children}
+              </ScrollView>
+            )}
 
             {footer ? (
               <View
@@ -272,6 +286,7 @@ const styles = StyleSheet.create({
   leftText: { ...type.bodyMedium, color: colors.ink },
   title: { ...type.sheetTitle, color: colors.ink },
   content: { flexShrink: 1 },
+  tallContent: { flex: 1 },
   contentInner: { paddingHorizontal: spacing.screen },
   footer: {
     paddingTop: spacing.md,

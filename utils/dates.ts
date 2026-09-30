@@ -1,4 +1,5 @@
 import {
+  addMonths,
   differenceInCalendarDays,
   differenceInMonths,
   differenceInWeeks,
@@ -109,4 +110,27 @@ export const getRentalState = (end: StoredDate): RentalState | null => {
 export const isRentalActive = (end: StoredDate) => {
   const state = getRentalState(end);
   return state === "active" || state === "due_today";
+};
+
+/** "An" before a number said with a vowel ("an 8-day rental"), "A" otherwise. */
+const articleFor = (count: number) =>
+  count === 8 || count === 11 || count === 18 || (count >= 80 && count <= 89)
+    ? "An"
+    : "A";
+
+/**
+ * How long a rental is, as a phrase: "A 6-month rental", "A 12-day rental", or
+ * "A rental of 6 months and 3 days" when it isn't whole months. Empty when it
+ * doesn't end after it starts.
+ */
+export const rentalLengthPhrase = (start: Date, end: Date): string => {
+  const totalDays = differenceInCalendarDays(end, start);
+  if (totalDays < 1) return "";
+  const months = differenceInMonths(end, start);
+  if (months < 1) return `${articleFor(totalDays)} ${totalDays}-day rental`;
+  const days = differenceInCalendarDays(end, addMonths(start, months));
+  if (days === 0) return `${articleFor(months)} ${months}-month rental`;
+  const monthsText = `${months} ${months === 1 ? "month" : "months"}`;
+  const daysText = `${days} ${days === 1 ? "day" : "days"}`;
+  return `A rental of ${monthsText} and ${daysText}`;
 };

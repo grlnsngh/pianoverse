@@ -13,14 +13,15 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q17. Should deleting a piano have an Undo?
+### Q18. Should Model number, B number and Notes be optional?
 - **Status:** Open. Look at this on your phone first.
-- **Raised:** Batch 8 (the Feedback board draws a "Piano deleted  Undo" toast).
-- **In simple terms:** when you delete a piano, the app removes the piano **and its photos from the server at once**. Once the photos are gone they can't be brought back, so an Undo button on the toast would be a lie for a piano. Deleting a payment, marking a piano as sold and extending a rental **do** have Undo now, because those only change a few values.
-- **What the app does now (default):** after deleting a piano you get "Deleted Kawai K-300 successfully" with no Undo. The question before it ("Delete Kawai K-300? This removes the piano, its photos and its payments. This can't be undone.") is what protects you.
+- **Raised:** Batch 9 (the Add2Details board).
+- **In simple terms:** when you add a piano, the app asks for several things before you can go on. The design marks two of them, **Model number** and **B number** (for an Events piano), as "Optional", and gives the **Notes** box no "Required" mark. The app has always made all three required: you can't press Continue with them empty.
+- **What the app does now (default):** all three are still required, as before. Model number and B number show "Required" in grey where the design says "Optional", and an empty Notes box gets "Please add some notes." when you press Continue.
 - **Options:**
-  - **A. No Undo for a deleted piano** (now).
-  - **B. Wait about 5 seconds before really deleting**, so Undo can work: the piano disappears from the list at once, the toast has Undo, and the piano and its photos are only removed from the server when the 5 seconds pass. It is a bigger change, and if the app is closed in those 5 seconds the piano either comes back or is deleted late, so I would want to test it on your phone.
+  - **A. Keep all three required** (now).
+  - **B. Make Model number and B number optional** (Notes stays required). Pianos saved without them would just show nothing for those two lines.
+  - **C. Make Model number, B number and Notes all optional.**
 - **Your answer:**
 
 ---
@@ -36,6 +37,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 - **Batch 4:** the Pianos header, tabs, grid and list, photo fallback, filter panel opening from the pill and the sort link, select mode, offline strip, empty states.
 - **Batch 5:** the filter sheet (Sort by list on top of it, the "Show N pianos" button), select mode (top bar, red Delete bar in the tab bar's place, the dialog, Android back), the refresh spinner, and Search (keyboard up at once, results as you type, bold matches, Clear, Cancel, no results).
 - **Batch 6:** the app opening on Today (then switch to Pianos at once: its list should be there), the amount and the three counts against what you know (In stock is now only the pianos that are here), Needs attention (order, red and orange), the Rented out shelf (sideways scroll, the bars, See all), Recent payments, pull down on Today, the skeleton on a slow connection, and airplane mode.
+- **Batch 9:** from the orange + on Today: the Add screen with the keyboard up (the field you are typing in and Continue both still visible), Add and then "Take a photo" / "Choose from gallery", the first photo marked Cover and tapping another to make it the cover, the × that removes a photo, many photos sliding sideways; the Make sheet (search as you type, the A to Z headings, the letters at the right edge, the tick on the chosen one), Company, the calendar for Purchased; Continue with something missing (it says what); step 2 with each of the four choices, the +91 before the mobile number, the calendars for Starts and Ends (Ends can't be before the day after Starts) and the sentence under the rental; the review (the Edit links go to the right step with what you typed still there); Add piano on a slow connection and with airplane mode on (the keys loader, "Uploading photo 2 of 3", the bar, and the error that brings you back to the review); the Published screen (the check, View piano, Add another, Done, and the Android back button); refuse the camera in the phone's settings to see the "Camera access is off" sheet; Cancel, the Android back button and the iOS swipe back on the Add screen with something typed ("Stop adding this piano?"); editing a piano from its page (the same fields on one screen, Save changes, Cancel with a change made).
 - **Batch 8:** Record payment, Mark as sold and Extend rental, each with the keyboard up (the big amount, the rows) and with the calendar (month buttons, greyed days, Done); Extend rental on a running rental and on one that has ended; a toast showing above a sheet and above a dialog (Android and iOS: it should be the dark pill on both); Retry and Undo on the toasts (delete a payment then Undo, mark as sold then Undo, extend then Undo, turn on airplane mode and try to save); the Delete piano and Undo sale dialogs. **Create the `customer_name` column in Appwrite first** (see the README), then record a payment and look at Recent payments on Today.
 - **Batch 7:** a piano's page for a rental, one on sale, events, warehouse and a sold one: the photo under the status bar and its three buttons, swiping through photos and the count, the viewer (pinch, double tap, the strip, the hint), the Retry tile (airplane mode, then back on, then Retry), the bar's height above the home indicator, the rental bar and its dates on a narrow phone, pressing and holding a payment, the ⋯ menu, and opening a piano from a notification just after the app starts.
 - The full step-by-step list for each batch is in the chat message that ended that batch and in [PLAN.md](PLAN.md)'s Session log.
@@ -105,3 +107,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 
 ### Q16. A piano's page: things the boards don't draw, or that changed
 - **Answer:** Use my judgment (2026-09-30). The page stays as built in Batch 7: a payment is deleted by pressing and holding it, ⋯ lists every action, the viewer's "Set as cover" and "Delete photo" are not built, a sold rental no longer shows its customer, and "Additional information" is gone.
+
+### Q17. Should deleting a piano have an Undo?
+- **Answer:** No Undo for a deleted piano (option A), keep it as it is (2026-09-30).
+- **Why:** the piano's photos are removed from the server at once and can't be brought back, so an Undo would not be honest. The "Delete <title>? This can't be undone." question is what protects you. Deleting a payment, marking as sold and extending a rental keep their Undo.

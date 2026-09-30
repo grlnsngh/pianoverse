@@ -24,6 +24,33 @@ const group = (raw: string) => {
 const toText = (value: number) => (value ? String(value) : "");
 
 /**
+ * What an amount field shows and does: the digits typed so far grouped the
+ * Indian way, and a change handler that keeps what is being typed (an empty
+ * field, "12.") while telling the form the number. Up to two decimals; a comma
+ * typed is ignored, since commas are only the grouping the field draws.
+ */
+export const useAmountText = (
+  value: number,
+  onChangeValue: (value: number) => void
+) => {
+  const [raw, setRaw] = useState(toText(value));
+
+  // Follow changes made outside the field, such as the sheet opening again
+  useEffect(() => {
+    if ((parseFloat(raw) || 0) !== value) setRaw(toText(value));
+  }, [value, raw]);
+
+  const onChangeText = (input: string) => {
+    const cleaned = input.replace(/[,\s]/g, "");
+    if (!/^\d*\.?\d{0,2}$/.test(cleaned)) return;
+    setRaw(cleaned);
+    onChangeValue(parseFloat(cleaned) || 0);
+  };
+
+  return { text: group(raw), onChangeText };
+};
+
+/**
  * The big amount at the top of the Record payment and Mark as sold sheets:
  * a grey ₹ and 44 px digits, grouped the Indian way as they are typed
  * ("1,20,000"). Keeps what is being typed (an empty field, "12.") while it
@@ -37,20 +64,7 @@ const AmountInput = ({
   autoFocus,
   testID,
 }: AmountInputProps) => {
-  const [raw, setRaw] = useState(toText(value));
-
-  // Follow changes made outside the field, such as the sheet opening again
-  useEffect(() => {
-    if ((parseFloat(raw) || 0) !== value) setRaw(toText(value));
-  }, [value, raw]);
-
-  const handleChangeText = (input: string) => {
-    // Commas are only the grouping the field draws; a comma typed is ignored
-    const cleaned = input.replace(/[,\s]/g, "");
-    if (!/^\d*\.?\d{0,2}$/.test(cleaned)) return;
-    setRaw(cleaned);
-    onChangeValue(parseFloat(cleaned) || 0);
-  };
+  const { text, onChangeText } = useAmountText(value, onChangeValue);
 
   return (
     <View style={styles.row} testID={testID}>
@@ -58,8 +72,8 @@ const AmountInput = ({
         ₹
       </Text>
       <TextInput
-        value={group(raw)}
-        onChangeText={handleChangeText}
+        value={text}
+        onChangeText={onChangeText}
         placeholder="0"
         placeholderTextColor={colors.ink3}
         keyboardType="decimal-pad"

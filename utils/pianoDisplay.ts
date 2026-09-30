@@ -47,6 +47,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   [PIANO_CATEGORY.WAREHOUSE]: "Warehouse",
 };
 
+/** "Rentable", "Events", "On sale" or "Warehouse" for a category's value. */
+export const categoryLabelOf = (category: string) =>
+  CATEGORY_LABELS[category] ?? "Unknown category";
+
 const CATEGORY_ICONS: Record<string, IconName> = {
   [PIANO_CATEGORY.RENTABLE]: "categoryRentable",
   [PIANO_CATEGORY.EVENTS]: "categoryEvents",

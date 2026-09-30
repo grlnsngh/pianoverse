@@ -384,18 +384,27 @@ const deletePhotoFiles = async (urls: string[]) => {
 };
 
 /**
+ * Told how far the uploads are: how many of the new photos have finished, and
+ * how many there are. Called with 0 before the first starts.
+ */
+export type UploadProgress = (finished: number, total: number) => void;
+
+/**
  * Uploads the newly picked photos and returns the URL of every photo in the
  * order given, plus the URLs of the files that were just uploaded. If an
  * upload fails, the ones already uploaded are deleted again.
  */
 const uploadPhotos = async (
   photos: PianoPhoto[],
-  owner: { users?: string; title?: string }
+  owner: { users?: string; title?: string },
+  onProgress?: UploadProgress
 ) => {
   const urls: string[] = [];
   const uploaded: string[] = [];
+  const total = photos.filter((photo) => toLocalImage(photo)).length;
 
   try {
+    onProgress?.(0, total);
     for (const photo of photos) {
       const local = toLocalImage(photo);
       if (!local) {
@@ -405,6 +414,7 @@ const uploadPhotos = async (
       const url = String(await uploadFile(local, owner));
       uploaded.push(url);
       urls.push(url);
+      onProgress?.(uploaded.length, total);
     }
   } catch (error) {
     await deletePhotoFiles(uploaded);
@@ -419,15 +429,19 @@ const uploadPhotos = async (
  *
  * @param {PianoEntryInput} pianoData - The data for the piano entry.
  * @param {PianoPhoto[]} [pianoData.photos] - The piano's photos, the first being the cover. Newly picked ones are uploaded.
+ * @param {UploadProgress} [onProgress] - Told after each photo is uploaded.
  * @returns {Promise<Object>} The response from the database after creating the document.
  * @throws {Error} If there is an error creating the piano entry.
  */
-export async function createPianoEntry(pianoData: PianoEntryInput) {
+export async function createPianoEntry(
+  pianoData: PianoEntryInput,
+  onProgress?: UploadProgress
+) {
   let uploaded: string[] = [];
 
   try {
     const { photos = [], ...fields } = pianoData;
-    const result = await uploadPhotos(photos, pianoData);
+    const result = await uploadPhotos(photos, pianoData, onProgress);
     uploaded = result.uploaded;
 
     const response = await databases.createDocument(

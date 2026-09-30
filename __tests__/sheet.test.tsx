@@ -101,6 +101,17 @@ describe("Sheet look", () => {
     expect(panelStyle(renderer).maxHeight).toBeCloseTo(WINDOW_HEIGHT * 0.92);
   });
 
+  it("can be tall: a fixed 92% of the screen, with content that scrolls itself", async () => {
+    const renderer = await open({ tall: true });
+
+    // The height is fixed, but gives way when the keyboard takes room
+    expect(panelStyle(renderer).height).toBeCloseTo(WINDOW_HEIGHT * 0.92);
+    expect(panelStyle(renderer).maxHeight).toBe("100%");
+    // No scroll view of its own: the content brings the list it scrolls
+    expect(renderer.root.findAllByType(ScrollView)).toHaveLength(0);
+    expect(textContent(renderer.root)).toContain("Content");
+  });
+
   it("has a 36 x 5 grabber at the top", async () => {
     const renderer = await open();
     const grabber = header(renderer).children[0] as any;

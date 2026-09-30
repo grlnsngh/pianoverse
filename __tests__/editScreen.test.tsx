@@ -33,12 +33,15 @@ import EditScreen from "@/app/edit/[id]";
 import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
+  addPhotoFrom,
   captureAlerts,
+  chooseCategory,
   createTestStore,
   dialogOf,
   pressDialog,
   pressText,
   renderWithStore,
+  typeInto,
 } from "./helpers/render";
 
 const renderEditScreenFor = (piano: ReturnType<typeof makePiano>) => {
@@ -75,7 +78,7 @@ it("keeps the event details of an Events piano when it is saved", async () => {
   });
   const renderer = renderEditScreenFor(piano);
 
-  await pressText(renderer.root, "Save Changes");
+  await pressText(renderer.root, "Save changes");
 
   expect(alerts.titles()).toEqual([]);
   expect(fakeBackend.documents.get("piano-1")).toMatchObject({
@@ -96,7 +99,7 @@ it("keeps the sale details of an On Sale piano when it is saved", async () => {
   });
   const renderer = renderEditScreenFor(piano);
 
-  await pressText(renderer.root, "Save Changes");
+  await pressText(renderer.root, "Save changes");
 
   expect(alerts.titles()).toEqual([]);
   expect(fakeBackend.documents.get("piano-1")).toMatchObject({
@@ -128,8 +131,8 @@ it("uploads a newly picked photo when the piano is saved, keeping the saved one 
     .mockResolvedValue({ blob: async () => ({ size: 3000 }) } as any);
   const renderer = renderEditScreenFor(makePiano());
 
-  await pressText(renderer.root, "Choose a file");
-  await pressText(renderer.root, "Save Changes");
+  await addPhotoFrom(renderer.root, "library");
+  await pressText(renderer.root, "Save changes");
 
   expect(alerts.titles()).toEqual([]);
   const uploaded = [...fakeBackend.files.entries()].filter(([id]) => id !== "old-file");
@@ -154,7 +157,7 @@ it("uploads a newly picked photo when the piano is saved, keeping the saved one 
 it("saves the rest of the piano without touching the image when none was picked", async () => {
   const renderer = renderEditScreenFor(makePiano({ title: "Yamaha U1" }));
 
-  await pressText(renderer.root, "Save Changes");
+  await pressText(renderer.root, "Save changes");
 
   expect(alerts.titles()).toEqual([]);
   expect(fakeBackend.documents.get("piano-1")?.image_url).toBe(fileViewUrl("old-file"));
@@ -173,14 +176,9 @@ it("clears the customer's details when a rental is changed into another kind of 
       rental_price: 4000,
     })
   );
-  const [categoryPicker] = renderer.root.findAll(
-    (node) =>
-      node.props.selectedValue === "rentable" &&
-      typeof node.props.onValueChange === "function"
-  );
 
-  act(() => categoryPicker.props.onValueChange("warehouse"));
-  await pressText(renderer.root, "Save Changes");
+  await chooseCategory(renderer.root, "warehouse");
+  await pressText(renderer.root, "Save changes");
 
   expect(alerts.titles()).toEqual([]);
   expect(fakeBackend.documents.get("piano-1")).toMatchObject({
@@ -213,15 +211,7 @@ describe("leaving the Edit screen", () => {
   };
 
   const typeTitle = (renderer: any, text: string) =>
-    act(() => {
-      renderer.root
-        .findAll(
-          (node: any) =>
-            node.props.title === "Title" &&
-            typeof node.props.handleChangeText === "function"
-        )[0]
-        .props.handleChangeText(text);
-    });
+    typeInto(renderer.root, "Title", text);
 
   beforeEach(() => {
     jest.mocked(useNavigation).mockReturnValue(navigation as any);
@@ -268,7 +258,7 @@ describe("leaving the Edit screen", () => {
     const renderer = renderEditScreenFor(makePiano({ title: "Yamaha U1" }));
     typeTitle(renderer, "Yamaha U3");
 
-    await pressText(renderer.root, "Save Changes");
+    await pressText(renderer.root, "Save changes");
     expect(router.back).toHaveBeenCalled();
     const event = tryToLeave();
 

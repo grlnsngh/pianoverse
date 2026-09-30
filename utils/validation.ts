@@ -31,3 +31,12 @@ export const rentalDetailsError = ({
   }
   return null;
 };
+
+/**
+ * A mobile number for reading: "+91 98765 43210" for anything that reads as a
+ * 10-digit Indian number, or what was typed when it doesn't.
+ */
+export const formatMobile = (mobile: string): string => {
+  const national = toNationalMobile(mobile);
+  return national ? `+91 ${national.slice(0, 5)} ${national.slice(5)}` : mobile.trim();
+};
