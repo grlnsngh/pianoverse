@@ -1,6 +1,6 @@
 # Pianoverse redesign: implementation plan and progress
 
-This file is the single source of truth for **what is done and what is next**. Every Claude session reads it first and updates it as it works. Design details are in [SPEC.md](SPEC.md). The design boards are in [boards/](boards/) and at https://claude.ai/artifact/CAcG5EBb9ySAiSHWUE5Kez.
+This file is the single source of truth for **what is done and what is next**. Every Claude session reads it first and updates it as it works. Design details are in [SPEC.md](SPEC.md). The design boards are in [boards/](boards/) and at https://claude.ai/artifact/CAcG5EBb9ySAiSHWUE5Kez. **Questions for the owner are collected in [QUESTIONS.md](QUESTIONS.md).**
 
 Stack notes: Expo SDK 51, expo-router 3.5, NativeWind v2 (`className`), react-native-paper (PaperProvider), react-native-tab-view driven by redux `navigation.activeTab`, reanimated 3.10, react-native-svg, expo-image, Appwrite backend, redux store. 67 Jest suites in `__tests__/` (46 before the redesign, plus 3 from Batch 0, 5 from Batch 1, 5 from Batch 2, 3 from Batch 3 and 5 from Batch 4).
 
@@ -14,10 +14,11 @@ Stack notes: Expo SDK 51, expo-router 3.5, NativeWind v2 (`className`), react-na
 6. Keep all 46 Jest suites green. When a UI string or structure changes on purpose, update the affected tests. Never delete or skip a test to get green. Add tests for new logic (status labels, Today selectors, and so on).
 7. Before each commit run `npm run typecheck`, `npm test` and `npm run lint`. Never commit failing checks and never use `--no-verify`.
 8. Commit at the end of every batch, and after any large sub-task, with the message `redesign: batch N <short name>`.
-9. If the design and the code disagree, follow SPEC section 8. If it is not covered, pick the lowest-risk option, write it in **Decisions** below, and ask the owner only when it changes behaviour.
+9. If the design and the code disagree, follow SPEC section 8. If it is not covered, pick the lowest-risk option and write it in **Decisions** below. If it changes behaviour or needs the owner's taste, also add it to [QUESTIONS.md](QUESTIONS.md) (see rule 13); do not stop and wait.
 10. Use `npx expo install <pkg>` for Expo-compatible packages. Do not upgrade Expo, React Native or NativeWind.
 11. Do not edit anything in `docs/redesign/boards/`.
 12. When the batch is finished, or the owner says the limit is close: update Progress, add a Session log entry, commit, then print (a) a short "How to check this batch" list for the owner and (b) the exact prompt for the next session. **Do not start the next batch on your own.**
+13. **Owner questions.** Whenever a choice needs the owner (a behaviour change, something a board does not draw, a conflict between a board and the spec that SPEC section 8 does not settle, a new native build), keep going with the lowest-risk **default**, and add one entry to [QUESTIONS.md](QUESTIONS.md): what came up, what the app does now, the options, and by which batch it is needed. Do not block on it. At the end of every session list the new questions in the summary. Answered ones move to the Answered section, and the batch that acts on an answer says so in its Decisions.
 
 ## Progress
 
