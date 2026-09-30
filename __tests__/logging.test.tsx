@@ -11,7 +11,12 @@ jest.mock("expo-router", () => ({
   router: { push: jest.fn(), setParams: jest.fn() },
   usePathname: jest.fn(() => "/home"),
 }));
-jest.mock("@/components/ListItem", () => {
+jest.mock("@/components/PianoRow", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+  return ({ item }: any) => React.createElement(Text, null, `row:${item.title}`);
+});
+jest.mock("@/components/PianoCard", () => {
   const React = require("react");
   const { Text } = require("react-native");
   return ({ item }: any) => React.createElement(Text, null, `row:${item.title}`);

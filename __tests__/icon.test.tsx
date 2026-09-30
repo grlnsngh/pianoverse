@@ -23,6 +23,7 @@ describe("Icon set", () => {
     expect(names.sort()).toEqual(
       [
         "search",
+        "searchOff",
         "sliders",
         "plus",
         "chevronRight",

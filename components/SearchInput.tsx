@@ -7,10 +7,12 @@ import { Alert, TextInput, TouchableOpacity, View } from "react-native";
 
 interface SearchInputProps {
   initialQuery?: string;
+  // Opens the keyboard at once, for a search that has not been typed yet
+  autoFocus?: boolean;
 }
 
 const SearchInput: React.FC<SearchInputProps> = React.memo(
-  ({ initialQuery }) => {
+  ({ initialQuery, autoFocus }) => {
     const pathname = usePathname();
     const [query, setQuery] = useState(initialQuery || "");
     // NativeWind v2 ignores focus: classes on a View, so track focus here
@@ -54,6 +56,7 @@ const SearchInput: React.FC<SearchInputProps> = React.memo(
         <TextInput
           className="text-base mt-0.5 text-white flex-1 font-pregular"
           value={query}
+          autoFocus={autoFocus}
           placeholder="Search"
           placeholderTextColor="#CDCDE0"
           onChangeText={handleTextChange}

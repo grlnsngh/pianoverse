@@ -1,7 +1,8 @@
 import React from "react";
 import { act, ReactTestInstance, ReactTestRenderer } from "react-test-renderer";
-import FilterButton from "@/components/FilterButton";
+import FilterButton, { FilterButtonHandle } from "@/components/FilterButton";
 import { DEFAULT_FILTERS } from "@/constants/Piano";
+import { setPianoFilters } from "@/redux/pianos/actions";
 import {
   createTestStore,
   flushPromises,
@@ -188,6 +189,81 @@ describe("the filter panel", () => {
         ...DEFAULT_FILTERS,
         category: "Events",
       });
+    });
+  });
+});
+
+describe("opening the panel from another button", () => {
+  // The Pianos tab has its own round button and a sort link, and asks the
+  // panel to open through a ref
+  const withHandle = (store = createTestStore()) => {
+    const handle = React.createRef<FilterButtonHandle>();
+    const renderer = renderWithStore(
+      <FilterButton ref={handle} trigger={false} />,
+      store
+    );
+    return { store, renderer, handle };
+  };
+  const findLabelled = (renderer: ReactTestRenderer, label: string) =>
+    renderer.root.findAll((node) => node.props.accessibilityLabel === label);
+
+  it("has no button of its own when the trigger is turned off", () => {
+    const { renderer } = withHandle();
+
+    expect(findLabelled(renderer, "Filters")).toHaveLength(0);
+    expect(isPanelOpen(renderer)).toBe(false);
+  });
+
+  it("still has its button by default", () => {
+    const renderer = renderWithStore(<FilterButton />, createTestStore());
+
+    expect(findLabelled(renderer, "Filters").length).toBeGreaterThan(0);
+  });
+
+  it("opens when asked, and asking again doesn't close it", async () => {
+    const { renderer, handle } = withHandle();
+
+    await act(async () => handle.current!.open());
+    await settle();
+    expect(isPanelOpen(renderer)).toBe(true);
+
+    await act(async () => handle.current!.open());
+    await settle();
+    expect(isPanelOpen(renderer)).toBe(true);
+  });
+
+  it("starts from the filters in use, dropping what was changed and not applied", async () => {
+    const store = createTestStore();
+    act(() => {
+      store.dispatch(setPianoFilters({ ...DEFAULT_FILTERS, isOverdue: true }));
+    });
+    const { renderer, handle } = withHandle(store);
+
+    await act(async () => handle.current!.open());
+    await settle();
+    expect(switchValue(renderer, "Overdue Rentals")).toBe(true);
+
+    flip(renderer, "Overdue Rentals");
+    await act(async () => byLabel(renderer, "Close filters").props.onPress());
+    await settle();
+    await act(async () => handle.current!.open());
+    await settle();
+
+    expect(switchValue(renderer, "Overdue Rentals")).toBe(true);
+  });
+
+  it("applies what was chosen, like the panel opened from its own button", async () => {
+    const { store, renderer, handle } = withHandle();
+
+    await act(async () => handle.current!.open());
+    await settle();
+    flip(renderer, "Sold Pianos");
+    await pressText(renderer.root, "Show Results");
+    await flushPromises();
+
+    expect(store.getState().pianos.filters).toEqual({
+      ...DEFAULT_FILTERS,
+      isSold: true,
     });
   });
 });

@@ -11,8 +11,8 @@ jest.mock("expo-router", () => ({
   router: { push: jest.fn(), setParams: jest.fn() },
   usePathname: jest.fn(() => "/home"),
 }));
-// A memoized row, like the real ones, that records its renders and props
-jest.mock("@/components/ListItem", () => {
+// A memoized card, like the real one, that records its renders and props
+jest.mock("@/components/PianoCard", () => {
   const React = require("react");
   const { Text } = require("react-native");
   return React.memo((props: any) => {
@@ -26,7 +26,9 @@ jest.mock("@/components/ListItem", () => {
 import React from "react";
 import { act } from "react-test-renderer";
 import Home from "@/app/(tabs)/home";
+import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { getUserPianoEntries } from "@/lib/appwrite";
+import { setPianoFilters } from "@/redux/pianos/actions";
 import { makePiano, testUser } from "./helpers/fixtures";
 import { createTestStore, flushPromises, renderWithStore } from "./helpers/render";
 
@@ -43,8 +45,10 @@ const pianos = ["a", "b", "c"].map((id, i) =>
 
 const renderHome = async () => {
   jest.mocked(getUserPianoEntries).mockResolvedValue(pianos as any);
-  renderWithStore(<Home />, createTestStore({ user: testUser }));
+  const store = createTestStore({ user: testUser });
+  renderWithStore(<Home />, store);
   await flushPromises();
+  return store;
 };
 
 const resetCounts = () =>
@@ -58,33 +62,45 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-it("re-renders only the row whose selection changed", async () => {
+it("re-renders only the card whose selection changed", async () => {
   await renderHome();
-  act(() => mockProps.b.onEnterBulkSelection("b"));
+  act(() => mockProps.b.onSelectStart("b"));
   resetCounts();
 
-  act(() => mockProps.a.onToggleSelection("a"));
+  act(() => mockProps.a.onToggle("a"));
 
   expect(mockRenders).toEqual({ a: 1, b: 0, c: 0 });
 });
 
-it("re-renders only the row whose menu opens", async () => {
-  await renderHome();
+it("re-renders no card when the screen redraws with the same pianos", async () => {
+  const store = await renderHome();
   resetCounts();
 
-  act(() => mockProps.c.openMenu("c"));
+  // The same filters as a new object: the screen and its list are redrawn
+  act(() => {
+    store.dispatch(setPianoFilters({ ...DEFAULT_FILTERS }));
+  });
 
-  expect(mockRenders).toEqual({ a: 0, b: 0, c: 1 });
+  // Same pianos, same props: nothing to draw again
+  expect(mockRenders).toEqual({ a: 0, b: 0, c: 0 });
 });
 
-it("gives rows the same callbacks on every render", async () => {
+it("gives cards the same callbacks on every render", async () => {
   await renderHome();
   const before = { ...mockProps.a };
 
-  act(() => mockProps.b.openMenu("b"));
-  act(() => mockProps.b.onEnterBulkSelection("b"));
+  act(() => mockProps.b.onSelectStart("b"));
+  act(() => mockProps.c.onToggle("c"));
 
-  ["openMenu", "closeMenu", "onDelete", "onToggleSelection", "onEnterBulkSelection"].forEach(
-    (name) => expect(mockProps.a[name]).toBe(before[name])
+  ["onOpen", "onToggle", "onSelectStart"].forEach((name) =>
+    expect(mockProps.a[name]).toBe(before[name])
   );
+});
+
+it("opens a piano's page from its card", async () => {
+  await renderHome();
+
+  mockProps.a.onOpen("a");
+
+  expect(require("expo-router").router.push).toHaveBeenCalledWith("/detail/a");
 });

@@ -14,7 +14,7 @@ jest.mock("expo-router", () => ({
 }));
 
 import React from "react";
-import { ActivityIndicator, TextInput } from "react-native";
+import { TextInput } from "react-native";
 import { act } from "react-test-renderer";
 import { router, usePathname } from "expo-router";
 import Home from "@/app/(tabs)/home";
@@ -181,9 +181,9 @@ describe("when the Home list is empty", () => {
 
     const texts = allTexts(renderer.root);
     expect(texts).toContain("No pianos match your filters");
-    expect(texts).not.toContain("No Pianos created yet");
+    expect(texts).not.toContain("No pianos yet");
 
-    await pressText(renderer.root, "Clear Filters");
+    await pressText(renderer.root, "Clear filters");
 
     expect(store.getState().pianos.filters).toEqual({
       ...DEFAULT_FILTERS,
@@ -195,15 +195,15 @@ describe("when the Home list is empty", () => {
   it("offers to add the first piano when there are none", async () => {
     const { renderer } = await renderHome([]);
 
-    expect(allTexts(renderer.root)).toContain("No Pianos Yet");
+    expect(allTexts(renderer.root)).toContain("No pianos yet");
 
-    await pressText(renderer.root, "Add a Piano");
+    await pressText(renderer.root, "Add your first piano");
 
     // Adding a piano is a screen of its own now, not a tab
     expect(router.push).toHaveBeenCalledWith("/create");
   });
 
-  it("shows a spinner, not 'No Pianos Yet', while the pianos load", async () => {
+  it("shows grey placeholders, not 'No pianos yet', while the pianos load, but only after 200 ms", async () => {
     jest
       .mocked(getUserPianoEntries)
       .mockReturnValue(new Promise(() => {}) as any);
@@ -212,9 +212,21 @@ describe("when the Home list is empty", () => {
       createTestStore({ user: testUser })
     );
     await flushPromises();
+    const skeletons = () =>
+      renderer.root.findAll(
+        (node: any) => node.props.testID === "pianos-skeleton"
+      ).length;
 
-    expect(renderer.root.findAllByType(ActivityIndicator)).toHaveLength(1);
-    expect(allTexts(renderer.root)).not.toContain("No Pianos Yet");
+    // A quick load never flashes a placeholder
+    expect(skeletons()).toBe(0);
+    expect(allTexts(renderer.root)).not.toContain("No pianos yet");
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 260));
+    });
+
+    expect(skeletons()).toBeGreaterThan(0);
+    expect(allTexts(renderer.root)).not.toContain("No pianos yet");
   });
 
   it("offers to try again when the pianos couldn't load", async () => {
@@ -229,10 +241,10 @@ describe("when the Home list is empty", () => {
 
     expect(alerts.titles()).toEqual(["Error"]);
     const texts = allTexts(renderer.root);
-    expect(texts).toContain("Couldn't load your pianos");
-    expect(texts).not.toContain("No Pianos Yet");
+    expect(texts).toContain("Couldn’t load your pianos");
+    expect(texts).not.toContain("No pianos yet");
 
-    await pressText(renderer.root, "Try Again");
+    await pressText(renderer.root, "Try again");
 
     expect(store.getState().pianos.items).toHaveLength(1);
   });

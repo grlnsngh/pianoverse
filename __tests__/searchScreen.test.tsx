@@ -30,12 +30,20 @@ import { setPianoFilters, setPianoListItems } from "@/redux/pianos/actions";
 import { makePiano } from "./helpers/fixtures";
 import { allTexts, createTestStore, renderWithStore } from "./helpers/render";
 
+const LIST = {
+  ...DEFAULT_FILTERS,
+  layoutStatus: { grid: "unchecked", list: "checked", card: "unchecked" },
+};
+
 const yamaha = makePiano({ $id: "yamaha", title: "Yamaha U1" });
 const youngChang = makePiano({ $id: "young-chang", title: "Young Chang G-157" });
 const kawai = makePiano({ $id: "kawai", title: "Kawai K-300" });
 
 it("matches the whole search term, not just its first letter", () => {
   const store = createTestStore({ items: [yamaha, youngChang, kawai] });
+  act(() => {
+    store.dispatch(setPianoFilters(LIST));
+  });
 
   const renderer = renderWithStore(<Search />, store);
 
@@ -45,6 +53,9 @@ it("matches the whole search term, not just its first letter", () => {
 it("matches search terms case-insensitively", () => {
   jest.mocked(useLocalSearchParams).mockReturnValue({ query: "k-300" });
   const store = createTestStore({ items: [yamaha, youngChang, kawai] });
+  act(() => {
+    store.dispatch(setPianoFilters(LIST));
+  });
 
   const renderer = renderWithStore(<Search />, store);
 

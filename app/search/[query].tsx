@@ -50,7 +50,7 @@ const Search = () => {
     <SafeAreaView className="bg-primary h-full">
       {/* Search again without going back */}
       <View className="px-4 pt-4 pb-2">
-        <SearchInput initialQuery={searchQuery} />
+        <SearchInput initialQuery={searchQuery} autoFocus={searchQuery === ""} />
       </View>
 
       {isGrid ? (

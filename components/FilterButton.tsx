@@ -4,7 +4,12 @@ import { setPianoFilters } from "@/redux/pianos/actions";
 import { FiltersType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { Image } from "expo-image";
-import React, { useState, useEffect } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 import {
   Modal,
   StyleSheet,
@@ -22,7 +27,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/constants/Piano";
 import { countActiveFilters } from "@/utils/filters";
 
-const FilterButton = () => {
+/** What another component can ask the filter panel to do. */
+export type FilterButtonHandle = { open: () => void };
+
+interface FilterButtonProps {
+  /**
+   * Show the round filter button. Leave it off when the screen has its own
+   * button (the Pianos tab) and opens the panel through the ref.
+   */
+  trigger?: boolean;
+}
+
+const FilterButton = (
+  { trigger = true }: FilterButtonProps,
+  ref: React.ForwardedRef<FilterButtonHandle>,
+) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const slideAnim = useState(new Animated.Value(0))[0];
@@ -94,6 +113,13 @@ const FilterButton = () => {
     setFilterForm(filterState);
     toggleModal();
   };
+
+  useImperativeHandle(ref, () => ({
+    // Opens it; asking twice doesn't close it again
+    open: () => {
+      if (!modalVisible) toggleAndResetModal();
+    },
+  }));
 
   // Pan responder for drag-to-close functionality
   const panResponder = PanResponder.create({
@@ -207,35 +233,37 @@ const FilterButton = () => {
 
   return (
     <View className="flex items-center justify-center">
-      <TouchableOpacity
-        // Start from the filters in use, however the panel was last closed
-        onPress={toggleAndResetModal}
-        className="w-10 h-10 bg-primary-200 rounded-full flex items-center justify-center border border-secondary"
-        activeOpacity={0.7}
-        accessibilityLabel={
-          activeFilterCount > 0
-            ? `Filters, ${activeFilterCount} active`
-            : "Filters"
-        }
-      >
-        <Image
-          style={{ tintColor: SECONDARY_COLOR }}
-          source={icons.filter}
-          className="w-5 h-5"
-          resizeMode="contain"
-        />
-        {/* Shows at a glance that the list is filtered */}
-        {activeFilterCount > 0 && (
-          <View
-            testID="active-filter-badge"
-            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-secondary items-center justify-center border-2 border-primary"
-          >
-            <Text className="text-[10px] font-pbold text-primary">
-              {activeFilterCount}
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
+      {trigger && (
+        <TouchableOpacity
+          // Start from the filters in use, however the panel was last closed
+          onPress={toggleAndResetModal}
+          className="w-10 h-10 bg-primary-200 rounded-full flex items-center justify-center border border-secondary"
+          activeOpacity={0.7}
+          accessibilityLabel={
+            activeFilterCount > 0
+              ? `Filters, ${activeFilterCount} active`
+              : "Filters"
+          }
+        >
+          <Image
+            style={{ tintColor: SECONDARY_COLOR }}
+            source={icons.filter}
+            className="w-5 h-5"
+            resizeMode="contain"
+          />
+          {/* Shows at a glance that the list is filtered */}
+          {activeFilterCount > 0 && (
+            <View
+              testID="active-filter-badge"
+              className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-secondary items-center justify-center border-2 border-primary"
+            >
+              <Text className="text-[10px] font-pbold text-primary">
+                {activeFilterCount}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      )}
 
       <Modal
         animationType="none"
@@ -572,4 +600,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FilterButton;
+export default forwardRef(FilterButton);

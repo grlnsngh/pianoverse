@@ -14,6 +14,7 @@ jest.mock("expo-router", () => ({
 }));
 
 import React from "react";
+import { FlatList } from "react-native";
 import { act } from "react-test-renderer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Home from "@/app/(tabs)/home";
@@ -30,7 +31,6 @@ import {
   captureAlerts,
   createTestStore,
   flushPromises,
-  pressText,
   renderWithStore,
 } from "./helpers/render";
 
@@ -90,7 +90,7 @@ describe("the pianos saved on the device", () => {
     expect(ids()).toEqual(["yamaha"]);
   });
 
-  it("are shown when offline, with a way to try again", async () => {
+  it("are shown when offline, and pulling down to refresh tries again", async () => {
     captureAlerts();
     await savePianosToCache(testUser.accountId, [yamaha]);
     jest
@@ -104,9 +104,14 @@ describe("the pianos saved on the device", () => {
     const banner = allTexts(renderer.root).find((text) =>
       text.startsWith("Offline.")
     );
-    expect(banner).toMatch(/^Offline\. Showing pianos saved \d+ \w+, /);
+    expect(banner).toMatch(/^Offline\. Showing pianos saved on \d+ \w+, \d+:\d+ [ap]m\.$/);
 
-    await pressText(renderer.root, "Retry");
+    await act(async () => {
+      await renderer.root
+        .findByType(FlatList)
+        .props.refreshControl.props.onRefresh();
+    });
+    await flushPromises();
 
     expect(ids()).toEqual(["yamaha", "kawai"]);
     expect(allTexts(renderer.root).join(" ")).not.toMatch(/Offline/);

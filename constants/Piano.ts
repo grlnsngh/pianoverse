@@ -73,9 +73,10 @@ export const DEFAULT_FILTERS: FiltersType = {
   isActiveRentals: false,
   isOverdue: false,
   isSold: false,
+  // The photo grid, as on the Pianos board (it used to open as a list)
   layoutStatus: {
     card: "unchecked",
-    list: "checked",
-    grid: "unchecked",
+    list: "unchecked",
+    grid: "checked",
   },
 };

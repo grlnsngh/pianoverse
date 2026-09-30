@@ -21,6 +21,8 @@ const isRect = (
 /** The icon set from docs/redesign/SPEC.md section 5. */
 export const ICONS = {
   search: [{ cx: 11, cy: 11, r: 7 }, { d: "m20 20-3.5-3.5" }],
+  // From the NoResults board: the search icon with a cross in the lens
+  searchOff: [{ cx: 11, cy: 11, r: 7 }, { d: "m20 20-3.5-3.5M8.5 8.5l5 5M13.5 8.5l-5 5" }],
   sliders: [
     { d: "M4 7h10M18 7h2M4 17h2M10 17h10" },
     { cx: 16, cy: 7, r: 2 },
