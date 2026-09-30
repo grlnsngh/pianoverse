@@ -2,7 +2,7 @@
 
 This file is the single source of truth for **what is done and what is next**. Every Claude session reads it first and updates it as it works. Design details are in [SPEC.md](SPEC.md). The design boards are in [boards/](boards/) and at https://claude.ai/artifact/CAcG5EBb9ySAiSHWUE5Kez.
 
-Stack notes: Expo SDK 51, expo-router 3.5, NativeWind v2 (`className`), react-native-paper (PaperProvider), react-native-tab-view driven by redux `navigation.activeTab`, reanimated 3.10, react-native-svg, expo-image, Appwrite backend, redux store. 46 Jest suites in `__tests__/`.
+Stack notes: Expo SDK 51, expo-router 3.5, NativeWind v2 (`className`), react-native-paper (PaperProvider), react-native-tab-view driven by redux `navigation.activeTab`, reanimated 3.10, react-native-svg, expo-image, Appwrite backend, redux store. 49 Jest suites in `__tests__/` (46 before the redesign, plus `designTokens`, `icon` and `pianoPhoto` from Batch 0).
 
 ## Working rules (every session)
 
@@ -23,14 +23,14 @@ Stack notes: Expo SDK 51, expo-router 3.5, NativeWind v2 (`className`), react-na
 
 Tick `[x]` when done. Add a short note in brackets if something differs from the plan.
 
-- [ ] **Batch 0. Foundations** (S): branch, fonts, tokens, icons, no-photo illustration
-  - [ ] 0.1 Create branch `redesign/v2` and commit `docs/redesign`
-  - [ ] 0.2 Install `@expo-google-fonts/figtree`, load Figtree 400/500/600/700 in `app/_layout.tsx` next to Poppins, add tailwind `fontFamily` keys
-  - [ ] 0.3 `tailwind.config.js`: add the new colours and radii from SPEC section 3 (keep the old ones for now)
-  - [ ] 0.4 `constants/theme.ts`: colours, radii, spacing, type styles, motion durations and easing
-  - [ ] 0.5 `components/ui/Icon.tsx` using `react-native-svg` and the path table in SPEC section 5
-  - [ ] 0.6 `components/ui/PianoPhoto.tsx`: shows the photo, or the piano illustration when there is none or it fails (5 palettes chosen by hashing the id)
-  - [ ] 0.7 Tests for theme and PianoPhoto, then typecheck, tests, lint, commit
+- [x] **Batch 0. Foundations** (S): branch, fonts, tokens, icons, no-photo illustration
+  - [x] 0.1 Create branch `redesign/v2` and commit `docs/redesign`
+  - [x] 0.2 Install `@expo-google-fonts/figtree`, load Figtree 400/500/600/700 in `app/_layout.tsx` next to Poppins, add tailwind `fontFamily` keys [imported per weight from `@expo-google-fonts/figtree/<weight>` so only 4 font files are bundled; keys `font-figtree`, `font-figtree-medium`, `-semibold`, `-bold`]
+  - [x] 0.3 `tailwind.config.js`: add the new colours and radii from SPEC section 3 (keep the old ones for now) [also `ink3`, `late-tint`, `late-tint-text` and radius `panel` (20), which SPEC section 3 lists but the Handoff snippet omits]
+  - [x] 0.4 `constants/theme.ts`: colours, radii, spacing, type styles, motion durations and easing [also `fonts`, the `shadows.searchPill` and the five `pianoPalettes` for 0.6]
+  - [x] 0.5 `components/ui/Icon.tsx` using `react-native-svg` and the path table in SPEC section 5 [31 icons; camelCase names such as `tabToday`, `categoryOnSale`, `cameraOff`; also `components/ui/index.ts`, which later batches extend]
+  - [x] 0.6 `components/ui/PianoPhoto.tsx`: shows the photo, or the piano illustration when there is none or it fails (5 palettes chosen by hashing the id) [props `id`, `uri`, `style`, `contentFit`, `accessibilityLabel`, `children` (drawn on top, for badges); the wall colour shows while a photo loads]
+  - [x] 0.7 Tests for theme and PianoPhoto, then typecheck, tests, lint, commit [3 new suites, 59 tests: `designTokens`, `icon`, `pianoPhoto`]
 - [ ] **Batch 1. Primitives A: buttons and feedback** (M)
   - [ ] 1.1 `Button` (primary, secondary, outline, destructive, text; pressed, loading, disabled)
   - [ ] 1.2 `Spinner` and `KeysLoader`
@@ -149,7 +149,13 @@ Tick `[x]` when done. Add a short note in brackets if something differs from the
 
 Record every choice that is not obvious from the boards. Format: `date, batch, decision, reason`.
 
-- (none yet)
+- 2026-09-29, batch 0, **Figtree is imported one weight at a time** (`@expo-google-fonts/figtree/400Regular` and so on), not from the package root. The root file `require`s all 14 font files, so Metro would bundle them all. Loaded under the names in `fonts` (`constants/theme.ts`): `Figtree_400Regular`, `_500Medium`, `_600SemiBold`, `_700Bold`. Tailwind classes: `font-figtree`, `font-figtree-medium`, `font-figtree-semibold`, `font-figtree-bold`. Never set `fontWeight` with these fonts; pick the family.
+- 2026-09-29, batch 0, **Tokens follow SPEC section 3, which is a superset of the Handoff board snippet.** Added `ink3`, `late-tint`, `late-tint-text` and radius `panel` (20) to Tailwind. `constants/theme.ts` also holds the values that only appear in SPEC section 4 or on the boards (`brandPressed` #E88A00, `disabledText` #A39D92, `switchOff` #D9D5CC, `brandOnInk` #FFB84D, `skeletonHighlight` #F8F7F4, `inkBody` #3C3831, `dim`, `progressTrack`). Pressed states and animations read them from `theme.ts`, because NativeWind v2 has no `active:` variant on plain Views (`theme.test.tsx` bans `hover:` and `focus:` for the same reason).
+- 2026-09-29, batch 0, **The no-photo drawing follows SPEC section 5 (full detail), not the simplified drawing on the Foundations board.** Foundations shows the keyboard as one plain rectangle. Every screen board (Pianos, Detail, Main and others) has the 9 key separators and 7 black keys, and so does the spec.
+- 2026-09-29, batch 0, **`PianoPhoto` draws the piano illustration only when needed** (no photo, or the photo failed), not underneath every photo. While a photo loads the frame shows the palette's wall colour. This keeps SVG work out of long lists. A failed address is remembered, so a broken photo does not retry in a loop; a new address gets its own try. The id-to-palette mapping (FNV-1a hash mod 5, palette order walnut, ebony, mahogany, oak, white) is pinned by a test: do not reorder the palettes.
+- 2026-09-29, batch 0, **`Icon` is hidden from screen readers unless given `accessibilityLabel`**, because the button or row around an icon carries the label (the full accessibility pass is sub-task 12.4). Names are camelCase (`tabToday`, `categoryOnSale`, `cameraOff`, `chevronRight`). The stroke is 1.75, or 2 with `active`.
+- 2026-09-29, batch 0, **`app.json` is not touched in Batch 0.** `__tests__/theme.test.tsx` pins the splash and background colour to `#161622` and `userInterfaceStyle` to `dark`. Batch 11 changes the native splash to `#FF9C01` and must update that test on purpose. Poppins, the navy tokens and `constants/colors.ts` stay until Batch 13.
+- 2026-09-29, batch 0, **Note for Batch 1 (Button).** SPEC section 4 says buttons are 52 high with a 16/700 label, 48 high in compact spots. The Feedback and Foundations boards draw their buttons at 48 high with a 15/700 label. `type.button` in `theme.ts` is 16/22 700 (the spec default). When building `Button`, read the Feedback board, decide which sizes are standard and compact, and add a compact 15/700 style if needed.
 
 ## Session log
 
@@ -164,4 +170,9 @@ Add one entry per session, newest last. Format:
 - Next: <first unticked sub-task>
 ```
 
-(no sessions yet)
+### Session 1, 2026-09-29
+- Batch and sub-tasks done: **Batch 0 Foundations**, all of 0.1 to 0.7. Branch `redesign/v2`; `@expo-google-fonts/figtree` installed and loaded; Tailwind colours, radii and font keys; `constants/theme.ts`; `components/ui/Icon.tsx` (31 icons); `components/ui/PianoPhoto.tsx` (photo, or the drawing in 5 palettes); `components/ui/index.ts`. Nothing on screen changes yet; no existing screen imports the new pieces.
+- Commit(s): `docs: add redesign plan, spec, prompts and design boards` (sub-task 0.1), then `redesign: batch 0 foundations`.
+- Checks: typecheck clean. Jest 49 suites, 468 tests pass (the original 46 suites and 409 tests are unchanged and green, plus 3 new suites with 59 tests). Lint 0 errors and 20 warnings, the same 20 as before the batch (none from new files).
+- Known issues and follow-ups: (1) Checked in Jest only, not on a device or emulator; the piano drawing and icons are worth a look on a phone (see "How to check"). (2) The design canvas URL was not opened; the offline boards were used. (3) Sub-task 0.7 needs `theme.test.tsx` to keep passing, which is why `app.json` is untouched until Batch 11 (see Decisions). (4) `npm install` reports 75 audit warnings that were there before; not touched. (5) Batch 1 Button size question is in Decisions.
+- Next: **1.1** `Button` (Batch 1, Primitives A). Read the `Feedback` board first.

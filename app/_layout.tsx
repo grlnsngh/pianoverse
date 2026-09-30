@@ -1,6 +1,11 @@
 import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
+// One import per weight, so only the four weights the design uses are bundled
+import { Figtree_400Regular } from "@expo-google-fonts/figtree/400Regular";
+import { Figtree_500Medium } from "@expo-google-fonts/figtree/500Medium";
+import { Figtree_600SemiBold } from "@expo-google-fonts/figtree/600SemiBold";
+import { Figtree_700Bold } from "@expo-google-fonts/figtree/700Bold";
 import GlobalProvider from "@/context/GlobalProvider";
 import { Provider } from "react-redux";
 import { PaperProvider } from "react-native-paper";
@@ -21,6 +26,11 @@ export default function RootLayout() {
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
     "Poppins-SemiBold": require("../assets/fonts/Poppins-SemiBold.ttf"),
     "Poppins-Thin": require("../assets/fonts/Poppins-Thin.ttf"),
+    // The redesign's font; names match `fonts` in constants/theme.ts
+    Figtree_400Regular,
+    Figtree_500Medium,
+    Figtree_600SemiBold,
+    Figtree_700Bold,
   });
 
   useEffect(() => {
