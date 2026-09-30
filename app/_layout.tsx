@@ -59,6 +59,8 @@ export default function RootLayout() {
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            {/* The Add flow: its own screen above the tabs, with its own back button */}
+            <Stack.Screen name="create" options={{ headerShown: false }} />
           </Stack>
           <ToastHost />
         </PaperProvider>

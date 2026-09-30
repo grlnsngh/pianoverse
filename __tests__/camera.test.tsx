@@ -38,7 +38,7 @@ import path from "path";
 import React from "react";
 import { ReactTestRenderer } from "react-test-renderer";
 import * as ImagePicker from "expo-image-picker";
-import Create from "@/app/(tabs)/create";
+import Create from "@/app/create";
 import EditScreen from "@/app/edit/[id]";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";

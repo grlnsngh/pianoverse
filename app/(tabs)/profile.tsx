@@ -189,7 +189,7 @@ const Profile = () => {
     await scheduleAllRentalNotifications([]);
     await clearPianoCache();
     dispatch(resetPianoState() as any);
-    dispatch(setActiveTab("home") as any);
+    dispatch(setActiveTab("pianos") as any);
     setUser(null);
     setIsLogged(false);
     router.replace("/");
@@ -213,7 +213,7 @@ const Profile = () => {
     dispatch(
       setPianoFilters({ ...clearFilters(filters), ...shortcutFilters }) as any
     );
-    dispatch(setActiveTab("home") as any);
+    dispatch(setActiveTab("pianos") as any);
   };
 
   const navigateToHomeWithFilter = (category: string) =>
@@ -387,7 +387,7 @@ const Profile = () => {
                 <TouchableOpacity
                   onPress={() => {
                     animateButtonPress();
-                    dispatch(setActiveTab("create") as any);
+                    router.push("/create");
                   }}
                   className="bg-secondary rounded-xl px-8 py-4 flex-row items-center shadow-lg"
                   activeOpacity={0.8}
@@ -613,7 +613,7 @@ const Profile = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => dispatch(setActiveTab("create") as any)}
+                  onPress={() => router.push("/create")}
                   className="bg-secondary/20 border border-secondary/40 rounded-xl p-4 flex-row items-center justify-between"
                   activeOpacity={0.7}
                 >

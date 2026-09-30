@@ -26,9 +26,9 @@ it("does not log every action in production builds", () => {
   const store = loadStore(false);
   const spies = consoleCalls();
 
-  store.dispatch({ type: "SET_ACTIVE_TAB", payload: "profile" });
+  store.dispatch({ type: "SET_ACTIVE_TAB", payload: "account" });
 
-  expect(store.getState().navigation.activeTab).toBe("profile");
+  expect(store.getState().navigation.activeTab).toBe("account");
   spies.forEach((spy) => expect(spy).not.toHaveBeenCalled());
 });
 
@@ -36,7 +36,7 @@ it("still logs actions while developing", () => {
   const store = loadStore(true);
   const spies = consoleCalls();
 
-  store.dispatch({ type: "SET_ACTIVE_TAB", payload: "profile" });
+  store.dispatch({ type: "SET_ACTIVE_TAB", payload: "account" });
 
   expect(spies.some((spy) => spy.mock.calls.length > 0)).toBe(true);
 });

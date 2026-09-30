@@ -193,13 +193,14 @@ describe("when the Home list is empty", () => {
   });
 
   it("offers to add the first piano when there are none", async () => {
-    const { store, renderer } = await renderHome([]);
+    const { renderer } = await renderHome([]);
 
     expect(allTexts(renderer.root)).toContain("No Pianos Yet");
 
     await pressText(renderer.root, "Add a Piano");
 
-    expect(store.getState().navigation.activeTab).toBe("create");
+    // Adding a piano is a screen of its own now, not a tab
+    expect(router.push).toHaveBeenCalledWith("/create");
   });
 
   it("shows a spinner, not 'No Pianos Yet', while the pianos load", async () => {

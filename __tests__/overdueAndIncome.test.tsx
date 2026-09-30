@@ -167,7 +167,7 @@ describe("income", () => {
 
     await pressText(renderer.root, "1 rental is overdue");
 
-    expect(store.getState().navigation.activeTab).toBe("home");
+    expect(store.getState().navigation.activeTab).toBe("pianos");
     expect(store.getState().pianos.filters).toEqual({
       ...DEFAULT_FILTERS,
       layoutStatus,
@@ -211,7 +211,7 @@ describe("the profile's shortcuts", () => {
 
     await pressText(renderer.root, "Storage");
 
-    expect(store.getState().navigation.activeTab).toBe("home");
+    expect(store.getState().navigation.activeTab).toBe("pianos");
     // Other filters start over, the layout stays
     expect(store.getState().pianos.filters).toEqual({
       ...DEFAULT_FILTERS,
@@ -246,7 +246,7 @@ describe("the profile's shortcuts", () => {
 
     await pressText(renderer.root, "View All Pianos");
 
-    expect(store.getState().navigation.activeTab).toBe("home");
+    expect(store.getState().navigation.activeTab).toBe("pianos");
     expect(store.getState().pianos.filters).toEqual({
       ...DEFAULT_FILTERS,
       layoutStatus,

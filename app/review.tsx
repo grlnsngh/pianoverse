@@ -82,9 +82,10 @@ const Review = () => {
       await scheduleRentalDueNotification(createdPiano);
       dispatch(addPianoItem(toPianoItem(createdPiano)) as any);
       dispatch(resetCreateForm() as any);
-      dispatch(setActiveTab("home") as any);
-      // Go back to the tabs, so Back can't return here and publish again
-      if (router.canGoBack()) router.back();
+      dispatch(setActiveTab("pianos") as any);
+      // Leave the whole Add flow (this screen and the form under it), so Back
+      // can't return here and publish again
+      if (router.canDismiss()) router.dismissAll();
       else router.replace("/home");
       showToast("Piano entry created successfully.");
     } catch (error) {

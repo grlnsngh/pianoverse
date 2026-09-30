@@ -48,7 +48,7 @@ import { act, ReactTestRenderer } from "react-test-renderer";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import Home from "@/app/(tabs)/home";
-import Create from "@/app/(tabs)/create";
+import Create from "@/app/create";
 import EditScreen from "@/app/edit/[id]";
 import * as appwrite from "@/lib/appwrite";
 import {
@@ -59,6 +59,7 @@ import { rentalDetailsError, toNationalMobile } from "@/utils/validation";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
+  allTexts,
   captureAlerts,
   chooseDate as chooseDateIn,
   openDatePicker as openDateField,
@@ -354,6 +355,33 @@ describe("rental details", () => {
   });
 });
 
+describe("the Add screen", () => {
+  // It is a screen of its own above the tabs now, so it needs its own way back
+  const open = () =>
+    renderWithStore(<Create />, createTestStore({ user: testUser }));
+
+  it("has a Back button that returns to where it was opened from", () => {
+    const renderer = open();
+    const back = renderer.root.find(
+      (node) =>
+        node.props.accessibilityLabel === "Back" &&
+        typeof node.props.onPress === "function"
+    );
+
+    act(() => back.props.onPress());
+
+    expect(router.back).toHaveBeenCalledTimes(1);
+    expect(router.push).not.toHaveBeenCalled();
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it("is still titled Add Piano", () => {
+    const renderer = open();
+
+    expect(allTexts(renderer.root)).toContain("Add Piano");
+  });
+});
+
 describe("going back to the tabs", () => {
   it("has no leftover screen that pushes another copy of them", () => {
     const appDir = path.join(__dirname, "..", "app");
@@ -371,10 +399,18 @@ describe("going back to the tabs", () => {
       ...sourceFiles(appDir),
       ...sourceFiles(path.join(__dirname, "..", "components")),
     ].filter((file) =>
-      /router\.(push|navigate)\(\s*["'`]\/(home|create|profile|\(tabs\))/.test(
+      /router\.(push|navigate)\(\s*["'`]\/(home|today|profile|\(tabs\))/.test(
         fs.readFileSync(file, "utf8")
       )
     );
     expect(pushesToTabs).toEqual([]);
+  });
+
+  it("keeps the Add screen outside the tabs, so pushing /create doesn't open them again", () => {
+    const appDir = path.join(__dirname, "..", "app");
+
+    expect(fs.existsSync(path.join(appDir, "create.tsx"))).toBe(true);
+    // A file in the (tabs) folder is served by the tabs layout
+    expect(fs.existsSync(path.join(appDir, "(tabs)", "create.tsx"))).toBe(false);
   });
 });

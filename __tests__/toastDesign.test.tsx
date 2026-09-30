@@ -66,11 +66,12 @@ describe("a toast's look", () => {
     expect(wrapperStyle(renderer)).toMatchObject({ left: 20, right: 20 });
   });
 
-  it("sits above the tab bar and the home indicator", async () => {
+  it("sits 12 px above the 84 px tab bar (or the sticky bar on a piano page)", async () => {
     const renderer = await host();
     await act(async () => showToast("Piano deleted"));
 
-    expect(wrapperStyle(renderer).bottom).toBe(34 + 96);
+    // 34 px home indicator plus the 50 px bar, plus the gap
+    expect(wrapperStyle(renderer).bottom).toBe(84 + 12);
   });
 
   it("has white 14 px semibold text", async () => {

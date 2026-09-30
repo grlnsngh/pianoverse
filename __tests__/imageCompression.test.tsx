@@ -17,7 +17,7 @@ jest.mock("@/context/GlobalProvider", () => ({
 import React from "react";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import Create from "@/app/(tabs)/create";
+import Create from "@/app/create";
 import { prepareImageForUpload } from "@/utils/image";
 import { testUser } from "./helpers/fixtures";
 import { createTestStore, pressText, renderWithStore } from "./helpers/render";

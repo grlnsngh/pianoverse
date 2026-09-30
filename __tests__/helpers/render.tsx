@@ -37,7 +37,7 @@ export const createTestStore = ({
         isBulkSelectionMode: false,
         selectedItems: [],
       },
-      navigation: { activeTab: "home", createFormResetCount: 0 },
+      navigation: { activeTab: "pianos", createFormResetCount: 0 },
       payments: { changeCount: 0 },
     } as any
   );

@@ -126,3 +126,17 @@ it("still applies the category filter", async () => {
 
   expect(rows(renderer)).toEqual(["row:Kawai K-300"]);
 });
+
+it("has the orange + button at the top right, which opens the Add screen", async () => {
+  jest.mocked(getUserPianoEntries).mockResolvedValue([kawai] as any);
+  const { renderer } = await renderHome();
+  const add = renderer.root.find(
+    (node) =>
+      node.props.accessibilityLabel === "Add piano" &&
+      typeof node.props.onPress === "function"
+  );
+
+  act(() => add.props.onPress());
+
+  expect(require("expo-router").router.push).toHaveBeenCalledWith("/create");
+});

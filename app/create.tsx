@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -15,6 +16,7 @@ import PianoFormFields from "@/components/PianoFormFields";
 import PianoPhotoField from "@/components/PianoPhotoField";
 import usePianoPhotos from "@/lib/usePianoPhotos";
 import { PIANO_CATEGORY } from "@/constants/Piano";
+import { icons } from "@/constants";
 
 const CATEGORY_STEP_NAMES: Record<string, string> = {
   [PIANO_CATEGORY.RENTABLE]: "Rental Details",
@@ -98,9 +100,20 @@ const Create = () => {
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
         <View className="w-full flex justify-center px-4 my-6">
-          <Text className="text-2xl text-white font-psemibold mb-4">
-            Add Piano
-          </Text>
+          <View className="flex-row items-center mb-4">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="w-10 h-10 bg-black-200 rounded-full items-center justify-center mr-3"
+              accessibilityLabel="Back"
+            >
+              <Image
+                source={icons.leftArrow}
+                className="w-5 h-5"
+                tintColor="#CDCDE0"
+              />
+            </TouchableOpacity>
+            <Text className="text-2xl text-white font-psemibold">Add Piano</Text>
+          </View>
 
           {/* Step Progress Indicator */}
           <View className="mb-8 px-4">

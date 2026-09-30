@@ -92,6 +92,20 @@ export const spacing = {
   minTarget: 44,
 } as const;
 
+/**
+ * Bars pinned to the bottom of the screen: the tab bar, and the sticky action
+ * bar on a piano's page. Both are 84 high on an iPhone, which is this content
+ * height plus the 34 px home indicator.
+ */
+export const bottomBar = {
+  /** Height above the home indicator */
+  content: 50,
+  /** The least space kept below the content, on phones with no home indicator */
+  minInset: 8,
+  /** Gap between the bar and a toast above it */
+  toastGap: 12,
+} as const;
+
 /** One family per weight, as React Native needs. Loaded in app/_layout.tsx. */
 export const fonts = {
   regular: "Figtree_400Regular",

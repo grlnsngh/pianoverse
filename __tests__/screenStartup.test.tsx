@@ -2,7 +2,13 @@ jest.mock("react-native-appwrite", () =>
   require("./helpers/fakeAppwrite").createFakeAppwriteModule()
 );
 jest.mock("expo-router", () => ({
-  router: { push: jest.fn(), back: jest.fn(), replace: jest.fn() },
+  router: {
+    push: jest.fn(),
+    back: jest.fn(),
+    replace: jest.fn(),
+    canDismiss: jest.fn(() => true),
+    dismissAll: jest.fn(),
+  },
   useLocalSearchParams: jest.fn(() => ({})),
   useNavigation: jest.fn(() => ({
     setOptions: jest.fn(),

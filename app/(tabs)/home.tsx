@@ -1,4 +1,3 @@
-import { images } from "@/constants";
 import { SECONDARY_COLOR } from "@/constants/colors";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { getUserPianoEntries } from "@/lib/appwrite";
@@ -13,7 +12,7 @@ import {
   clearSelectedItems,
   setPianoFilters,
 } from "@/redux/pianos/actions";
-import { setActiveTab } from "@/redux/navigation/actions";
+import { AddButton } from "@/components/ui";
 import { PianoItem } from "@/redux/pianos/types";
 import { isRentalActive, parseStoredDate } from "@/utils/dates";
 import { clearFilters, countActiveFilters } from "@/utils/filters";
@@ -21,7 +20,7 @@ import { padToFullRows } from "@/utils/grid";
 import { isOverdue, isSold } from "@/utils/pianoStatus";
 import { SORT_BY_OPTIONS } from "@/constants/Piano";
 import { RootState } from "@/redux/store";
-import { Image } from "expo-image";
+import { router } from "expo-router";
 import React, {
   useCallback,
   useEffect,
@@ -188,7 +187,7 @@ const Home = () => {
           subtitle="Every piano has been sold. Turn on Sold Pianos in the filters to see them."
           action={{
             title: "Add a Piano",
-            onPress: () => dispatch(setActiveTab("create") as any),
+            onPress: () => router.push("/create"),
           }}
         />
       ) : (
@@ -197,7 +196,7 @@ const Home = () => {
           subtitle="Pianos you add will show up here."
           action={{
             title: "Add a Piano",
-            onPress: () => dispatch(setActiveTab("create") as any),
+            onPress: () => router.push("/create"),
           }}
         />
       ),
@@ -490,14 +489,7 @@ const Home = () => {
               {user?.username}
             </Text>
           </View>
-          <View className="flex-row items-center mt-1.5">
-            <Image
-              source={images.piano}
-              className="w-10 h-10"
-              resizeMode="contain"
-              tintColor={SECONDARY_COLOR}
-            />
-          </View>
+          <AddButton onPress={() => router.push("/create")} />
         </View>
 
         <View className="flex flex-row w-full gap-1">

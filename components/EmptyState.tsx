@@ -39,7 +39,7 @@ const EmptyState: React.FC<EmptyStateProps> = React.memo(
           handlePress={
             action?.onPress ??
             (() => {
-              dispatch(setActiveTab("home") as any);
+              dispatch(setActiveTab("pianos") as any);
               // From search results, return to the list
               if (pathname.startsWith("/search")) router.back();
             })

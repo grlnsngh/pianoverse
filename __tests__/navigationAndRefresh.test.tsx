@@ -10,6 +10,8 @@ jest.mock("expo-router", () => ({
     back: jest.fn(),
     replace: jest.fn(),
     canGoBack: jest.fn(() => true),
+    canDismiss: jest.fn(() => true),
+    dismissAll: jest.fn(),
     setParams: jest.fn(),
   },
   useLocalSearchParams: jest.fn(() => ({})),
@@ -32,21 +34,11 @@ jest.mock("@react-native-picker/picker", () => {
   Picker.Item = (props: any) => React.createElement("PickerItem", props);
   return { Picker };
 });
-// The tab screens themselves are covered elsewhere
-jest.mock("react-native-tab-view", () => {
-  const React = require("react");
-  return {
-    TabView: (props: any) => React.createElement("TabView", props),
-    SceneMap: () => () => null,
-  };
-});
-
 import React from "react";
 import { FlatList } from "react-native";
 import { act } from "react-test-renderer";
 import { router, useLocalSearchParams } from "expo-router";
-import TabsLayout from "@/app/(tabs)/_layout";
-import Create from "@/app/(tabs)/create";
+import Create from "@/app/create";
 import Home from "@/app/(tabs)/home";
 import Profile from "@/app/(tabs)/profile";
 import EditScreen from "@/app/edit/[id]";
@@ -110,7 +102,7 @@ describe("after publishing", () => {
       .mockReturnValue({ formData: JSON.stringify(form) });
     const store = createTestStore({ user: testUser });
     act(() => {
-      store.dispatch(setActiveTab("create"));
+      store.dispatch(setActiveTab("account"));
     });
     const renderer = renderWithStore(
       <>
@@ -125,17 +117,27 @@ describe("after publishing", () => {
     return { store, renderer };
   };
 
-  it("goes back to the tabs instead of opening another copy of them", async () => {
+  it("leaves the whole Add flow for the tabs, instead of opening another copy of them", async () => {
     await publish();
 
-    expect(router.back).toHaveBeenCalledTimes(1);
+    // Back would only return to the form underneath, which is still filled in
+    expect(router.dismissAll).toHaveBeenCalledTimes(1);
+    expect(router.back).not.toHaveBeenCalled();
     expect(router.push).not.toHaveBeenCalled();
   });
 
-  it("shows the new piano on the Home tab", async () => {
+  it("opens the tabs afresh when the app was opened straight on the Add flow", async () => {
+    jest.mocked(router.canDismiss).mockReturnValueOnce(false);
+    await publish();
+
+    expect(router.dismissAll).not.toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalledWith("/home");
+  });
+
+  it("shows the new piano on the Pianos tab", async () => {
     const { store } = await publish();
 
-    expect(store.getState().navigation.activeTab).toBe("home");
+    expect(store.getState().navigation.activeTab).toBe("pianos");
     expect(store.getState().pianos.items.map((piano) => piano.title)).toEqual([
       "Kawai K-300",
     ]);
@@ -174,49 +176,24 @@ describe("after saving an edit", () => {
   });
 });
 
-describe("tabs", () => {
-  const tabIndex = (renderer: any) =>
-    renderer.root.findAll((node: any) => (node.type as unknown) === "TabView")[0]
-      .props.navigationState.index;
-
-  it("shows whichever tab another screen selects", () => {
-    const store = createTestStore();
-    const renderer = renderWithStore(<TabsLayout />, store);
-    expect(tabIndex(renderer)).toBe(0);
-
-    act(() => {
-      store.dispatch(setActiveTab("profile"));
-    });
-
-    expect(tabIndex(renderer)).toBe(2);
-  });
-
-  it("stores the tab the user swipes to", () => {
-    const store = createTestStore();
-    const renderer = renderWithStore(<TabsLayout />, store);
-
-    act(() => {
-      renderer.root
-        .findAll((node: any) => (node.type as unknown) === "TabView")[0]
-        .props.onIndexChange(1);
-    });
-
-    expect(store.getState().navigation.activeTab).toBe("create");
-  });
-
-  it("the profile's shortcuts switch tabs instead of opening new ones", async () => {
+describe("the Account tab's shortcuts", () => {
+  it("switch tabs instead of opening new ones, and open the Add screen for a new piano", async () => {
     const store = createTestStore({ user: testUser, items: [makePiano()] });
     act(() => {
-      store.dispatch(setActiveTab("profile"));
+      store.dispatch(setActiveTab("account"));
     });
     const renderer = renderWithStore(<Profile />, store);
 
+    // Adding a piano is a screen of its own, not a tab
     await pressText(renderer.root, "Add New Piano");
-    expect(store.getState().navigation.activeTab).toBe("create");
+    expect(router.push).toHaveBeenCalledTimes(1);
+    expect(router.push).toHaveBeenCalledWith("/create");
+    expect(store.getState().navigation.activeTab).toBe("account");
 
     await pressText(renderer.root, "View All Pianos");
-    expect(store.getState().navigation.activeTab).toBe("home");
-    expect(router.push).not.toHaveBeenCalled();
+    expect(store.getState().navigation.activeTab).toBe("pianos");
+    // Still only the one push, for the Add screen
+    expect(router.push).toHaveBeenCalledTimes(1);
   });
 });
 

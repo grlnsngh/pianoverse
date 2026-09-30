@@ -2,7 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/components/ui";
-import { colors, fonts, motion, radii, spacing, type } from "@/constants/theme";
+import {
+  bottomBar,
+  colors,
+  fonts,
+  motion,
+  radii,
+  spacing,
+  type,
+} from "@/constants/theme";
 import useReducedMotion from "@/lib/useReducedMotion";
 import { setToastListener, ToastDetails } from "@/utils/toast";
 
@@ -13,8 +21,6 @@ const HOLD_MS = {
 
 const ICON_SIZE = 22;
 const CHECK_SIZE = 13;
-/** Distance from the bottom of the screen, above the tab bar */
-const ABOVE_TAB_BAR = 96;
 
 type ActiveToast = ToastDetails & { id: number; message: string };
 
@@ -106,6 +112,11 @@ const ToastHost = () => {
   if (!toast) return null;
 
   const { message, variant, action } = toast;
+  // 12 px above the tab bar, or the sticky action bar on a piano's page
+  const aboveBottomBar =
+    Math.max(insets.bottom, bottomBar.minInset) +
+    bottomBar.content +
+    bottomBar.toastGap;
 
   return (
     <Animated.View
@@ -115,7 +126,7 @@ const ToastHost = () => {
       accessibilityRole={variant === "error" ? "alert" : undefined}
       style={[
         styles.position,
-        { bottom: insets.bottom + ABOVE_TAB_BAR, opacity, transform: [{ translateY: offset }] },
+        { bottom: aboveBottomBar, opacity, transform: [{ translateY: offset }] },
       ]}
     >
       <View style={styles.toast}>

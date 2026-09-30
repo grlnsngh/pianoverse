@@ -10,6 +10,8 @@ jest.mock("expo-router", () => ({
     back: jest.fn(),
     replace: jest.fn(),
     canGoBack: jest.fn(() => true),
+    canDismiss: jest.fn(() => true),
+    dismissAll: jest.fn(),
     setParams: jest.fn(),
   },
   useLocalSearchParams: jest.fn(() => ({ id: "piano-1" })),

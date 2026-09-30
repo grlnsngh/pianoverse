@@ -5,6 +5,12 @@ import {
   TabKey,
 } from "./actions";
 
+/**
+ * The tab the app opens on. Pianos until the Today tab is built (Batch 6 of
+ * docs/redesign/PLAN.md), then Today.
+ */
+export const INITIAL_TAB: TabKey = "pianos";
+
 export interface NavigationState {
   activeTab: TabKey;
   // Changes whenever the Create form should start over
@@ -12,7 +18,7 @@ export interface NavigationState {
 }
 
 const initialState: NavigationState = {
-  activeTab: "home",
+  activeTab: INITIAL_TAB,
   createFormResetCount: 0,
 };
 
