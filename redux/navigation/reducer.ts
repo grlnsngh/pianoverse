@@ -5,11 +5,8 @@ import {
   TabKey,
 } from "./actions";
 
-/**
- * The tab the app opens on. Pianos until the Today tab is built (Batch 6 of
- * docs/redesign/PLAN.md), then Today.
- */
-export const INITIAL_TAB: TabKey = "pianos";
+/** The tab the app opens on, and the one chosen after signing in. */
+export const INITIAL_TAB: TabKey = "today";
 
 export interface NavigationState {
   activeTab: TabKey;

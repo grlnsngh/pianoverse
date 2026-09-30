@@ -9,7 +9,7 @@ import {
   ReactTestRenderer,
 } from "react-test-renderer";
 import { combineReducers, createStore } from "redux";
-import navigationReducer from "@/redux/navigation/reducer";
+import navigationReducer, { INITIAL_TAB } from "@/redux/navigation/reducer";
 import paymentsReducer from "@/redux/payments/reducer";
 import pianoReducer from "@/redux/pianos/reducer";
 import userReducer from "@/redux/users/reducers";
@@ -37,7 +37,7 @@ export const createTestStore = ({
         isBulkSelectionMode: false,
         selectedItems: [],
       },
-      navigation: { activeTab: "pianos", createFormResetCount: 0 },
+      navigation: { activeTab: INITIAL_TAB, createFormResetCount: 0 },
       payments: { changeCount: 0 },
     } as any
   );

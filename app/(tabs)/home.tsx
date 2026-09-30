@@ -1,5 +1,6 @@
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { getUserPianoEntries } from "@/lib/appwrite";
+import { usePianoData } from "@/lib/PianoDataContext";
 import useAppwrite from "@/lib/useAppwrite";
 import { loadPianosFromCache, savePianosToCache } from "@/lib/pianoCache";
 import { format } from "date-fns";
@@ -21,7 +22,7 @@ import {
   useSkeletonDelay,
 } from "@/components/ui";
 import type { IconTabItem } from "@/components/ui";
-import { colors, fonts, radii, spacing } from "@/constants/theme";
+import { colors, fonts, spacing } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import {
   CategoryTab,
@@ -35,7 +36,6 @@ import {
 } from "@/utils/filters";
 import { applyPianoFilters } from "@/utils/filterPianos";
 import { padToFullRows } from "@/utils/grid";
-import { isOverdue } from "@/utils/pianoStatus";
 import { SORT_BY_OPTIONS } from "@/constants/Piano";
 import { RootState } from "@/redux/store";
 import { Href, router } from "expo-router";
@@ -111,6 +111,19 @@ const Home = () => {
   );
   const filters = useSelector((state: RootState) => state.pianos.filters);
 
+  // The other tabs read the pianos from redux; this tells them how the load
+  // is going and lets Today pull down to reload
+  const { reportStatus, refresher } = usePianoData();
+  useEffect(() => {
+    reportStatus(isLoading ? "loading" : loadError ? "failed" : "ready");
+  }, [isLoading, loadError, reportStatus]);
+  useEffect(() => {
+    refresher.current = refetch;
+    return () => {
+      if (refresher.current === refetch) refresher.current = null;
+    };
+  }, [refetch, refresher]);
+
   const [refreshing, setRefreshing] = useState(false);
   // When the list on this device was last saved (shown while offline)
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -159,18 +172,6 @@ const Home = () => {
       }
     },
     [dispatch, store],
-  );
-
-  const overdueCount = useMemo(
-    () => pianoReduxItems.filter(isOverdue).length,
-    [pianoReduxItems],
-  );
-  const showOverdue = useCallback(
-    () =>
-      dispatch(
-        setPianoFilters({ ...clearFilters(filters), isOverdue: true }) as any,
-      ),
-    [filters, dispatch],
   );
 
   const hasPianos = pianoReduxItems.length > 0;
@@ -415,27 +416,6 @@ const Home = () => {
             />
           )}
 
-          {/* Rentals that should have come back by now */}
-          {overdueCount > 0 && !filters.isOverdue && (
-            <Pressable
-              onPress={showOverdue}
-              accessibilityRole="button"
-              style={styles.overdue}
-            >
-              <Icon
-                name="alert"
-                size={18}
-                color={colors.late}
-                strokeWidth={2}
-              />
-              <Text style={styles.overdueText}>
-                {overdueCount}{" "}
-                {overdueCount === 1 ? "rental is" : "rentals are"} overdue
-              </Text>
-              <Text style={styles.overdueAction}>View</Text>
-            </Pressable>
-          )}
-
           {hasPianos && (
             <View style={styles.countRow}>
               <Text style={styles.count}>
@@ -542,30 +522,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screen,
     borderBottomWidth: 1,
     borderBottomColor: colors.hairline,
-  },
-  overdue: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginTop: spacing.sm,
-    marginHorizontal: spacing.screen,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: radii.input,
-    backgroundColor: colors.lateTint,
-  },
-  overdueText: {
-    flex: 1,
-    fontFamily: fonts.medium,
-    fontSize: 13,
-    lineHeight: 18,
-    color: colors.lateTintText,
-  },
-  overdueAction: {
-    fontFamily: fonts.bold,
-    fontSize: 13,
-    lineHeight: 18,
-    color: colors.lateTintText,
   },
   countRow: {
     flexDirection: "row",

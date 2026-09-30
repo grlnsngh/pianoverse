@@ -61,6 +61,7 @@ Status key: **Open** = waiting for you. **Later** = not asked yet, comes up in a
   - A **warehouse** piano with no date: "In the warehouse". With a date: "Stored since Mar 2026" (on the board).
   - Sort link names: "Latest added", "Due date", "Purchase date", "Title A to Z", "Title Z to A".
   - Empty states I wrote: "No pianos in stock" (every piano sold), "No pianos match your filters".
+  - **Today (Batch 6):** a rental that has ended reads "Ended 18 days ago" in Needs attention (the Main board's words) while the badge on the Pianos tab reads "Overdue · 18 days" (the spec's). Quiet lines: "Nothing needs your attention.", "No pianos yet. Add one with the + button.", "No payments yet", and "Couldn’t load payments. Pull down to try again."
 - **Your answer** (tell me any wording to change):
 
 ### Q6. When should the branch be merged, and should I push it?
@@ -102,6 +103,20 @@ Status key: **Open** = waiting for you. **Later** = not asked yet, comes up in a
 - **Options:** **A.** the system spinner (now). **B.** the board's spinner (more work, and I would want to try it on your phone).
 - **Your answer:**
 
+### Q14. What should "In stock" count on Today?
+- **Status:** Open. Look at this on your phone first.
+- **Raised:** Batch 6.
+- **What the app does now (default):** every piano that has **not been sold**, whatever its category, **including rentals that are out**. On the Main board's sample, "10 In stock" sits next to "3 On rent", which could mean either.
+- **Options:** **A.** every unsold piano (now). **B.** only pianos that are here: leave out the rentals that are out (so In stock plus On rent make the total).
+- **Your answer:**
+
+### Q15. Should Recent payments show the customer's name?
+- **Status:** Open.
+- **Raised:** Batch 6.
+- **What the app does now (default):** each payment shows the piano's **current** customer name, then the piano and the day (as the Main board). A payment is only saved with the piano, not with who paid, so if a piano was re-rented to someone else, its **older payments show the new customer's name**. A piano with no customer shows its title instead.
+- **Options:** **A.** keep it (now, matches the board). **B.** show the piano's title only, which is always true. **C.** save the customer's name with each new payment (a change to what is stored, so a later batch, and older payments would still lack it).
+- **Your answer:**
+
 ---
 
 ## Later (not asked yet, the default is set)
@@ -136,6 +151,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 - **Batch 3:** the new tab bar (84 high), the tab fade (no flash), the Add screen opening and closing, the Android back button, publishing landing on Pianos.
 - **Batch 4:** the Pianos header, tabs, grid and list, photo fallback, filter panel opening from the pill and the sort link, select mode, offline strip, empty states.
 - **Batch 5:** the filter sheet (Sort by list on top of it, the "Show N pianos" button), select mode (top bar, red Delete bar in the tab bar's place, the dialog, Android back), the refresh spinner, and Search (keyboard up at once, results as you type, bold matches, Clear, Cancel, no results).
+- **Batch 6:** the app opening on Today (then switch to Pianos at once: its list should be there), the amount and the three counts against what you know, Needs attention (order, red and orange), the Rented out shelf (sideways scroll, the bars, See all), Recent payments, pull down on Today, the skeleton on a slow connection, and airplane mode.
 - The full step-by-step list for each batch is in the chat message that ended that batch and in [PLAN.md](PLAN.md)'s Session log.
 
 ---

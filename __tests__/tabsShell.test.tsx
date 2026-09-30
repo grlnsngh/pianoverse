@@ -76,6 +76,33 @@ describe("TabScenes", () => {
     expect(mounts).toEqual(["one"]);
   });
 
+  it("also creates the screens of the eager tabs at the start, hidden", async () => {
+    const renderer = await mount(<TabScenes scenes={scenes} active="one" eager={["three"]} />);
+
+    expect(shown(renderer)).toEqual(["one", "three"]);
+    expect(mounts).toEqual(["three", "one"].sort((a, b) => (a === "one" ? -1 : 1)));
+    // Not showing, and not touchable, until its tab is chosen
+    expect(opacityOf(renderer, "three")).toBe(0);
+    expect(host(renderer, "three").props.pointerEvents).toBe("none");
+    expect(opacityOf(renderer, "one")).toBe(1);
+  });
+
+  it("fades an eager tab in when it is chosen, without making its screen again", async () => {
+    const renderer = await mount(<TabScenes scenes={scenes} active="one" eager={["three"]} />);
+
+    await update(renderer, <TabScenes scenes={scenes} active="three" eager={["three"]} />);
+    await advance(120);
+
+    expect(opacityOf(renderer, "three")).toBe(1);
+    expect(mounts.filter((key) => key === "three")).toHaveLength(1);
+  });
+
+  it("doesn't make a screen twice when the first tab is eager too", async () => {
+    await mount(<TabScenes scenes={scenes} active="one" eager={["one"]} />);
+
+    expect(mounts).toEqual(["one"]);
+  });
+
   it("creates a tab's screen the first time it is shown", async () => {
     const renderer = await mount(<TabScenes scenes={scenes} active="one" />);
 
@@ -220,6 +247,8 @@ describe("the tabs layout", () => {
     renderer.root
       .findAllByType(Pressable)
       .find((node: any) => node.props.accessibilityLabel === label);
+  const opacityOfScene = (renderer: any, key: string) =>
+    StyleSheet.flatten(hostByTestId(renderer.root, `scene-${key}`).props.style).opacity as number;
   const selected = (renderer: any) =>
     renderer.root
       .findAllByType(Pressable)
@@ -244,17 +273,21 @@ describe("the tabs layout", () => {
     expect(tab(renderer, "Add")).toBeUndefined();
   });
 
-  it("opens on the Pianos tab, and creates only that screen", () => {
+  it("opens on the Today tab, and makes the Pianos screen too, since it loads the pianos", () => {
     const { store, renderer } = open();
 
-    expect(store.getState().navigation.activeTab).toBe("pianos");
-    expect(selected(renderer)).toEqual(["Pianos"]);
+    expect(store.getState().navigation.activeTab).toBe("today");
+    expect(selected(renderer)).toEqual(["Today"]);
+    expect(allTexts(renderer.root)).toContain("Today screen");
+    // Hidden behind Today, but running: Today reads what it loads
     expect(allTexts(renderer.root)).toContain("Pianos screen");
+    expect(opacityOfScene(renderer, "pianos")).toBe(0);
+    expect(opacityOfScene(renderer, "today")).toBe(1);
+    // Nothing else is made until it is visited
     expect(allTexts(renderer.root)).not.toContain("Account screen");
-    expect(allTexts(renderer.root)).not.toContain("Today screen");
   });
 
-  it("starts on Pianos after signing in, whichever tab was open before", () => {
+  it("starts on Today after signing in, whichever tab was open before", () => {
     const store = createTestStore();
     act(() => {
       store.dispatch(setActiveTab("account"));
@@ -262,8 +295,8 @@ describe("the tabs layout", () => {
 
     const { renderer } = open(store);
 
-    expect(store.getState().navigation.activeTab).toBe("pianos");
-    expect(selected(renderer)).toEqual(["Pianos"]);
+    expect(store.getState().navigation.activeTab).toBe("today");
+    expect(selected(renderer)).toEqual(["Today"]);
   });
 
   it("switches to the tab that is pressed and keeps the one it left", () => {
@@ -274,7 +307,7 @@ describe("the tabs layout", () => {
     expect(store.getState().navigation.activeTab).toBe("account");
     expect(selected(renderer)).toEqual(["Account"]);
     expect(allTexts(renderer.root)).toEqual(
-      expect.arrayContaining(["Pianos screen", "Account screen"])
+      expect.arrayContaining(["Today screen", "Pianos screen", "Account screen"])
     );
   });
 
@@ -282,11 +315,11 @@ describe("the tabs layout", () => {
     const { store, renderer } = open();
 
     act(() => {
-      store.dispatch(setActiveTab("today"));
+      store.dispatch(setActiveTab("pianos"));
     });
 
-    expect(selected(renderer)).toEqual(["Today"]);
-    expect(allTexts(renderer.root)).toContain("Today screen");
+    expect(selected(renderer)).toEqual(["Pianos"]);
+    expect(allTexts(renderer.root)).toContain("Pianos screen");
   });
 
   it("puts the bar below the screens, outside them", () => {

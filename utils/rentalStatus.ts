@@ -139,6 +139,20 @@ export const getRentalStatus = (
 };
 
 /**
+ * The same as getRentalStatus, except that a rental that has ended reads
+ * "Ended 18 days ago" (the Today board's wording, for a list where every row
+ * needs attention anyway) instead of "Overdue · 18 days". The count is the
+ * same, so the two never disagree.
+ */
+export const getRentalStatusAgo = (
+  state: RentalState | null,
+  remaining: Period
+): RentalStatus | null =>
+  state === "ended"
+    ? { text: `Ended ${formatSpan(remaining)} ago`, tone: "late" }
+    : getRentalStatus(state, remaining);
+
+/**
  * The status line of a piano: a running rental, or null for a piano that isn't
  * rented (events, on sale, warehouse, sold, or a rental with no end date).
  */

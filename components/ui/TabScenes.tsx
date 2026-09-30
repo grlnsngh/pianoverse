@@ -51,16 +51,23 @@ export type TabScenesProps<T extends string> = {
   /** One screen per tab */
   scenes: Record<T, React.ComponentType>;
   active: T;
+  /**
+   * Tabs whose screens are made at the start too, hidden, instead of waiting
+   * for their first visit. For a screen that has to be running for the others
+   * to work.
+   */
+  eager?: readonly T[];
 };
 
 /**
  * The screens of the tabs. A screen is created the first time its tab is
- * shown and then kept, so it keeps its scroll position and what was typed in
- * it. Changing tab is a 120 ms fade, never a slide.
+ * shown (or at the start, if it is `eager`) and then kept, so it keeps its
+ * scroll position and what was typed in it. Changing tab is a 120 ms fade,
+ * never a slide.
  */
-function TabScenes<T extends string>({ scenes, active }: TabScenesProps<T>) {
+function TabScenes<T extends string>({ scenes, active, eager = [] }: TabScenesProps<T>) {
   const initial = useRef(active).current;
-  const visited = useRef(new Set<T>()).current;
+  const visited = useRef(new Set<T>(eager)).current;
   visited.add(active);
 
   return (

@@ -28,7 +28,6 @@ import { getRentPaymentsBetween, getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
-import { countActiveFilters } from "@/utils/filters";
 import { isOverdue } from "@/utils/pianoStatus";
 import { rentFromActiveRentals, salesInMonth } from "@/utils/stats";
 import { makePiano, testUser } from "./helpers/fixtures";
@@ -95,22 +94,17 @@ describe("overdue rentals", () => {
     ]);
   });
 
-  it("have a banner on Home that lists just them", async () => {
+  it("have no banner on the Pianos tab: Today's Needs attention says so", async () => {
     jest.mocked(getUserPianoEntries).mockResolvedValue(pianos as any);
     const store = createTestStore({ user: testUser });
     const renderer = renderWithStore(<Home />, store);
     await flushPromises();
 
-    expect(allTexts(renderer.root)).toContain("1 rental is overdue");
-
-    await pressText(renderer.root, "View");
-
-    const { filters, filteredItems } = store.getState().pianos;
-    expect(filters.isOverdue).toBe(true);
-    expect(countActiveFilters(filters)).toBe(1);
-    expect(filteredItems.map((piano) => piano.$id)).toEqual(["overdue"]);
-    // No need for the banner while they're shown
-    expect(allTexts(renderer.root)).not.toContain("1 rental is overdue");
+    // (A card still has its own "Overdue · 3 days" badge; it is the strip that went)
+    expect(allTexts(renderer.root).join(" ")).not.toMatch(/rentals? (is|are) overdue/);
+    expect(allTexts(renderer.root)).not.toContain("View");
+    // The list still shows every piano that isn't sold
+    expect(store.getState().pianos.filteredItems.map((piano) => piano.$id)).toContain("overdue");
   });
 
   it("have no banner when there are none", async () => {

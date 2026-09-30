@@ -608,21 +608,20 @@ describe("the strips above the list", () => {
     expect(allTexts(renderer.root).join(" ")).not.toMatch(/Offline/);
   });
 
-  it("points out overdue rentals, and shows them from the strip", async () => {
+  it("has no overdue strip: the Today tab's Needs attention points out overdue rentals", async () => {
     const late = makePiano({
       $id: "late",
       title: "Late one",
       category: "rentable",
       rental_period_end: "2020-01-01" as any,
     });
-    const { store, renderer } = await renderHome([late, stored]);
-    expect(allTexts(renderer.root)).toEqual(expect.arrayContaining(["1 rental is overdue", "View"]));
+    const { renderer } = await renderHome([late, stored]);
 
-    await pressText(renderer.root, "1 rental is overdue");
-
-    expect(store.getState().pianos.filters.isOverdue).toBe(true);
-    // The strip goes once the list is showing them
-    expect(allTexts(renderer.root)).not.toContain("1 rental is overdue");
+    expect(allTexts(renderer.root).join(" ")).not.toMatch(/rentals? (is|are) overdue/);
+    expect(allTexts(renderer.root)).not.toContain("View");
+    // The rental itself is still listed, with its own status
+    expect(allTexts(renderer.root)).toContain("Late one");
+    expect(titles(renderer)).toContain("Ronish R-112");
   });
 });
 
