@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Handoff</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FFFFFF;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+</style>
+</helmet>
+<div style="width:1280px;height:1140px;box-sizing:border-box;padding:56px 64px;display:flex;flex-direction:column;gap:40px;background:#FFFFFF;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:64px">
+<div>
+<div style="font-size:40px;font-weight:700;line-height:44px;letter-spacing:-0.025em">Handoff</div>
+<div style="margin-top:4px;font-size:15px;font-weight:500;line-height:22px;color:#6B665D">For building this in the Expo app</div>
+</div>
+<div style="width:600px;font-size:16px;font-weight:400;line-height:24px;color:#3C3831">Screen names map to the files your repo already has. Rules below are the behaviour the screens assume, so the app and the design agree.</div>
+</div>
+
+<div style="display:flex;gap:48px;flex-grow:1;min-height:0;border-top:1px solid #E7E4DD;padding-top:32px">
+
+<div style="width:352px;flex-shrink:0">
+<div style="font-size:20px;font-weight:700;line-height:26px;letter-spacing:-0.01em;margin-bottom:8px">Screens and files</div>
+<div style="padding:10px 0;border-bottom:1px solid #E7E4DD"><div style="font-size:14px;font-weight:600;line-height:20px">Welcome</div><div style="font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:18px;color:#6B665D">app/(auth)/welcome.tsx (new)</div></div>
+<div style="padding:10px 0;border-bottom:1px solid #E7E4DD"><div style="font-size:14px;font-weight:600;line-height:20px">Sign in, create account, reset</div><div style="font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:18px;color:#6B665D">app/(auth)/sign-in.tsx, sign-up.tsx, forget-password.tsx</div></div>
+<div style="padding:10px 0;border-bottom:1px solid #E7E4DD"><div style="font-size:14px;font-weight:600;line-height:20px">Tabs: Today, Pianos, Account</div><div style="font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:18px;color:#6B665D">app/(tabs)/_layout.tsx</div></div>
+<div style="padding:10px 0;border-bottom:1px solid #E7E4DD"><div style="font-size:14px;font-weight:600;line-height:20px">Today</div><div style="font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:18px;color:#6B665D">app/(tabs)/today.tsx (new)</div></div>
+<div style="padding:10px 0;border-bottom:1px solid #E7E4DD"><div style="font-size:14px;font-weight:600;line-height:20px">Pianos, select mode, empty state</div><div style="font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:18px;color:#6B665D">app/(tabs)/home.tsx, components/CardItem.tsx</div></div>
+<div style="padding:10px 0;border-bottom:1px solid #E7E4DD"><div style="font-size:14px;font-weight:600;line-height:20px">Search and filters</div><div style="font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:18px;color:#6B665D">app/search/[query].tsx, components/FilterButton.tsx</div></div>
+<div style="padding:10px 0;border-bottom:1px solid #E7E4DD"><div style="font-size:14px;font-weight:600;line-height:20px">Account</div><div style="font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:18px;color:#6B665D">app/(tabs)/profile.tsx</div></div>
+<div style="padding:10px 0;border-bottom:1px solid #E7E4DD"><div style="font-size:14px;font-weight:600;line-height:20px">Piano detail (all four states)</div><div style="font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:18px;color:#6B665D">app/detail/[id].tsx, components/RentPayments.tsx</div></div>
+<div style="padding:10px 0;border-bottom:1px solid #E7E4DD"><div style="font-size:14px;font-weight:600;line-height:20px">Payment, extend and sold sheets</div><div style="font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:18px;color:#6B665D">components/RecordPaymentSheet.tsx, ExtendRentalSheet.tsx, MarkAsSoldSheet.tsx</div></div>
+<div style="padding:10px 0"><div style="font-size:14px;font-weight:600;line-height:20px">Add and edit piano, three steps</div><div style="font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:18px;color:#6B665D">app/(tabs)/create.tsx, app/review.tsx, app/edit/[id].tsx</div></div>
+</div>
+
+<div style="width:352px;flex-shrink:0">
+<div style="font-size:20px;font-weight:700;line-height:26px;letter-spacing:-0.01em;margin-bottom:8px">Rules the screens assume</div>
+
+<div style="padding:12px 0;border-bottom:1px solid #E7E4DD">
+<div style="font-size:14px;font-weight:600;line-height:20px">Primary action by piano state</div>
+<div style="margin-top:4px;font-size:14px;line-height:22px;color:#3C3831">Rented, active or overdue: <b>Record payment</b><br>On sale: <b>Mark as sold</b><br>Events or Warehouse: <b>Edit piano</b><br>Sold: <b>Undo sale</b></div>
+</div>
+
+<div style="padding:12px 0;border-bottom:1px solid #E7E4DD">
+<div style="font-size:14px;font-weight:600;line-height:20px">Rental status text</div>
+<div style="margin-top:4px;font-size:14px;line-height:22px;color:#3C3831">End date passed: <span style="font-weight:700;color:#C4321C">Overdue · 18 days</span>, or months from 60 days<br>7 days or fewer left: <span style="font-weight:700;color:#A85D00">Ends in 3 days</span><br>Otherwise: <span style="font-weight:700;color:#6B665D">12 days left</span>, <span style="font-weight:700;color:#6B665D">2 months left</span><br>Overdue and ending soon also show as a badge on the photo.</div>
+</div>
+
+<div style="padding:12px 0;border-bottom:1px solid #E7E4DD">
+<div style="font-size:14px;font-weight:600;line-height:20px">Rent progress bar</div>
+<div style="margin-top:4px;font-size:14px;line-height:22px;color:#3C3831">Elapsed time divided by rental length, capped at full. On the detail page any time past the end is a red segment.</div>
+</div>
+
+<div style="padding:12px 0;border-bottom:1px solid #E7E4DD">
+<div style="font-size:14px;font-weight:600;line-height:20px">Needs attention order</div>
+<div style="margin-top:4px;font-size:14px;line-height:22px;color:#3C3831">Overdue first, longest overdue on top, then rentals ending within 7 days, soonest first.</div>
+</div>
+
+<div style="padding:12px 0;border-bottom:1px solid #E7E4DD">
+<div style="font-size:14px;font-weight:600;line-height:20px">Today totals</div>
+<div style="margin-top:4px;font-size:14px;line-height:22px;color:#3C3831">Received: payments dated in the current month. Sold: sale date in the current month. On rent: rentals that have not ended.</div>
+</div>
+
+<div style="padding:12px 0">
+<div style="font-size:14px;font-weight:600;line-height:20px">Money and dates</div>
+<div style="margin-top:4px;font-size:14px;line-height:22px;color:#3C3831">₹ with Indian grouping (en-IN), tabular figures. Dates as 21 Dec 2025.</div>
+</div>
+</div>
+
+<div style="width:352px;flex-shrink:0">
+<div style="font-size:20px;font-weight:700;line-height:26px;letter-spacing:-0.01em;margin-bottom:12px">Tokens</div>
+<div style="padding:14px 16px;border-radius:12px;background:#F6F5F2;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:18px;color:#1A1814;white-space:pre;overflow:hidden">// tailwind.config.js, theme.extend
+colors: {
+  page: "#FFFFFF",
+  grouped: "#F6F5F2",
+  fill: "#EFEDE8",
+  hairline: "#E7E4DD",
+  ink: "#1A1814",
+  ink2: "#6B665D",
+  brand: "#FF9C01",
+  "brand-text": "#A85D00",
+  late: "#C4321C",
+},
+borderRadius: {
+  input: "12px", control: "14px",
+  card: "16px", sheet: "24px",
+},
+// Figtree 400 500 600 700 via
+// @expo-google-fonts/figtree</div>
+
+<div style="font-size:20px;font-weight:700;line-height:26px;letter-spacing:-0.01em;margin:24px 0 4px">Behaviour</div>
+<div style="padding:9px 0;border-bottom:1px solid #E7E4DD;font-size:14px;line-height:20px;color:#3C3831"><b>Loading:</b> skeletons after 200 ms on Today, Pianos and Detail. Keys loader for full-screen waits, spinner inside buttons. See States and feedback.</div>
+<div style="padding:9px 0;border-bottom:1px solid #E7E4DD;font-size:14px;line-height:20px;color:#3C3831"><b>Motion:</b> timings and easing are on the Motion board. Reduced motion means fades only.</div>
+<div style="padding:9px 0;border-bottom:1px solid #E7E4DD;font-size:14px;line-height:20px;color:#3C3831"><b>Errors:</b> field errors on blur or submit, a toast with Retry for failed saves, a full screen with Try again when a list cannot load.</div>
+<div style="padding:9px 0;border-bottom:1px solid #E7E4DD;font-size:14px;line-height:20px;color:#3C3831"><b>Offline:</b> a slim strip above the list, “Offline. Showing pianos saved on 28 Sep.”</div>
+<div style="padding:9px 0;border-bottom:1px solid #E7E4DD;font-size:14px;line-height:20px;color:#3C3831"><b>Permissions:</b> explain reminders before the system prompt. If camera is denied, offer Settings or the gallery.</div>
+<div style="padding:9px 0;border-bottom:1px solid #E7E4DD;font-size:14px;line-height:20px;color:#3C3831"><b>Dialogs:</b> the destructive choice is red and on top, the safe choice is last. Six are drawn.</div>
+<div style="padding:9px 0;font-size:14px;line-height:20px;color:#3C3831"><b>Gestures:</b> tap a photo card to open, long-press to select, swipe a list row for Edit and Delete, pull down to refresh.</div>
+</div>
+
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1140}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

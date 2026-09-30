@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dialogs</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FFFFFF;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+</style>
+</helmet>
+<div style="width:1280px;height:880px;box-sizing:border-box;padding:56px 64px;display:flex;flex-direction:column;gap:32px;background:#FFFFFF;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:64px">
+<div>
+<div style="font-size:40px;font-weight:700;line-height:44px;letter-spacing:-0.025em">Dialogs</div>
+<div style="margin-top:4px;font-size:15px;font-weight:500;line-height:22px;color:#6B665D">Confirmations for actions that cannot be undone</div>
+</div>
+<div style="width:600px;font-size:16px;font-weight:400;line-height:24px;color:#3C3831">The action that destroys something is red and on top. The safe choice is always the bottom button. Dialogs name the piano or the amount, so nobody confirms blindly.</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:32px 48px;border-top:1px solid #E7E4DD;padding-top:28px">
+
+<div>
+<div style="margin-bottom:8px;font-size:13px;font-weight:600;line-height:18px;color:#6B665D">Delete piano</div>
+<div style="height:268px;display:flex;align-items:center;justify-content:center;border-radius:20px;background:#8E8A83">
+<div style="width:284px;background:#FFFFFF;border-radius:20px;overflow:hidden;text-align:center">
+<div style="padding:22px 20px 18px"><div style="font-size:18px;font-weight:700;line-height:24px">Delete Young Chang U-121?</div><div style="margin-top:6px;font-size:14px;font-weight:400;line-height:20px;color:#6B665D">This removes the piano, its photos and its payments. This can’t be undone.</div></div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:700;color:#C4321C">Delete</div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:500">Cancel</div>
+</div>
+</div>
+</div>
+
+<div>
+<div style="margin-bottom:8px;font-size:13px;font-weight:600;line-height:18px;color:#6B665D">Delete a payment</div>
+<div style="height:268px;display:flex;align-items:center;justify-content:center;border-radius:20px;background:#8E8A83">
+<div style="width:284px;background:#FFFFFF;border-radius:20px;overflow:hidden;text-align:center">
+<div style="padding:22px 20px 18px"><div style="font-size:18px;font-weight:700;line-height:24px">Delete this payment?</div><div style="margin-top:6px;font-size:14px;font-weight:400;line-height:20px;color:#6B665D">₹4,500 paid on 21 Dec 2025 will be removed from Meera Kapoor’s rental.</div></div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:700;color:#C4321C">Delete</div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:500">Cancel</div>
+</div>
+</div>
+</div>
+
+<div>
+<div style="margin-bottom:8px;font-size:13px;font-weight:600;line-height:18px;color:#6B665D">Undo a sale</div>
+<div style="height:268px;display:flex;align-items:center;justify-content:center;border-radius:20px;background:#8E8A83">
+<div style="width:284px;background:#FFFFFF;border-radius:20px;overflow:hidden;text-align:center">
+<div style="padding:22px 20px 18px"><div style="font-size:18px;font-weight:700;line-height:24px">Undo this sale?</div><div style="margin-top:6px;font-size:14px;font-weight:400;line-height:20px;color:#6B665D">Zimmermann Z-121 goes back into stock and its sale details are removed.</div></div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:700;color:#C4321C">Undo sale</div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:500">Cancel</div>
+</div>
+</div>
+</div>
+
+<div>
+<div style="margin-bottom:8px;font-size:13px;font-weight:600;line-height:18px;color:#6B665D">Leave the edit screen with changes</div>
+<div style="height:268px;display:flex;align-items:center;justify-content:center;border-radius:20px;background:#8E8A83">
+<div style="width:284px;background:#FFFFFF;border-radius:20px;overflow:hidden;text-align:center">
+<div style="padding:22px 20px 18px"><div style="font-size:18px;font-weight:700;line-height:24px">Discard changes?</div><div style="margin-top:6px;font-size:14px;font-weight:400;line-height:20px;color:#6B665D">You have unsaved changes to this piano.</div></div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:700;color:#C4321C">Discard</div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:600">Keep editing</div>
+</div>
+</div>
+</div>
+
+<div>
+<div style="margin-bottom:8px;font-size:13px;font-weight:600;line-height:18px;color:#6B665D">Delete selected pianos</div>
+<div style="height:268px;display:flex;align-items:center;justify-content:center;border-radius:20px;background:#8E8A83">
+<div style="width:284px;background:#FFFFFF;border-radius:20px;overflow:hidden;text-align:center">
+<div style="padding:22px 20px 18px"><div style="font-size:18px;font-weight:700;line-height:24px">Delete 2 pianos?</div><div style="margin-top:6px;font-size:14px;font-weight:400;line-height:20px;color:#6B665D">Their photos and payments are removed too. This can’t be undone.</div></div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:700;color:#C4321C">Delete 2 pianos</div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:500">Cancel</div>
+</div>
+</div>
+</div>
+
+<div>
+<div style="margin-bottom:8px;font-size:13px;font-weight:600;line-height:18px;color:#6B665D">Close the Add flow with entries</div>
+<div style="height:268px;display:flex;align-items:center;justify-content:center;border-radius:20px;background:#8E8A83">
+<div style="width:284px;background:#FFFFFF;border-radius:20px;overflow:hidden;text-align:center">
+<div style="padding:22px 20px 18px"><div style="font-size:18px;font-weight:700;line-height:24px">Stop adding this piano?</div><div style="margin-top:6px;font-size:14px;font-weight:400;line-height:20px;color:#6B665D">What you entered so far will be lost.</div></div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:700;color:#C4321C">Discard</div>
+<div style="height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid #E7E4DD;font-size:16px;font-weight:600">Keep going</div>
+</div>
+</div>
+</div>
+
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":880}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

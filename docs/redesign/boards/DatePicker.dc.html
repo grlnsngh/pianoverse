@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Choose date</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#F6F5F2;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;box-sizing:border-box;background:#F6F5F2;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="padding:20px 20px 0">
+<div style="font-size:28px;font-weight:700;line-height:34px;letter-spacing:-0.02em">About the piano</div>
+</div>
+
+<a href="Add1Basics.dc.html" aria-label="Close" style="position:absolute;left:0;top:0;width:390px;height:844px;background:rgba(26,24,20,0.45)"></a>
+
+<div style="position:absolute;left:0;bottom:0;width:390px;height:560px;display:flex;flex-direction:column;background:#FFFFFF;border-radius:24px 24px 0 0">
+<div style="width:36px;height:5px;border-radius:3px;background:#CFCBC2;margin:8px auto 0;flex-shrink:0"></div>
+
+<div style="display:flex;align-items:center;justify-content:center;position:relative;height:52px;flex-shrink:0">
+<a href="Add1Basics.dc.html" style="position:absolute;left:8px;top:4px;height:44px;padding:0 12px;display:flex;align-items:center;font-size:16px;font-weight:500">Cancel</a>
+<div style="font-size:17px;font-weight:700">Purchased</div>
+</div>
+
+<div style="flex-grow:1;min-height:0;padding:0 20px">
+
+<div style="display:flex;align-items:center;justify-content:space-between;height:48px">
+<div style="font-size:18px;font-weight:700;letter-spacing:-0.01em">September 2026</div>
+<div style="display:flex">
+<button type="button" aria-label="Previous month" style="width:44px;height:44px;border:0;background:none;color:#1A1814;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+<button type="button" aria-label="Next month" style="width:44px;height:44px;border:0;background:none;color:#1A1814;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(7, minmax(0, 1fr));margin-top:4px">
+<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#6B665D">Mon</div>
+<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#6B665D">Tue</div>
+<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#6B665D">Wed</div>
+<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#6B665D">Thu</div>
+<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#6B665D">Fri</div>
+<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#6B665D">Sat</div>
+<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#6B665D">Sun</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(7, minmax(0, 1fr));row-gap:4px">
+<sc-for list="{{cells}}" as="d" hint-placeholder-count="35">
+<sc-if value="{{d.blank}}" hint-placeholder-val="{{ false }}">
+<div style="height:46px"></div>
+</sc-if>
+<sc-if value="{{d.selected}}" hint-placeholder-val="{{ false }}">
+<div style="height:46px;display:flex;align-items:center;justify-content:center"><button type="button" aria-pressed="true" style="width:44px;height:44px;border:0;border-radius:50%;background:#1A1814;color:#FFFFFF;font-size:16px;font-weight:700">{{d.n}}</button></div>
+</sc-if>
+<sc-if value="{{d.today}}" hint-placeholder-val="{{ false }}">
+<div style="height:46px;display:flex;align-items:center;justify-content:center"><button type="button" style="width:44px;height:44px;border:2px solid #FF9C01;border-radius:50%;background:none;color:#1A1814;font-size:16px;font-weight:700">{{d.n}}</button></div>
+</sc-if>
+<sc-if value="{{d.plain}}" hint-placeholder-val="{{ true }}">
+<div style="height:46px;display:flex;align-items:center;justify-content:center"><button type="button" style="width:44px;height:44px;border:0;border-radius:50%;background:none;color:#1A1814;font-size:16px;font-weight:500">{{d.n}}</button></div>
+</sc-if>
+</sc-for>
+</div>
+
+</div>
+
+<div style="flex-shrink:0;padding:8px 20px 28px">
+<a href="Add1Basics.dc.html" style="height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#FF9C01;color:#1A1814;font-size:16px;font-weight:700">Done</a>
+</div>
+
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // September 2026 starts on a Tuesday; the week starts on Monday
+    const cells = [{ blank: true, selected: false, today: false, plain: false, n: '' }];
+    for (let d = 1; d <= 30; d++) {
+      const sel = d === 3, today = d === 29;
+      cells.push({ blank: false, selected: sel, today: today && !sel, plain: !sel && !today, n: String(d) });
+    }
+    while (cells.length < 35) cells.push({ blank: true, selected: false, today: false, plain: false, n: '' });
+    return { cells };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Piano added</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FFFFFF;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+@keyframes pv-pop-loop{0%{transform:scale(0.6);opacity:0}10%{transform:scale(1.08);opacity:1}16%{transform:scale(1)}92%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}
+@keyframes pv-draw-loop{0%,8%{stroke-dashoffset:20}26%,100%{stroke-dashoffset:0}}
+.pv-pop-loop{animation:pv-pop-loop 3.6s cubic-bezier(0.2,0,0,1) infinite}
+.pv-draw-loop{stroke-dasharray:20;stroke-dashoffset:20;animation:pv-draw-loop 3.6s ease-out infinite}
+@media (prefers-reduced-motion:reduce){.pv-pop-loop{animation:none}.pv-draw-loop{animation:none;stroke-dashoffset:0}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#FFFFFF;display:flex;flex-direction:column;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="flex-grow:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 32px;text-align:center">
+<div class="pv-pop-loop" style="width:96px;height:96px;border-radius:50%;background:#FF9C01;color:#1A1814;display:flex;align-items:center;justify-content:center">
+<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="pv-draw-loop" d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+</div>
+<h1 style="margin:28px 0 0;font-size:28px;font-weight:700;line-height:34px;letter-spacing:-0.02em">Piano added</h1>
+<p style="margin:8px 0 0;font-size:16px;font-weight:400;line-height:22px;color:#6B665D">Schumann S-110 is now in your stock. You’ll get reminders before its rental ends.</p>
+</div>
+
+<div style="padding:0 24px 28px;display:flex;flex-direction:column;gap:10px">
+<a href="Detail.dc.html" style="height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#FF9C01;color:#1A1814;font-size:16px;font-weight:700">View piano</a>
+<a href="Add1Basics.dc.html" style="height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#EFEDE8;color:#1A1814;font-size:16px;font-weight:700">Add another</a>
+<a href="Pianos.dc.html" style="height:44px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#6B665D">Done</a>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

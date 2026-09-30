@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in, errors</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FFFFFF;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit;cursor:pointer}
+input{cursor:text}
+input::placeholder{color:#77716A}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#FFFFFF;display:flex;flex-direction:column;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="padding:12px 12px 0">
+<a href="Welcome.dc.html" aria-label="Back" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#1A1814">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+</a>
+</div>
+
+<div style="padding:24px 24px 0">
+<h1 style="margin:0;font-size:32px;font-weight:700;line-height:38px;letter-spacing:-0.02em">Welcome back</h1>
+<p style="margin:6px 0 0;font-size:16px;font-weight:400;line-height:22px;color:#6B665D">Sign in to see your pianos and rentals.</p>
+
+<div style="display:flex;align-items:flex-start;gap:12px;margin-top:24px;padding:12px 14px;background:#FCEDEA;border-radius:12px">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C4321C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>
+<div style="font-size:14px;font-weight:500;line-height:20px;color:#7A1F10">We couldn’t sign you in. Check your email and password and try again.</div>
+</div>
+
+<div style="margin-top:20px">
+<div style="padding:10px 16px 0;height:60px;border-radius:12px;box-shadow:inset 0 0 0 2px #C4321C">
+<label for="se-email" style="display:block;font-size:12px;font-weight:500;line-height:16px;color:#C4321C">Email</label>
+<input id="se-email" type="email" value="grlnsngh@gmail" style="display:block;width:100%;height:28px;padding:0;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#1A1814">
+</div>
+<div style="display:flex;align-items:center;gap:6px;margin:6px 4px 0;font-size:13px;font-weight:500;line-height:18px;color:#C4321C"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>Enter a valid email address.</div>
+</div>
+
+<div style="margin-top:12px">
+<div style="display:flex;align-items:center;padding:10px 4px 0 16px;height:60px;border-radius:12px;box-shadow:inset 0 0 0 2px #C4321C">
+<div style="flex-grow:1;min-width:0">
+<label for="se-pass" style="display:block;font-size:12px;font-weight:500;line-height:16px;color:#C4321C">Password</label>
+<input id="se-pass" type="password" placeholder="Password" style="display:block;width:100%;height:28px;padding:0;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#1A1814">
+</div>
+<button type="button" style="height:44px;padding:0 12px;margin-top:-10px;border:0;background:none;font-size:14px;font-weight:700;color:#1A1814;text-decoration:underline">Show</button>
+</div>
+<div style="display:flex;align-items:center;gap:6px;margin:6px 4px 0;font-size:13px;font-weight:500;line-height:18px;color:#C4321C"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>Enter your password.</div>
+</div>
+
+<div style="display:flex;justify-content:flex-end;margin-top:4px">
+<a href="Forgot.dc.html" style="display:flex;align-items:center;height:44px;font-size:14px;font-weight:600;color:#A85D00">Forgot password?</a>
+</div>
+
+<a href="SignIn.dc.html" style="margin-top:12px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#FF9C01;color:#1A1814;font-size:16px;font-weight:700">Sign in</a>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

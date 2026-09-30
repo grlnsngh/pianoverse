@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Camera access</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#F6F5F2;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;box-sizing:border-box;background:#F6F5F2;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="padding:20px 20px 0">
+<div style="font-size:28px;font-weight:700;line-height:34px;letter-spacing:-0.02em">About the piano</div>
+<div style="display:flex;gap:10px;margin-top:20px">
+<div style="width:96px;height:96px;border-radius:14px;background:#E9E6DF"></div>
+</div>
+</div>
+
+<a href="Add1Basics.dc.html" aria-label="Close" style="position:absolute;left:0;top:0;width:390px;height:844px;background:rgba(26,24,20,0.45)"></a>
+
+<div style="position:absolute;left:0;bottom:0;width:390px;height:440px;display:flex;flex-direction:column;background:#FFFFFF;border-radius:24px 24px 0 0">
+<div style="width:36px;height:5px;border-radius:3px;background:#CFCBC2;margin:8px auto 0;flex-shrink:0"></div>
+
+<div style="padding:24px 24px 0;text-align:center">
+<div style="width:64px;height:64px;margin:0 auto;border-radius:50%;background:#F1EFEA;color:#1A1814;display:flex;align-items:center;justify-content:center">
+<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM12 9.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM3 3l18 18"/></svg>
+</div>
+<div style="margin-top:20px;font-size:22px;font-weight:700;line-height:28px;letter-spacing:-0.01em">Camera access is off</div>
+<div style="margin-top:8px;font-size:15px;font-weight:400;line-height:22px;color:#6B665D">Allow camera access in Settings to take photos of your pianos. You can also choose photos from your gallery.</div>
+</div>
+
+<div style="margin-top:auto;padding:0 20px 28px;display:flex;flex-direction:column;gap:10px">
+<a href="Add1Basics.dc.html" style="height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#FF9C01;color:#1A1814;font-size:16px;font-weight:700">Open Settings</a>
+<a href="Add1Basics.dc.html" style="height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#EFEDE8;color:#1A1814;font-size:16px;font-weight:700">Choose from gallery</a>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
