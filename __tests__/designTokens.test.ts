@@ -33,6 +33,10 @@ describe("colours", () => {
       lateTintText: "#7A1F10",
       inputBorder: "#C9C4B9",
       fillInput: "#F1EFEA",
+      chevron: "#8A8479",
+      grabber: "#CFCBC2",
+      fillPressed: "#E4E0D8",
+      switchOff: "#D9D5CC",
     });
   });
 

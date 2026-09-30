@@ -27,6 +27,10 @@ export const colors = {
   inputBorder: "#C9C4B9",
   /** Outline of round controls such as the filter button */
   controlBorder: "#D9D5CC",
+  /** Chevron at the end of a row that opens a picker */
+  chevron: "#8A8479",
+  /** The bar at the top of a sheet */
+  grabber: "#CFCBC2",
   /** Primary text, selected states, the active tab */
   ink: "#1A1814",
   /** Body copy in dialogs and explainers */

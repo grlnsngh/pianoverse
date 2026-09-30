@@ -82,7 +82,7 @@ const Key = ({ index, height, width, radius, color, animate }: KeyProps) => {
     return {
       transform: [{ translateY: (height * (1 - scale)) / 2 }, { scaleY: scale }],
     };
-  });
+  }, [height]);
 
   return (
     <Animated.View

@@ -34,6 +34,12 @@ export const mount = async (element: React.ReactElement) => {
   return renderer;
 };
 
+/** Re-renders with new props, letting effects run, like a state change would. */
+export const update = (renderer: ReactTestRenderer, element: React.ReactElement) =>
+  act(async () => {
+    renderer.update(element);
+  });
+
 /** Pretends the phone's Reduce Motion setting is on (or off). */
 export const setReduceMotion = (enabled: boolean) =>
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(enabled);
