@@ -19,8 +19,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ToastHost from "@/components/ToastHost";
 import useReducedMotion from "@/lib/useReducedMotion";
-import { colors, motion, radii, spacing, type } from "@/constants/theme";
+import { bottomBar, colors, motion, radii, spacing, type } from "@/constants/theme";
 
 /** Dragging the header down further than this lets go of the sheet */
 const DISMISS_DRAG = 100;
@@ -71,6 +72,8 @@ const Sheet = ({
   const progress = useSharedValue(0);
   const drag = useSharedValue(0);
   const sheetHeight = useSharedValue(windowHeight);
+  // The same height, for the toast that sits above the sheet
+  const [measuredHeight, setMeasuredHeight] = useState(0);
   const dragStartY = useRef<number | null>(null);
   const wasVisible = useRef(false);
   const visibleRef = useRef(visible);
@@ -173,6 +176,7 @@ const Sheet = ({
             accessibilityViewIsModal
             onLayout={(event) => {
               sheetHeight.value = event.nativeEvent.layout.height;
+              setMeasuredHeight(event.nativeEvent.layout.height);
             }}
             style={[
               styles.sheet,
@@ -227,6 +231,9 @@ const Sheet = ({
             )}
           </Animated.View>
         </KeyboardAvoidingView>
+
+        {/* Toasts show above the sheet, not over its button */}
+        <ToastHost embedded bottomOffset={measuredHeight + bottomBar.toastGap} />
       </View>
     </Modal>
   );

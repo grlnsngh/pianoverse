@@ -59,13 +59,16 @@ const sold = makePiano({
 });
 const pianos = [youngChang, weber, schimmel, samick, petrof, warehouse, forSale, sold];
 
-const payment = (id: string, pianoId: string, paidOn: string, amount: number) => ({
+// Saved with the name of whoever had the piano when it was recorded
+const payment = (id: string, pianoId: string, paidOn: string, amount: number, customer?: string | null) => ({
   $id: id,
   $createdAt: `${paidOn}T09:00:00.000+00:00`,
   piano_id: pianoId,
   creator: testUser.accountId,
   amount,
   paid_on: paidOn,
+  customer_name:
+    customer === undefined ? pianos.find((piano) => piano.$id === pianoId)?.rental_customer_name : customer,
 });
 // Four this month (₹19,000) and two from before
 const payments = [
@@ -411,6 +414,27 @@ describe("Recent payments", () => {
       "Naina Verma, Schimmel W114 · 2 Sep, ₹6,200",
       "Arjun Bedi, Samick SU-118 · 28 Aug, ₹3,000",
     ]);
+  });
+
+  it("shows the name saved with a payment, not the name of whoever has the piano now", async () => {
+    const { renderer } = await open({ paid: [payment("june", "weber", "2026-09-25", 5000, "Asha Mehta")] });
+
+    const rows = renderer.root.findAll(
+      (node: any) => typeof node.type === "string" && / · .*₹[\d,]+$/.test(node.props.accessibilityLabel ?? "")
+    );
+    // Weber is rented to Karan Malhotra now (Needs attention says so), but this payment says who paid it
+    expect(rows.map((node: any) => node.props.accessibilityLabel)).toEqual(["Asha Mehta, Weber W-121 · 25 Sep, ₹5,000"]);
+  });
+
+  it("shows the piano's title for a payment recorded before names were saved", async () => {
+    const { renderer } = await open({ paid: [payment("old", "weber", "2026-09-25", 5000, null)] });
+
+    expect(allTexts(renderer.root)).toContain("Weber W-121");
+    expect(
+      renderer.root.findAll(
+        (node: any) => node.props.accessibilityLabel === "Weber W-121, 25 Sep, ₹5,000"
+      ).length
+    ).toBeGreaterThan(0);
   });
 
   it("shows the amounts with lined-up digits", async () => {

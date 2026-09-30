@@ -18,16 +18,16 @@ import icons from "@/constants/icons";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
-  captureAlerts,
   createTestStore,
+  dialogOf,
   findByImageSource,
   press,
+  pressDialog,
   pressText,
   renderWithStore,
 } from "./helpers/render";
 
 const piano = makePiano({ $id: "piano-1", title: "Yamaha U1" });
-let alerts: ReturnType<typeof captureAlerts>;
 
 const renderGridCard = (onDelete = jest.fn()) => {
   const store = createTestStore({ user: testUser, items: [piano] });
@@ -45,7 +45,7 @@ const renderGridCard = (onDelete = jest.fn()) => {
   );
   const pressTrash = () =>
     press(findByImageSource(renderer.root, (source) => source === icons.trash));
-  return { store, pressTrash, onDelete };
+  return { store, renderer, pressTrash, onDelete };
 };
 
 beforeEach(() => {
@@ -58,7 +58,6 @@ beforeEach(() => {
     size: 10,
     uri: "file:///old.jpg",
   });
-  alerts = captureAlerts();
 });
 
 afterEach(() => {
@@ -66,20 +65,25 @@ afterEach(() => {
 });
 
 it("asks for confirmation before deleting from a card", async () => {
-  const { pressTrash, onDelete } = renderGridCard();
+  const { renderer, pressTrash, onDelete } = renderGridCard();
 
   await pressTrash();
 
-  expect(alerts.titles()).toEqual(["Delete Piano"]);
+  expect(dialogOf(renderer.root)).toEqual({
+    title: "Delete Yamaha U1?",
+    message: "This removes the piano, its photos and its payments. This can’t be undone.",
+    // The one that destroys something first, the safe one last
+    actions: ["Delete", "Cancel"],
+  });
   expect(fakeBackend.documents.has("piano-1")).toBe(true);
   expect(onDelete).not.toHaveBeenCalled();
 });
 
 it("deletes the piano once the user confirms", async () => {
-  const { store, pressTrash, onDelete } = renderGridCard();
+  const { store, renderer, pressTrash, onDelete } = renderGridCard();
 
   await pressTrash();
-  await alerts.pressButton("Delete");
+  await pressDialog(renderer.root, "Delete");
 
   expect(fakeBackend.documents.has("piano-1")).toBe(false);
   expect(fakeBackend.files.has("old-file")).toBe(false);
@@ -89,10 +93,10 @@ it("deletes the piano once the user confirms", async () => {
 });
 
 it("keeps the piano when the user cancels", async () => {
-  const { store, pressTrash, onDelete } = renderGridCard();
+  const { store, renderer, pressTrash, onDelete } = renderGridCard();
 
   await pressTrash();
-  await alerts.pressButton("Cancel");
+  await pressDialog(renderer.root, "Cancel");
 
   expect(fakeBackend.documents.has("piano-1")).toBe(true);
   expect(store.getState().pianos.items).toEqual([piano]);
@@ -124,7 +128,7 @@ describe.each([
     await pressText(renderer.root, "Delete");
 
     expect(closeMenu).toHaveBeenCalled();
-    expect(alerts.titles()).toEqual(["Delete Piano"]);
+    expect(dialogOf(renderer.root)?.title).toBe("Delete Yamaha U1?");
     expect(fakeBackend.documents.has("piano-1")).toBe(true);
   });
 
@@ -132,7 +136,7 @@ describe.each([
     const { store, renderer } = renderWithOpenMenu();
 
     await pressText(renderer.root, "Delete");
-    await alerts.pressButton("Delete");
+    await pressDialog(renderer.root, "Delete");
 
     expect(fakeBackend.documents.has("piano-1")).toBe(false);
     expect(store.getState().pianos.items).toEqual([]);

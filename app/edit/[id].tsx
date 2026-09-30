@@ -11,10 +11,11 @@ import {
   toPianoEntryInput,
 } from "@/utils/pianoForm";
 import { getPianoPhotos } from "@/utils/photos";
+import { showDialog } from "@/utils/dialog";
 import { showToast } from "@/utils/toast";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Platform, ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import CustomButton from "@/components/CustomButton";
@@ -57,18 +58,15 @@ const EditScreen = () => {
         if (saved.current || !hasChanges.current) return;
         event.preventDefault();
         const discard = () => navigation.dispatch(event.data.action);
-        const message = "Your changes to this piano haven't been saved.";
 
-        // Alert.alert does nothing on web
-        if (Platform.OS === "web") {
-          if (window.confirm(`${message} Discard them?`)) discard();
-          return;
-        }
-
-        Alert.alert("Discard Changes?", message, [
-          { text: "Keep Editing", style: "cancel" },
-          { text: "Discard", style: "destructive", onPress: discard },
-        ]);
+        showDialog({
+          title: "Discard changes?",
+          message: "You have unsaved changes to this piano.",
+          actions: [
+            { label: "Discard", tone: "destructive", onPress: discard },
+            { label: "Keep editing", emphasis: true, onPress: () => {} },
+          ],
+        });
       }),
     [navigation]
   );

@@ -37,7 +37,9 @@ import {
   allTexts,
   captureAlerts,
   createTestStore,
+  dialogOf,
   flushPromises,
+  pressDialog,
   queryAllByText,
   renderWithStore,
 } from "./helpers/render";
@@ -549,7 +551,7 @@ describe("the bar at the bottom", () => {
     await press(renderer, "Record payment");
 
     expect(
-      renderer.root.findAll((node) => node.props.title === "Amount" && typeof node.props.handleChangeText === "function").length
+      renderer.root.findAll((node) => node.props.accessibilityLabel === "Amount" && typeof node.props.onChangeText === "function").length
     ).toBeGreaterThan(0);
   });
 
@@ -557,12 +559,16 @@ describe("the bar at the bottom", () => {
     const onSaleScreen = await open(onSale);
     await press(onSaleScreen.renderer, "Mark as sold");
     expect(
-      onSaleScreen.renderer.root.findAll((node) => node.props.title === "Sale Price" && typeof node.props.handleChangeText === "function").length
+      onSaleScreen.renderer.root.findAll((node) => node.props.accessibilityLabel === "Sale price" && typeof node.props.onChangeText === "function").length
     ).toBeGreaterThan(0);
 
     const soldScreen = await open(sold);
     await press(soldScreen.renderer, "Undo sale");
-    expect(alerts.titles()).toEqual(["Undo Sale"]);
+    expect(dialogOf(soldScreen.renderer.root)).toEqual({
+      title: "Undo this sale?",
+      message: "Zimmermann Z-121 goes back into stock and its sale details are removed.",
+      actions: ["Undo sale", "Cancel"],
+    });
   });
 });
 
@@ -621,7 +627,7 @@ describe("the ⋯ menu", () => {
     expect(alerts.titles()).toEqual([]);
 
     await advance(300);
-    expect(alerts.titles()).toEqual(["Delete Piano"]);
+    expect(dialogOf(renderer.root)?.title).toBe("Delete Steinway D?");
   });
 });
 
@@ -704,9 +710,7 @@ describe("a piano that isn't there", () => {
     const { renderer } = await open(warehouse);
 
     await press(renderer, "Delete piano");
-    await act(async () => {
-      await alerts.pressButton("Delete");
-    });
+    await pressDialog(renderer.root, "Delete");
     await flushPromises();
 
     expect(has(renderer, "Piano not found")).toBe(false);

@@ -58,7 +58,7 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
       dispatch(clearSelectedItems() as any);
       dispatch(setBulkSelectionMode(false) as any);
       showToast(
-        `Deleted ${deletedIds.length} piano${deletedIds.length === 1 ? "" : "s"}`,
+        `Deleted ${deletedIds.length} piano${deletedIds.length === 1 ? "" : "s"}`, { variant: "success" },
       );
     } else {
       // The pianos that could not be deleted stay selected to try again

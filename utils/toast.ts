@@ -1,5 +1,3 @@
-import { Platform, ToastAndroid } from "react-native";
-
 export type ToastDuration = "short" | "long";
 
 /** `success` shows a check, `error` an alert icon. Without one the toast is text only. */
@@ -23,26 +21,37 @@ export interface ToastDetails {
   action?: ToastAction;
 }
 
-type ToastListener = (
+export type ToastListener = (
   message: string,
   duration: ToastDuration,
   details: ToastDetails
 ) => void;
 
 let listener: ToastListener | null = null;
+const embeddedListeners = new Set<ToastListener>();
 
-/** Used by ToastHost, which draws the toast in the app. */
+/** Used by the ToastHost in the root layout, which draws the toast in the app. */
 export const setToastListener = (nextListener: ToastListener | null) => {
   listener = nextListener;
 };
 
 /**
- * Shows a short message. `options` is a duration, or an object with the
- * duration, a `variant` and an `action`.
- *
- * On Android a plain message is still a native toast, which shows above sheets
- * and dialogs. A native toast can't hold a button, so a toast with an `action`
- * is always drawn by ToastHost. Elsewhere (iOS, web) ToastHost draws every toast.
+ * Used by a ToastHost inside a sheet or a dialog. Those are modals, which draw
+ * above the root host, so each carries a host of its own to show the toast
+ * above the dim. Returns the function that stops listening.
+ */
+export const addToastListener = (nextListener: ToastListener) => {
+  embeddedListeners.add(nextListener);
+  return () => {
+    embeddedListeners.delete(nextListener);
+  };
+};
+
+/**
+ * Shows a short message as the design's dark pill, on every platform.
+ * `options` is a duration, or an object with the duration, a `variant` (a
+ * check for something saved, an alert for something that failed) and an
+ * `action` (Undo, Retry).
  */
 export const showToast = (
   message: string,
@@ -51,12 +60,8 @@ export const showToast = (
   const { duration = "short", variant, action }: ToastOptions =
     typeof options === "string" ? { duration: options } : options;
 
-  if (Platform.OS === "android" && !action) {
-    ToastAndroid.show(
-      message,
-      duration === "long" ? ToastAndroid.LONG : ToastAndroid.SHORT
-    );
-  } else {
-    listener?.(message, duration, { variant, action });
-  }
+  listener?.(message, duration, { variant, action });
+  embeddedListeners.forEach((embedded) =>
+    embedded(message, duration, { variant, action })
+  );
 };

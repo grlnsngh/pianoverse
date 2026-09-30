@@ -10,6 +10,7 @@ import GlobalProvider from "@/context/GlobalProvider";
 import { Provider } from "react-redux";
 import { PaperProvider } from "react-native-paper";
 import store from "@/redux/store";
+import DialogHost from "@/components/DialogHost";
 import ToastHost from "@/components/ToastHost";
 import { PianoDataProvider } from "@/lib/PianoDataContext";
 
@@ -80,6 +81,7 @@ export default function RootLayout() {
             </Stack>
           </PianoDataProvider>
           <ToastHost />
+          <DialogHost />
         </PaperProvider>
       </GlobalProvider>
     </Provider>

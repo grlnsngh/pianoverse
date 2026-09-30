@@ -86,23 +86,60 @@ describe("a date field", () => {
 
 describe("the date fields of the sheets", () => {
   const piano = makePiano({ category: "rentable", rental_price: 4000 });
+  const ALL_BUT_DATE = [
+    "hrtime",
+    "nextTick",
+    "performance",
+    "queueMicrotask",
+    "requestAnimationFrame",
+    "cancelAnimationFrame",
+    "requestIdleCallback",
+    "cancelIdleCallback",
+    "setImmediate",
+    "clearImmediate",
+    "setInterval",
+    "clearInterval",
+    "setTimeout",
+    "clearTimeout",
+  ] as const;
+
+  // Fix "today" in the middle of a month, so no test depends on the day it runs
+  beforeEach(() => {
+    jest.useFakeTimers({ now: new Date(2026, 8, 15, 12, 0, 0), doNotFake: [...ALL_BUT_DATE] });
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  const press = (renderer: ReactTestRenderer, label: string) => {
+    const [node] = renderer.root.findAll(
+      (candidate) =>
+        candidate.props.accessibilityLabel === label &&
+        typeof candidate.props.onPress === "function"
+    );
+    if (!node) throw new Error(`Nothing labelled "${label}"`);
+    act(() => node.props.onPress());
+  };
 
   it("let the sale date be picked, and not in the future", () => {
     const renderer = renderWithStore(
       <MarkAsSoldSheet piano={piano} visible onClose={jest.fn()} />,
       createTestStore({ user: testUser, items: [piano] })
     );
+    expect(allTexts(renderer.root)).toContain("Today, 15 Sep 2026");
 
-    expect(renderer.root.findAllByType(TextInput).length).toBeGreaterThan(0);
-    const picker = openDatePicker(renderer.root, "Sale Date");
-    expect(picker.props.maximumDate.toDateString()).toBe(
-      new Date().toDateString()
-    );
+    press(renderer, "Sold on, Today, 15 Sep 2026");
+    // Tomorrow can't be chosen, today can
+    const tomorrow = renderer.root.findAll(
+      (node) => node.props.accessibilityLabel === "Wednesday 16 September 2026"
+    )[0];
+    expect(tomorrow.props.accessibilityState.disabled).toBe(true);
 
-    act(() => picker.props.onChange({ type: "set" }, new Date(2026, 0, 3)));
-    expect(allTexts(renderer.root)).toContain("Sat Jan 03 2026");
-    // And again
-    openDatePicker(renderer.root, "Sale Date");
+    press(renderer, "Thursday 3 September 2026");
+    press(renderer, "Done");
+
+    expect(allTexts(renderer.root)).toContain("3 Sep 2026");
+    expect(allTexts(renderer.root)).not.toContain("Today, 15 Sep 2026");
   });
 
   it("let the day a payment was made be picked", () => {
@@ -116,8 +153,10 @@ describe("the date fields of the sheets", () => {
       createTestStore({ user: testUser, items: [piano] })
     );
 
-    chooseDate(renderer.root, "Paid On", new Date(2026, 0, 3));
+    press(renderer, "Paid on, Today, 15 Sep 2026");
+    press(renderer, "Thursday 3 September 2026");
+    press(renderer, "Done");
 
-    expect(allTexts(renderer.root)).toContain("Sat Jan 03 2026");
+    expect(allTexts(renderer.root)).toContain("3 Sep 2026");
   });
 });

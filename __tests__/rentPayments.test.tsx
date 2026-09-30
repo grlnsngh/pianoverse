@@ -37,9 +37,12 @@ import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
   captureAlerts,
+  captureToastCalls,
   captureToasts,
   createTestStore,
+  dialogOf,
   flushPromises,
+  pressDialog,
   pressText,
   renderWithStore,
 } from "./helpers/render";
@@ -95,29 +98,32 @@ const seedPayment = (
     ...extra,
   });
 
-const field = (renderer: ReactTestRenderer, title: string) => {
+// The sheets' fields are found by the name they are read out as, and their
+// buttons by the label on them
+const field = (renderer: ReactTestRenderer, label: string) => {
   const [node] = renderer.root.findAll(
     (candidate) =>
-      candidate.props.title === title &&
-      typeof candidate.props.handleChangeText === "function"
+      candidate.props.accessibilityLabel === label &&
+      typeof candidate.props.onChangeText === "function"
   );
-  if (!node) throw new Error(`No field titled "${title}"`);
+  if (!node) throw new Error(`No field named "${label}"`);
   return node;
 };
 
-const typeInto = (renderer: ReactTestRenderer, title: string, text: string) =>
+const typeInto = (renderer: ReactTestRenderer, label: string, text: string) =>
   act(() => {
-    field(renderer, title).props.handleChangeText(text);
+    field(renderer, label).props.onChangeText(text);
   });
 
-const pressButton = async (renderer: ReactTestRenderer, title: string) => {
+const pressButton = async (renderer: ReactTestRenderer, label: string) => {
   const [button] = renderer.root.findAll(
     (node) =>
-      node.props.title === title && typeof node.props.handlePress === "function"
+      node.props.accessibilityLabel === label &&
+      typeof node.props.onPress === "function"
   );
-  if (!button) throw new Error(`No "${title}" button`);
+  if (!button) throw new Error(`No "${label}" button`);
   await act(async () => {
-    await button.props.handlePress();
+    await button.props.onPress();
   });
   await flushPromises();
 };
@@ -265,9 +271,9 @@ describe("rent payments on the Detail screen", () => {
     const { renderer } = await openDetail();
 
     await pressText(renderer.root, "Record payment");
-    expect(field(renderer, "Amount").props.value).toBe("4000");
+    expect(field(renderer, "Amount").props.value).toBe("4,000");
     typeInto(renderer, "Note", "  Cash ");
-    await pressButton(renderer, "Save Payment");
+    await pressButton(renderer, "Save payment");
 
     expect(alerts.titles()).toEqual([]);
     expect([...fakeBackend.payments.values()]).toEqual([
@@ -292,11 +298,11 @@ describe("rent payments on the Detail screen", () => {
     expect(store.getState().payments.changeCount).toBe(0);
 
     await pressText(renderer.root, "Record payment");
-    await pressButton(renderer, "Save Payment");
+    await pressButton(renderer, "Save payment");
     expect(store.getState().payments.changeCount).toBe(1);
 
     await holdPayment(renderer, "₹4,000");
-    await alerts.pressButton("Delete");
+    await pressDialog(renderer.root, "Delete");
     expect(store.getState().payments.changeCount).toBe(2);
   });
 
@@ -305,7 +311,7 @@ describe("rent payments on the Detail screen", () => {
 
     await pressText(renderer.root, "Record payment");
     fakeBackend.missingCollections.add("rent_payments");
-    await pressButton(renderer, "Save Payment");
+    await pressButton(renderer, "Save payment");
 
     expect(store.getState().payments.changeCount).toBe(0);
   });
@@ -315,7 +321,7 @@ describe("rent payments on the Detail screen", () => {
 
     await pressText(renderer.root, "Record payment");
     typeInto(renderer, "Amount", "2500.5");
-    await pressButton(renderer, "Save Payment");
+    await pressButton(renderer, "Save payment");
 
     expect([...fakeBackend.payments.values()][0].amount).toBe(2500.5);
     expect(allTexts(renderer.root)).toContain("₹2,500.5 received · 1 payment");
@@ -326,7 +332,7 @@ describe("rent payments on the Detail screen", () => {
 
     await pressText(renderer.root, "Record payment");
     typeInto(renderer, "Amount", "");
-    await pressButton(renderer, "Save Payment");
+    await pressButton(renderer, "Save payment");
 
     expect(alerts.titles()).toEqual(["Missing Details"]);
     expect(alerts.spy.mock.calls[0][1]).toBe("Please enter the amount.");
@@ -334,24 +340,28 @@ describe("rent payments on the Detail screen", () => {
   });
 
   it("asks to sign in again when nobody is signed in", async () => {
+    const toasts = captureToastCalls();
     const { renderer } = await openDetail(rental, null);
 
     await pressText(renderer.root, "Record payment");
-    await pressButton(renderer, "Save Payment");
+    await pressButton(renderer, "Save payment");
 
-    expect(alerts.titles()).toEqual(["Couldn't Save"]);
-    expect(alerts.spy.mock.calls[0][1]).toBe("Please sign in again.");
+    expect(toasts).toEqual([{ message: "Please sign in again.", duration: "long", variant: "error", action: undefined }]);
     expect(fakeBackend.payments.size).toBe(0);
   });
 
   it("keeps the sheet open and says so when the payment can't be saved", async () => {
+    const toasts = captureToastCalls();
     const { renderer } = await openDetail();
 
     await pressText(renderer.root, "Record payment");
     fakeBackend.missingCollections.add("rent_payments");
-    await pressButton(renderer, "Save Payment");
+    await pressButton(renderer, "Save payment");
 
-    expect(alerts.titles()).toEqual(["Couldn't Save"]);
+    // An error toast, with no Retry: the sheet is still open, so Save can be pressed again
+    expect(toasts).toEqual([
+      { message: "Couldn’t save. Check your connection.", duration: "long", variant: "error", action: undefined },
+    ]);
     expect(field(renderer, "Amount")).toBeTruthy();
   });
 
@@ -361,9 +371,13 @@ describe("rent payments on the Detail screen", () => {
     const { renderer } = await openDetail();
 
     await holdPayment(renderer, "₹5,000");
-    expect(alerts.titles()).toEqual(["Delete Payment"]);
+    expect(dialogOf(renderer.root)).toEqual({
+      title: "Delete this payment?",
+      message: "₹5,000 paid on 5 Aug 2026 will be removed from this rental.",
+      actions: ["Delete", "Cancel"],
+    });
     expect(fakeBackend.payments.size).toBe(1);
-    await alerts.pressButton("Delete");
+    await pressDialog(renderer.root, "Delete");
 
     expect(fakeBackend.payments.size).toBe(0);
     expect(toasts).toEqual(["Payment deleted"]);
@@ -375,7 +389,7 @@ describe("rent payments on the Detail screen", () => {
     const { renderer } = await openDetail();
 
     await holdPayment(renderer, "₹5,000");
-    await alerts.pressButton("Cancel");
+    await pressDialog(renderer.root, "Cancel");
 
     expect(fakeBackend.payments.size).toBe(1);
     expect(allTexts(renderer.root)).toContain("₹5,000 received · 1 payment");
@@ -460,7 +474,7 @@ describe("the Payments section (Detail board)", () => {
       row.props.onAccessibilityAction({ nativeEvent: { actionName: "delete" } });
     });
 
-    expect(alerts.titles()).toEqual(["Delete Payment"]);
+    expect(dialogOf(renderer.root)?.title).toBe("Delete this payment?");
   });
 
   it("reads a payment as its day, its note and its amount", async () => {
@@ -468,5 +482,76 @@ describe("the Payments section (Detail board)", () => {
     const { renderer } = await openDetail();
 
     expect(rows(renderer)[0].props.accessibilityLabel).toBe("5 Aug 2026, UPI, ₹5,000");
+  });
+});
+
+describe("the renter's name saved with a payment", () => {
+  const record = (extra: Record<string, unknown> = {}) =>
+    appwrite.createRentPayment({
+      pianoId: "piano-1",
+      creator: "account-1",
+      amount: 4500,
+      paidOn: new Date(2026, 8, 5),
+      ...extra,
+    } as any);
+
+  it("is saved with the payment, so it stays right after a re-rent", async () => {
+    await record({ customerName: "  Asha Mehta " });
+
+    expect([...fakeBackend.payments.values()][0]).toMatchObject({ customer_name: "Asha Mehta" });
+  });
+
+  it("is left out when nobody is renting the piano", async () => {
+    await record();
+    await record({ customerName: "   " });
+
+    for (const payment of fakeBackend.payments.values()) {
+      expect(payment).not.toHaveProperty("customer_name");
+    }
+  });
+
+  it("comes back with the payments that were saved with one, and not on the older ones", async () => {
+    seedPayment("older", "2026-07-05", 3500);
+    await record({ customerName: "Asha Mehta" });
+
+    const payments = await appwrite.getRentPayments("piano-1");
+
+    expect(payments.map((payment) => payment.customer_name ?? null).sort()).toEqual(["Asha Mehta", null]);
+  });
+
+  it("still saves the payment, without the name, when the table has no customer_name column yet", async () => {
+    fakeBackend.unknownColumns.add("customer_name");
+
+    const saved = await record({ customerName: "Asha Mehta" });
+
+    expect(saved).toMatchObject({ amount: 4500 });
+    expect([...fakeBackend.payments.values()]).toHaveLength(1);
+    expect([...fakeBackend.payments.values()][0]).not.toHaveProperty("customer_name");
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("customer_name"));
+  });
+
+  it("doesn't hide any other reason a payment can't be saved", async () => {
+    fakeBackend.missingCollections.add("rent_payments");
+
+    await expect(record({ customerName: "Asha Mehta" })).rejects.toThrow();
+    expect(fakeBackend.payments.size).toBe(0);
+  });
+
+  it("is saved when a payment is recorded from the piano's page", async () => {
+    const { renderer } = await openDetail();
+
+    await pressText(renderer.root, "Record payment");
+    await pressButton(renderer, "Save payment");
+
+    expect([...fakeBackend.payments.values()][0]).toMatchObject({ customer_name: "Asha Mehta" });
+  });
+
+  it("is used in the question when a payment is deleted", async () => {
+    seedPayment("p", "2026-08-05", 5000, { customer_name: "Asha Mehta" });
+    const { renderer } = await openDetail();
+
+    await holdPayment(renderer, "₹5,000");
+
+    expect(dialogOf(renderer.root)?.message).toBe("₹5,000 paid on 5 Aug 2026 will be removed from Asha Mehta’s rental.");
   });
 });

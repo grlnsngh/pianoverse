@@ -629,6 +629,9 @@ export interface RentPayment {
   // A calendar day, e.g. "2026-09-05"
   paid_on: string;
   note?: string | null;
+  // Who had the piano when the payment was recorded. Payments recorded before
+  // this was saved don't have it.
+  customer_name?: string | null;
 }
 
 export interface NewRentPayment {
@@ -637,6 +640,8 @@ export interface NewRentPayment {
   amount: number;
   paidOn: Date;
   note?: string;
+  /** The renter's name, saved with the payment so it stays right after a re-rent */
+  customerName?: string;
 }
 
 const PAYMENT_PAGE_SIZE = 100;
@@ -651,19 +656,35 @@ const MAX_PAYMENT_PAGES = 50;
 export async function createRentPayment(
   payment: NewRentPayment
 ): Promise<RentPayment> {
-  const document = await databases.createDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.rentPaymentsCollectionId,
-    ID.unique(),
-    {
-      piano_id: payment.pianoId,
-      creator: payment.creator,
-      amount: payment.amount,
-      paid_on: toStoredDate(payment.paidOn),
-      ...(payment.note ? { note: payment.note } : {}),
+  const data = {
+    piano_id: payment.pianoId,
+    creator: payment.creator,
+    amount: payment.amount,
+    paid_on: toStoredDate(payment.paidOn),
+    ...(payment.note ? { note: payment.note } : {}),
+  };
+  const create = (fields: Record<string, unknown>) =>
+    databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.rentPaymentsCollectionId,
+      ID.unique(),
+      fields
+    );
+
+  const customerName = payment.customerName?.trim();
+  if (!customerName) return (await create(data)) as unknown as RentPayment;
+
+  try {
+    return (await create({ ...data, customer_name: customerName })) as unknown as RentPayment;
+  } catch (error) {
+    // The table may not have the customer_name column yet: the payment is
+    // still worth saving, so record it without the name rather than failing
+    if (!/unknown attribute|invalid document structure/i.test(String((error as Error)?.message))) {
+      throw error;
     }
-  );
-  return document as unknown as RentPayment;
+    console.warn("rent_payments has no customer_name column yet; saved without it");
+    return (await create(data)) as unknown as RentPayment;
+  }
 }
 
 /** Every rent payment matching the queries, fetched page by page. */

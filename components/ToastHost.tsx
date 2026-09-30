@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Icon } from "@/components/ui";
+import { SafeAreaInsetsContext } from "react-native-safe-area-context";
+import Icon from "@/components/ui/Icon";
 import {
   bottomBar,
   colors,
@@ -12,7 +12,7 @@ import {
   type,
 } from "@/constants/theme";
 import useReducedMotion from "@/lib/useReducedMotion";
-import { setToastListener, ToastDetails } from "@/utils/toast";
+import { addToastListener, setToastListener, ToastDetails, ToastListener } from "@/utils/toast";
 
 const HOLD_MS = {
   short: motion.duration.toastHold,
@@ -27,16 +27,28 @@ type ActiveToast = ToastDetails & { id: number; message: string };
 const standard = Easing.bezier(...motion.easing.decelerate);
 const leaving = Easing.bezier(...motion.easing.accelerate);
 
+export type ToastHostProps = {
+  /**
+   * The host of a sheet or a dialog. Those are modals and draw above the root
+   * host, so a toast would be hidden behind them: each carries its own.
+   */
+  embedded?: boolean;
+  /** How far above the bottom of the screen the toast sits. Defaults to above the bar. */
+  bottomOffset?: number;
+};
+
 /**
  * Draws the toasts from showToast(): an ink pill at the bottom of the screen
  * that rises in over 220 ms, stays for 3 s and sinks out over 180 ms. With
- * reduced motion it only fades, over 120 ms.
+ * reduced motion it only fades, over 120 ms. The same on every platform, and
+ * above sheets and dialogs too.
  */
-const ToastHost = () => {
+const ToastHost = ({ embedded = false, bottomOffset }: ToastHostProps) => {
   const [toast, setToast] = useState<ActiveToast | null>(null);
   const opacity = useRef(new Animated.Value(0)).current;
   const offset = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets();
+  // (A dialog can be drawn with no safe area around it, as in a test: no inset then)
+  const insets = useContext(SafeAreaInsetsContext) ?? { bottom: 0 };
   const reduced = useReducedMotion();
   const reducedRef = useRef(reduced);
   const dismiss = useRef<() => void>(() => {});
@@ -48,6 +60,7 @@ const ToastHost = () => {
   useEffect(() => {
     let hideTimer: ReturnType<typeof setTimeout> | undefined;
     let latest = 0;
+    let stopListening: () => void = () => {};
 
     const hide = (id: number) => {
       clearTimeout(hideTimer);
@@ -71,7 +84,7 @@ const ToastHost = () => {
       });
     };
 
-    setToastListener((message, duration, details) => {
+    const show: ToastListener = (message, duration, details) => {
       clearTimeout(hideTimer);
       const id = ++latest;
       const fade = reducedRef.current;
@@ -100,14 +113,20 @@ const ToastHost = () => {
         () => hide(id),
         motion.duration.toastIn + HOLD_MS[duration]
       );
-    });
+    };
+    if (embedded) {
+      stopListening = addToastListener(show);
+    } else {
+      setToastListener(show);
+      stopListening = () => setToastListener(null);
+    }
     dismiss.current = () => hide(latest);
 
     return () => {
-      setToastListener(null);
+      stopListening();
       clearTimeout(hideTimer);
     };
-  }, [opacity, offset]);
+  }, [opacity, offset, embedded]);
 
   if (!toast) return null;
 
@@ -126,7 +145,7 @@ const ToastHost = () => {
       accessibilityRole={variant === "error" ? "alert" : undefined}
       style={[
         styles.position,
-        { bottom: aboveBottomBar, opacity, transform: [{ translateY: offset }] },
+        { bottom: bottomOffset ?? aboveBottomBar, opacity, transform: [{ translateY: offset }] },
       ]}
     >
       <View style={styles.toast}>

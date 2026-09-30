@@ -29,6 +29,8 @@ export const fakeBackend = {
   documents: new Map<string, Doc>(),
   payments: new Map<string, Doc>(),
   missingCollections: new Set<string>(),
+  // Columns the tables don't have (yet): a document that uses one is rejected
+  unknownColumns: new Set<string>(),
   files: new Map<string, StoredFile>(),
   listCalls: [] as string[][],
   failNextDocumentUpdate: false,
@@ -37,6 +39,7 @@ export const fakeBackend = {
     this.documents.clear();
     this.payments.clear();
     this.missingCollections.clear();
+    this.unknownColumns.clear();
     this.files.clear();
     this.listCalls = [];
     this.failNextDocumentUpdate = false;
@@ -141,6 +144,11 @@ class Databases {
 
   async createDocument(_databaseId: string, collectionId: string, id: string, data: object) {
     const store = storeFor(collectionId);
+    for (const column of Object.keys(data)) {
+      if (fakeBackend.unknownColumns.has(column)) {
+        throw new Error(`Invalid document structure: Unknown attribute: "${column}"`);
+      }
+    }
     rejectNonNumbers(data as Record<string, unknown>);
     const doc = { ...data, $id: id, $createdAt: new Date().toISOString() };
     store.set(id, doc);

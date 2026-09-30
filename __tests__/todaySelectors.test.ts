@@ -211,17 +211,25 @@ describe("stockCounts", () => {
 });
 
 describe("payments", () => {
-  const payment = (id: string, piano: string, paidOn: string, amount: number, createdAt = "2026-09-01T10:00:00.000+00:00") => ({
+  const payment = (
+    id: string,
+    piano: string,
+    paidOn: string,
+    amount: number,
+    createdAt = "2026-09-01T10:00:00.000+00:00",
+    customer_name?: string
+  ) => ({
     $id: id,
     $createdAt: createdAt,
     piano_id: piano,
     creator: "user",
     amount,
     paid_on: paidOn,
+    ...(customer_name ? { customer_name } : {}),
   });
   const payments = [
     payment("p1", "weber", "2026-09-14", 4000),
-    payment("p2", "weber", "2026-09-25T00:00:00.000+00:00", 5000),
+    payment("p2", "weber", "2026-09-25T00:00:00.000+00:00", 5000, undefined, "Karan Malhotra"),
     payment("p3", "samick", "2026-08-28", 3800),
     payment("p4", "samick", "2026-09-21", 3800, "2026-09-21T09:00:00.000+00:00"),
     payment("p5", "samick", "2026-09-21", 100, "2026-09-21T15:00:00.000+00:00"),
@@ -256,7 +264,7 @@ describe("payments", () => {
     });
     const samick = makePiano({ $id: "samick", title: "Samick SU-118", category: "rentable" });
 
-    it("names the customer, then the piano and the day", () => {
+    it("names the customer saved with the payment, then the piano and the day", () => {
       const [first] = recentPayments(payments, [weber, samick]);
 
       expect(first).toEqual({
@@ -268,12 +276,31 @@ describe("payments", () => {
       });
     });
 
-    it("falls back to the piano's title when there is no customer name", () => {
+    it("falls back to the piano's title when the payment has no saved customer name", () => {
       const rows = recentPayments(payments, [weber, samick]);
       const samickRow = rows.find((row) => row.id === "p5")!;
 
       expect(samickRow.primary).toBe("Samick SU-118");
       expect(samickRow.secondary).toBe("21 Sep");
+    });
+
+    it("never uses the piano's current customer for a payment recorded before names were saved", () => {
+      // Weber is rented to Karan Malhotra now, but this payment was recorded
+      // before names were saved, so it may well have been someone else's
+      const rows = recentPayments([payment("old", "weber", "2026-06-05", 4000)], [weber]);
+
+      expect(rows[0].primary).toBe("Weber W-121");
+      expect(rows[0].secondary).toBe("5 Jun");
+    });
+
+    it("keeps the name that was saved even after the piano is rented to someone else", () => {
+      const rows = recentPayments(
+        [payment("june", "weber", "2026-06-05", 4000, undefined, "Asha Mehta")],
+        [weber]
+      );
+
+      expect(rows[0].primary).toBe("Asha Mehta");
+      expect(rows[0].secondary).toBe("Weber W-121 · 5 Jun");
     });
 
     it("stops at the limit, newest first", () => {
@@ -293,7 +320,7 @@ describe("payments", () => {
     });
 
     it("writes the year for a payment from another year", () => {
-      const rows = recentPayments([payment("old", "weber", "2025-12-21", 100)], [weber]);
+      const rows = recentPayments([payment("old", "weber", "2025-12-21", 100, undefined, "Asha Mehta")], [weber]);
 
       expect(rows[0].secondary).toBe("Weber W-121 · 21 Dec 2025");
     });

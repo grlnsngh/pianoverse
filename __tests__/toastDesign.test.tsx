@@ -311,7 +311,7 @@ describe("showToast", () => {
       jest.replaceProperty(Platform, "OS", "android");
     });
 
-    it("uses the native toast for a plain message, which shows above sheets and dialogs", () => {
+    it("is the design's dark pill too, never the native toast", () => {
       const native = jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
       const received = listener();
 
@@ -319,15 +319,15 @@ describe("showToast", () => {
       showToast("Password reset email sent!", "long");
       showToast("Saved", { duration: "long", variant: "success" });
 
-      expect(native.mock.calls).toEqual([
-        ["Saved", ToastAndroid.SHORT],
-        ["Password reset email sent!", ToastAndroid.LONG],
-        ["Saved", ToastAndroid.LONG],
+      expect(native).not.toHaveBeenCalled();
+      expect(received.mock.calls).toEqual([
+        ["Saved", "short", { variant: undefined, action: undefined }],
+        ["Password reset email sent!", "long", { variant: undefined, action: undefined }],
+        ["Saved", "long", { variant: "success", action: undefined }],
       ]);
-      expect(received).not.toHaveBeenCalled();
     });
 
-    it("draws a toast with a button in the app, because a native toast can't hold one", () => {
+    it("draws a toast with a button in the app as well", () => {
       const native = jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
       const received = listener();
       const action = { label: "Undo", onPress: jest.fn() };

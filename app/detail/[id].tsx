@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Platform, ScrollView, Share, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { useSelector } from "react-redux";
 import { router, useLocalSearchParams } from "expo-router";
 import DetailSkeleton from "@/components/DetailSkeleton";
@@ -41,6 +41,7 @@ import {
   statusLine,
   titlePrice,
 } from "@/utils/pianoDetail";
+import { showDialog } from "@/utils/dialog";
 import { buildShareMessage } from "@/utils/share";
 
 // The ⋯ sheet takes 240 ms to leave; what it chose runs after that, so the
@@ -96,19 +97,24 @@ const DetailScreen = () => {
 
   const handleUndoSale = useCallback(() => {
     if (!piano) return;
-    Alert.alert("Undo Sale", `Mark "${piano.title}" as not sold? The sale details will be removed.`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Undo Sale",
-        style: "destructive",
-        onPress: () =>
-          updatePiano(
-            piano,
-            { sold_date: null, sold_price: null, sold_to_name: null, sold_to_address: null },
-            `${piano.title} is back in stock`
-          ),
-      },
-    ]);
+    showDialog({
+      title: "Undo this sale?",
+      message: `${piano.title} goes back into stock and its sale details are removed.`,
+      actions: [
+        {
+          label: "Undo sale",
+          tone: "destructive",
+          onPress: () =>
+            updatePiano(
+              piano,
+              { sold_date: null, sold_price: null, sold_to_name: null, sold_to_address: null },
+              `${piano.title} is back in stock`,
+              { retry: true }
+            ),
+        },
+        { label: "Cancel", onPress: () => {} },
+      ],
+    });
   }, [piano, updatePiano]);
 
   const handleShare = useCallback(async () => {
@@ -122,20 +128,19 @@ const DetailScreen = () => {
 
   const confirmRemovePayment = useCallback(
     (payment: RentPayment) => {
-      const message = `Delete the payment of ${formatRupees(payment.amount)} on ${
-        formatDay(payment.paid_on) ?? ""
-      }? This cannot be undone.`;
-
-      // Alert.alert does nothing on web
-      if (Platform.OS === "web") {
-        if (window.confirm(message)) rentPayments.remove(payment);
-        return;
-      }
-
-      Alert.alert("Delete Payment", message, [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => rentPayments.remove(payment) },
-      ]);
+      const whose = payment.customer_name?.trim()
+        ? `${payment.customer_name.trim()}’s rental`
+        : "this rental";
+      showDialog({
+        title: "Delete this payment?",
+        message: `${formatRupees(payment.amount)} paid on ${
+          formatDay(payment.paid_on) ?? ""
+        } will be removed from ${whose}.`,
+        actions: [
+          { label: "Delete", tone: "destructive", onPress: () => rentPayments.remove(payment) },
+          { label: "Cancel", onPress: () => {} },
+        ],
+      });
     },
     [rentPayments]
   );

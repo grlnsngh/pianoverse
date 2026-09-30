@@ -13,6 +13,7 @@ import navigationReducer, { INITIAL_TAB } from "@/redux/navigation/reducer";
 import paymentsReducer from "@/redux/payments/reducer";
 import pianoReducer from "@/redux/pianos/reducer";
 import userReducer from "@/redux/users/reducers";
+import DialogHost from "@/components/DialogHost";
 import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
 import { setToastListener } from "@/utils/toast";
@@ -52,7 +53,10 @@ export const renderWithStore = (ui: React.ReactElement, store: TestStore) => {
     renderer = create(
       <Provider store={store}>
         {/* Like the root layout */}
-        <PaperProvider>{ui}</PaperProvider>
+        <PaperProvider>
+          {ui}
+          <DialogHost />
+        </PaperProvider>
       </Provider>
     );
   });
@@ -153,7 +157,66 @@ export const captureAlerts = () => {
   };
 };
 
-/** Collects messages passed to showToast (tests run as iOS). */
+/**
+ * The dialog on screen (the app's own, drawn by DialogHost, not a system
+ * alert), or null: its title, its message and the labels of its choices in
+ * the order they are drawn.
+ */
+export const dialogOf = (root: ReactTestInstance) => {
+  const [card] = root.findAll(
+    (node) => typeof node.type === "string" && node.props.testID === "dialog-card"
+  );
+  if (!card) return null;
+  const actions = [
+    ...new Set(
+      card
+        .findAll(
+          (node) =>
+            typeof node.props.onPress === "function" &&
+            typeof node.props.accessibilityLabel === "string"
+        )
+        .map((node) => node.props.accessibilityLabel as string)
+    ),
+  ];
+  const words = card
+    .findAll(isHostText)
+    .map(textOf)
+    .filter((text) => !actions.includes(text));
+  return { title: words[0], message: words[1], actions };
+};
+
+/** Presses a choice of the dialog on screen. */
+export const pressDialog = async (root: ReactTestInstance, label: string) => {
+  const [card] = root.findAll(
+    (node) => typeof node.type === "string" && node.props.testID === "dialog-card"
+  );
+  if (!card) throw new Error("No dialog is showing");
+  const [row] = card.findAll(
+    (node) =>
+      node.props.accessibilityLabel === label &&
+      typeof node.props.onPress === "function"
+  );
+  if (!row) throw new Error(`The dialog has no "${label}" choice`);
+  await act(async () => {
+    await row.props.onPress();
+  });
+};
+
+/** Everything passed to showToast: the message, how long, and its variant and button. */
+export const captureToastCalls = () => {
+  const calls: {
+    message: string;
+    duration: string;
+    variant?: string;
+    action?: { label: string; onPress: () => void };
+  }[] = [];
+  setToastListener((message, duration, details) =>
+    calls.push({ message, duration, ...details })
+  );
+  return calls;
+};
+
+/** Collects messages passed to showToast. */
 export const captureToasts = () => {
   const messages: string[] = [];
   setToastListener((message) => messages.push(message));

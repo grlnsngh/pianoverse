@@ -13,7 +13,15 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-_(Nothing is waiting for you right now.)_
+### Q17. Should deleting a piano have an Undo?
+- **Status:** Open. Look at this on your phone first.
+- **Raised:** Batch 8 (the Feedback board draws a "Piano deleted  Undo" toast).
+- **In simple terms:** when you delete a piano, the app removes the piano **and its photos from the server at once**. Once the photos are gone they can't be brought back, so an Undo button on the toast would be a lie for a piano. Deleting a payment, marking a piano as sold and extending a rental **do** have Undo now, because those only change a few values.
+- **What the app does now (default):** after deleting a piano you get "Deleted Kawai K-300 successfully" with no Undo. The question before it ("Delete Kawai K-300? This removes the piano, its photos and its payments. This can't be undone.") is what protects you.
+- **Options:**
+  - **A. No Undo for a deleted piano** (now).
+  - **B. Wait about 5 seconds before really deleting**, so Undo can work: the piano disappears from the list at once, the toast has Undo, and the piano and its photos are only removed from the server when the 5 seconds pass. It is a bigger change, and if the app is closed in those 5 seconds the piano either comes back or is deleted late, so I would want to test it on your phone.
+- **Your answer:**
 
 ---
 
@@ -28,6 +36,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 - **Batch 4:** the Pianos header, tabs, grid and list, photo fallback, filter panel opening from the pill and the sort link, select mode, offline strip, empty states.
 - **Batch 5:** the filter sheet (Sort by list on top of it, the "Show N pianos" button), select mode (top bar, red Delete bar in the tab bar's place, the dialog, Android back), the refresh spinner, and Search (keyboard up at once, results as you type, bold matches, Clear, Cancel, no results).
 - **Batch 6:** the app opening on Today (then switch to Pianos at once: its list should be there), the amount and the three counts against what you know (In stock is now only the pianos that are here), Needs attention (order, red and orange), the Rented out shelf (sideways scroll, the bars, See all), Recent payments, pull down on Today, the skeleton on a slow connection, and airplane mode.
+- **Batch 8:** Record payment, Mark as sold and Extend rental, each with the keyboard up (the big amount, the rows) and with the calendar (month buttons, greyed days, Done); Extend rental on a running rental and on one that has ended; a toast showing above a sheet and above a dialog (Android and iOS: it should be the dark pill on both); Retry and Undo on the toasts (delete a payment then Undo, mark as sold then Undo, extend then Undo, turn on airplane mode and try to save); the Delete piano and Undo sale dialogs. **Create the `customer_name` column in Appwrite first** (see the README), then record a payment and look at Recent payments on Today.
 - **Batch 7:** a piano's page for a rental, one on sale, events, warehouse and a sold one: the photo under the status bar and its three buttons, swiping through photos and the count, the viewer (pinch, double tap, the strip, the hint), the Retry tile (airplane mode, then back on, then Retry), the bar's height above the home indicator, the rental bar and its dates on a narrow phone, pressing and holding a payment, the ⋯ menu, and opening a piano from a notification just after the app starts.
 - The full step-by-step list for each batch is in the chat message that ended that batch and in [PLAN.md](PLAN.md)'s Session log.
 

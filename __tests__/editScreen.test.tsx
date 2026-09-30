@@ -35,6 +35,8 @@ import { makePiano, testUser } from "./helpers/fixtures";
 import {
   captureAlerts,
   createTestStore,
+  dialogOf,
+  pressDialog,
   pressText,
   renderWithStore,
 } from "./helpers/render";
@@ -232,8 +234,13 @@ describe("leaving the Edit screen", () => {
     const event = tryToLeave();
 
     expect(event.preventDefault).toHaveBeenCalled();
-    expect(alerts.titles()).toEqual(["Discard Changes?"]);
-    await alerts.pressButton("Discard");
+    expect(dialogOf(renderer.root)).toEqual({
+      title: "Discard changes?",
+      message: "You have unsaved changes to this piano.",
+      // The one that throws work away first, the safe one last
+      actions: ["Discard", "Keep editing"],
+    });
+    await pressDialog(renderer.root, "Discard");
     expect(navigation.dispatch).toHaveBeenCalledWith(event.data.action);
     expect(fakeBackend.documents.get("piano-1")?.title).toBe("Yamaha U1");
   });
@@ -243,7 +250,7 @@ describe("leaving the Edit screen", () => {
     typeTitle(renderer, "Yamaha U3");
 
     tryToLeave();
-    await alerts.pressButton("Keep Editing");
+    await pressDialog(renderer.root, "Keep editing");
 
     expect(navigation.dispatch).not.toHaveBeenCalled();
   });

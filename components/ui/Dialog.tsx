@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import ToastHost from "@/components/ToastHost";
 import { colors, fonts, radii } from "@/constants/theme";
 
 const WIDTH = 284;
@@ -60,7 +61,7 @@ const Dialog = ({
       onRequestClose={back}
     >
       <View style={styles.dim} testID={testID}>
-        <View style={styles.card} accessibilityViewIsModal>
+        <View style={styles.card} accessibilityViewIsModal testID="dialog-card">
           <View style={styles.text}>
             <Text style={styles.title} accessibilityRole="header">
               {title}
@@ -94,6 +95,8 @@ const Dialog = ({
             );
           })}
         </View>
+
+        <ToastHost embedded />
       </View>
     </Modal>
   );

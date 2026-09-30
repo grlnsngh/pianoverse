@@ -130,7 +130,7 @@ export const receivedInMonth = (payments: RentPayment[], month = new Date()) =>
 export interface RecentPayment {
   id: string;
   pianoId: string;
-  /** The customer's name, or the piano's title when there is none */
+  /** The customer's name saved with the payment, or the piano's title when there is none */
   primary: string;
   /** "Weber W-121 · 25 Sep", or just the date when the title is already the primary line */
   secondary: string;
@@ -159,7 +159,10 @@ export const recentPayments = (
     const paidOn = parseStoredDate(payment.paid_on);
     if (!piano || !paidOn) continue;
     const date = formatPaidOn(paidOn, today);
-    const customer = customerOf(piano);
+    // The name saved with the payment when it was recorded. An older payment
+    // has none, and the piano's current customer could be someone else by now,
+    // so it shows the piano's title.
+    const customer = payment.customer_name?.trim() || null;
     result.push({
       id: payment.$id,
       pianoId: piano.$id,

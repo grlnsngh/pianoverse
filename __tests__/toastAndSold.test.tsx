@@ -97,16 +97,16 @@ describe("toasts", () => {
     expect(allTexts(renderer.root)).toEqual([]);
   });
 
-  it("uses the native toast on Android", () => {
+  it("shows the same dark pill on Android, not the native toast", () => {
+    jest.useFakeTimers();
     jest.replaceProperty(Platform, "OS", "android");
     const show = jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
+    const renderer = renderWithStore(withSafeArea(<ToastHost />), createTestStore());
 
-    showToast("Deleted Yamaha U1 successfully");
+    act(() => showToast("Deleted Yamaha U1 successfully"));
 
-    expect(show).toHaveBeenCalledWith(
-      "Deleted Yamaha U1 successfully",
-      ToastAndroid.SHORT
-    );
+    expect(show).not.toHaveBeenCalled();
+    expect(allTexts(renderer.root)).toEqual(["Deleted Yamaha U1 successfully"]);
   });
 
   it("confirms a saved edit on iOS", async () => {

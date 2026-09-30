@@ -57,6 +57,7 @@ import {
   captureToasts,
   createTestStore,
   flushPromises,
+  pressDialog,
   renderWithStore,
 } from "./helpers/render";
 
@@ -87,29 +88,32 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-const field = (renderer: ReactTestRenderer, title: string) => {
+// The sheets' fields are found by the name they are read out as, and their
+// buttons by the label on them
+const field = (renderer: ReactTestRenderer, label: string) => {
   const [node] = renderer.root.findAll(
     (candidate) =>
-      candidate.props.title === title &&
-      typeof candidate.props.handleChangeText === "function"
+      candidate.props.accessibilityLabel === label &&
+      typeof candidate.props.onChangeText === "function"
   );
-  if (!node) throw new Error(`No field titled "${title}"`);
+  if (!node) throw new Error(`No field named "${label}"`);
   return node;
 };
 
-const typeInto = (renderer: ReactTestRenderer, title: string, text: string) =>
+const typeInto = (renderer: ReactTestRenderer, label: string, text: string) =>
   act(() => {
-    field(renderer, title).props.handleChangeText(text);
+    field(renderer, label).props.onChangeText(text);
   });
 
-const pressButton = async (renderer: ReactTestRenderer, title: string) => {
+const pressButton = async (renderer: ReactTestRenderer, label: string) => {
   const [button] = renderer.root.findAll(
     (node) =>
-      node.props.title === title && typeof node.props.handlePress === "function"
+      node.props.accessibilityLabel === label &&
+      typeof node.props.onPress === "function"
   );
-  if (!button) throw new Error(`No "${title}" button`);
+  if (!button) throw new Error(`No "${label}" button`);
   await act(async () => {
-    await button.props.handlePress();
+    await button.props.onPress();
   });
   await flushPromises();
 };
@@ -139,10 +143,10 @@ describe("marking a piano as sold", () => {
     const { store, renderer } = await openDetail();
 
     await openSoldSheet(renderer);
-    typeInto(renderer, "Buyer Name", "  Ravi Kumar ");
-    typeInto(renderer, "Buyer Address", "5 Park Street");
-    typeInto(renderer, "Sale Price", "185000");
-    await pressButton(renderer, "Mark as Sold");
+    typeInto(renderer, "Buyer", "  Ravi Kumar ");
+    typeInto(renderer, "Address", "5 Park Street");
+    typeInto(renderer, "Sale price", "185000");
+    await pressButton(renderer, "Confirm sale");
 
     expect(alerts.titles()).toEqual([]);
     const saved = fakeBackend.documents.get("piano-1");
@@ -169,9 +173,9 @@ describe("marking a piano as sold", () => {
     const { renderer } = await openDetail();
 
     await openSoldSheet(renderer);
-    typeInto(renderer, "Buyer Name", "Ravi Kumar");
-    typeInto(renderer, "Sale Price", "185000");
-    await pressButton(renderer, "Mark as Sold");
+    typeInto(renderer, "Buyer", "Ravi Kumar");
+    typeInto(renderer, "Sale price", "185000");
+    await pressButton(renderer, "Confirm sale");
 
     expect(alerts.titles()).toEqual([]);
     expect(fakeBackend.documents.get("piano-1")?.sold_price).toBe(185000);
@@ -184,9 +188,9 @@ describe("marking a piano as sold", () => {
     );
 
     await openSoldSheet(renderer);
-    typeInto(renderer, "Buyer Name", "Ravi Kumar");
-    typeInto(renderer, "Sale Price", "185000");
-    await pressButton(renderer, "Mark as Sold");
+    typeInto(renderer, "Buyer", "Ravi Kumar");
+    typeInto(renderer, "Sale price", "185000");
+    await pressButton(renderer, "Confirm sale");
 
     expect(fakeNotifications.rentalReminders("piano-1")).toEqual([]);
   });
@@ -195,9 +199,9 @@ describe("marking a piano as sold", () => {
     const { renderer } = await openDetail();
     await openSoldSheet(renderer);
 
-    await pressButton(renderer, "Mark as Sold");
-    typeInto(renderer, "Buyer Name", "Ravi Kumar");
-    await pressButton(renderer, "Mark as Sold");
+    await pressButton(renderer, "Confirm sale");
+    typeInto(renderer, "Buyer", "Ravi Kumar");
+    await pressButton(renderer, "Confirm sale");
 
     expect(alerts.titles()).toEqual(["Missing Details", "Missing Details"]);
     expect(alerts.spy.mock.calls.map((call) => call[1])).toEqual([
@@ -214,7 +218,7 @@ describe("marking a piano as sold", () => {
 
     await openSoldSheet(renderer);
 
-    expect(field(renderer, "Sale Price").props.value).toBe("250000");
+    expect(field(renderer, "Sale price").props.value).toBe("2,50,000");
   });
 
   it("no longer counts down the rental on the piano's page, or shows who had it (the Sold board)", async () => {
@@ -250,7 +254,7 @@ describe("marking a piano as sold", () => {
         typeof node.props.onPress === "function"
     );
     await act(async () => undo.props.onPress());
-    await alerts.pressButton("Undo Sale");
+    await pressDialog(renderer.root, "Undo sale");
 
     expect(fakeBackend.documents.get("piano-1")).toMatchObject({
       sold_date: null,
