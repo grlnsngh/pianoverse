@@ -60,3 +60,7 @@ export { default as KeyboardMark } from "./KeyboardMark";
 export type { KeyboardMarkProps } from "./KeyboardMark";
 export { default as BrandMark } from "./BrandMark";
 export type { BrandMarkProps } from "./BrandMark";
+export { default as StepTransition } from "./StepTransition";
+export type { StepTransitionProps } from "./StepTransition";
+export { default as ScreenEntrance } from "./ScreenEntrance";
+export type { ScreenEntranceProps } from "./ScreenEntrance";

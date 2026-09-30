@@ -7,6 +7,7 @@ import { getPianoDisplay } from "@/utils/pianoDisplay";
 import { getPianoPhotos } from "@/utils/photos";
 import { STATUS_TONE_COLORS } from "@/utils/rentalStatus";
 import SelectionMark from "./SelectionMark";
+import SwipeableRow from "./SwipeableRow";
 
 const THUMBNAIL = 64;
 
@@ -22,6 +23,12 @@ export type PianoRowProps = {
   onSelectStart?: (id: string) => void;
   /** The words that were searched for, made bold in the title and company */
   highlight?: string;
+  /**
+   * Edit and Delete. Given both, the row slides left to show them, and offers
+   * them to a screen reader as actions. Left out, it is a plain row.
+   */
+  onEdit?: (id: string) => void;
+  onDelete?: (item: PianoItem) => void;
 };
 
 /**
@@ -37,6 +44,8 @@ const PianoRow = ({
   onToggle,
   onSelectStart,
   highlight,
+  onEdit,
+  onDelete,
 }: PianoRowProps) => {
   const display = getPianoDisplay(item);
   const id = item.$id;
@@ -46,7 +55,9 @@ const PianoRow = ({
     .filter(Boolean)
     .join(", ");
 
-  return (
+  const swipeable = !!onEdit && !!onDelete && !selecting;
+
+  const row = (
     <Pressable
       onPress={() => (selecting ? onToggle?.(id) : onOpen(id))}
       onLongPress={selecting || !onSelectStart ? undefined : () => onSelectStart(id)}
@@ -54,6 +65,23 @@ const PianoRow = ({
       accessibilityLabel={summary}
       accessibilityHint={selecting ? "Chooses this piano" : "Opens this piano"}
       accessibilityState={selecting ? { selected } : undefined}
+      // A swipe can't be done with a screen reader, so its buttons are offered as actions
+      accessibilityActions={
+        swipeable
+          ? [
+              { name: "edit", label: "Edit" },
+              { name: "delete", label: "Delete" },
+            ]
+          : undefined
+      }
+      onAccessibilityAction={
+        swipeable
+          ? (event) => {
+              if (event.nativeEvent.actionName === "edit") onEdit?.(id);
+              if (event.nativeEvent.actionName === "delete") onDelete?.(item);
+            }
+          : undefined
+      }
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <View style={styles.photoCell}>
@@ -91,10 +119,18 @@ const PianoRow = ({
       </View>
     </Pressable>
   );
+
+  if (!swipeable) return row;
+  return (
+    <SwipeableRow onEdit={() => onEdit?.(id)} onDelete={() => onDelete?.(item)}>
+      {row}
+    </SwipeableRow>
+  );
 };
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", paddingLeft: 20 },
+  // White, so what slides over the buttons behind it hides them
+  row: { flexDirection: "row", paddingLeft: 20, backgroundColor: colors.white },
   pressed: { backgroundColor: colors.grouped },
   photoCell: { paddingVertical: 12, paddingRight: 14 },
   photo: { width: THUMBNAIL, height: THUMBNAIL, borderRadius: radii.input },

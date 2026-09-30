@@ -1,6 +1,21 @@
-import React from "react";
-import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import { colors, fonts } from "@/constants/theme";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  LayoutChangeEvent,
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { colors, fonts, motion } from "@/constants/theme";
+import useReducedMotion from "@/lib/useReducedMotion";
 
 const PADDING = 2;
 const OPTION_HEIGHT = 40;
@@ -22,7 +37,8 @@ export type SegmentedProps<T extends string> = {
 
 /**
  * Two to four choices in one grey track, of which one is selected: a white
- * chip with a bold label. Options share the width equally.
+ * chip with a bold label. Options share the width equally. The chip slides to
+ * the option that is pressed in 200 ms; with reduced motion it jumps.
  */
 function Segmented<T extends string>({
   options,
@@ -32,13 +48,51 @@ function Segmented<T extends string>({
   style,
   testID,
 }: SegmentedProps<T>) {
+  const reduced = useReducedMotion();
+  const [width, setWidth] = useState(0);
+  const x = useSharedValue(0);
+  const placed = useRef(false);
+
+  const index = Math.max(
+    0,
+    options.findIndex((option) => option.value === value)
+  );
+  // Each option's share of the track, inside its padding
+  const optionWidth = width > 0 ? (width - PADDING * 2) / options.length : 0;
+
+  useEffect(() => {
+    if (!optionWidth) return;
+    const target = index * optionWidth;
+    // The first time, and with reduced motion, the chip is put in place
+    if (!placed.current || reduced) {
+      x.value = target;
+      placed.current = true;
+      return;
+    }
+    x.value = withTiming(target, {
+      duration: motion.duration.switch,
+      easing: Easing.bezier(...motion.easing.standard),
+    });
+  }, [index, optionWidth, reduced, x]);
+
+  const chip = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
+
   return (
     <View
       accessibilityRole="tablist"
       accessibilityLabel={accessibilityLabel}
       testID={testID}
+      onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}
       style={[styles.track, style]}
     >
+      {optionWidth > 0 && (
+        <Animated.View
+          pointerEvents="none"
+          testID={testID ? `${testID}-chip` : undefined}
+          style={[styles.chip, { width: optionWidth }, chip]}
+        />
+      )}
+
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -49,7 +103,9 @@ function Segmented<T extends string>({
             accessibilityLabel={option.label}
             accessibilityState={{ selected }}
             testID={testID ? `${testID}-${option.value}` : undefined}
-            style={[styles.option, selected && styles.selected]}
+            // 40 px high on the board, inside a 2 px padding: 44 px to touch
+            hitSlop={{ top: PADDING, bottom: PADDING }}
+            style={styles.option}
           >
             <Text
               numberOfLines={1}
@@ -71,6 +127,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: colors.hairline,
   },
+  chip: {
+    position: "absolute",
+    top: PADDING,
+    left: PADDING,
+    height: OPTION_HEIGHT,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+  },
   option: {
     flex: 1,
     height: OPTION_HEIGHT,
@@ -79,8 +143,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     borderRadius: 8,
   },
-  selected: { backgroundColor: colors.white },
-  label: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink2 },
+  // ink2 on the grey track is 4.49:1, a hair under the 4.5 text needs
+  label: { fontFamily: fonts.semibold, fontSize: 14, color: colors.inkBody },
   labelSelected: { fontFamily: fonts.bold, color: colors.ink },
 });
 

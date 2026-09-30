@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, Sheet } from "@/components/ui";
 import { colors, fonts, spacing } from "@/constants/theme";
+import { confirmTap } from "@/utils/haptics";
 
 type SignOutSheetProps = {
   visible: boolean;
@@ -28,7 +29,10 @@ const SignOutSheet = ({ visible, signingOut, onConfirm, onClose }: SignOutSheetP
           variant="destructive"
           loading={signingOut}
           loadingTitle="Signing out"
-          onPress={onConfirm}
+          onPress={() => {
+            confirmTap();
+            onConfirm();
+          }}
         />
         <Button title="Cancel" variant="secondary" onPress={onClose} />
       </View>

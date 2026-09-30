@@ -37,8 +37,12 @@ export const colors = {
   inkBody: "#3C3831",
   /** Secondary text */
   ink2: "#6B665D",
-  /** Placeholders and inactive tab labels */
-  ink3: "#77716A",
+  /**
+   * Placeholders and inactive tab labels. A step darker than the board's
+   * #77716A, which is 4.1:1 on the grey fills that placeholders sit on;
+   * this is 4.6:1 on the darkest of them (4.5:1 is the least for text).
+   */
+  ink3: "#6F6A62",
   /** Primary buttons (ink text on it), the + button, switches on, progress fill */
   brand: "#FF9C01",
   brandPressed: "#E88A00",

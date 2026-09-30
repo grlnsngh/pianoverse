@@ -60,6 +60,8 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import FilterSheet from "@/components/FilterSheet";
 import PianoCard from "@/components/PianoCard";
 import PianoRow from "@/components/PianoRow";
+import RefreshBand, { HIDDEN_REFRESH_INDICATOR } from "@/components/RefreshBand";
+import useDeletePiano from "@/lib/useDeletePiano";
 import PianosSkeleton from "@/components/PianosSkeleton";
 import BulkOperationsBar from "@/components/BulkOperationsBar";
 import SelectionHeader from "@/components/SelectionHeader";
@@ -217,6 +219,12 @@ const Home = () => {
     (id: string) => router.push(`/detail/${id}`),
     [],
   );
+  // The buttons behind a list row that slides left
+  const editPiano = useCallback(
+    (id: string) => router.push(`/edit/${id}`),
+    [],
+  );
+  const confirmDelete = useDeletePiano();
 
   // The very first load, with no saved copy on this device to show yet. The
   // skeleton only appears after 200 ms, so a quick load never flashes it.
@@ -349,29 +357,35 @@ const Home = () => {
       };
       // The callbacks keep their identity across renders, so a memoized card
       // only re-renders when its own props change
-      return isGrid ? <PianoCard {...shared} /> : <PianoRow {...shared} />;
+      return isGrid ? (
+        <PianoCard {...shared} />
+      ) : (
+        // In the list a row also slides left for Edit and Delete
+        <PianoRow {...shared} onEdit={editPiano} onDelete={confirmDelete} />
+      );
     },
     [
       isGrid,
       isBulkSelectionMode,
       selectedItems,
       openPiano,
+      editPiano,
+      confirmDelete,
       handleToggleItemSelection,
       handleEnterBulkSelection,
     ],
   );
 
   const count = filteredPianoReduxItems.length;
+  // The phone does the pulling; the band draws the spinner (RefreshPianos board)
   const refreshControl = (
     <RefreshControl
       refreshing={refreshing}
       onRefresh={onRefresh}
-      // iOS draws the spinner in tintColor; Android in colors, on a white disc
-      tintColor={colors.ink}
-      colors={[colors.ink]}
-      progressBackgroundColor={colors.white}
+      {...HIDDEN_REFRESH_INDICATOR}
     />
   );
+  const refreshBand = <RefreshBand refreshing={refreshing} />;
 
   return (
     <SafeAreaView edges={["top"]} style={styles.page}>
@@ -476,6 +490,7 @@ const Home = () => {
           windowSize={10}
           removeClippedSubviews={true}
           renderItem={renderItem}
+          ListHeaderComponent={refreshBand}
           ListEmptyComponent={renderEmptyState}
           refreshControl={refreshControl}
         />
@@ -491,6 +506,7 @@ const Home = () => {
           windowSize={10}
           removeClippedSubviews={true}
           renderItem={renderItem}
+          ListHeaderComponent={refreshBand}
           ListEmptyComponent={renderEmptyState}
           refreshControl={refreshControl}
         />

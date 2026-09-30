@@ -19,7 +19,7 @@ import {
 import PianoBasicsFields from "@/components/PianoBasicsFields";
 import PianoCategoryFields from "@/components/PianoCategoryFields";
 import PianoPhotoField from "@/components/PianoPhotoField";
-import { Button } from "@/components/ui";
+import { Button, StepTransition } from "@/components/ui";
 import { colors, spacing } from "@/constants/theme";
 import usePianoPhotos from "@/lib/usePianoPhotos";
 import { RootState } from "@/redux/store";
@@ -71,7 +71,7 @@ const Create = () => {
 
   // Start over once the piano has been published from the review screen
   const createFormResetCount = useSelector(
-    (state: RootState) => state.navigation.createFormResetCount
+    (state: RootState) => state.navigation.createFormResetCount,
   );
   // The count this screen has already started over for
   const resetsSeen = useRef(createFormResetCount);
@@ -94,10 +94,13 @@ const Create = () => {
   // Android's back button goes back a step before it leaves
   useEffect(() => {
     if (step === 1) return;
-    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
-      setStep(1);
-      return true;
-    });
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        setStep(1);
+        return true;
+      },
+    );
     return () => subscription.remove();
   }, [step]);
 
@@ -111,7 +114,10 @@ const Create = () => {
         if (!hasEntries(latestForm.current)) return;
         // The piano was published or the flow cancelled from the review: the
         // form is finished with, even if this screen hasn't cleared it yet
-        if (store.getState().navigation.createFormResetCount !== resetsSeen.current) {
+        if (
+          store.getState().navigation.createFormResetCount !==
+          resetsSeen.current
+        ) {
           return;
         }
         event.preventDefault();
@@ -126,7 +132,7 @@ const Create = () => {
           ],
         });
       }),
-    [navigation, store]
+    [navigation, store],
   );
 
   const goOn = () => {
@@ -161,26 +167,29 @@ const Create = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
         >
-          <AddFlowHeading step={step} title={title} subtitle={subtitle} />
+          {/* What each step shows slides in 24 px and fades in when the step changes */}
+          <StepTransition step={step}>
+            <AddFlowHeading step={step} title={title} subtitle={subtitle} />
 
-          <View style={styles.fields}>
-            {step === 1 ? (
-              <PianoBasicsFields
-                form={form}
-                onChange={updateForm}
-                photo={
-                  <PianoPhotoField
-                    photos={form.photos}
-                    onPick={addPhoto}
-                    onRemove={removePhoto}
-                    onMakeCover={makeCover}
-                  />
-                }
-              />
-            ) : (
-              <PianoCategoryFields form={form} onChange={updateForm} />
-            )}
-          </View>
+            <View style={styles.fields}>
+              {step === 1 ? (
+                <PianoBasicsFields
+                  form={form}
+                  onChange={updateForm}
+                  photo={
+                    <PianoPhotoField
+                      photos={form.photos}
+                      onPick={addPhoto}
+                      onRemove={removePhoto}
+                      onMakeCover={makeCover}
+                    />
+                  }
+                />
+              ) : (
+                <PianoCategoryFields form={form} onChange={updateForm} />
+              )}
+            </View>
+          </StepTransition>
         </ScrollView>
 
         {/* Always pressable: it says what's still missing */}
@@ -193,11 +202,7 @@ const Create = () => {
               style={styles.back}
             />
           )}
-          <Button
-            title="Continue"
-            onPress={goOn}
-            style={styles.primary}
-          />
+          <Button title="Continue" onPress={goOn} style={styles.primary} />
         </AddFlowFooter>
       </KeyboardAvoidingView>
     </SafeAreaView>

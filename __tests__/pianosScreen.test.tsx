@@ -18,7 +18,6 @@ import { act } from "react-test-renderer";
 import { router } from "expo-router";
 import Home from "@/app/(tabs)/home";
 import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/constants/Piano";
-import { colors } from "@/constants/theme";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { savePianosToCache } from "@/lib/pianoCache";
 import { setPianoFilters } from "@/redux/pianos/actions";
@@ -490,14 +489,17 @@ describe("opening and choosing pianos", () => {
 });
 
 describe("pulling down to refresh", () => {
-  it("uses the system's spinner, drawn in the app's ink colour", async () => {
+  it("keeps the system's pull but hides its spinner, for the board's band to draw", async () => {
     const { renderer } = await renderHome();
 
     const [control] = renderer.root.findAllByType(RefreshControl);
-    expect(control.props.tintColor).toBe(colors.ink);
-    expect(control.props.colors).toEqual([colors.ink]);
-    expect(control.props.progressBackgroundColor).toBe(colors.white);
+    expect(control.props.tintColor).toBe("transparent");
+    expect(control.props.colors).toEqual(["transparent"]);
+    expect(control.props.progressBackgroundColor).toBe("transparent");
     expect(control.props.refreshing).toBe(false);
+    // The band is the first thing in the list, in the grid and in the list layout
+    const header = renderer.root.findByType(FlatList).props.ListHeaderComponent;
+    expect(header.props.refreshing).toBe(false);
   });
 
   it("loads the pianos again when it is pulled", async () => {

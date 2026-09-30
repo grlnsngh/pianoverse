@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import AttentionRow from "@/components/AttentionRow";
 import PaymentRow from "@/components/PaymentRow";
+import RefreshBand, { HIDDEN_REFRESH_INDICATOR } from "@/components/RefreshBand";
 import ShelfCard from "@/components/ShelfCard";
 import TodaySkeleton from "@/components/TodaySkeleton";
 import { AddButton, useSkeletonDelay } from "@/components/ui";
@@ -117,16 +118,15 @@ const Today = () => {
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
+          // The phone does the pulling; the band below draws the spinner
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            // iOS draws the spinner in tintColor; Android in colors, on a white disc
-            tintColor={colors.ink}
-            colors={[colors.ink]}
-            progressBackgroundColor={colors.white}
+            {...HIDDEN_REFRESH_INDICATOR}
           />
         }
       >
+        <RefreshBand refreshing={refreshing} />
         <View style={styles.header}>
           <View>
             <Text style={styles.date}>{format(now, "EEEE, d MMMM")}</Text>

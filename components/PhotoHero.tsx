@@ -79,6 +79,7 @@ const PhotoHero = ({ pianoId, photos, sold = false, onBack, onShare, onMore }: P
       key={`${position}-${uri ?? "none"}`}
       onPress={uri ? () => setViewing(position) : undefined}
       disabled={!uri}
+      accessibilityRole={uri ? "button" : undefined}
       accessibilityLabel={uri ? `Open photo ${position + 1}` : undefined}
       style={{ width, height }}
     >

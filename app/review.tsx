@@ -34,6 +34,7 @@ import { addPianoItem } from "@/redux/pianos/actions";
 import { scheduleRentalDueNotification } from "@/services/notifications";
 import { goToAddStep } from "@/utils/addFlow";
 import { showDialog } from "@/utils/dialog";
+import { savedTap } from "@/utils/haptics";
 import { formatRupees } from "@/utils/money";
 import { categoryLabelOf } from "@/utils/pianoDisplay";
 import {
@@ -232,6 +233,7 @@ const Review = () => {
       dispatch(setActiveTab("pianos") as any);
       setAdded({ id: createdPiano.$id, title: form.title });
       setStage("published");
+      savedTap();
     } catch (error) {
       const errorMessage = (error as Error).message;
       setStage("review");

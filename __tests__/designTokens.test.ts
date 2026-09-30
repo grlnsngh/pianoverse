@@ -25,7 +25,7 @@ describe("colours", () => {
       hairline: "#E7E4DD",
       ink: "#1A1814",
       ink2: "#6B665D",
-      ink3: "#77716A",
+      ink3: "#6F6A62",
       brand: "#FF9C01",
       brandText: "#A85D00",
       late: "#C4321C",

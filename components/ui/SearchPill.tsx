@@ -61,6 +61,8 @@ const SearchPill = ({
           accessibilityLabel={
             filterCount > 0 ? `Filters, ${filterCount} active` : "Filters"
           }
+          // 40 px on the board; the 2 px round it make it a 44 px target
+          hitSlop={2}
           style={styles.filter}
         >
           <Icon name="sliders" size={18} color={colors.ink} strokeWidth={1.9} />

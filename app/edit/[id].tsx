@@ -113,7 +113,7 @@ const EditScreen = () => {
       saved.current = true;
       if (router.canGoBack()) router.back();
       else router.replace("/home");
-      showToast("Piano entry updated successfully");
+      showToast("Piano entry updated successfully", { variant: "success" });
     } catch (error) {
       const errorMessage = (error as Error).message;
       Alert.alert("Error while uploading", errorMessage);

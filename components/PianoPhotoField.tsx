@@ -84,7 +84,7 @@ const PianoPhotoField: React.FC<PianoPhotoFieldProps> = ({
                 onPress={() => onRemove(index)}
                 accessibilityRole="button"
                 accessibilityLabel={`Remove photo ${index + 1}`}
-                hitSlop={10}
+                hitSlop={11}
                 style={styles.remove}
               >
                 <Icon name="close" size={12} color={colors.white} strokeWidth={2.6} />

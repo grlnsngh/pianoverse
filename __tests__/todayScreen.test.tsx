@@ -605,14 +605,15 @@ describe("loading", () => {
 });
 
 describe("pulling down to refresh", () => {
-  it("uses the system's spinner, drawn in the app's ink colour", async () => {
+  it("keeps the system's pull but hides its spinner, for the board's band to draw", async () => {
     const { renderer } = await open();
 
     const control = renderer.root.findByType(RefreshControl);
-    expect(control.props.tintColor).toBe(colors.ink);
-    expect(control.props.colors).toEqual([colors.ink]);
-    expect(control.props.progressBackgroundColor).toBe(colors.white);
+    expect(control.props.tintColor).toBe("transparent");
+    expect(control.props.colors).toEqual(["transparent"]);
+    expect(control.props.progressBackgroundColor).toBe("transparent");
     expect(control.props.refreshing).toBe(false);
+    expect(renderer.root.findAll((node) => node.props.testID === "refresh-band").length).toBeGreaterThan(0);
   });
 
   it("loads the pianos again, through the Pianos tab, and the payments", async () => {

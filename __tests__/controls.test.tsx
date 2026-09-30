@@ -1,4 +1,5 @@
 import React from "react";
+import { act } from "react-test-renderer";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Segmented, Switch } from "@/components/ui";
 import { colors, fonts } from "@/constants/theme";
@@ -196,6 +197,13 @@ describe("Segmented", () => {
     };
   };
   const tabs = (renderer: Mounted) => renderer.root.findAllByType(Pressable);
+  // The track is 340 wide on the tests' phone: each of the four options is 84
+  const layout = async (renderer: Mounted) => {
+    await act(async () => {
+      hostByTestId(renderer.root, "seg").props.onLayout({ nativeEvent: { layout: { width: 340 } } });
+    });
+  };
+  const chip = (renderer: Mounted) => hostByTestId(renderer.root, "seg-chip");
 
   it("is a grey track with 2 px padding and radius 10", async () => {
     const renderer = await setup().mounted;
@@ -222,9 +230,20 @@ describe("Segmented", () => {
 
   it("shows the chosen one as a white chip with a bold ink label", async () => {
     const renderer = await setup("events").mounted;
+    await layout(renderer);
+    await advance(20);
     const [rentable, events] = tabs(renderer);
 
-    expect(flat(events.props.style).backgroundColor).toBe(colors.white);
+    // The chip is one white piece behind the options, which have no fill of their own
+    expect(flat(chip(renderer).props.style)).toMatchObject({
+      position: "absolute",
+      width: 84,
+      height: 40,
+      borderRadius: 8,
+      backgroundColor: colors.white,
+    });
+    expect(animatedStyles(renderer.root)[0].transform).toEqual([{ translateX: 84 }]);
+    expect(flat(events.props.style).backgroundColor).toBeUndefined();
     expect(flat(events.findByType(Text).props.style)).toMatchObject({
       fontFamily: fonts.bold,
       fontSize: 14,
@@ -233,7 +252,7 @@ describe("Segmented", () => {
     expect(flat(rentable.props.style).backgroundColor).toBeUndefined();
     expect(flat(rentable.findByType(Text).props.style)).toMatchObject({
       fontFamily: fonts.semibold,
-      color: colors.ink2,
+      color: colors.inkBody,
     });
   });
 
@@ -255,17 +274,44 @@ describe("Segmented", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it("moves the chip when the value changes", async () => {
+  it("has no chip until it knows how wide it is", async () => {
+    const renderer = await setup().mounted;
+
+    expect(renderer.root.findAll((node) => node.props.testID === "seg-chip")).toHaveLength(0);
+  });
+
+  it("slides the chip to the new option in 200 ms", async () => {
     const { mounted } = setup("rentable");
     const renderer = await mounted;
+    await layout(renderer);
+    expect(animatedStyles(renderer.root)[0].transform).toEqual([{ translateX: 0 }]);
 
     await update(
       renderer,
-      <Segmented options={options} value="warehouse" onChange={() => {}} accessibilityLabel="Category" />
+      <Segmented testID="seg" options={options} value="warehouse" onChange={() => {}} accessibilityLabel="Category" />
     );
+    await advance(100);
+    const halfway = animatedStyles(renderer.root)[0].transform[0].translateX;
+    await advance(120);
 
-    expect(flat(tabs(renderer)[3].props.style).backgroundColor).toBe(colors.white);
-    expect(flat(tabs(renderer)[0].props.style).backgroundColor).toBeUndefined();
+    expect(halfway).toBeGreaterThan(0);
+    expect(halfway).toBeLessThan(252);
+    expect(animatedStyles(renderer.root)[0].transform).toEqual([{ translateX: 252 }]);
+  });
+
+  it("jumps instead of sliding with Reduce Motion on", async () => {
+    setReduceMotion(true);
+    const { mounted } = setup("rentable");
+    const renderer = await mounted;
+    await layout(renderer);
+
+    await update(
+      renderer,
+      <Segmented testID="seg" options={options} value="on_sale" onChange={() => {}} accessibilityLabel="Category" />
+    );
+    await advance(20);
+
+    expect(animatedStyles(renderer.root)[0].transform).toEqual([{ translateX: 168 }]);
   });
 
   it("is a tab list with the chosen tab selected, for screen readers", async () => {

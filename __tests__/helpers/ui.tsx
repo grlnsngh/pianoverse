@@ -1,5 +1,6 @@
 import React from "react";
 import { AccessibilityInfo } from "react-native";
+import { resetReducedMotion } from "@/lib/useReducedMotion";
 import {
   act,
   create,
@@ -19,6 +20,8 @@ afterEach(() => {
   // test's "reduce motion is on" would carry into the next.
   jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockReset();
   jest.mocked(AccessibilityInfo.addEventListener).mockReset();
+  // ...and what the hook remembered of the phone's answer
+  resetReducedMotion();
 });
 
 /**

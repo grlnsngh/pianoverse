@@ -2,6 +2,7 @@ import React from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import ToastHost from "@/components/ToastHost";
 import { colors, fonts, radii } from "@/constants/theme";
+import { confirmTap } from "@/utils/haptics";
 
 const WIDTH = 284;
 const ACTION_HEIGHT = 52;
@@ -74,7 +75,10 @@ const Dialog = ({
             return (
               <Pressable
                 key={action.label}
-                onPress={action.onPress}
+                onPress={() => {
+                  if (destructive) confirmTap();
+                  action.onPress();
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={action.label}
                 style={({ pressed }) => [

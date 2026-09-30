@@ -3,7 +3,13 @@ import { Alert, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { useSelector } from "react-redux";
 import { router, useLocalSearchParams } from "expo-router";
 import DetailSkeleton from "@/components/DetailSkeleton";
-import { ActionRow, Divider, InfoRows, SectionTitle, toneColor } from "@/components/DetailParts";
+import {
+  ActionRow,
+  Divider,
+  InfoRows,
+  SectionTitle,
+  toneColor,
+} from "@/components/DetailParts";
 import ExtendRentalSheet from "@/components/ExtendRentalSheet";
 import MarkAsSoldSheet from "@/components/MarkAsSoldSheet";
 import PaymentsSection from "@/components/PaymentsSection";
@@ -12,7 +18,7 @@ import PianoActionsSheet from "@/components/PianoActionsSheet";
 import RecordPaymentSheet from "@/components/RecordPaymentSheet";
 import RentalSection from "@/components/RentalSection";
 import StickyActionBar from "@/components/StickyActionBar";
-import { Button, useSkeletonDelay } from "@/components/ui";
+import { Button, ScreenEntrance, useSkeletonDelay } from "@/components/ui";
 import { colors, fonts, type } from "@/constants/theme";
 import { PIANO_CATEGORY } from "@/constants/Piano";
 import type { RentPayment } from "@/lib/appwrite";
@@ -71,9 +77,14 @@ const DetailScreen = () => {
   const confirmDelete = useDeletePiano();
   const updatePiano = useUpdatePiano();
 
-  const piano: PianoItem | undefined = pianosList.find((item) => item.$id === id);
+  const piano: PianoItem | undefined = pianosList.find(
+    (item) => item.$id === id,
+  );
   const rentable = piano?.category === PIANO_CATEGORY.RENTABLE;
-  const rentPayments = useRentPayments(typeof id === "string" ? id : "", rentable);
+  const rentPayments = useRentPayments(
+    typeof id === "string" ? id : "",
+    rentable,
+  );
 
   // The pianos are still on their way (a link opened before the list loaded)
   const waiting = !piano && !isDeleted && pianoLoad === "loading";
@@ -84,7 +95,7 @@ const DetailScreen = () => {
     () => () => {
       if (menuTimer.current) clearTimeout(menuTimer.current);
     },
-    []
+    [],
   );
 
   const handleDelete = useCallback(() => {
@@ -107,9 +118,14 @@ const DetailScreen = () => {
           onPress: () =>
             updatePiano(
               piano,
-              { sold_date: null, sold_price: null, sold_to_name: null, sold_to_address: null },
+              {
+                sold_date: null,
+                sold_price: null,
+                sold_to_name: null,
+                sold_to_address: null,
+              },
               `${piano.title} is back in stock`,
-              { retry: true }
+              { retry: true },
             ),
         },
         { label: "Cancel", onPress: () => {} },
@@ -120,9 +136,15 @@ const DetailScreen = () => {
   const handleShare = useCallback(async () => {
     if (!piano) return;
     try {
-      await Share.share({ title: piano.title, message: buildShareMessage(piano) });
+      await Share.share({
+        title: piano.title,
+        message: buildShareMessage(piano),
+      });
     } catch (error) {
-      Alert.alert("Couldn't Share", error instanceof Error ? error.message : "Please try again.");
+      Alert.alert(
+        "Couldn't Share",
+        error instanceof Error ? error.message : "Please try again.",
+      );
     }
   }, [piano]);
 
@@ -137,12 +159,16 @@ const DetailScreen = () => {
           formatDay(payment.paid_on) ?? ""
         } will be removed from ${whose}.`,
         actions: [
-          { label: "Delete", tone: "destructive", onPress: () => rentPayments.remove(payment) },
+          {
+            label: "Delete",
+            tone: "destructive",
+            onPress: () => rentPayments.remove(payment),
+          },
           { label: "Cancel", onPress: () => {} },
         ],
       });
     },
-    [rentPayments]
+    [rentPayments],
   );
 
   const run = (action: ActionKey) => {
@@ -174,7 +200,11 @@ const DetailScreen = () => {
 
   if (!piano) {
     if (waiting) {
-      return showSkeleton ? <DetailSkeleton onBack={goBack} /> : <View style={styles.page} />;
+      return showSkeleton ? (
+        <DetailSkeleton onBack={goBack} />
+      ) : (
+        <View style={styles.page} />
+      );
     }
     return (
       <View style={[styles.page, styles.missing]}>
@@ -204,79 +234,102 @@ const DetailScreen = () => {
 
   return (
     <View style={styles.page}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <PhotoHero
-          pianoId={piano.$id}
-          photos={getPianoPhotos(piano)}
-          sold={sold}
-          onBack={goBack}
-          onShare={sold ? undefined : handleShare}
-          onMore={() => setShowMenu(true)}
-        />
+      {/* The page fades in and grows a little; its bar rises after it */}
+      <ScreenEntrance mode="grow" style={styles.grow}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}
+        >
+          <PhotoHero
+            pianoId={piano.$id}
+            photos={getPianoPhotos(piano)}
+            sold={sold}
+            onBack={goBack}
+            onShare={sold ? undefined : handleShare}
+            onMore={() => setShowMenu(true)}
+          />
 
-        <View style={styles.sheet}>
-          <Text style={styles.title} accessibilityRole="header">
-            {piano.title || "Untitled Piano"}
-          </Text>
-          <Text style={styles.meta}>{metaLine(piano)}</Text>
+          <View style={styles.sheet}>
+            <Text style={styles.title} accessibilityRole="header">
+              {piano.title || "Untitled Piano"}
+            </Text>
+            <Text style={styles.meta}>{metaLine(piano)}</Text>
 
-          {status && (
-            <View style={styles.status}>
-              {status.dot && <View style={[styles.dot, { backgroundColor: toneColor(status.tone) }]} />}
-              <Text style={[styles.statusText, { color: toneColor(status.tone) }]}>{status.text}</Text>
-            </View>
-          )}
-          {!!price && <Text style={styles.price}>{price}</Text>}
+            {status && (
+              <View style={styles.status}>
+                {status.dot && (
+                  <View
+                    style={[
+                      styles.dot,
+                      { backgroundColor: toneColor(status.tone) },
+                    ]}
+                  />
+                )}
+                <Text
+                  style={[styles.statusText, { color: toneColor(status.tone) }]}
+                >
+                  {status.text}
+                </Text>
+              </View>
+            )}
+            {!!price && <Text style={styles.price}>{price}</Text>}
 
-          {showRental && (
-            <>
-              <Divider />
-              <RentalSection piano={piano} />
-            </>
-          )}
+            {showRental && (
+              <>
+                <Divider />
+                <RentalSection piano={piano} />
+              </>
+            )}
 
-          {sold && sale.length > 0 && (
-            <>
-              <Divider />
-              <SectionTitle>Sale</SectionTitle>
-              <InfoRows rows={sale} />
-            </>
-          )}
+            {sold && sale.length > 0 && (
+              <>
+                <Divider />
+                <SectionTitle>Sale</SectionTitle>
+                <InfoRows rows={sale} />
+              </>
+            )}
 
-          {rentable && (
-            <>
-              <Divider />
-              <PaymentsSection
-                payments={rentPayments.payments}
-                status={rentPayments.status}
-                onRetry={rentPayments.reload}
-                onDelete={confirmRemovePayment}
+            {rentable && (
+              <>
+                <Divider />
+                <PaymentsSection
+                  payments={rentPayments.payments}
+                  status={rentPayments.status}
+                  onRetry={rentPayments.reload}
+                  onDelete={confirmRemovePayment}
+                />
+              </>
+            )}
+
+            {(about.rows.length > 0 || !!about.note) && (
+              <>
+                <Divider />
+                <SectionTitle>{about.title}</SectionTitle>
+                {about.rows.length > 0 && <InfoRows rows={about.rows} />}
+                {!!about.note && <Text style={styles.note}>{about.note}</Text>}
+              </>
+            )}
+
+            <Divider flush />
+            {listActions(piano).map((action) => (
+              <ActionRow
+                key={action}
+                action={action}
+                onPress={() => run(action)}
               />
-            </>
-          )}
+            ))}
+          </View>
+        </ScrollView>
+      </ScreenEntrance>
 
-          {(about.rows.length > 0 || !!about.note) && (
-            <>
-              <Divider />
-              <SectionTitle>{about.title}</SectionTitle>
-              {about.rows.length > 0 && <InfoRows rows={about.rows} />}
-              {!!about.note && <Text style={styles.note}>{about.note}</Text>}
-            </>
-          )}
-
-          <Divider flush />
-          {listActions(piano).map((action) => (
-            <ActionRow key={action} action={action} onPress={() => run(action)} />
-          ))}
-        </View>
-      </ScrollView>
-
-      <StickyActionBar
-        info={barInfo(piano)}
-        label={ACTION_LABELS[primary]}
-        variant={primary === "undoSale" ? "secondary" : "primary"}
-        onPress={() => run(primary)}
-      />
+      <ScreenEntrance mode="rise">
+        <StickyActionBar
+          info={barInfo(piano)}
+          label={ACTION_LABELS[primary]}
+          variant={primary === "undoSale" ? "secondary" : "primary"}
+          onPress={() => run(primary)}
+        />
+      </ScreenEntrance>
 
       <PianoActionsSheet
         visible={showMenu}
@@ -284,8 +337,16 @@ const DetailScreen = () => {
         actions={menuActions(piano)}
         onSelect={chooseFromMenu}
       />
-      <MarkAsSoldSheet piano={piano} visible={showSoldSheet} onClose={() => setShowSoldSheet(false)} />
-      <ExtendRentalSheet piano={piano} visible={showExtendSheet} onClose={() => setShowExtendSheet(false)} />
+      <MarkAsSoldSheet
+        piano={piano}
+        visible={showSoldSheet}
+        onClose={() => setShowSoldSheet(false)}
+      />
+      <ExtendRentalSheet
+        piano={piano}
+        visible={showExtendSheet}
+        onClose={() => setShowExtendSheet(false)}
+      />
       {rentable && (
         <RecordPaymentSheet
           piano={piano}
@@ -300,6 +361,7 @@ const DetailScreen = () => {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.white },
+  grow: { flex: 1 },
   scroll: { paddingBottom: 24 },
   // Rises over the bottom of the photo, with rounded top corners
   sheet: {

@@ -1,3 +1,6 @@
+import { AccessibilityInfo, Platform } from "react-native";
+import { savedTap } from "@/utils/haptics";
+
 export type ToastDuration = "short" | "long";
 
 /** `success` shows a check, `error` an alert icon. Without one the toast is text only. */
@@ -59,6 +62,12 @@ export const showToast = (
 ) => {
   const { duration = "short", variant, action }: ToastOptions =
     typeof options === "string" ? { duration: options } : options;
+
+  // What was saved is felt as well as seen; a failure is not
+  if (variant === "success") savedTap();
+  // A toast is a message that comes and goes by itself. Android reads it out
+  // from the toast's live region; iOS has none, so VoiceOver is told here.
+  if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibility(message);
 
   listener?.(message, duration, { variant, action });
   embeddedListeners.forEach((embedded) =>

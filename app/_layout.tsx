@@ -1,4 +1,5 @@
 import { SplashScreen, Stack } from "expo-router";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
 // One import per weight, so only the four weights the design uses are bundled
@@ -52,41 +53,49 @@ export default function RootLayout() {
   }
 
   return (
-    <Provider store={store}>
-      <GlobalProvider>
-        {/* One provider for the whole app (theme and the host that menus
+    // Swipeable rows need this around everything
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <GlobalProvider>
+          {/* One provider for the whole app (theme and the host that menus
             render into), instead of one per list row */}
-        <PaperProvider>
-          <PianoDataProvider>
-            <Stack>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              {/* The Add flow: its own screen above the tabs, with its own back button */}
-              <Stack.Screen name="create" options={{ headerShown: false }} />
-              {/* Its third step, the review, and the Edit screen draw their own top bar */}
-              <Stack.Screen name="review" options={{ headerShown: false }} />
-              <Stack.Screen name="edit/[id]" options={{ headerShown: false }} />
-              {/* Search draws its own field and Cancel button; /search and /search/<words> are the one screen */}
-              <Stack.Screen
-                name="search/index"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="search/[query]"
-                options={{ headerShown: false }}
-              />
-              {/* A piano's page draws its own photo, Back button and bar */}
-              <Stack.Screen
-                name="detail/[id]"
-                options={{ headerShown: false }}
-              />
-            </Stack>
-          </PianoDataProvider>
-          <ToastHost />
-          <DialogHost />
-        </PaperProvider>
-      </GlobalProvider>
-    </Provider>
+          <PaperProvider>
+            <PianoDataProvider>
+              <Stack>
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                {/* The Add flow: its own screen above the tabs, with its own back button */}
+                <Stack.Screen name="create" options={{ headerShown: false }} />
+                {/* Its third step, the review, and the Edit screen draw their own top bar */}
+                <Stack.Screen name="review" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="edit/[id]"
+                  options={{ headerShown: false }}
+                />
+                {/* Search draws its own field and Cancel button; /search and /search/<words> are the one screen */}
+                <Stack.Screen
+                  name="search/index"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="search/[query]"
+                  options={{ headerShown: false }}
+                />
+                {/* A piano's page draws its own photo, Back button and bar, and
+                    fades in (and grows a little, in the page) instead of sliding,
+                    as the card-to-hero fallback of SPEC 7 */}
+                <Stack.Screen
+                  name="detail/[id]"
+                  options={{ headerShown: false, animation: "fade" }}
+                />
+              </Stack>
+            </PianoDataProvider>
+            <ToastHost />
+            <DialogHost />
+          </PaperProvider>
+        </GlobalProvider>
+      </Provider>
+    </GestureHandlerRootView>
   );
 }
