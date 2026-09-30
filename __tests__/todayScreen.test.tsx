@@ -236,10 +236,16 @@ describe("the money", () => {
   it("shows the three counts: in stock, on rent, and what sold this month", async () => {
     const { renderer } = await open();
 
-    // Everything but the sold piano is in stock; three rentals are still out
-    expect(has(renderer, "7")).toBe(true);
+    // Only the two pianos that are here are in stock (the warehouse one and the one
+    // on sale). Three rentals are on rent; two more ended and haven't come back, so
+    // they are with customers too, and in neither count.
+    const cell = (label: string) =>
+      renderer.root.findAll(
+        (node: any) => typeof node.type === "string" && node.props.accessibilityLabel === label
+      );
+    expect(cell("In stock, 2")).toHaveLength(1);
+    expect(cell("On rent, 3")).toHaveLength(1);
     expect(has(renderer, "In stock")).toBe(true);
-    expect(has(renderer, "3")).toBe(true);
     expect(has(renderer, "On rent")).toBe(true);
     expect(has(renderer, "₹1,42,000")).toBe(true);
     expect(has(renderer, "Sold this month")).toBe(true);

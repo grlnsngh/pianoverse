@@ -88,10 +88,17 @@ export const rentedOut = (pianos: PianoItem[]): ShelfEntry[] => {
     .map((entry) => ({ ...entry, progress: progressOf(entry.piano) }));
 };
 
+/**
+ * A piano is out when it is with a customer: a rental that is running, or one
+ * that has ended and hasn't come back. (A rentable piano with no rental on it
+ * is here, and so is every other category.)
+ */
+const isOut = (piano: PianoItem) => getPianoRentalState(piano) !== null;
+
 /** The three counts under the money: what is in stock, what is on rent, what sold this month. */
 export const stockCounts = (pianos: PianoItem[], month = new Date()) => ({
-  // Every piano that hasn't been sold, whatever its category
-  inStock: pianos.filter((piano) => !isSold(piano)).length,
+  // The pianos that are here: not sold, and not out with a customer
+  inStock: pianos.filter((piano) => !isSold(piano) && !isOut(piano)).length,
   onRent: pianos.filter(isCurrentlyRented).length,
   soldThisMonth: salesInMonth(pianos, month),
 });

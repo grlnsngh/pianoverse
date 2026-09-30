@@ -18,7 +18,8 @@ Stack notes: Expo SDK 51, expo-router 3.5, NativeWind v2 (`className`), react-na
 10. Use `npx expo install <pkg>` for Expo-compatible packages. Do not upgrade Expo, React Native or NativeWind.
 11. Do not edit anything in `docs/redesign/boards/`.
 12. When the batch is finished, or the owner says the limit is close: update Progress, add a Session log entry, commit, then print (a) a short "How to check this batch" list for the owner and (b) the exact prompt for the next session. **Do not start the next batch on your own.**
-13. **Owner questions.** Whenever a choice needs the owner (a behaviour change, something a board does not draw, a conflict between a board and the spec that SPEC section 8 does not settle, a new native build), keep going with the lowest-risk **default**, and add one entry to [QUESTIONS.md](QUESTIONS.md): what came up, what the app does now, the options, and by which batch it is needed. Do not block on it. At the end of every session list the new questions in the summary. Answered ones move to the Answered section, and the batch that acts on an answer says so in its Decisions.
+13. **Owner questions.** Whenever a choice needs the owner (a behaviour change, something a board does not draw, a conflict between a board and the spec that SPEC section 8 does not settle, a new native build), keep going with the lowest-risk **default**, and add one entry to [QUESTIONS.md](QUESTIONS.md): what came up, what the app does now, the options, and by which batch it is needed. Do not block on it. At the end of every session, and whenever the owner says "continue" while questions are still open, show the owner **every open question in full** (the whole question, what the app does now, the options and the default), never just its number, so it can be answered straight away in the chat. Answered ones move to the Answered section, and the batch that acts on an answer says so in its Decisions.
+14. **Push after every batch (owner's instruction, 2026-09-30).** After each batch's commit, push the branch as a backup copy: `git push origin redesign/v2` (the first time `git push -u origin redesign/v2`). Never push to `main` and never merge; the branch is merged into `main` only after Batch 13, when the owner says so.
 
 ## Progress
 
@@ -86,10 +87,10 @@ Tick `[x]` when done. Add a short note in brackets if something differs from the
   - [x] 7.6 Tests, checks, commit [3 new suites (`pianoDetail`, `detailPage`, `detailSkeleton`) and new cases in `pianoPhoto`, `photoViewer` and `rentPayments`; `datesAndRentalStatus`, `detailScreen`, `detailActions`, `detailLooks`, `extendRental`, `markAsSold`, `photoViewer` and `rentPayments` were updated on purpose]
 - [ ] **Batch 8. Detail sheets and dialogs** (M)
   - [ ] 8.1 Record payment sheet (big amount, date, note)
-  - [ ] 8.2 Extend rental sheet (keep the current 1, 3, 6 month rule; see SPEC 8.2)
+  - [ ] 8.2 Extend rental sheet **per the design** (owner answered Q7: option B): 1, 3, 6 and 12 months plus "Choose a date", counted from today for a rental that has already ended. This changes the rule the button applies (it was +1, +3, +6 months from the current end date), so update the `extendRental` tests on purpose and say so in Decisions
   - [ ] 8.3 Mark as sold sheet
   - [ ] 8.4 The six dialogs (delete piano, delete payment, undo sale, discard changes, delete selected, stop adding)
-  - [ ] 8.5 Toasts for saved, failed and undo
+  - [ ] 8.5 Toasts for saved, failed and undo. **Owner answered Q1: option B, the design's dark pill on Android too** (no more native Android toast for plain messages). Sheets and dialogs are `Modal`s, so a toast drawn in the app would appear behind them: draw toasts above them too (for example a `ToastHost` inside each `Sheet` and `Dialog`), and test it
   - [ ] 8.6 Tests, checks, commit
 - [ ] **Batch 9. Add and edit flow** (L)
   - [ ] 9.1 Step 1 basics (photos, title, make, company, purchased, notes) with the 3-segment progress
@@ -111,15 +112,17 @@ Tick `[x]` when done. Add a short note in brackets if something differs from the
   - [ ] 11.3 Sign in, sign up, forgot and reset password restyled, with error and loading states
   - [ ] 11.4 NotifyPrimer shown once after first sign-in
   - [ ] 11.5 Tests, checks, commit
-- [ ] **Batch 12. Motion and accessibility** (M)
+- [ ] **Batch 12. Motion, accessibility and the owner's extras** (L). This batch needs **one new native build** (the gesture library and haptics are both native modules): tell the owner before starting
   - [ ] 12.1 Sheet, toast, tab, step and success animations to the Motion board timings
   - [ ] 12.2 Photo card to hero transition, or the fade fallback in SPEC section 7
   - [ ] 12.3 Reduced-motion handling everywhere
   - [ ] 12.4 Accessibility pass: 44 px targets, labels on icon buttons, text contrast, screen-reader order
-  - [ ] 12.5 Optional: `expo-haptics` on save
-  - [ ] 12.6 Tests, checks, commit
+  - [ ] 12.5 `expo-haptics` on save (owner answered Q8: yes). `npx expo install expo-haptics`; a light tap when a save works, a firmer one when a destructive choice is confirmed, nothing when a save fails; the Reduce Motion setting doesn't turn haptics off (it is about movement), but keep them subtle
+  - [ ] 12.6 Swipe rows on the Pianos list (owner answered Q3: option B). `npx expo install react-native-gesture-handler`, wrap the root in `GestureHandlerRootView` (and check Reanimated still works), then in the list layout swipe a row left to reveal Edit and Delete (the Handoff board's "swipe a list row for Edit and Delete"); Delete asks first with the `Dialog`. Screen readers get "Edit" and "Delete" actions on the row, since a swipe can't be done with one
+  - [ ] 12.7 The board's pull-to-refresh spinner (owner answered Q13: option B): the RefreshPianos board's 28 px ink spinner in a 72 px band under the tabs, on the Pianos tab and on Today, instead of the system spinner. Keep the system pull gesture (hide its own indicator) so it still feels native, show the band while refreshing, respect Reduce Motion
+  - [ ] 12.8 Tests, checks, commit
 - [ ] **Batch 13. Cleanup and release** (S)
-  - [ ] 13.1 Remove Poppins, the old colour tokens, unused icons and images, and dead components
+  - [ ] 13.1 Remove Poppins, the old colour tokens, unused icons and images, and dead components (`CardItem`, `ListItem`, `EmptyState`, `BottomSheet`, `FormField` and the like), **and every dependency that is no longer used**, including `react-native-tab-view` and `react-native-pager-view` (owner answered Q9: remove unused code and dependencies once everything is done). Check each with a search before removing it; say in the pull request that a new native build is needed
   - [ ] 13.2 Update `README.md` (features, screenshots list) and `app.json` if needed
   - [ ] 13.3 Full run on Android and iOS: every board compared with the real screen
   - [ ] 13.4 Final typecheck, tests, lint; version bump with `npm run plus`; open the pull request
@@ -219,6 +222,7 @@ Record every choice that is not obvious from the boards. Format: `date, batch, d
 - 2026-09-30, batch 7, **The load status moved to the root layout** (`PianoDataProvider` in `app/_layout.tsx`, was in the tabs' layout) so a piano's page can read it: when the page is opened before the pianos have loaded it shows the LoadingDetail skeleton (after 200 ms, with a real Back button), and only says "Piano not found" once the load has finished without it. That was the case for a notification opened on a cold start. The real screens' Back goes to the Pianos tab when there is nothing to go back to.
 - 2026-09-30, batch 7, **Words.** The design's spelling is used on the page ("Mark as sold", "Extend rental", "Edit piano", "Delete piano", "Record payment", "Undo sale"); the old sheets' titles and buttons still say "Mark as Sold" and so on until Batch 8. Dates are "21 Dec 2025" (the page used to write "Saturday, December 21, 2025").
 - 2026-09-30, batch 7, **Tests changed on purpose.** `detailScreen`: delete is the "Delete piano" row, not the trash icon. `detailActions`: the call button is named after the customer ("Call Asha Mehta", or the number when there is no name). `detailLooks`: the coloured badge and section-icon tests became "the category is said in words in the line under the title". `datesAndRentalStatus`: dates and status in the new words. `extendRental`, `markAsSold`: the buttons are the new rows ("Extend rental", "Mark as sold", "Undo sale"); a sold rental no longer shows its customer. `photoViewer`: the arrows became the strip of small photos and the count reads "2 of 3". `rentPayments`: the section is "Payments" with "₹8,500 received · 2 payments", Record payment is in the bar, and a payment is deleted by holding it.
+- 2026-09-30, **owner answers to the open questions** (all in `QUESTIONS.md`, Answered). Acted on now: **Q14, In stock on Today means only the pianos that are here** (not sold, and not out with a customer, so a running rental, or one that ended and hasn't come back, is only ever "on rent" or in Needs attention; a rentable piano with no rental on it is in stock). Planned: **Q1** dark pill toasts on Android too and **Q7** the design's extend options (both in Batch 8); **Q3** swipe rows with a gesture library, **Q13** the board's refresh spinner and **Q8** haptics (all in Batch 12, which needs one new native build); **Q9** remove unused code and dependencies in Batch 13. Already how the app works, so nothing to change: **Q4** grid by default, **Q10** search as you type, **Q11** company left out of search, **Q12** "Sold pianos" shows only the sold ones. The owner left **Q5** (wording) and **Q16** (the piano page's extras) to my judgment, so those defaults stand. **Q15** (customer names on Recent payments) is left for later, the default stands. **Q6:** push `redesign/v2` after every batch as a backup (rule 14); merge into \`main\` only after Batch 13.
 
 ## Session log
 

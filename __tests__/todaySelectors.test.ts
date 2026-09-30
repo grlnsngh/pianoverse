@@ -178,8 +178,23 @@ describe("stockCounts", () => {
     makePiano({ $id: "sold-then", category: "on_sale", sold_date: "2026-08-10" as any, sold_price: 50000 }),
   ];
 
-  it("counts what isn't sold as in stock, whatever its category", () => {
-    expect(stockCounts(list).inStock).toBe(5);
+  it("counts the pianos that are here as in stock: not sold, and not out with a customer", () => {
+    // The warehouse piano and the one on sale. The two running rentals and the
+    // one that ended and hasn't come back are with customers.
+    expect(stockCounts(list).inStock).toBe(2);
+  });
+
+  it("counts a rentable piano with no rental on it as in stock, since it is here", () => {
+    const available = rental("available", 5, { rental_period_end: null, rental_period_start: null });
+
+    expect(stockCounts([available]).inStock).toBe(1);
+    expect(stockCounts([available]).onRent).toBe(0);
+  });
+
+  it("keeps in stock and on rent apart: a rental that is out is only ever on rent", () => {
+    const counts = stockCounts([rental("out", 10), makePiano({ $id: "here" })]);
+
+    expect(counts).toMatchObject({ inStock: 1, onRent: 1 });
   });
 
   it("counts the rentals that haven't ended as on rent", () => {
