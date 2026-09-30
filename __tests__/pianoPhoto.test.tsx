@@ -269,3 +269,91 @@ describe("PianoPhoto frame", () => {
     expect(layer.props.accessibilityLabel).toBeUndefined();
   });
 });
+
+describe("PianoPhoto with a Retry tile (a big photo, such as the top of a piano's page)", () => {
+  const tile = (renderer: ReactTestRenderer) =>
+    renderer.root.findAll(
+      (node) =>
+        node.props.accessibilityLabel === "Photo didn't load. Retry" &&
+        typeof node.props.onPress === "function"
+    )[0];
+  // The piano drawing is the SVG on the 160 grid; the tile's refresh icon is on the 24 grid
+  const pianoDrawings = (renderer: ReactTestRenderer) =>
+    renderer.root.findAllByType(Svg).filter((node) => node.props.viewBox === "0 0 160 160");
+  const failedPhoto = () => {
+    const renderer = render(<PianoPhoto id="piano-1" uri={URI} retryable />);
+    act(() => photos(renderer)[0].props.onError());
+    return renderer;
+  };
+
+  it("shows a grey Retry tile when the photo can't load, not the piano drawing", () => {
+    const renderer = failedPhoto();
+
+    expect(tile(renderer)).toBeDefined();
+    expect(photos(renderer)).toHaveLength(0);
+    expect(pianoDrawings(renderer)).toHaveLength(0);
+    expect(renderer.root.findAllByType(Text).map((text) => text.props.children)).toContain("Retry");
+  });
+
+  it("draws the tile as on the Feedback board: light grey fill, a 22 px refresh icon, and Retry in 12 / 700", () => {
+    const renderer = failedPhoto();
+    const pressable = tile(renderer);
+    const label = pressable.findByType(Text);
+
+    expect(StyleSheet.flatten(pressable.props.style)).toMatchObject({
+      backgroundColor: "#F1EFEA",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+    });
+    expect(StyleSheet.flatten(label.props.style)).toMatchObject({
+      fontFamily: "Figtree_700Bold",
+      fontSize: 12,
+      lineHeight: 16,
+    });
+    expect(pressable.findByType(Svg).props.width).toBe(22);
+  });
+
+  it("asks for the photo again when Retry is pressed", () => {
+    const renderer = failedPhoto();
+
+    act(() => tile(renderer).props.onPress());
+
+    expect(tile(renderer)).toBeUndefined();
+    expect(photos(renderer)).toHaveLength(1);
+    expect(photos(renderer)[0].props.source).toEqual({ uri: URI });
+  });
+
+  it("shows the tile again if the photo fails again", () => {
+    const renderer = failedPhoto();
+    act(() => tile(renderer).props.onPress());
+
+    act(() => photos(renderer)[0].props.onError());
+
+    expect(tile(renderer)).toBeDefined();
+  });
+
+  it("tries a piano's next photo after one has failed", () => {
+    const renderer = failedPhoto();
+
+    act(() => renderer.update(<PianoPhoto id="piano-1" uri={`${URI}?v=2`} retryable />));
+
+    expect(tile(renderer)).toBeUndefined();
+    expect(photos(renderer)[0].props.source).toEqual({ uri: `${URI}?v=2` });
+  });
+
+  it("still draws the piano when there is no photo at all: nothing failed, so there is nothing to retry", () => {
+    const renderer = render(<PianoPhoto id="piano-1" retryable />);
+
+    expect(tile(renderer)).toBeUndefined();
+    expect(pianoDrawings(renderer)).toHaveLength(1);
+  });
+
+  it("keeps the drawing for a failed photo when it isn't asked to retry", () => {
+    const renderer = render(<PianoPhoto id="piano-1" uri={URI} />);
+    act(() => photos(renderer)[0].props.onError());
+
+    expect(tile(renderer)).toBeUndefined();
+    expect(pianoDrawings(renderer)).toHaveLength(1);
+  });
+});

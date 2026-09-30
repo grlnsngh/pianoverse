@@ -138,8 +138,8 @@ describe("Detail screen dates", () => {
       createTestStore({ user: testUser, items: [piano] })
     );
 
-    expect(allTexts(renderer.root)).toContain("Saturday, September 26, 2026");
-    expect(allTexts(renderer.root)).not.toContain("Friday, September 25, 2026");
+    expect(allTexts(renderer.root)).toContain("26 Sep 2026");
+    expect(allTexts(renderer.root)).not.toContain("25 Sep 2026");
   });
 });
 
@@ -179,7 +179,9 @@ describe("rental status", () => {
       createTestStore({ user: testUser, items: [rental(day(0))] })
     );
 
-    expect(allTexts(renderer.root)).toContain("Due Today");
+    expect(allTexts(renderer.root)).toEqual(
+      expect.arrayContaining(["Rental ends today", "Ends today"])
+    );
   });
 
   it("the detail screen warns about a rental that has ended", () => {
@@ -189,7 +191,7 @@ describe("rental status", () => {
     );
 
     expect(allTexts(renderer.root)).toEqual(
-      expect.arrayContaining(["Rental Ended", "Ended 3 days ago"])
+      expect.arrayContaining(["Rental ended 3 days ago", "Ended · 3 days over", "Rent overdue"])
     );
   });
 
@@ -200,7 +202,7 @@ describe("rental status", () => {
     );
 
     expect(allTexts(renderer.root)).toEqual(
-      expect.arrayContaining(["Active Rental", "2 weeks remaining"])
+      expect.arrayContaining(["Rental ends in 20 days", "20 days left"])
     );
   });
 });

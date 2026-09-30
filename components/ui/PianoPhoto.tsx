@@ -1,8 +1,9 @@
 import { Image, ImageContentFit } from "expo-image";
 import React, { useState } from "react";
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import Svg, { Ellipse, G, Path, Rect } from "react-native-svg";
-import { colors, PianoPalette, pianoPalettes } from "@/constants/theme";
+import { colors, fonts, PianoPalette, pianoPalettes } from "@/constants/theme";
+import Icon from "./Icon";
 
 const KEYS = "#F7F3EA";
 const KEY_SEPARATOR = "#D2CABB";
@@ -82,6 +83,13 @@ export type PianoPhotoProps = {
   id: string;
   /** The photo. With none, or if it fails to load, the piano drawing shows instead */
   uri?: string | null;
+  /**
+   * For a photo that is big enough to hold a button, such as the one at the top
+   * of a piano's page: a photo that fails to load shows a grey "Retry" tile
+   * instead of the drawing (which would look like a piano with no photo), and
+   * pressing it tries again. Small photos in lists keep the drawing.
+   */
+  retryable?: boolean;
   /** Size, corner radius and position. Corners are clipped, so a radius works */
   style?: StyleProp<ViewStyle>;
   contentFit?: ImageContentFit;
@@ -95,6 +103,7 @@ export type PianoPhotoProps = {
 const PianoPhoto = ({
   id,
   uri,
+  retryable = false,
   style,
   contentFit = "cover",
   accessibilityLabel,
@@ -104,8 +113,11 @@ const PianoPhoto = ({
   // Remember which address failed rather than a flag, so a new photo for the
   // same piano gets its own try without an effect to reset the state
   const [failedUri, setFailedUri] = useState<string | null>(null);
+  // Bumped by Retry, so the photo is asked for again
+  const [attempt, setAttempt] = useState(0);
   const palette = paletteFor(id);
   const showPhoto = !!uri && uri !== failedUri;
+  const failed = !!uri && uri === failedUri;
 
   return (
     // The wall colour shows while a photo loads, so the frame doesn't flash white
@@ -121,11 +133,25 @@ const PianoPhoto = ({
       >
         {showPhoto ? (
           <Image
+            key={attempt}
             source={{ uri }}
             style={StyleSheet.absoluteFill}
             contentFit={contentFit}
             onError={() => setFailedUri(uri)}
           />
+        ) : failed && retryable ? (
+          <Pressable
+            onPress={() => {
+              setFailedUri(null);
+              setAttempt((count) => count + 1);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Photo didn't load. Retry"
+            style={styles.retry}
+          >
+            <Icon name="refresh" size={22} color={colors.ink} strokeWidth={1.75} />
+            <Text style={styles.retryText}>Retry</Text>
+          </Pressable>
         ) : (
           <PianoIllustration palette={palette} />
         )}
@@ -137,6 +163,15 @@ const PianoPhoto = ({
 
 const styles = StyleSheet.create({
   frame: { overflow: "hidden" },
+  // The Feedback board's "Failed to load" tile
+  retry: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: colors.fillInput,
+  },
+  retryText: { fontFamily: fonts.bold, fontSize: 12, lineHeight: 16, color: colors.ink },
 });
 
 export default React.memo(PianoPhoto);

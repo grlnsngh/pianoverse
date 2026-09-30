@@ -75,12 +75,32 @@ const pressByLabel = async (renderer: any, label: string) => {
 };
 
 describe("the customer's mobile number", () => {
-  it("calls the customer when the number is tapped", async () => {
+  it("calls the customer from the phone button, named after them", async () => {
     const renderer = renderDetail();
+
+    await pressByLabel(renderer, "Call Asha Mehta");
+
+    expect(Linking.openURL).toHaveBeenCalledWith("tel:9876543210");
+  });
+
+  it("names the number when there is no customer name", async () => {
+    const renderer = renderDetail({ ...rental, rental_customer_name: "" });
 
     await pressByLabel(renderer, "Call 98765 43210");
 
     expect(Linking.openURL).toHaveBeenCalledWith("tel:9876543210");
+  });
+
+  it("has no call or message buttons without a number", () => {
+    const renderer = renderDetail({ ...rental, rental_customer_mobile: null });
+
+    expect(
+      renderer.root.findAll(
+        (node) =>
+          typeof node.props.onPress === "function" &&
+          /^(Call|Message on WhatsApp)/.test(node.props.accessibilityLabel ?? "")
+      )
+    ).toHaveLength(0);
   });
 
   it("opens a WhatsApp chat with the customer", async () => {

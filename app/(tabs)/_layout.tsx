@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { TabBar, TabScenes } from "@/components/ui";
 import type { TabBarItem } from "@/components/ui";
 import { colors } from "@/constants/theme";
-import { PianoDataProvider } from "@/lib/PianoDataContext";
 import { setActiveTab, TabKey } from "@/redux/navigation/actions";
 import { INITIAL_TAB } from "@/redux/navigation/reducer";
 import { RootState } from "@/redux/store";
@@ -46,20 +45,18 @@ const TabsLayout = () => {
   }, []);
 
   return (
-    <PianoDataProvider>
-      <View style={{ flex: 1, backgroundColor: colors.page }}>
-        {/* The Pianos screen loads the pianos that Today reads, so it is made
-            at the start even though the app opens on Today */}
-        <TabScenes scenes={SCENES} active={activeTab} eager={LOADS_DATA} />
-        {!choosingPianos && (
-          <TabBar
-            tabs={TABS}
-            active={activeTab}
-            onSelect={(tab) => dispatch(setActiveTab(tab) as any)}
-          />
-        )}
-      </View>
-    </PianoDataProvider>
+    <View style={{ flex: 1, backgroundColor: colors.page }}>
+      {/* The Pianos screen loads the pianos that Today reads, so it is made
+          at the start even though the app opens on Today */}
+      <TabScenes scenes={SCENES} active={activeTab} eager={LOADS_DATA} />
+      {!choosingPianos && (
+        <TabBar
+          tabs={TABS}
+          active={activeTab}
+          onSelect={(tab) => dispatch(setActiveTab(tab) as any)}
+        />
+      )}
+    </View>
   );
 };
 

@@ -24,13 +24,11 @@ import React from "react";
 import { router } from "expo-router";
 import DetailScreen from "@/app/detail/[id]";
 import { cancelRentalNotification } from "@/services/notifications";
-import icons from "@/constants/icons";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   captureAlerts,
   createTestStore,
-  findByImageSource,
   press,
   queryAllByText,
   renderWithStore,
@@ -45,8 +43,15 @@ const renderDetail = () => {
   return { store, renderer };
 };
 
-const pressTrash = (renderer: ReturnType<typeof renderDetail>["renderer"]) =>
-  press(findByImageSource(renderer.root, (source) => source === icons.trash));
+// "Delete piano", the red row at the bottom of the page
+const pressDelete = (renderer: ReturnType<typeof renderDetail>["renderer"]) => {
+  const [row] = renderer.root.findAll(
+    (node) =>
+      node.props.accessibilityLabel === "Delete piano" &&
+      typeof node.props.onPress === "function"
+  );
+  return press(row);
+};
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -68,7 +73,7 @@ afterEach(() => {
 it("deletes the piano after the user confirms, then goes back", async () => {
   const { store, renderer } = renderDetail();
 
-  await pressTrash(renderer);
+  await pressDelete(renderer);
   expect(alerts.titles()).toEqual(["Delete Piano"]);
   // Nothing is removed until the user confirms
   expect(fakeBackend.documents.has("piano-1")).toBe(true);
@@ -88,7 +93,7 @@ it("deletes the piano after the user confirms, then goes back", async () => {
 it("keeps the piano when the user cancels", async () => {
   const { store, renderer } = renderDetail();
 
-  await pressTrash(renderer);
+  await pressDelete(renderer);
   await alerts.pressButton("Cancel");
 
   expect(fakeBackend.documents.has("piano-1")).toBe(true);
@@ -101,7 +106,7 @@ it("stays on the screen and reports the error when deleting fails", async () => 
   jest.spyOn(console, "error").mockImplementation(() => {});
   fakeBackend.documents.delete("piano-1"); // e.g. already removed on another device
 
-  await pressTrash(renderer);
+  await pressDelete(renderer);
   await alerts.pressButton("Delete");
 
   expect(alerts.titles()).toEqual(["Delete Piano", "Error"]);

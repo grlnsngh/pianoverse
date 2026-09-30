@@ -109,7 +109,7 @@ describe("extending a rental", () => {
     const end = addDays(today(), 10);
     const { store, renderer } = openDetail(rentalEnding(end));
 
-    await pressText(renderer, "Extend Rental");
+    await pressText(renderer, "Extend rental");
     const newEnd = addMonths(end, 1);
     expect(allTexts(renderer.root)).toContain(
       `until ${format(newEnd, "EEE, d MMM yyyy")}`
@@ -135,7 +135,7 @@ describe("extending a rental", () => {
     const end = addDays(today(), -5);
     const { renderer } = openDetail(rentalEnding(end));
 
-    await pressText(renderer, "Extend Rental");
+    await pressText(renderer, "Extend rental");
     await pressLabel(renderer, "Extend by 3 months");
 
     expect(savedEnd()).toBe(toStoredDate(addMonths(end, 3)));
@@ -145,7 +145,7 @@ describe("extending a rental", () => {
     const end = addDays(today(), 10);
     const { renderer } = openDetail(rentalEnding(end));
 
-    await pressText(renderer, "Extend Rental");
+    await pressText(renderer, "Extend rental");
     await pressText(renderer, "Choose a date…");
     const [picker] = renderer.root.findAll(
       (node) => (node.type as unknown) === "DateTimePicker"
@@ -166,7 +166,7 @@ describe("extending a rental", () => {
     const end = addDays(today(), 10);
     const { renderer } = openDetail(rentalEnding(end));
 
-    await pressText(renderer, "Extend Rental");
+    await pressText(renderer, "Extend rental");
     await pressText(renderer, "Choose a date…");
     const [picker] = renderer.root.findAll(
       (node) => (node.type as unknown) === "DateTimePicker"
@@ -184,9 +184,9 @@ describe("extending a rental", () => {
     const texts = (piano: PianoItem) =>
       allTexts(openDetail(piano).renderer.root);
 
-    expect(texts(makePiano({ $id: "piano-1" }))).not.toContain("Extend Rental");
+    expect(texts(makePiano({ $id: "piano-1" }))).not.toContain("Extend rental");
     expect(
       texts(rentalEnding(end, { sold_date: toStoredDate(today()) as any }))
-    ).not.toContain("Extend Rental");
+    ).not.toContain("Extend rental");
   });
 });

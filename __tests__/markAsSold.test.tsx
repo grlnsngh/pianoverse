@@ -57,7 +57,6 @@ import {
   captureToasts,
   createTestStore,
   flushPromises,
-  queryAllByText,
   renderWithStore,
 } from "./helpers/render";
 
@@ -123,12 +122,15 @@ const openDetail = async (piano: PianoItem = rental) => {
   return { store, renderer };
 };
 
+// The row on the piano's page (or the bar, for a piano on sale) that opens the sheet
 const openSoldSheet = async (renderer: ReactTestRenderer) => {
-  const [button] = queryAllByText(renderer.root, "Mark as Sold");
-  let pressable: any = button;
-  while (typeof pressable.props.onPress !== "function")
-    pressable = pressable.parent;
-  await act(async () => pressable.props.onPress());
+  const [button] = renderer.root.findAll(
+    (node) =>
+      node.props.accessibilityLabel === "Mark as sold" &&
+      typeof node.props.onPress === "function"
+  );
+  if (!button) throw new Error("No Mark as sold on the page");
+  await act(async () => button.props.onPress());
 };
 
 describe("marking a piano as sold", () => {
@@ -160,7 +162,7 @@ describe("marking a piano as sold", () => {
     expect(texts).toContain("SOLD");
     expect(texts).toContain("Ravi Kumar");
     expect(texts).toContain("₹1,85,000");
-    expect(texts).toContain("Undo Sale");
+    expect(texts).toContain("Undo sale");
   });
 
   it("saves the price as a number, the way the database stores it", async () => {
@@ -215,7 +217,7 @@ describe("marking a piano as sold", () => {
     expect(field(renderer, "Sale Price").props.value).toBe("250000");
   });
 
-  it("no longer counts down the rental on the piano's page", async () => {
+  it("no longer counts down the rental on the piano's page, or shows who had it (the Sold board)", async () => {
     const sold = {
       ...rental,
       sold_date: inDays(-2),
@@ -225,9 +227,12 @@ describe("marking a piano as sold", () => {
     const { renderer } = await openDetail(sold);
 
     const texts = allTexts(renderer.root).join(" ");
-    expect(texts).not.toMatch(/Active Rental|remaining|Expiring Soon/);
-    // The rental's details are still there
-    expect(texts).toContain("Asha Mehta");
+    expect(texts).not.toMatch(/Rental ends|Rental ended|days left|Rent overdue/);
+    expect(texts).not.toContain("Rental");
+    expect(texts).not.toContain("Asha Mehta");
+    // It says it was sold, and to whom
+    expect(texts).toContain("Sold on");
+    expect(texts).toContain("Ravi Kumar");
   });
 
   it("can be undone", async () => {
@@ -239,11 +244,12 @@ describe("marking a piano as sold", () => {
     } as any;
     const { store, renderer } = await openDetail(sold);
 
-    const [undo] = queryAllByText(renderer.root, "Undo Sale");
-    let pressable: any = undo;
-    while (typeof pressable.props.onPress !== "function")
-      pressable = pressable.parent;
-    await act(async () => pressable.props.onPress());
+    const [undo] = renderer.root.findAll(
+      (node) =>
+        node.props.accessibilityLabel === "Undo sale" &&
+        typeof node.props.onPress === "function"
+    );
+    await act(async () => undo.props.onPress());
     await alerts.pressButton("Undo Sale");
 
     expect(fakeBackend.documents.get("piano-1")).toMatchObject({

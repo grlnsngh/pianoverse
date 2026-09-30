@@ -23,16 +23,6 @@ Status key: **Open** = waiting for you. **Later** = not asked yet, comes up in a
   - **B. Dark pill everywhere.** Android toasts then match iOS, but I have to make toasts draw above sheets and dialogs too (more work, and something to test on a phone).
 - **Your answer:**
 
-### Q2. Should a photo that fails to load show a "Retry" tile instead of the piano drawing?
-- **Status:** Open. Needed before Batch 7 (Piano detail hero).
-- **Raised:** Batch 1 (Feedback board vs SPEC).
-- **What the app does now (default):** if a photo is missing **or fails to load**, the piano drawing is shown (as SPEC section 5 and plan item 0.6 say).
-- **The conflict:** the Feedback board draws three photo states: loading (grey), no photo (the drawing) and **failed to load: a grey tile with a refresh icon and "Retry"**.
-- **Options:**
-  - **A. Drawing for failed photos too** (now). Simple, but a broken photo looks like "no photo" and cannot be retried without leaving the page.
-  - **B. Retry tile for failed photos**, as on the Feedback board. Most useful on the piano's page.
-- **Your answer:**
-
 ### Q3. Should the ⋮ menu (Edit, Delete) come back on the Pianos list, or swipe rows?
 - **Status:** Open. Look at this on your phone first.
 - **Raised:** Batch 4.
@@ -117,6 +107,18 @@ Status key: **Open** = waiting for you. **Later** = not asked yet, comes up in a
 - **Options:** **A.** keep it (now, matches the board). **B.** show the piano's title only, which is always true. **C.** save the customer's name with each new payment (a change to what is stored, so a later batch, and older payments would still lack it).
 - **Your answer:**
 
+### Q16. A piano's page: things the boards don't draw, or that changed
+- **Status:** Open. Look at these on your phone first.
+- **Raised:** Batch 7.
+- **What the app does now (default):**
+  - **Deleting a payment:** the boards show no delete button on a payment. You **press and hold** the payment to delete it (it still asks first). A line under the payments says so, and a screen reader gets a "Delete payment" action.
+  - **The ⋯ button:** no board shows what it opens. It opens a sheet with **every action of the page** (the bar's action first, Delete last).
+  - **The photo viewer:** the board has "Set as cover", "Delete photo" and a ⋯ button. Those would change photos from the viewer, which the app only does on the Edit screen, so they are **not built**. The strip of small photos, the zoom hint and "2 of 4" are.
+  - **Sold rentals:** the Sold board shows only Sale and About this piano, so **the customer's name, number and rental dates are no longer shown once a rented piano is sold**. Its payments still are. Before, they stayed on the page.
+  - **Gone:** "Additional information" (created, last updated, piano ID), the coloured category badge and the collapsible cards. No board has them.
+- **Options:** for each point, keep it, or tell me what you want, for example "Q16: a small Delete text on each payment" or "Q16: keep the customer on sold pianos".
+- **Your answer:**
+
 ---
 
 ## Later (not asked yet, the default is set)
@@ -151,6 +153,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 - **Batch 3:** the new tab bar (84 high), the tab fade (no flash), the Add screen opening and closing, the Android back button, publishing landing on Pianos.
 - **Batch 4:** the Pianos header, tabs, grid and list, photo fallback, filter panel opening from the pill and the sort link, select mode, offline strip, empty states.
 - **Batch 5:** the filter sheet (Sort by list on top of it, the "Show N pianos" button), select mode (top bar, red Delete bar in the tab bar's place, the dialog, Android back), the refresh spinner, and Search (keyboard up at once, results as you type, bold matches, Clear, Cancel, no results).
+- **Batch 7:** a piano's page for a rental, one on sale, events, warehouse and a sold one: the photo under the status bar and its three buttons, swiping through photos and the count, the viewer (pinch, double tap, the strip, the hint), the Retry tile (airplane mode, then back on, then Retry), the bar's height above the home indicator, the rental bar and its dates on a narrow phone, pressing and holding a payment, the ⋯ menu, and opening a piano from a notification just after the app starts.
 - **Batch 6:** the app opening on Today (then switch to Pianos at once: its list should be there), the amount and the three counts against what you know, Needs attention (order, red and orange), the Rented out shelf (sideways scroll, the bars, See all), Recent payments, pull down on Today, the skeleton on a slow connection, and airplane mode.
 - The full step-by-step list for each batch is in the chat message that ended that batch and in [PLAN.md](PLAN.md)'s Session log.
 
@@ -158,4 +161,6 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 
 ## Answered
 
-_(Nothing yet. Answered questions will be moved here with the answer and the batch that acted on it.)_
+### Q2. Should a photo that fails to load show a "Retry" tile instead of the piano drawing?
+- **Answer:** Yes, show Retry (2026-09-30).
+- **Acted on in Batch 7:** the photo at the top of a piano's page and the full-screen viewer show the Feedback board's grey Retry tile when a photo can't load, and pressing it tries again. Cards, rows and small thumbnails still show the drawing, since a button doesn't fit in them.

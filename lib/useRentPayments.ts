@@ -29,9 +29,10 @@ const newestFirst = (payments: RentPayment[]) =>
 /**
  * Loads the rent payments of a piano and returns them with functions to
  * record and delete one. Both ask the user again when saving fails, and
- * resolve to whether they worked.
+ * resolve to whether they worked. Pass `enabled` false for a piano that isn't
+ * a rental: nothing is loaded for it.
  */
-const useRentPayments = (pianoId: string) => {
+const useRentPayments = (pianoId: string, enabled = true) => {
   const user = useSelector((state: RootState) => state.users.user);
   const dispatch = useDispatch();
   const [payments, setPayments] = useState<RentPayment[]>([]);
@@ -59,8 +60,8 @@ const useRentPayments = (pianoId: string) => {
   }, [pianoId]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (enabled) load();
+  }, [load, enabled]);
 
   const add = useCallback(
     async ({ amount, paidOn, note }: NewPayment) => {

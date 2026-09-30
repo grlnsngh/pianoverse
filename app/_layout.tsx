@@ -11,6 +11,7 @@ import { Provider } from "react-redux";
 import { PaperProvider } from "react-native-paper";
 import store from "@/redux/store";
 import ToastHost from "@/components/ToastHost";
+import { PianoDataProvider } from "@/lib/PianoDataContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -55,16 +56,29 @@ export default function RootLayout() {
         {/* One provider for the whole app (theme and the host that menus
             render into), instead of one per list row */}
         <PaperProvider>
-          <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            {/* The Add flow: its own screen above the tabs, with its own back button */}
-            <Stack.Screen name="create" options={{ headerShown: false }} />
-            {/* Search draws its own field and Cancel button; /search and /search/<words> are the one screen */}
-            <Stack.Screen name="search/index" options={{ headerShown: false }} />
-            <Stack.Screen name="search/[query]" options={{ headerShown: false }} />
-          </Stack>
+          <PianoDataProvider>
+            <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              {/* The Add flow: its own screen above the tabs, with its own back button */}
+              <Stack.Screen name="create" options={{ headerShown: false }} />
+              {/* Search draws its own field and Cancel button; /search and /search/<words> are the one screen */}
+              <Stack.Screen
+                name="search/index"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="search/[query]"
+                options={{ headerShown: false }}
+              />
+              {/* A piano's page draws its own photo, Back button and bar */}
+              <Stack.Screen
+                name="detail/[id]"
+                options={{ headerShown: false }}
+              />
+            </Stack>
+          </PianoDataProvider>
           <ToastHost />
         </PaperProvider>
       </GlobalProvider>

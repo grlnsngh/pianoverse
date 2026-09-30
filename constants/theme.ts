@@ -63,6 +63,14 @@ export const colors = {
   dim: "rgba(26, 24, 20, 0.45)",
   /** Track of a progress bar drawn over a photo */
   progressTrack: "rgba(26, 24, 20, 0.28)",
+  /** Count on a piano's photo ("1 / 4") */
+  photoScrim: "rgba(26, 24, 20, 0.78)",
+  /** Over the photo of a sold piano, so it looks set aside */
+  soldWash: "rgba(255, 255, 255, 0.45)",
+  /** The full-screen photo viewer (PhotoViewer board) */
+  viewer: "#0F0E0C",
+  viewerButton: "rgba(255, 255, 255, 0.14)",
+  viewerHint: "rgba(15, 14, 12, 0.8)",
   skeletonBase: "#EFEDE8",
   skeletonHighlight: "#F8F7F4",
 } as const;
