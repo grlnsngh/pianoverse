@@ -13,25 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q23. Which email service should send the app's emails, so the reset email can look like the app?
-- **Status:** Open. Nothing is blocked on it, but the new email (`email/password-recovery.html`) stays unused until you answer.
-- **Raised:** Batch 14.
-- **What the app does now (default):** Appwrite's built-in email service sends Appwrite's own plain reset email. Appwrite only lets a custom template be saved when the project uses **your own SMTP server** (the built-in service does not allow it). The reset page that email opens is already the new one after the merge.
-- **Options:**
-  - **A. Leave it as it is** (now). Resetting works; the email stays Appwrite's plain text.
-  - **B. Use an email service** such as Resend, Brevo or Mailgun. Most have a free plan for a small app; you verify a sending address or domain, and paste its SMTP details into the Appwrite Console (Settings, SMTP). I can't do that part for you, because it needs your passwords, but `WEB.md` says every click, and then I paste the template with you.
-  - **C. Use your Gmail account's SMTP** with an app password. No domain needed, but the emails come from your personal Gmail address and Google limits how many it will send a day.
-- **Your answer:**
-
-### Q24. Is support@pianoverse.com a real address?
-- **Status:** Open. Nothing is blocked on it.
-- **Raised:** Batch 14. The old landing page already showed it; I kept it on the new pages and in the email.
-- **What the app does now (default):** both pages and the email say "Questions? support@pianoverse.com". If that mailbox doesn't exist, anyone who writes there gets no answer.
-- **Options:**
-  - **A. Keep it** (now), because it is a real address you read.
-  - **B. Replace it** with another address (tell me which).
-  - **C. Remove the "Questions?" and "Need help?" lines** from the pages and the email until there is an address.
-- **Your answer:**
+_(Nothing is waiting for you right now.)_
 
 ---
 
@@ -149,3 +131,11 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q25. Should the app in a browser (`npm run web`) get a phone-width column?
 - **Answer:** Leave it as it is (option A, the default) (2026-10-01).
 - **Why it stays:** Pianoverse is a phone app; the app in a browser is only for development. Nothing to build.
+
+### Q23. Which email service should send the app's emails, so the reset email can look like the app?
+- **Answer:** Leave it as it is (option A, the default) (2026-10-01).
+- **Why it stays:** Appwrite keeps sending its own plain reset email, which still opens the new reset page. `email/password-recovery.html` stays in the project, ready to paste into the Appwrite console if you ever set up an SMTP server (the steps are in `docs/redesign/WEB.md`).
+
+### Q24. Is support@pianoverse.com a real address?
+- **Answer:** Keep it as it is (option A) (2026-10-01), although it is **not a real mailbox**.
+- **Why it stays:** you chose not to worry about it. The two pages and the email still say "Questions? support@pianoverse.com", so anyone who writes there gets no answer. If you want that changed later, option B (another address) or C (remove the lines) is a small change.
