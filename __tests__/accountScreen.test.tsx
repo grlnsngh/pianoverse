@@ -109,6 +109,53 @@ describe("the profile card", () => {
     expect(texts).toContain("grlnsngh@gmail.com");
   });
 
+  describe("their photo", () => {
+    const PHOTO = "https://lh3.googleusercontent.com/a/ACg8ocJxyz123=s192-c";
+    const INITIALS = "https://cloud.appwrite.io/v1/avatars/initials?name=grlnsngh&project=66b2693000154e2fa3c8";
+    const photoNode = (renderer: any) =>
+      renderer.root.findAll(
+        (node: any) => node.props.source?.uri === PHOTO && typeof node.props.onError === "function"
+      )[0];
+
+    it("is drawn in the circle when they have one, in place of their initial", async () => {
+      (useGlobalContext() as any).user.avatar = PHOTO;
+      const { renderer } = await renderAccount();
+
+      expect(photoNode(renderer)).toBeDefined();
+      expect(allTexts(renderer.root)).not.toContain("G");
+      // The name and email are still beside it
+      expect(allTexts(renderer.root)).toContain("grlnsngh");
+    });
+
+    it("is hidden from a screen reader, since the name beside it says who it is", async () => {
+      (useGlobalContext() as any).user.avatar = PHOTO;
+      const { renderer } = await renderAccount();
+
+      expect(photoNode(renderer).props.accessibilityElementsHidden).toBe(true);
+      expect(photoNode(renderer).props.importantForAccessibility).toBe("no-hide-descendants");
+    });
+
+    it("is not drawn for the letters Appwrite makes up: the orange circle's initial is shown", async () => {
+      (useGlobalContext() as any).user.avatar = INITIALS;
+      const { renderer } = await renderAccount();
+
+      expect(photoNode(renderer)).toBeUndefined();
+      expect(allTexts(renderer.root)).toContain("G");
+    });
+
+    it("gives way to the initial when the picture can't be loaded", async () => {
+      (useGlobalContext() as any).user.avatar = PHOTO;
+      const { renderer } = await renderAccount();
+
+      await act(async () => {
+        photoNode(renderer).props.onError();
+      });
+
+      expect(photoNode(renderer)).toBeUndefined();
+      expect(allTexts(renderer.root)).toContain("G");
+    });
+  });
+
   it("says how long they have been a member", async () => {
     const { renderer } = await renderAccount();
 

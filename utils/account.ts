@@ -12,6 +12,16 @@ export const initialOf = (username?: string | null, email?: string | null) => {
   return source ? source.charAt(0).toUpperCase() : "U";
 };
 
+/**
+ * The photo to draw in the profile's circle: the avatar when it is a real
+ * picture at a secure address. The letters Appwrite draws for an account that
+ * has no picture aren't one (the circle shows the initial instead).
+ */
+export const profilePhoto = (avatar?: string | null) =>
+  avatar && /^https:\/\//i.test(avatar) && !/\/avatars\/initials/i.test(avatar)
+    ? avatar
+    : null;
+
 /** "1 day", "4 months", "2 years": how long since the account was made. */
 const membershipLength = (since: Date, now: Date) => {
   const days = Math.max(1, differenceInCalendarDays(now, since));

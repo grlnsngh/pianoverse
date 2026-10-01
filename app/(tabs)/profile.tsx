@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import * as Updates from "expo-updates";
 import React, { useState } from "react";
@@ -19,7 +20,7 @@ import { setActiveTab } from "@/redux/navigation/actions";
 import { resetPianoState } from "@/redux/pianos/actions";
 import { RootState } from "@/redux/store";
 import { scheduleAllRentalNotifications } from "@/services/notifications";
-import { formatLastUpdated, initialOf, memberSince } from "@/utils/account";
+import { formatLastUpdated, initialOf, memberSince, profilePhoto } from "@/utils/account";
 import { versionLabel } from "@/utils/appVersion";
 import { exportPianosToCSV } from "@/utils/csvExport";
 import { showDialog } from "@/utils/dialog";
@@ -110,10 +111,14 @@ const Profile = () => {
     Updates.isEmbeddedLaunch
   );
   const [exporting, setExporting] = useState(false);
+  // The photo that couldn't be loaded, so the initial shows instead of an empty circle
+  const [brokenPhoto, setBrokenPhoto] = useState<string | null>(null);
   const appLock = useAppLock();
 
   const counts = stockCounts(items);
   const since = memberSince(user?.$createdAt);
+  const avatarPhoto = profilePhoto(user?.avatar);
+  const photo = avatarPhoto && avatarPhoto !== brokenPhoto ? avatarPhoto : null;
   // Read again each time the tab is shown, since the Pianos tab saves a copy after every load
   const savedAt = useSavedAt(user?.accountId, activeTab);
 
@@ -185,7 +190,18 @@ const Profile = () => {
         <View style={styles.card}>
           <View style={styles.who}>
             <View style={styles.avatar}>
-              <Text style={styles.initial}>{initialOf(user?.username, user?.email)}</Text>
+              {photo ? (
+                <Image
+                  source={{ uri: photo }}
+                  style={styles.photo}
+                  contentFit="cover"
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                  onError={() => setBrokenPhoto(photo)}
+                />
+              ) : (
+                <Text style={styles.initial}>{initialOf(user?.username, user?.email)}</Text>
+              )}
             </View>
             <View style={styles.whoText}>
               <Text style={styles.name} numberOfLines={1}>
@@ -324,8 +340,10 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
     backgroundColor: colors.brand,
   },
+  photo: { width: 64, height: 64 },
   initial: { fontFamily: fonts.bold, fontSize: 28, color: colors.ink },
   whoText: { flex: 1, minWidth: 0 },
   name: {
