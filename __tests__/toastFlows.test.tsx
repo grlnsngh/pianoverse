@@ -32,6 +32,7 @@ import {
   createTestStore,
   flushPromises,
   pressDialog,
+  pressLabel,
   renderWithStore,
 } from "./helpers/render";
 import { textContent } from "./helpers/ui";
@@ -110,12 +111,19 @@ const seedPayment = (id: string, amount: number, extra: Record<string, unknown> 
     paid_on: "2026-08-05",
     ...extra,
   });
-const holdPayment = async (renderer: ReactTestRenderer, text: string) => {
+// Presses and holds a payment and chooses Delete payment, which asks. What the choices sheet
+// picked runs once it has left, 300 ms later
+const askToDeletePayment = async (renderer: ReactTestRenderer, text: string) => {
   const [row] = renderer.root.findAll(
     (n) => typeof n.props.onLongPress === "function" && (n.props.accessibilityLabel ?? "").includes(text)
   );
   await act(async () => {
     await row.props.onLongPress();
+  });
+  await flushPromises();
+  await pressLabel(renderer.root, "Delete payment");
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 350));
   });
   await flushPromises();
 };
@@ -151,7 +159,7 @@ describe("Undo", () => {
     seedPayment("p", 5000, { note: "UPI", customer_name: "Asha Mehta" });
     const toasts = captureToastCalls();
     const { store, renderer } = await openDetail();
-    await holdPayment(renderer, "₹5,000");
+    await askToDeletePayment(renderer, "₹5,000");
     await pressDialog(renderer.root, "Delete");
     expect(fakeBackend.payments.size).toBe(0);
     expect(toasts[0]).toMatchObject({ message: "Payment deleted", variant: "success", duration: "long", action: { label: "Undo" } });
@@ -214,7 +222,7 @@ describe("a toast that says something couldn't be saved", () => {
     const toasts = captureToastCalls();
     const { renderer } = await openDetail();
     fakeBackend.missingCollections.add("rent_payments");
-    await holdPayment(renderer, "₹5,000");
+    await askToDeletePayment(renderer, "₹5,000");
     await pressDialog(renderer.root, "Delete");
 
     expect(toasts[0]).toMatchObject({
