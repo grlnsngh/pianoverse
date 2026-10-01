@@ -165,6 +165,7 @@ describe("the actions", () => {
     });
     expect(ACTION_LABELS).toEqual({
       recordPayment: "Record payment",
+      remind: "Remind customer",
       extend: "Extend rental",
       edit: "Edit piano",
       markSold: "Mark as sold",

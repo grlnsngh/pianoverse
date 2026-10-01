@@ -128,14 +128,21 @@ const runToastAction = async (toast: { action?: { onPress: () => void } }) => {
 };
 
 describe("a toast that says something was saved", () => {
-  it("has the check, for a recorded payment", async () => {
+  it("has the check, for a recorded payment, and a button to send its receipt", async () => {
     const toasts = captureToastCalls();
     const { renderer } = await openDetail();
 
     await press(renderer, "Record payment");
     await press(renderer, "Save payment");
 
-    expect(toasts).toEqual([{ message: "Payment recorded", duration: "short", variant: "success", action: undefined }]);
+    expect(toasts).toEqual([
+      {
+        message: "Payment recorded",
+        duration: "long",
+        variant: "success",
+        action: { label: "Send receipt", onPress: expect.any(Function) },
+      },
+    ]);
   });
 });
 
