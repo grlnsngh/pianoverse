@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New piano, use</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#F6F5F2;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit;cursor:pointer}
+input{cursor:text}
+input::placeholder{color:#77716A}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#F6F5F2;display:flex;flex-direction:column;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="flex-grow:1;min-height:0;overflow:hidden">
+
+<div style="display:flex;align-items:center;justify-content:center;position:relative;height:52px">
+<a href="Pianos.dc.html" style="position:absolute;left:8px;top:4px;height:44px;padding:0 12px;display:flex;align-items:center;font-size:16px;font-weight:500">Cancel</a>
+<div style="font-size:17px;font-weight:700">New piano</div>
+</div>
+
+<div style="padding:0 20px">
+<div style="display:flex;gap:4px">
+<div style="flex:1;height:3px;border-radius:2px;background:#1A1814"></div>
+<div style="flex:1;height:3px;border-radius:2px;background:#1A1814"></div>
+<div style="flex:1;height:3px;border-radius:2px;background:#DAD6CD"></div>
+</div>
+<div style="margin-top:10px;font-size:13px;font-weight:500;line-height:18px;color:#6B665D">Step 2 of 3</div>
+
+<h1 style="margin:12px 0 0;font-size:28px;font-weight:700;line-height:34px;letter-spacing:-0.02em">How will it be used?</h1>
+<div style="margin-top:2px;font-size:14px;font-weight:400;line-height:20px;color:#6B665D">The fields below change with your choice.</div>
+
+<div style="display:flex;padding:2px;margin-top:20px;background:#E7E4DD;border-radius:10px">
+<sc-for list="{{segs}}" as="s" hint-placeholder-count="4">
+<sc-if value="{{s.on}}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{s.pick}}" aria-pressed="true" style="flex:1;height:40px;padding:0;border:0;border-radius:8px;background:#FFFFFF;font-size:14px;font-weight:700;color:#1A1814">{{s.label}}</button>
+</sc-if>
+<sc-if value="{{s.off}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{s.pick}}" aria-pressed="false" style="flex:1;height:40px;padding:0;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:600;color:#6B665D">{{s.label}}</button>
+</sc-if>
+</sc-for>
+</div>
+
+<sc-if value="{{isRent}}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:20px;background:#FFFFFF;border-radius:16px">
+<label style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border-bottom:1px solid #E7E4DD">
+<span style="width:84px;flex-shrink:0;font-size:16px;color:#6B665D">Customer</span>
+<input type="text" value="Anita Rao" placeholder="Full name" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#1A1814">
+</label>
+<label style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border-bottom:1px solid #E7E4DD">
+<span style="width:84px;flex-shrink:0;font-size:16px;color:#6B665D">Mobile</span>
+<span style="font-size:16px;font-weight:500;color:#6B665D">+91</span>
+<input type="tel" value="98765 43210" placeholder="98765 43210" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#1A1814;font-variant-numeric:tabular-nums">
+</label>
+<label style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border-bottom:1px solid #E7E4DD">
+<span style="width:84px;flex-shrink:0;font-size:16px;color:#6B665D">Address</span>
+<input type="text" value="14, Model Town, Ludhiana" placeholder="House, street, city" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#1A1814">
+</label>
+<button type="button" style="width:100%;display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border:0;border-bottom:1px solid #E7E4DD;background:none;text-align:left;color:#1A1814">
+<span style="width:84px;flex-shrink:0;font-size:16px;color:#6B665D">Starts</span>
+<span style="flex-grow:1;font-size:16px;font-weight:500">29 Sep 2026</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+</button>
+<button type="button" style="width:100%;display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border:0;border-bottom:1px solid #E7E4DD;background:none;text-align:left;color:#1A1814">
+<span style="width:84px;flex-shrink:0;font-size:16px;color:#6B665D">Ends</span>
+<span style="flex-grow:1;font-size:16px;font-weight:500">29 Mar 2027</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+</button>
+<label style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px">
+<span style="width:84px;flex-shrink:0;font-size:16px;color:#6B665D">Rent</span>
+<span style="font-size:16px;font-weight:500;color:#6B665D">₹</span>
+<input type="text" inputmode="numeric" value="4,500" placeholder="0" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:600;color:#1A1814;font-variant-numeric:tabular-nums">
+</label>
+</div>
+<div style="margin:8px 16px 0;font-size:13px;font-weight:400;line-height:18px;color:#6B665D">A 6-month rental. You’ll get reminders before it ends.</div>
+</sc-if>
+
+<sc-if value="{{isEvents}}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:20px;background:#FFFFFF;border-radius:16px">
+<label style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border-bottom:1px solid #E7E4DD">
+<span style="width:112px;flex-shrink:0;font-size:16px;color:#6B665D">Purchase price</span>
+<span style="font-size:16px;font-weight:500;color:#6B665D">₹</span>
+<input type="text" inputmode="numeric" value="7,80,000" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:600;color:#1A1814;font-variant-numeric:tabular-nums">
+</label>
+<label style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border-bottom:1px solid #E7E4DD">
+<span style="width:112px;flex-shrink:0;font-size:16px;color:#6B665D">Bought from</span>
+<input type="text" placeholder="Seller or dealer" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#1A1814">
+</label>
+<label style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border-bottom:1px solid #E7E4DD">
+<span style="width:112px;flex-shrink:0;font-size:16px;color:#6B665D">Model number</span>
+<input type="text" placeholder="Optional" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#1A1814">
+</label>
+<label style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px">
+<span style="width:112px;flex-shrink:0;font-size:16px;color:#6B665D">B number</span>
+<input type="text" placeholder="Optional" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#1A1814">
+</label>
+</div>
+</sc-if>
+
+<sc-if value="{{isSale}}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:20px;background:#FFFFFF;border-radius:16px">
+<label style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border-bottom:1px solid #E7E4DD">
+<span style="width:112px;flex-shrink:0;font-size:16px;color:#6B665D">Sale price</span>
+<span style="font-size:16px;font-weight:500;color:#6B665D">₹</span>
+<input type="text" inputmode="numeric" value="1,15,000" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:600;color:#1A1814;font-variant-numeric:tabular-nums">
+</label>
+<label style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border-bottom:1px solid #E7E4DD">
+<span style="width:112px;flex-shrink:0;font-size:16px;color:#6B665D">Bought from</span>
+<input type="text" placeholder="Seller or dealer" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#1A1814">
+</label>
+<button type="button" style="width:100%;display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border:0;background:none;text-align:left;color:#1A1814">
+<span style="width:112px;flex-shrink:0;font-size:16px;color:#6B665D">Import date</span>
+<span style="flex-grow:1;font-size:16px;font-weight:500">Optional</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+</button>
+</div>
+</sc-if>
+
+<sc-if value="{{isWare}}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:20px;background:#FFFFFF;border-radius:16px">
+<button type="button" style="width:100%;display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;border:0;background:none;text-align:left;color:#1A1814">
+<span style="width:112px;flex-shrink:0;font-size:16px;color:#6B665D">Stored since</span>
+<span style="flex-grow:1;font-size:16px;font-weight:500">29 Sep 2026</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+</button>
+</div>
+</sc-if>
+
+</div>
+
+</div>
+
+<div style="flex-shrink:0;display:flex;gap:10px;padding:12px 20px 28px;background:#F6F5F2">
+<a href="Add1Basics.dc.html" style="width:104px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#E9E6DF;color:#1A1814;font-size:16px;font-weight:700">Back</a>
+<a href="Add3Review.dc.html" style="flex-grow:1;height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#FF9C01;color:#1A1814;font-size:16px;font-weight:700">Continue</a>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = { cat: 'rentable' };
+  renderVals() {
+    const c = this.state.cat;
+    const defs = [['rentable', 'Rentable'], ['events', 'Events'], ['sale', 'On sale'], ['warehouse', 'Warehouse']];
+    const segs = defs.map(([k, label]) => ({ label, on: c === k, off: c !== k, pick: () => this.setState({ cat: k }) }));
+    return { segs, isRent: c === 'rentable', isEvents: c === 'events', isSale: c === 'sale', isWare: c === 'warehouse' };
+  }
+}
+</script>
+</body>
+</html>

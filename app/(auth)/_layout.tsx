@@ -1,39 +1,14 @@
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import React from "react";
 
-const AuthLayout = () => {
-  return (
-    <>
-      <Stack>
-        <Stack.Screen
-          name="sign-in"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="sign-up"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="forget-password"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="reset-password"
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack>
-      <StatusBar backgroundColor="#161622" style="light" />
-    </>
-  );
-};
+// Each screen draws its own back button, so none has a header
+const AuthLayout = () => (
+  <Stack screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="sign-in" />
+    <Stack.Screen name="sign-up" />
+    <Stack.Screen name="forget-password" />
+    <Stack.Screen name="reset-password" />
+  </Stack>
+);
 
 export default AuthLayout;

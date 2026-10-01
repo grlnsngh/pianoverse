@@ -22,13 +22,9 @@ jest.mock("expo-router", () => ({
 
 import React from "react";
 import { addDays } from "date-fns";
-import { ReactTestRenderer } from "react-test-renderer";
 import DetailScreen from "@/app/detail/[id]";
-import { CATEGORY_COLORS } from "@/constants/colors";
-import icons from "@/constants/icons";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
-import { getCategoryColor, getCategoryIcon } from "@/utils/rentalStatus";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
@@ -79,64 +75,44 @@ describe("prices on a piano's page", () => {
   });
 });
 
-describe("category colours and icons", () => {
-  const categories = [
-    ["rentable", "RENTABLE"],
-    ["events", "EVENTS"],
-    ["on_sale", "ON_SALE"],
-    ["warehouse", "WAREHOUSE"],
+describe("the category on a piano's page", () => {
+  const words = [
+    ["rentable", "Rentable"],
+    ["events", "Events"],
+    ["on_sale", "On sale"],
+    ["warehouse", "Warehouse"],
   ] as const;
 
-  it.each(categories)("are the same for %s pianos everywhere", (category, key) => {
-    expect(getCategoryColor(category)).toBe(CATEGORY_COLORS[key]);
-  });
-
-  const badgeColour = (renderer: ReactTestRenderer) => {
-    const [badge] = renderer.root.findAll(
-      (node) => node.props.testID === "category-badge"
-    );
-    return [badge?.props.style].flat().find((style) => style?.backgroundColor)
-      ?.backgroundColor;
-  };
-
-  it.each(categories)(
-    "colour the page's %s badge like the lists do",
-    async (category) => {
+  it.each(words)(
+    "is said in words in the line under the title for a %s piano, not shown as a coloured badge",
+    async (category, label) => {
       const renderer = await renderDetail(
-        makePiano({ category, ...(category === "rentable" ? rental : {}) } as any)
+        makePiano({
+          category,
+          make: "Kawai",
+          company_associated: "Shamshersons",
+          ...(category === "rentable" ? rental : {}),
+        } as any)
       );
 
-      expect(badgeColour(renderer)).toBe(getCategoryColor(category));
+      expect(allTexts(renderer.root)).toContain(`${label} · Kawai · Shamshersons`);
+      expect(
+        renderer.root.findAll((node) => node.props.testID === "category-badge")
+      ).toHaveLength(0);
     }
   );
 
-  it.each([["events"], ["on_sale"], ["warehouse"]])(
-    "give the %s section the lists' icon and colour",
-    async (category) => {
-      const renderer = await renderDetail(makePiano({ category } as any));
+  it("says 'Was' for a piano that was sold", async () => {
+    const renderer = await renderDetail(
+      makePiano({
+        category: "on_sale",
+        make: "Kawai",
+        company_associated: "Shamshersons",
+        sold_date: inDays(-3),
+        sold_price: 90000,
+      } as any)
+    );
 
-      const icon = renderer.root.findAll(
-        (node) =>
-          node.props.source === getCategoryIcon(category) &&
-          node.props.tintColor === getCategoryColor(category)
-      );
-      expect(icon.length).toBeGreaterThan(0);
-    }
-  );
-
-  it("doesn't use the rentals' icon for the sale section", async () => {
-    const renderer = await renderDetail(makePiano({ category: "on_sale" }));
-
-    expect(
-      renderer.root.findAll((node) => node.props.source === icons.card).length
-    ).toBeGreaterThan(0);
-    // The sale section used the card icon, which the lists use for rentals
-    expect(
-      renderer.root.findAll(
-        (node) =>
-          node.props.source === icons.card &&
-          node.props.tintColor === "#10B981"
-      ).length
-    ).toBe(0);
+    expect(allTexts(renderer.root)).toContain("Was on sale · Kawai · Shamshersons");
   });
 });

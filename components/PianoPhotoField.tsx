@@ -1,56 +1,28 @@
-import { icons } from "@/constants";
-import { MAX_PHOTOS } from "@/utils/photos";
-import { PhotoSource } from "@/utils/photo";
-import { PianoFormPhoto, photoUri } from "@/utils/pianoForm";
-import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import React, { useState } from "react";
-import {
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import CameraDeniedSheet from "@/components/CameraDeniedSheet";
+import { Icon, PianoPhoto, Sheet } from "@/components/ui";
+import { colors, fonts, radii, spacing } from "@/constants/theme";
+import { PhotoSource } from "@/utils/photo";
+import { MAX_PHOTOS } from "@/utils/photos";
+import { PianoFormPhoto, photoUri } from "@/utils/pianoForm";
 
 interface PianoPhotoFieldProps {
   // The piano's photos, saved or picked on this screen; the first is the cover
   photos: PianoFormPhoto[];
-  onPick: (source: PhotoSource) => void;
+  // Says "camera-denied" when the camera was refused
+  onPick: (source: PhotoSource) => unknown;
   onRemove: (index: number) => void;
   onMakeCover: (index: number) => void;
 }
 
-const THUMBNAIL_SIZE = 64;
-
-const removeBadge: ViewStyle = {
-  position: "absolute",
-  top: -6,
-  right: -6,
-  backgroundColor: "rgba(0,0,0,0.8)",
-  borderRadius: 11,
-  width: 22,
-  height: 22,
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-const PhotoError = ({ message }: { message: string }) => (
-  <View
-    className="w-full rounded-2xl bg-black-100 items-center justify-center"
-    style={{ height: 180 }}
-  >
-    <Text className="text-gray-100 font-pmedium">Failed to load image</Text>
-    <Text className="text-gray-100 text-sm mt-2 text-center px-4">
-      {message}
-    </Text>
-  </View>
-);
+const TILE = 96;
 
 /**
- * The photos part of the piano forms: the cover, a strip with every photo
- * (tap one to make it the cover, or remove it) and buttons to take or choose
- * another photo, up to the limit.
+ * The photos part of the piano forms (Add1Basics board): an Add tile, then a
+ * square for every photo, the first marked as the cover. Tap a photo to make
+ * it the cover, or its × to take it out. Add asks whether to use the camera or
+ * the gallery; if the camera is refused, a sheet says how to allow it.
  */
 const PianoPhotoField: React.FC<PianoPhotoFieldProps> = ({
   photos,
@@ -58,119 +30,167 @@ const PianoPhotoField: React.FC<PianoPhotoFieldProps> = ({
   onRemove,
   onMakeCover,
 }) => {
-  // The photos that failed to load; a different photo gets a fresh try
-  const [failedUris, setFailedUris] = useState<string[]>([]);
-  const markFailed = (uri: string) =>
-    setFailedUris((current) => (current.includes(uri) ? current : [...current, uri]));
+  const [choosing, setChoosing] = useState(false);
+  const [cameraDenied, setCameraDenied] = useState(false);
 
-  const addButtons = (
-    <View className="flex-row space-x-3">
-      <TouchableOpacity
-        onPress={() => onPick("camera")}
-        style={{ height: 60 }}
-        className="flex-1 px-4 bg-black-100 rounded-2xl border-2 border-black-200 flex justify-center items-center flex-row space-x-2"
-      >
-        <Ionicons name="camera-outline" size={20} color="#CDCDE0" />
-        <Text className="text-sm text-gray-100 font-pmedium">Take Photo</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => onPick("library")}
-        style={{ height: 60 }}
-        className="flex-1 px-4 bg-black-100 rounded-2xl border-2 border-black-200 flex justify-center items-center flex-row space-x-2"
-      >
-        <Image
-          source={icons.upload}
-          resizeMode="contain"
-          alt="upload"
-          className="w-5 h-5"
-        />
-        <Text className="text-sm text-gray-100 font-pmedium">
-          Choose a file
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  if (photos.length === 0) return addButtons;
-
-  const cover = photoUri(photos[0]);
+  const pick = async (source: PhotoSource) => {
+    setChoosing(false);
+    if ((await onPick(source)) === "camera-denied") setCameraDenied(true);
+  };
 
   return (
-    <View className="space-y-3">
-      {failedUris.includes(cover) ? (
-        <PhotoError message="The image may be corrupted or too small." />
-      ) : (
-        <Image
-          source={{ uri: cover }}
-          className="w-full rounded-2xl"
-          resizeMode="cover"
-          style={{ height: 180 }}
-          onError={() => markFailed(cover)}
-        />
-      )}
-
+    <View>
+      {/* Runs to the edges of the screen, so photos slide out from under them */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 8, paddingRight: 8 }}
+        style={styles.strip}
+        contentContainerStyle={styles.stripContent}
+        keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-row space-x-3">
-          {photos.map((photo, index) => {
-            const uri = photoUri(photo);
-            return (
-              <View key={`${index}-${uri}`}>
-                <TouchableOpacity
-                  onPress={() => onMakeCover(index)}
-                  disabled={index === 0}
-                  accessibilityLabel={
-                    index === 0 ? "Cover photo" : `Make photo ${index + 1} the cover`
-                  }
-                >
-                  <Image
-                    source={{ uri }}
-                    resizeMode="cover"
-                    className="rounded-xl bg-black-100"
-                    style={{
-                      width: THUMBNAIL_SIZE,
-                      height: THUMBNAIL_SIZE,
-                      borderWidth: index === 0 ? 2 : 0,
-                      borderColor: "#FF9C01",
-                    }}
-                  />
+        {photos.length < MAX_PHOTOS && (
+          <Pressable
+            onPress={() => setChoosing(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Add a photo"
+            style={({ pressed }) => [styles.add, pressed && styles.addPressed]}
+          >
+            <Icon name="camera" size={24} color={colors.ink} />
+            <Text style={styles.addLabel}>Add</Text>
+          </Pressable>
+        )}
+
+        {photos.map((photo, index) => {
+          const uri = photoUri(photo);
+          return (
+            <View key={`${index}-${uri}`}>
+              <Pressable
+                onPress={() => onMakeCover(index)}
+                disabled={index === 0}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  index === 0 ? "Cover photo" : `Make photo ${index + 1} the cover`
+                }
+              >
+                <PianoPhoto id={uri} uri={uri} style={styles.tile}>
                   {index === 0 && (
-                    <View className="absolute bottom-1 left-1 right-1 rounded-md bg-black/70 items-center">
-                      <Text className="text-secondary text-xs font-pmedium">
-                        Cover
-                      </Text>
+                    <View style={styles.cover}>
+                      <Text style={styles.coverLabel}>Cover</Text>
                     </View>
                   )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => onRemove(index)}
-                  accessibilityLabel={`Remove photo ${index + 1}`}
-                  style={removeBadge}
-                >
-                  <Image
-                    source={icons.close}
-                    className="w-2 h-2"
-                    tintColor="white"
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-              </View>
-            );
-          })}
-        </View>
+                </PianoPhoto>
+              </Pressable>
+              <Pressable
+                onPress={() => onRemove(index)}
+                accessibilityRole="button"
+                accessibilityLabel={`Remove photo ${index + 1}`}
+                hitSlop={11}
+                style={styles.remove}
+              >
+                <Icon name="close" size={12} color={colors.white} strokeWidth={2.6} />
+              </Pressable>
+            </View>
+          );
+        })}
       </ScrollView>
 
-      <Text className="text-xs text-gray-100 font-pregular">
-        {photos.length} of {MAX_PHOTOS} photos
-        {photos.length > 1 ? " · Tap a photo to make it the cover" : ""}
+      <Text style={styles.caption}>
+        Up to {MAX_PHOTOS} photos. The first one is the cover.
       </Text>
 
-      {photos.length < MAX_PHOTOS && addButtons}
+      <Sheet
+        visible={choosing}
+        onClose={() => setChoosing(false)}
+        title="Add a photo"
+        tone="white"
+      >
+        <View>
+          {[
+            { label: "Take a photo", source: "camera" as const },
+            { label: "Choose from gallery", source: "library" as const },
+          ].map((option) => (
+            <Pressable
+              key={option.source}
+              onPress={() => pick(option.source)}
+              accessibilityRole="button"
+              accessibilityLabel={option.label}
+              style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
+            >
+              <Text style={styles.optionLabel}>{option.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </Sheet>
+
+      <CameraDeniedSheet
+        visible={cameraDenied}
+        onClose={() => setCameraDenied(false)}
+        onChooseFromGallery={() => {
+          setCameraDenied(false);
+          pick("library");
+        }}
+      />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  // Bleeds out of the screen's 20 px margins, then pads itself the same
+  strip: { marginHorizontal: -spacing.screen, marginTop: -6 },
+  stripContent: {
+    paddingHorizontal: spacing.screen,
+    // The remove buttons sit half over the corner of a photo
+    paddingTop: 6,
+    paddingRight: spacing.screen + 6,
+    gap: 10,
+  },
+  add: {
+    width: TILE,
+    height: TILE,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    borderRadius: 14,
+    backgroundColor: colors.fill,
+  },
+  addPressed: { backgroundColor: colors.fillPressed },
+  addLabel: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 18, color: colors.ink },
+  tile: { width: TILE, height: TILE, borderRadius: 14 },
+  cover: {
+    position: "absolute",
+    left: 6,
+    bottom: 6,
+    paddingHorizontal: 8,
+    borderRadius: radii.full,
+    backgroundColor: colors.white,
+  },
+  coverLabel: { fontFamily: fonts.bold, fontSize: 11, lineHeight: 18, color: colors.ink },
+  remove: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.photoScrim,
+  },
+  caption: {
+    marginTop: spacing.sm,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.ink2,
+  },
+  option: {
+    height: 52,
+    justifyContent: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hairline,
+  },
+  optionPressed: { backgroundColor: colors.grouped },
+  optionLabel: { fontFamily: fonts.medium, fontSize: 16, color: colors.ink },
+});
 
 export default PianoPhotoField;

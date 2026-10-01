@@ -13,7 +13,37 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Request notification permissions
+// The Android channel the rental reminders go through
+const setUpReminderChannel = async () => {
+  if (Platform.OS !== "android") return;
+  await Notifications.setNotificationChannelAsync("rental-reminders", {
+    name: "Rental Reminders",
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: "#FF9C01",
+    sound: "default",
+  });
+};
+
+/**
+ * Gets reminders ready when the app starts, without asking anyone for
+ * anything: if the permission was already given it makes the Android channel
+ * and says so. The question itself is asked from the "Get reminders" sheet
+ * (requestNotificationPermissions), after the person has seen why.
+ */
+export const prepareRentalReminders = async () => {
+  try {
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status !== "granted") return false;
+    await setUpReminderChannel();
+    return true;
+  } catch (error) {
+    console.error("❌ Error preparing rental reminders:", error);
+    return false;
+  }
+};
+
+// Ask for the permission to send notifications (the phone's own question)
 export const requestNotificationPermissions = async () => {
   try {
     const { status: existingStatus } =
@@ -32,16 +62,7 @@ export const requestNotificationPermissions = async () => {
       return false;
     }
 
-    // Set up Android notification channel
-    if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync("rental-reminders", {
-        name: "Rental Reminders",
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: "#FF9C01",
-        sound: "default",
-      });
-    }
+    await setUpReminderChannel();
 
     return true;
   } catch (error) {

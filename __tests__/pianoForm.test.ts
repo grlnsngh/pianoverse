@@ -1,6 +1,9 @@
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
+  basicsProblem,
+  categoryProblem,
   createEmptyPianoForm,
+  hasEntries,
   parsePianoForm,
   pianoFormProblem,
   PianoFormState,
@@ -31,7 +34,7 @@ describe("filling in a piano", () => {
     [{ category: "" }, "Please choose a category."],
     [{ photos: [] }, "Please add a photo."],
     [{ title: "   " }, "Please enter a title."],
-    [{ description: "" }, "Please enter a description."],
+    [{ description: "" }, "Please add some notes."],
     [{ make: "" }, "Please choose the make."],
     [{ companyAssociated: "" }, "Please choose the company."],
   ])("asks for what's missing (%p)", (changes, message) => {
@@ -39,6 +42,39 @@ describe("filling in a piano", () => {
       title: "Missing Details",
       message,
     });
+  });
+
+  it("asks for the basics in the order they are on the first step", () => {
+    const nothing = { photos: [], title: "", make: "", companyAssociated: "", description: "" };
+    const next = (changes: Partial<PianoFormState>) =>
+      basicsProblem(completeForm({ ...nothing, ...changes }))?.message;
+
+    expect(next({})).toBe("Please add a photo.");
+    expect(next({ photos: [photo] })).toBe("Please enter a title.");
+    expect(next({ photos: [photo], title: "Yamaha U1" })).toBe("Please choose the make.");
+    expect(next({ photos: [photo], title: "Yamaha U1", make: "Yamaha" })).toBe(
+      "Please choose the company."
+    );
+    expect(
+      next({
+        photos: [photo],
+        title: "Yamaha U1",
+        make: "Yamaha",
+        companyAssociated: "Shamshersons",
+      })
+    ).toBe("Please add some notes.");
+  });
+
+  it("keeps the basics apart from the details of the category", () => {
+    const rentalWithoutBasics = completeForm({ category: "rentable", title: "" });
+
+    // The first step only cares about the basics, the second about the rental
+    expect(basicsProblem(rentalWithoutBasics)?.message).toBe("Please enter a title.");
+    expect(categoryProblem(rentalWithoutBasics)?.message).toBe(
+      "Please fill all rental details."
+    );
+    expect(basicsProblem(completeForm({ category: "rentable" }))).toBeNull();
+    expect(categoryProblem(completeForm({ category: "warehouse", title: "" }))).toBeNull();
   });
 
   it("is complete with a saved photo and no new one", () => {
@@ -221,5 +257,29 @@ describe("passing a form between screens", () => {
     expect(parsed.rentalEndDate.getTime()).toBe(form.rentalEndDate.getTime());
     expect(parsed.dateOfPurchase).toBeInstanceOf(Date);
     expect(parsed.title).toBe("Yamaha U1");
+  });
+});
+
+describe("something having been entered", () => {
+  it("is false for a form nobody has touched, whatever day it opened on", () => {
+    expect(hasEntries(createEmptyPianoForm())).toBe(false);
+  });
+
+  it.each<[string, Partial<PianoFormState>]>([
+    ["a photo", { photos: [photo] }],
+    ["a title", { title: "Yamaha U1" }],
+    ["notes", { description: "Upright" }],
+    ["a make", { make: "Yamaha" }],
+    ["a company", { companyAssociated: "Shamshersons" }],
+    ["a customer", { rentalCustomerName: "Asha" }],
+    ["a rent", { rentalPrice: 4000 }],
+    ["a seller", { eventPurchaseFrom: "Dealer" }],
+    ["a price", { onSalePrice: 1 }],
+  ])("is true once there is %s", (_what, changes) => {
+    expect(hasEntries({ ...createEmptyPianoForm(), ...changes })).toBe(true);
+  });
+
+  it("ignores text that is only spaces", () => {
+    expect(hasEntries({ ...createEmptyPianoForm(), title: "   " })).toBe(false);
   });
 });

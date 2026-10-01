@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Record payment</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#F6F5F2;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit;cursor:pointer}
+input{cursor:text}
+input::placeholder{color:#77716A}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;box-sizing:border-box;background:#F6F5F2;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="height:300px;background:#E8E3D9;display:flex;align-items:center;justify-content:center">
+<svg width="220" height="165" viewBox="0 0 80 60" aria-hidden="true"><rect x="8" y="8" width="64" height="6" rx="2" fill="#4A3B30"/><rect x="11" y="14" width="58" height="22" rx="1.5" fill="#6A5545"/><rect x="17" y="19" width="46" height="12" rx="1" fill="#57453A"/><rect x="8" y="36" width="64" height="4" rx="1.5" fill="#4A3B30"/><rect x="13" y="40" width="54" height="7" fill="#F7F3EA"/><path d="M18.4 40v7M23.8 40v7M29.2 40v7M34.6 40v7M40 40v7M45.4 40v7M50.8 40v7M56.2 40v7M61.6 40v7" stroke="#D2CABB" stroke-width="0.6"/><rect x="17.2" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="22.6" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="33.4" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="38.8" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="44.2" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="55" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="60.4" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="11" y="47" width="58" height="5" fill="#6A5545"/><rect x="11" y="47" width="5" height="11" rx="1" fill="#4A3B30"/><rect x="64" y="47" width="5" height="11" rx="1" fill="#4A3B30"/></svg>
+</div>
+<div style="padding:20px 20px 0">
+<div style="font-size:28px;font-weight:700;line-height:34px;letter-spacing:-0.02em">Young Chang U-121</div>
+</div>
+
+<a href="Detail.dc.html" aria-label="Close" style="position:absolute;left:0;top:0;width:390px;height:844px;background:rgba(26,24,20,0.45)"></a>
+
+<div style="position:absolute;left:0;bottom:0;width:390px;height:440px;display:flex;flex-direction:column;background:#F6F5F2;border-radius:24px 24px 0 0">
+
+<div style="width:36px;height:5px;border-radius:3px;background:#CFCBC2;margin:8px auto 0;flex-shrink:0"></div>
+
+<div style="display:flex;align-items:center;justify-content:center;position:relative;height:52px;flex-shrink:0">
+<a href="Detail.dc.html" style="position:absolute;left:8px;top:4px;height:44px;padding:0 12px;display:flex;align-items:center;font-size:16px;font-weight:500">Cancel</a>
+<div style="font-size:17px;font-weight:700">Record payment</div>
+</div>
+
+<div style="flex-grow:1;min-height:0;overflow:hidden;padding:0 20px">
+
+<div style="text-align:center;font-size:14px;font-weight:400;line-height:20px;color:#6B665D">Meera Kapoor · Young Chang U-121</div>
+
+<div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:8px">
+<span style="font-size:44px;font-weight:700;line-height:56px;letter-spacing:-0.025em;color:#6B665D">₹</span>
+<input type="text" inputmode="numeric" value="4,500" aria-label="Amount" style="width:180px;height:56px;border:0;outline:0;background:transparent;font-size:44px;font-weight:700;letter-spacing:-0.025em;color:#1A1814;font-variant-numeric:tabular-nums">
+</div>
+<div style="text-align:center;font-size:14px;font-weight:400;line-height:20px;color:#6B665D">Rent is ₹4,500</div>
+
+<div style="margin-top:24px;background:#FFFFFF;border-radius:16px">
+<div style="display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 16px;border-bottom:1px solid #E7E4DD">
+<span style="font-size:16px;color:#6B665D">Paid on</span>
+<span style="display:flex;align-items:center;gap:4px;font-size:16px;font-weight:500">Today, 29 Sep 2026</span>
+</div>
+<div style="display:flex;align-items:center;gap:16px;height:52px;padding:0 16px">
+<label for="rp-note" style="font-size:16px;color:#6B665D">Note</label>
+<input id="rp-note" type="text" placeholder="Cash, UPI, cheque no." style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;text-align:right;font-size:16px;font-weight:500;color:#1A1814">
+</div>
+</div>
+
+</div>
+
+<div style="flex-shrink:0;padding:12px 20px 28px">
+<a href="Detail.dc.html" style="height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#FF9C01;color:#1A1814;font-size:16px;font-weight:700">Save payment</a>
+</div>
+
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

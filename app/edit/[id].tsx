@@ -1,4 +1,3 @@
-import { SECONDARY_COLOR } from "@/constants/colors";
 import { toPianoItem, updatePianoEntry } from "@/lib/appwrite";
 import { updatePianoItem } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
@@ -11,15 +10,25 @@ import {
   toPianoEntryInput,
 } from "@/utils/pianoForm";
 import { getPianoPhotos } from "@/utils/photos";
+import { showDialog } from "@/utils/dialog";
 import { showToast } from "@/utils/toast";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Platform, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import CustomButton from "@/components/CustomButton";
+import { AddFlowFooter, AddFlowTopBar } from "@/components/AddFlowChrome";
 import PianoFormFields from "@/components/PianoFormFields";
 import PianoPhotoField from "@/components/PianoPhotoField";
+import { Button } from "@/components/ui";
+import { colors, spacing, type } from "@/constants/theme";
 import usePianoPhotos from "@/lib/usePianoPhotos";
 import { scheduleRentalDueNotification } from "@/services/notifications";
 
@@ -49,44 +58,32 @@ const EditScreen = () => {
   // Set once the changes are saved, so leaving doesn't ask about them
   const saved = useRef(false);
 
-  // Going back (the header's arrow or Android's back button) with changes
-  // that weren't saved asks first, instead of losing them
+  // Going back (Cancel, or Android's back button) with changes that weren't
+  // saved asks first, instead of losing them
   useEffect(
     () =>
       navigation.addListener("beforeRemove", (event) => {
         if (saved.current || !hasChanges.current) return;
         event.preventDefault();
         const discard = () => navigation.dispatch(event.data.action);
-        const message = "Your changes to this piano haven't been saved.";
 
-        // Alert.alert does nothing on web
-        if (Platform.OS === "web") {
-          if (window.confirm(`${message} Discard them?`)) discard();
-          return;
-        }
-
-        Alert.alert("Discard Changes?", message, [
-          { text: "Keep Editing", style: "cancel" },
-          { text: "Discard", style: "destructive", onPress: discard },
-        ]);
+        showDialog({
+          title: "Discard changes?",
+          message: "You have unsaved changes to this piano.",
+          actions: [
+            { label: "Discard", tone: "destructive", onPress: discard },
+            { label: "Keep editing", emphasis: true, onPress: () => {} },
+          ],
+        });
       }),
     [navigation]
   );
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerStyle: {
-        backgroundColor: SECONDARY_COLOR,
-      },
-      headerTintColor: "#161622",
-      title: `Edit Piano`,
-    });
-  }, [id]);
-
   if (!filteredPiano) {
     return (
-      <SafeAreaView className="bg-primary h-full">
-        <Text className="text-lg text-white">Piano not found</Text>
+      <SafeAreaView edges={["top"]} style={styles.screen}>
+        <AddFlowTopBar title="Edit piano" onCancel={() => router.back()} />
+        <Text style={styles.missing}>Piano not found</Text>
       </SafeAreaView>
     );
   }
@@ -116,7 +113,7 @@ const EditScreen = () => {
       saved.current = true;
       if (router.canGoBack()) router.back();
       else router.replace("/home");
-      showToast("Piano entry updated successfully");
+      showToast("Piano entry updated successfully", { variant: "success" });
     } catch (error) {
       const errorMessage = (error as Error).message;
       Alert.alert("Error while uploading", errorMessage);
@@ -126,9 +123,18 @@ const EditScreen = () => {
   };
 
   return (
-    <SafeAreaView className="bg-primary h-full">
-      <ScrollView>
-        <View className="w-full flex justify-center px-4 my-6">
+    <SafeAreaView edges={["top"]} style={styles.screen}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.screen}
+      >
+        <AddFlowTopBar title="Edit piano" onCancel={() => router.back()} />
+
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
+        >
           <PianoFormFields
             form={form}
             onChange={updateForm}
@@ -141,17 +147,32 @@ const EditScreen = () => {
               />
             }
           />
+        </ScrollView>
 
-          <CustomButton
-            title="Save Changes"
-            handlePress={handleOnSubmit}
-            containerStyles="mt-7"
-            isLoading={uploading}
+        <AddFlowFooter>
+          <Button
+            title="Save changes"
+            loading={uploading}
+            loadingTitle="Saving"
+            onPress={handleOnSubmit}
+            style={styles.save}
           />
-        </View>
-      </ScrollView>
+        </AddFlowFooter>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.grouped },
+  content: { padding: spacing.screen, paddingTop: spacing.sm },
+  save: { flex: 1 },
+  missing: {
+    ...type.body,
+    color: colors.ink2,
+    textAlign: "center",
+    marginTop: spacing.xxxl,
+  },
+});
 
 export default EditScreen;

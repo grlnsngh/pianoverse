@@ -1,13 +1,11 @@
+import React, { useEffect, useState } from "react";
+import { Alert, StyleSheet, Text, View } from "react-native";
+import { format, isToday } from "date-fns";
+import { AmountInput, Button, DatePickerSheet, FormRow, Group, Sheet } from "@/components/ui";
+import { colors, type } from "@/constants/theme";
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
-import React, { useEffect, useState } from "react";
-import { Alert } from "react-native";
-import BottomSheet from "./BottomSheet";
-import CustomButton from "./CustomButton";
-import DateField from "./DateField";
-import FormField from "./FormField";
-import PriceField from "./PriceField";
 
 interface MarkAsSoldSheetProps {
   piano: PianoItem;
@@ -15,7 +13,15 @@ interface MarkAsSoldSheetProps {
   onClose: () => void;
 }
 
-/** Records who bought the piano, for how much and when. */
+/** "Today, 29 Sep 2026", or "21 Sep 2026" for another day. */
+const dayLabel = (date: Date) =>
+  `${isToday(date) ? "Today, " : ""}${format(date, "d MMM yyyy")}`;
+
+/**
+ * Records that a piano was sold (MarkSold board): the price big and centred,
+ * suggesting the asking price of a piano on sale, then the day, the buyer and
+ * an optional address, and one orange button.
+ */
 const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
   piano,
   visible,
@@ -27,6 +33,7 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
   const [price, setPrice] = useState(0);
   const [saleDate, setSaleDate] = useState(new Date());
   const [saving, setSaving] = useState(false);
+  const [choosingDay, setChoosingDay] = useState(false);
 
   // Start afresh each time, suggesting the asking price of a piano on sale
   useEffect(() => {
@@ -35,6 +42,7 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
     setBuyerAddress("");
     setPrice(piano.on_sale_price ?? 0);
     setSaleDate(new Date());
+    setChoosingDay(false);
   }, [visible]);
 
   const handleSave = async () => {
@@ -56,44 +64,82 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
         sold_price: price,
         sold_date: toStoredDate(saleDate),
       },
-      `Marked ${piano.title} as sold`
+      `Marked ${piano.title} as sold`,
+      {
+        undo: {
+          fields: { sold_date: null, sold_price: null, sold_to_name: null, sold_to_address: null },
+          message: `${piano.title} is back in stock`,
+        },
+      }
     );
     setSaving(false);
     if (saved) onClose();
   };
 
   return (
-    <BottomSheet visible={visible} title="Mark as Sold" onClose={onClose}>
-      <FormField
-        title="Buyer Name"
-        value={buyerName}
-        placeholder="Who bought it?"
-        handleChangeText={setBuyerName}
-        otherStyles="mt-5"
-      />
-      <FormField
-        title="Buyer Address"
-        value={buyerAddress}
-        placeholder="Optional"
-        handleChangeText={setBuyerAddress}
-        otherStyles="mt-5"
-      />
-      <PriceField title="Sale Price" value={price} onChangeValue={setPrice} />
-      <DateField
-        title="Sale Date"
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title="Mark as sold"
+      footer={
+        <Button title="Confirm sale" loadingTitle="Saving" loading={saving} onPress={handleSave} />
+      }
+    >
+      <Text style={styles.subject}>{`Sale price for ${piano.title}`}</Text>
+
+      <AmountInput value={price} onChangeValue={setPrice} label="Sale price" width={210} />
+
+      <Group inSheet style={styles.group}>
+        <FormRow
+          label="Sold on"
+          value={dayLabel(saleDate)}
+          onPress={() => setChoosingDay(true)}
+          chevron={false}
+        />
+        <FormRow
+          label="Buyer"
+          placeholder="Who bought it?"
+          input={{
+            value: buyerName,
+            onChangeText: setBuyerName,
+            autoCapitalize: "words",
+            returnKeyType: "next",
+          }}
+        />
+        <FormRow
+          label="Address"
+          placeholder="Optional"
+          input={{
+            value: buyerAddress,
+            onChangeText: setBuyerAddress,
+            autoCapitalize: "sentences",
+            returnKeyType: "done",
+          }}
+        />
+      </Group>
+
+      <Text style={styles.note}>
+        The piano leaves your stock and is marked Sold. You can undo this later from its page.
+      </Text>
+      <View style={styles.bottom} />
+
+      <DatePickerSheet
+        visible={choosingDay}
+        title="Sold on"
         value={saleDate}
-        onChange={setSaleDate}
         maximumDate={new Date()}
-        otherStyles="mt-5"
+        onSelect={setSaleDate}
+        onClose={() => setChoosingDay(false)}
       />
-      <CustomButton
-        title="Mark as Sold"
-        handlePress={handleSave}
-        isLoading={saving}
-        containerStyles="mt-7"
-      />
-    </BottomSheet>
+    </Sheet>
   );
 };
+
+const styles = StyleSheet.create({
+  subject: { ...type.secondary, textAlign: "center", color: colors.ink2 },
+  group: { marginTop: 20 },
+  note: { ...type.caption, marginTop: 12, marginHorizontal: 16, fontFamily: type.secondary.fontFamily, color: colors.ink2 },
+  bottom: { height: 8 },
+});
 
 export default MarkAsSoldSheet;

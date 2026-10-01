@@ -10,16 +10,25 @@ const MIN_SIZE = 50;
 /**
  * Lets the user take a photo or choose one from their library, cropped to
  * 4:3, and prepares it for upload. Resolves to null if they cancel, refuse
- * camera access or pick something too small (they're told why).
+ * camera access or pick something too small (they're told why). When camera
+ * access is refused, `onCameraDenied` is called so the screen can show its own
+ * explanation; without it the system alert is used.
  */
-export const pickPianoPhoto = async (source: PhotoSource) => {
+export const pickPianoPhoto = async (
+  source: PhotoSource,
+  onCameraDenied?: () => void
+) => {
   if (source === "camera") {
     const { granted } = await ImagePicker.requestCameraPermissionsAsync();
     if (!granted) {
-      Alert.alert(
-        "Camera Access Needed",
-        "Allow Pianoverse to use the camera in your phone's settings to take photos of pianos."
-      );
+      if (onCameraDenied) {
+        onCameraDenied();
+      } else {
+        Alert.alert(
+          "Camera Access Needed",
+          "Allow Pianoverse to use the camera in your phone's settings to take photos of pianos."
+        );
+      }
       return null;
     }
   }

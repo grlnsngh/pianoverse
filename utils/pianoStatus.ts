@@ -1,7 +1,6 @@
 import { PIANO_CATEGORY } from "@/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
 import { getRentalState, RentalState } from "@/utils/dates";
-import { getCategoryLabel } from "@/utils/ObjectManipulation";
 
 type PianoStatusFields = Pick<
   PianoItem,
@@ -37,10 +36,3 @@ export const isCurrentlyRented = (piano: PianoStatusFields) => {
 export const isOverdue = (piano: PianoStatusFields) =>
   getPianoRentalState(piano) === "ended";
 
-/** The category, marked when the piano has been sold ("Rentable · Sold"). */
-export const getStatusLabel = (
-  piano: Pick<PianoItem, "category" | "sold_date">
-) =>
-  isSold(piano)
-    ? `${getCategoryLabel(piano.category)} · Sold`
-    : getCategoryLabel(piano.category);

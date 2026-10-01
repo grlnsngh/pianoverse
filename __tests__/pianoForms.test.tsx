@@ -23,59 +23,40 @@ jest.mock("expo-image-picker", () => ({
   launchImageLibraryAsync: jest.fn(),
   MediaTypeOptions: { Images: "Images" },
 }));
-jest.mock("@react-native-picker/picker", () => {
-  const React = require("react");
-  const Picker = (props: any) => React.createElement("Picker", props, props.children);
-  Picker.Item = (props: any) => React.createElement("PickerItem", props);
-  return { Picker };
-});
-jest.mock("@react-native-community/datetimepicker", () => {
-  const React = require("react");
-  return (props: any) => React.createElement("DateTimePicker", props);
-});
 
 import React from "react";
-import { act, ReactTestRenderer } from "react-test-renderer";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import Create from "@/app/(tabs)/create";
+import Create from "@/app/create";
 import EditScreen from "@/app/edit/[id]";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
   captureAlerts,
-  chooseDate as chooseDateIn,
+  chooseCategory,
   createTestStore,
+  fillBasics,
+  inputValue,
+  pickDate,
   pressText,
   renderWithStore,
+  typeInto,
 } from "./helpers/render";
 
-const hostNodes = (renderer: ReactTestRenderer, type: string) =>
-  renderer.root.findAll((node) => (node.type as unknown) === type);
-
-const field = (renderer: ReactTestRenderer, title: string) => {
-  const [node] = renderer.root.findAll(
-    (candidate) =>
-      candidate.props.title === title &&
-      typeof candidate.props.handleChangeText === "function"
-  );
-  if (!node) throw new Error(`No field titled "${title}"`);
-  return node;
-};
-
-const typeInto = (renderer: ReactTestRenderer, title: string, text: string) =>
-  act(() => {
-    field(renderer, title).props.handleChangeText(text);
-  });
-
-const chooseDate = (renderer: ReactTestRenderer, title: string, date: Date) =>
-  chooseDateIn(renderer.root, title, date);
-
-const chooseCategory = (renderer: ReactTestRenderer, category: string) =>
-  act(() => {
-    hostNodes(renderer, "Picker")[0].props.onValueChange(category);
-  });
+const pickedPhoto = {
+  canceled: false,
+  assets: [
+    {
+      uri: "file:///cache/ImagePicker/piano.jpeg",
+      fileName: "piano.jpeg",
+      fileSize: 1000,
+      width: 800,
+      height: 600,
+      type: "image",
+    },
+  ],
+} as any;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -90,103 +71,121 @@ describe("Create screen", () => {
   const renderCreate = () =>
     renderWithStore(<Create />, createTestStore({ user: testUser }));
 
+  const mockPhoto = () => {
+    jest.mocked(ImagePicker.launchImageLibraryAsync).mockResolvedValue(pickedPhoto);
+    jest
+      .spyOn(global, "fetch")
+      .mockResolvedValue({ blob: async () => ({ size: 1000 }) } as any);
+  };
+
   it("says what's missing instead of offering a button that does nothing", async () => {
     const alerts = captureAlerts();
     const renderer = renderCreate();
 
-    const [button] = renderer.root.findAll(
-      (node) =>
-        node.props.title === "Review & Publish" &&
-        typeof node.props.handlePress === "function"
-    );
-    expect(button.props.disabled).toBeFalsy();
-    await pressText(renderer.root, "Review & Publish");
+    await pressText(renderer.root, "Continue");
 
     expect(alerts.titles()).toEqual(["Missing Details"]);
     expect(alerts.spy.mock.calls[0][1]).toBe("Please add a photo.");
+    expect(allTexts(renderer.root)).toContain("Step 1 of 3");
     expect(router.push).not.toHaveBeenCalled();
   });
 
-  it("centres the step it is on under the step circles", () => {
+  it("starts on the first of three steps", () => {
     const renderer = renderCreate();
 
-    // The text component carrying the classes, around the drawn text
-    const [step] = renderer.root.findAll(
-      (node) =>
-        typeof node.props.className === "string" &&
-        allTexts(node).join("") === "Step 1 of 3"
-    );
-    expect(step.props.className).toMatch(/\btext-center\b/);
+    const texts = allTexts(renderer.root);
+    expect(texts).toContain("New piano");
+    expect(texts).toContain("Step 1 of 3");
+    expect(texts).toContain("About the piano");
+    expect(texts).toContain("You can change anything later.");
   });
 
-  it("sets the On Sale import date from its own date picker", () => {
+  it("goes on to how the piano will be used once the basics are filled in", async () => {
+    mockPhoto();
     const renderer = renderCreate();
-    chooseCategory(renderer, "on_sale");
+
+    await fillBasics(renderer.root);
+    await pressText(renderer.root, "Continue");
+
+    const texts = allTexts(renderer.root);
+    expect(texts).toContain("Step 2 of 3");
+    expect(texts).toContain("How will it be used?");
+    // The Rentable fields are the ones showing first
+    expect(inputValue(renderer.root, "Customer")).toBe("");
+  });
+
+  it("goes back to the first step with what was typed still there", async () => {
+    mockPhoto();
+    const renderer = renderCreate();
+    await fillBasics(renderer.root);
+    await pressText(renderer.root, "Continue");
+
+    await pressText(renderer.root, "Back");
+
+    expect(allTexts(renderer.root)).toContain("Step 1 of 3");
+    expect(inputValue(renderer.root, "Title")).toBe("Kawai K-300");
+  });
+
+  it("sets the On Sale import date from its own calendar", async () => {
+    mockPhoto();
+    const renderer = renderCreate();
+    await fillBasics(renderer.root);
+    await pressText(renderer.root, "Continue");
+    await chooseCategory(renderer.root, "on_sale");
     const importDate = new Date(2025, 11, 24);
 
-    chooseDate(renderer, "Import Date", importDate);
+    await pickDate(renderer.root, "Import date", importDate);
 
-    expect(allTexts(renderer.root)).toContain(importDate.toDateString());
-    expect(hostNodes(renderer, "DateTimePicker")).toHaveLength(0);
+    expect(allTexts(renderer.root)).toContain("24 Dec 2025");
   });
 
-  it("lets price fields be cleared and take decimals", () => {
+  it("lets price fields be cleared and take decimals", async () => {
+    mockPhoto();
     const renderer = renderCreate();
-    chooseCategory(renderer, "on_sale");
-    const price = () => field(renderer, "Price").props.value;
+    await fillBasics(renderer.root);
+    await pressText(renderer.root, "Continue");
+    await chooseCategory(renderer.root, "on_sale");
+    const price = () => inputValue(renderer.root, "Sale price");
 
     expect(price()).toBe("");
-    typeInto(renderer, "Price", "12.");
+    typeInto(renderer.root, "Sale price", "12.");
     expect(price()).toBe("12.");
-    typeInto(renderer, "Price", "12.5");
+    typeInto(renderer.root, "Sale price", "12.5");
     expect(price()).toBe("12.5");
-    typeInto(renderer, "Price", "");
+    typeInto(renderer.root, "Sale price", "");
     expect(price()).toBe("");
-    typeInto(renderer, "Price", "12a");
+    typeInto(renderer.root, "Sale price", "12a");
     expect(price()).toBe("");
+  });
+
+  it("shows amounts grouped the Indian way as they are typed", async () => {
+    mockPhoto();
+    const renderer = renderCreate();
+    await fillBasics(renderer.root);
+    await pressText(renderer.root, "Continue");
+    await chooseCategory(renderer.root, "on_sale");
+
+    typeInto(renderer.root, "Sale price", "250000");
+
+    expect(inputValue(renderer.root, "Sale price")).toBe("2,50,000");
   });
 
   it("sends the chosen import date and decimal price on to review", async () => {
-    jest.mocked(ImagePicker.launchImageLibraryAsync).mockResolvedValue({
-      canceled: false,
-      assets: [
-        {
-          uri: "file:///cache/ImagePicker/piano.jpeg",
-          fileName: "piano.jpeg",
-          fileSize: 1000,
-          width: 800,
-          height: 600,
-          type: "image",
-        },
-      ],
-    } as any);
-    jest
-      .spyOn(global, "fetch")
-      .mockResolvedValue({ blob: async () => ({ size: 1000 }) } as any);
+    mockPhoto();
     const renderer = renderCreate();
 
-    chooseCategory(renderer, "on_sale");
-    await pressText(renderer.root, "Choose a file");
-    typeInto(renderer, "Title", "Kawai K-300");
-    typeInto(renderer, "Description", "Black polish");
-    act(() => {
-      renderer.root
-        .findAll((node) => typeof node.props.onChange === "function" && node.props.data)[0]
-        .props.onChange({ label: "Other", value: "Other" });
-    });
-    act(() => {
-      renderer.root
-        .findAll((node) => node.props.buttons && node.props.onValueChange)[0]
-        .props.onValueChange("Shamshersons");
-    });
-    typeInto(renderer, "Purchase From", "Kolkata Imports");
+    await fillBasics(renderer.root);
+    await pressText(renderer.root, "Continue");
+    await chooseCategory(renderer.root, "on_sale");
+    typeInto(renderer.root, "Bought from", "Kolkata Imports");
     const importDate = new Date(2025, 11, 24);
-    chooseDate(renderer, "Import Date", importDate);
-    typeInto(renderer, "Price", "250000.5");
-    await pressText(renderer.root, "Review & Publish");
+    await pickDate(renderer.root, "Import date", importDate);
+    typeInto(renderer.root, "Sale price", "250000.5");
+    await pressText(renderer.root, "Continue");
 
     expect(router.push).toHaveBeenCalledTimes(1);
-    const { params } = jest.mocked(router.push).mock.calls[0][0] as any;
+    const { pathname, params } = jest.mocked(router.push).mock.calls[0][0] as any;
+    expect(pathname).toBe("/review");
     const form = JSON.parse(params.formData);
     expect(form.onSalePrice).toBe(250000.5);
     expect(new Date(form.onSaleImportDate).toDateString()).toBe(
@@ -216,8 +215,8 @@ describe("Edit screen", () => {
     const renderer = renderEdit();
     const importDate = new Date(2025, 11, 24);
 
-    chooseDate(renderer, "Import Date", importDate);
-    await pressText(renderer.root, "Save Changes");
+    await pickDate(renderer.root, "Import date", importDate);
+    await pressText(renderer.root, "Save changes");
 
     expect(alerts.titles()).toEqual([]);
     expect(fakeBackend.documents.get("piano-1")?.on_sale_import_date).toBe(
@@ -229,8 +228,8 @@ describe("Edit screen", () => {
     const alerts = captureAlerts();
     const renderer = renderEdit();
 
-    typeInto(renderer, "Price", "1250.5");
-    await pressText(renderer.root, "Save Changes");
+    typeInto(renderer.root, "Sale price", "1250.5");
+    await pressText(renderer.root, "Save changes");
 
     expect(alerts.titles()).toEqual([]);
     expect(fakeBackend.documents.get("piano-1")?.on_sale_price).toBe(1250.5);

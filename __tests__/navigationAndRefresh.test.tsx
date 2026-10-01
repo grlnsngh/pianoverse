@@ -10,6 +10,8 @@ jest.mock("expo-router", () => ({
     back: jest.fn(),
     replace: jest.fn(),
     canGoBack: jest.fn(() => true),
+    canDismiss: jest.fn(() => true),
+    dismissAll: jest.fn(),
     setParams: jest.fn(),
   },
   useLocalSearchParams: jest.fn(() => ({})),
@@ -26,29 +28,12 @@ jest.mock("@/context/GlobalProvider", () => ({
     setIsLogged: jest.fn(),
   }),
 }));
-jest.mock("@react-native-picker/picker", () => {
-  const React = require("react");
-  const Picker = (props: any) => React.createElement("Picker", props, props.children);
-  Picker.Item = (props: any) => React.createElement("PickerItem", props);
-  return { Picker };
-});
-// The tab screens themselves are covered elsewhere
-jest.mock("react-native-tab-view", () => {
-  const React = require("react");
-  return {
-    TabView: (props: any) => React.createElement("TabView", props),
-    SceneMap: () => () => null,
-  };
-});
-
 import React from "react";
 import { FlatList } from "react-native";
 import { act } from "react-test-renderer";
 import { router, useLocalSearchParams } from "expo-router";
-import TabsLayout from "@/app/(tabs)/_layout";
-import Create from "@/app/(tabs)/create";
+import Create from "@/app/create";
 import Home from "@/app/(tabs)/home";
-import Profile from "@/app/(tabs)/profile";
 import EditScreen from "@/app/edit/[id]";
 import Review from "@/app/review";
 import * as appwrite from "@/lib/appwrite";
@@ -56,11 +41,14 @@ import { setActiveTab } from "@/redux/navigation/actions";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
+  allTexts,
   captureAlerts,
   createTestStore,
   flushPromises,
+  inputValue,
   pressText,
   renderWithStore,
+  typeInto,
 } from "./helpers/render";
 
 beforeEach(() => {
@@ -73,12 +61,6 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks();
 });
-
-const fieldValue = (renderer: any, title: string) =>
-  renderer.root.findAll(
-    (node: any) =>
-      node.props.title === title && typeof node.props.handleChangeText === "function"
-  )[0].props.value;
 
 describe("after publishing", () => {
   const form = {
@@ -110,7 +92,7 @@ describe("after publishing", () => {
       .mockReturnValue({ formData: JSON.stringify(form) });
     const store = createTestStore({ user: testUser });
     act(() => {
-      store.dispatch(setActiveTab("create"));
+      store.dispatch(setActiveTab("account"));
     });
     const renderer = renderWithStore(
       <>
@@ -119,23 +101,46 @@ describe("after publishing", () => {
       </>,
       store
     );
-    expect(fieldValue(renderer, "Title")).toBe("Kawai K-300");
+    expect(inputValue(renderer.root, "Title")).toBe("Kawai K-300");
 
-    await pressText(renderer.root, "Publish");
+    await pressText(renderer.root, "Add piano");
     return { store, renderer };
   };
 
-  it("goes back to the tabs instead of opening another copy of them", async () => {
-    await publish();
+  it("says so, and waits for the person to choose what to do next", async () => {
+    const { renderer } = await publish();
 
-    expect(router.back).toHaveBeenCalledTimes(1);
+    const texts = allTexts(renderer.root);
+    expect(texts).toContain("Piano added");
+    expect(texts).toContain("Kawai K-300 is now in your stock.");
+    expect(router.dismissAll).not.toHaveBeenCalled();
+  });
+
+  it("leaves the whole Add flow for the tabs when done, instead of opening another copy of them", async () => {
+    const { renderer } = await publish();
+
+    await pressText(renderer.root, "Done");
+
+    // Back would only return to the form underneath
+    expect(router.dismissAll).toHaveBeenCalledTimes(1);
+    expect(router.back).not.toHaveBeenCalled();
     expect(router.push).not.toHaveBeenCalled();
   });
 
-  it("shows the new piano on the Home tab", async () => {
+  it("opens the tabs afresh when the app was opened straight on the Add flow", async () => {
+    jest.mocked(router.canDismiss).mockReturnValue(false);
+    const { renderer } = await publish();
+
+    await pressText(renderer.root, "Done");
+
+    expect(router.dismissAll).not.toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalledWith("/home");
+  });
+
+  it("shows the new piano on the Pianos tab", async () => {
     const { store } = await publish();
 
-    expect(store.getState().navigation.activeTab).toBe("home");
+    expect(store.getState().navigation.activeTab).toBe("pianos");
     expect(store.getState().pianos.items.map((piano) => piano.title)).toEqual([
       "Kawai K-300",
     ]);
@@ -144,8 +149,8 @@ describe("after publishing", () => {
   it("clears the Create form for the next piano", async () => {
     const { renderer } = await publish();
 
-    expect(fieldValue(renderer, "Title")).toBe("");
-    expect(fieldValue(renderer, "Description")).toBe("");
+    expect(inputValue(renderer.root, "Title")).toBe("");
+    expect(inputValue(renderer.root, "Notes")).toBe("");
   });
 });
 
@@ -157,66 +162,12 @@ describe("after saving an edit", () => {
     const store = createTestStore({ user: testUser, items: [piano] });
     const renderer = renderWithStore(<EditScreen />, store);
 
-    act(() => {
-      renderer.root
-        .findAll(
-          (node: any) =>
-            node.props.title === "Title" &&
-            typeof node.props.handleChangeText === "function"
-        )[0]
-        .props.handleChangeText("Yamaha U3");
-    });
-    await pressText(renderer.root, "Save Changes");
+    typeInto(renderer.root, "Title", "Yamaha U3");
+    await pressText(renderer.root, "Save changes");
 
     expect(router.back).toHaveBeenCalledTimes(1);
     expect(router.push).not.toHaveBeenCalled();
     expect(store.getState().pianos.items[0].title).toBe("Yamaha U3");
-  });
-});
-
-describe("tabs", () => {
-  const tabIndex = (renderer: any) =>
-    renderer.root.findAll((node: any) => (node.type as unknown) === "TabView")[0]
-      .props.navigationState.index;
-
-  it("shows whichever tab another screen selects", () => {
-    const store = createTestStore();
-    const renderer = renderWithStore(<TabsLayout />, store);
-    expect(tabIndex(renderer)).toBe(0);
-
-    act(() => {
-      store.dispatch(setActiveTab("profile"));
-    });
-
-    expect(tabIndex(renderer)).toBe(2);
-  });
-
-  it("stores the tab the user swipes to", () => {
-    const store = createTestStore();
-    const renderer = renderWithStore(<TabsLayout />, store);
-
-    act(() => {
-      renderer.root
-        .findAll((node: any) => (node.type as unknown) === "TabView")[0]
-        .props.onIndexChange(1);
-    });
-
-    expect(store.getState().navigation.activeTab).toBe("create");
-  });
-
-  it("the profile's shortcuts switch tabs instead of opening new ones", async () => {
-    const store = createTestStore({ user: testUser, items: [makePiano()] });
-    act(() => {
-      store.dispatch(setActiveTab("profile"));
-    });
-    const renderer = renderWithStore(<Profile />, store);
-
-    await pressText(renderer.root, "Add New Piano");
-    expect(store.getState().navigation.activeTab).toBe("create");
-
-    await pressText(renderer.root, "View All Pianos");
-    expect(store.getState().navigation.activeTab).toBe("home");
-    expect(router.push).not.toHaveBeenCalled();
   });
 });
 

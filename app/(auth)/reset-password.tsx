@@ -1,26 +1,25 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  Alert,
-  Animated,
-  Dimensions,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import React, { useState, useEffect, useRef } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { SECONDARY_COLOR, PRIMARY_COLOR } from "@/constants/colors";
-import Logo from "@/components/Logo";
-import EnhancedFormField from "@/components/EnhancedFormField";
-import { Link, router, useLocalSearchParams } from "expo-router";
-import CustomButton from "@/components/CustomButton";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
+import { Alert, StyleSheet, TextInput, View } from "react-native";
+import AuthScreen, { AuthError } from "@/components/AuthScreen";
+import { Button, Field } from "@/components/ui";
+import { spacing } from "@/constants/theme";
 import { updatePassword } from "@/lib/appwrite";
+import { confirmPasswordError, newPasswordError, resetFailure } from "@/utils/authForms";
 import { showToast } from "@/utils/toast";
 
-const { width, height } = Dimensions.get("window");
+type Key = "password" | "confirmPassword";
 
+const check = (key: Key, form: { password: string; confirmPassword: string }) =>
+  key === "password"
+    ? newPasswordError(form.password, "Enter a new password.")
+    : confirmPasswordError(form.password, form.confirmPassword);
+
+/**
+ * Choose a new password, opened from the link in the reset email (the same
+ * page as the Forgot board, with the two password fields). The user and the
+ * secret come from the link.
+ */
 const ResetPassword = () => {
   const { userId, secret } = useLocalSearchParams();
   const [deepLinkParams, setDeepLinkParams] = useState<{
@@ -28,72 +27,11 @@ const ResetPassword = () => {
     secret?: string;
     expire?: string;
   }>({});
-
-  const [form, setForm] = useState({
-    password: "",
-    confirmPassword: "",
-  });
+  const [form, setForm] = useState({ password: "", confirmPassword: "" });
+  const [errors, setErrors] = useState({ password: "", confirmPassword: "" });
+  const [failure, setFailure] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState({
-    password: "",
-    confirmPassword: "",
-  });
-
-  // Animation refs
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const logoAnim = useRef(new Animated.Value(0)).current;
-  const formAnim = useRef(new Animated.Value(30)).current;
-  const buttonAnim = useRef(new Animated.Value(1)).current;
-  const decorAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    // Start animations when component mounts - FAST and SNAPPY
-    Animated.sequence([
-      Animated.timing(logoAnim, {
-        toValue: 1,
-        duration: 400, // Reduced from 1000ms to 400ms
-        useNativeDriver: true,
-      }),
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300, // Reduced from 800ms to 300ms
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 350, // Reduced from 800ms to 350ms
-          useNativeDriver: true,
-        }),
-        Animated.timing(formAnim, {
-          toValue: 0,
-          duration: 400, // Reduced from 900ms to 400ms
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
-
-    // Start decorative animation loop - faster cycle
-    const decorAnimation = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(decorAnim, {
-            toValue: 1.05, // Reduced intensity for better performance
-            duration: 1500, // Reduced from 3000ms to 1500ms
-            useNativeDriver: true,
-          }),
-          Animated.timing(decorAnim, {
-            toValue: 1,
-            duration: 1500, // Reduced from 3000ms to 1500ms
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    };
-
-    decorAnimation();
-  }, []);
+  const fields = { password: useRef<TextInput>(null), confirmPassword: useRef<TextInput>(null) };
 
   // Handle URL parameters from web redirect
   useEffect(() => {
@@ -119,47 +57,19 @@ const ResetPassword = () => {
     getUrlParams();
   }, []);
 
-  const validateForm = () => {
-    const newErrors = { password: "", confirmPassword: "" };
-    let isValid = true;
-
-    // Password validation
-    if (!form.password) {
-      newErrors.password = "Password is required";
-      isValid = false;
-    } else if (form.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-      isValid = false;
-    }
-
-    // Confirm password validation
-    if (!form.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-      isValid = false;
-    } else if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
+  const change = (key: Key) => (text: string) => {
+    setForm((current) => ({ ...current, [key]: text }));
+    if (errors[key]) setErrors((current) => ({ ...current, [key]: "" }));
+    if (failure) setFailure("");
   };
+  const leave = (key: Key) => () =>
+    setErrors((current) => ({ ...current, [key]: check(key, form) }));
 
   const submit = async () => {
-    if (!validateForm()) {
-      // Button shake animation for validation error
-      Animated.sequence([
-        Animated.timing(buttonAnim, {
-          toValue: 0.95,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(buttonAnim, {
-          toValue: 1,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-      ]).start();
+    const found = { password: check("password", form), confirmPassword: check("confirmPassword", form) };
+    setErrors(found);
+    if (found.password || found.confirmPassword) {
+      (found.password ? fields.password : fields.confirmPassword).current?.focus();
       return;
     }
 
@@ -168,306 +78,89 @@ const ResetPassword = () => {
     const finalSecret = (secret as string) || deepLinkParams.secret;
 
     if (!finalUserId || !finalSecret) {
-      Alert.alert(
-        "Error",
-        "Invalid reset link. Please request a new password reset."
-      );
+      Alert.alert("Error", "Invalid reset link. Please request a new password reset.");
       return;
     }
 
     setSubmitting(true);
-
-    // Button scale animation for successful press
-    Animated.timing(buttonAnim, {
-      toValue: 0.98,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-
+    setFailure("");
     try {
       await updatePassword(finalUserId, finalSecret, form.password);
-
       showToast(
         "Password updated successfully! Please sign in with your new password.",
         "long"
       );
       router.replace("/sign-in");
     } catch (error) {
-      // Reset button animation on error
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }).start();
-
-      if (error instanceof Error) {
-        Alert.alert("Reset Failed", error.message);
-      } else {
-        Alert.alert("Error", "An unexpected error occurred. Please try again.");
-      }
+      setFailure(resetFailure(error));
     } finally {
       setSubmitting(false);
-      // Reset button animation
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }).start();
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Background decorative elements */}
-          <Animated.View
-            style={[
-              styles.backgroundDecor,
-              { transform: [{ scale: decorAnim }] },
-            ]}
-          >
-            <View style={[styles.decorCircle, styles.decorCircle1]} />
-            <View style={[styles.decorCircle, styles.decorCircle2]} />
-            <View style={[styles.decorCircle, styles.decorCircle3]} />
-          </Animated.View>
+    <AuthScreen
+      title="Reset password"
+      subtitle="Enter your new password below."
+      busy={isSubmitting}
+      backLabel="Back to sign in"
+      onBack={() => router.replace("/sign-in")}
+    >
+      {failure ? <AuthError message={failure} /> : null}
 
-          <View style={styles.contentContainer}>
-            {/* Animated Logo */}
-            <Animated.View
-              style={[
-                styles.logoContainer,
-                {
-                  opacity: logoAnim,
-                  transform: [
-                    {
-                      translateY: logoAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [-30, 0],
-                      }),
-                    },
-                    {
-                      scale: logoAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.8, 1],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            >
-              <Logo />
-            </Animated.View>
+      <View style={failure ? styles.fieldsAfterError : styles.fields}>
+        <Field
+          ref={fields.password}
+          label="New password"
+          value={form.password}
+          onChangeText={change("password")}
+          onBlur={leave("password")}
+          error={errors.password}
+          disabled={isSubmitting}
+          secureTextEntry
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="password-new"
+          textContentType="newPassword"
+          returnKeyType="next"
+          onSubmitEditing={() => fields.confirmPassword.current?.focus()}
+          blurOnSubmit={false}
+        />
+        <Field
+          ref={fields.confirmPassword}
+          label="Confirm new password"
+          value={form.confirmPassword}
+          onChangeText={change("confirmPassword")}
+          onBlur={leave("confirmPassword")}
+          error={errors.confirmPassword}
+          disabled={isSubmitting}
+          secureTextEntry
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="password-new"
+          textContentType="newPassword"
+          returnKeyType="go"
+          onSubmitEditing={submit}
+          style={styles.next}
+        />
+      </View>
 
-            {/* Welcome Section */}
-            <Animated.View
-              style={[
-                styles.welcomeSection,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <Text style={styles.welcomeTitle}>Reset Password</Text>
-              <Text style={styles.welcomeSubtitle}>
-                Enter your new password below
-              </Text>
-            </Animated.View>
-
-            {/* Form Section */}
-            <Animated.View
-              style={[
-                styles.formContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: formAnim }],
-                },
-              ]}
-            >
-              <View style={styles.formWrapper}>
-                <EnhancedFormField
-                  title="New Password"
-                  value={form.password}
-                  handleChangeText={(e: string) => {
-                    setForm({ ...form, password: e });
-                    if (errors.password) setErrors({ ...errors, password: "" });
-                  }}
-                  autoCapitalize="none"
-                  error={errors.password}
-                  otherStyles="mb-4"
-                  secureTextEntry
-                />
-
-                <EnhancedFormField
-                  title="Confirm New Password"
-                  value={form.confirmPassword}
-                  handleChangeText={(e: string) => {
-                    setForm({ ...form, confirmPassword: e });
-                    if (errors.confirmPassword)
-                      setErrors({ ...errors, confirmPassword: "" });
-                  }}
-                  autoCapitalize="none"
-                  error={errors.confirmPassword}
-                  otherStyles="mb-4"
-                  secureTextEntry
-                />
-
-                <Animated.View style={{ transform: [{ scale: buttonAnim }] }}>
-                  <CustomButton
-                    title={isSubmitting ? "Updating..." : "Update Password"}
-                    handlePress={submit}
-                    containerStyles="mt-8"
-                    isLoading={isSubmitting}
-                  />
-                </Animated.View>
-
-                <View style={styles.dividerContainer}>
-                  <View style={styles.divider} />
-                  <Text style={styles.dividerText}>or</Text>
-                  <View style={styles.divider} />
-                </View>
-
-                <View style={styles.signUpContainer}>
-                  <Text style={styles.signUpText}>
-                    Remember your password?{" "}
-                  </Text>
-                  <Link href="/sign-in" style={styles.signUpLink}>
-                    <Text style={styles.signUpLinkText}>Sign In</Text>
-                  </Link>
-                </View>
-              </View>
-            </Animated.View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      <Button
+        title="Update password"
+        loading={isSubmitting}
+        loadingTitle="Updating"
+        onPress={submit}
+        style={styles.button}
+      />
+    </AuthScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: PRIMARY_COLOR,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    minHeight: height,
-  },
-  backgroundDecor: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  decorCircle: {
-    position: "absolute",
-    borderRadius: 100,
-    opacity: 0.1,
-  },
-  decorCircle1: {
-    width: 200,
-    height: 200,
-    backgroundColor: SECONDARY_COLOR,
-    top: -50,
-    right: -50,
-  },
-  decorCircle2: {
-    width: 150,
-    height: 150,
-    backgroundColor: SECONDARY_COLOR,
-    bottom: 100,
-    left: -75,
-  },
-  decorCircle3: {
-    width: 100,
-    height: 100,
-    backgroundColor: SECONDARY_COLOR,
-    top: height * 0.4,
-    right: width * 0.2,
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 50,
-  },
-  logoContainer: {
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  welcomeSection: {
-    alignItems: "center",
-    marginBottom: 40,
-  },
-  welcomeTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: "#D1D5DB",
-    textAlign: "center",
-    lineHeight: 24,
-    paddingHorizontal: 20,
-  },
-  formContainer: {
-    width: "100%",
-  },
-  formWrapper: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 20,
-    padding: 25,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-  },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 20,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-  },
-  dividerText: {
-    color: "#D1D5DB",
-    paddingHorizontal: 10,
-    fontSize: 14,
-  },
-  signUpContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
-  },
-  signUpText: {
-    color: "#D1D5DB",
-    fontSize: 14,
-  },
-  signUpLink: {
-    marginLeft: 5,
-  },
-  signUpLinkText: {
-    color: SECONDARY_COLOR,
-    fontSize: 14,
-    fontWeight: "600",
-  },
+  fields: { marginTop: spacing.xxxl },
+  fieldsAfterError: { marginTop: spacing.xl },
+  next: { marginTop: spacing.md },
+  button: { marginTop: spacing.xxl },
 });
 
 export default ResetPassword;

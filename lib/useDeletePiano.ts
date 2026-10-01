@@ -1,10 +1,10 @@
 import { useCallback } from "react";
-import { Alert, Platform } from "react-native";
 import { useDispatch } from "react-redux";
 import { cancelRentalNotification } from "@/services/notifications";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { removePianoItems } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
+import { showDialog } from "@/utils/dialog";
 import { showToast } from "@/utils/toast";
 
 /**
@@ -21,33 +21,30 @@ const useDeletePiano = () => {
         try {
           await deletePianoEntry(item);
         } catch (error) {
-          Alert.alert(
-            "Error",
-            error instanceof Error
-              ? `Error deleting piano entry: ${item.title} - ${error.message}`
-              : "An unknown error occurred"
-          );
+          console.warn(`Could not delete ${item.title}:`, error);
+          showToast(`Couldn’t delete ${item.title}. Check your connection.`, {
+            variant: "error",
+            duration: "long",
+            action: { label: "Retry", onPress: deletePiano },
+          });
           return;
         }
 
         await cancelRentalNotification(item.$id);
         onDeleted?.();
         dispatch(removePianoItems([item.$id]) as any);
-        showToast(`Deleted ${item.title} successfully`);
+        showToast(`Deleted ${item.title} successfully`, { variant: "success" });
       };
 
-      const message = `Are you sure you want to delete "${item.title}"? This cannot be undone.`;
-
-      // Alert.alert does nothing on web
-      if (Platform.OS === "web") {
-        if (window.confirm(message)) deletePiano();
-        return;
-      }
-
-      Alert.alert("Delete Piano", message, [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: deletePiano },
-      ]);
+      showDialog({
+        title: `Delete ${item.title}?`,
+        message:
+          "This removes the piano, its photos and its payments. This can’t be undone.",
+        actions: [
+          { label: "Delete", tone: "destructive", onPress: deletePiano },
+          { label: "Cancel", onPress: () => {} },
+        ],
+      });
     },
     [dispatch]
   );

@@ -6,7 +6,6 @@ import {
   SET_PIANO_FILTERS,
   SET_PIANO_LIST_ITEMS,
   SET_BULK_SELECTION_MODE,
-  SET_SELECTED_ITEMS,
   CLEAR_SELECTED_ITEMS,
   TOGGLE_ITEM_SELECTION,
   SELECT_ALL_ITEMS,
@@ -61,11 +60,6 @@ const pianoReducer = (
         ...state,
         isBulkSelectionMode: action.payload,
         selectedItems: action.payload ? state.selectedItems : [],
-      };
-    case SET_SELECTED_ITEMS:
-      return {
-        ...state,
-        selectedItems: action.payload,
       };
     case CLEAR_SELECTED_ITEMS:
       return {

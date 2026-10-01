@@ -7,8 +7,12 @@ jest.mock("expo-image-picker", () => ({
   MediaTypeOptions: { Images: "Images" },
 }));
 jest.mock("expo-router", () => ({
-  router: { push: jest.fn() },
+  router: { push: jest.fn(), back: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({})),
+  useNavigation: jest.fn(() => ({
+    setOptions: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+  })),
 }));
 jest.mock("@/context/GlobalProvider", () => ({
   useGlobalContext: () => ({ user: require("./helpers/fixtures").testUser }),
@@ -17,10 +21,10 @@ jest.mock("@/context/GlobalProvider", () => ({
 import React from "react";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import Create from "@/app/(tabs)/create";
+import Create from "@/app/create";
 import { prepareImageForUpload } from "@/utils/image";
 import { testUser } from "./helpers/fixtures";
-import { createTestStore, pressText, renderWithStore } from "./helpers/render";
+import { addPhotoFrom, createTestStore, renderWithStore } from "./helpers/render";
 
 const KB = 1024;
 const MB = 1024 * KB;
@@ -111,7 +115,7 @@ it("the Create screen re-encodes a big, detailed photo at most twice", async () 
   } as any);
   const renderer = renderWithStore(<Create />, createTestStore({ user: testUser }));
 
-  await pressText(renderer.root, "Choose a file");
+  await addPhotoFrom(renderer.root, "library");
 
   expect(ImageManipulator.manipulateAsync).toHaveBeenCalledTimes(2);
 });

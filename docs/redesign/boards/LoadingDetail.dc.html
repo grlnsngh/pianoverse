@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Detail, loading</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FFFFFF;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+@keyframes pv-shimmer{0%{background-position:150% 0}100%{background-position:-150% 0}}
+.pv-sk{background:linear-gradient(90deg,#EFEDE8 25%,#F8F7F4 50%,#EFEDE8 75%);background-size:300% 100%;animation:pv-shimmer 1.5s linear infinite}
+@media (prefers-reduced-motion:reduce){.pv-sk{animation:none}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#FFFFFF;display:flex;flex-direction:column;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814" aria-busy="true">
+
+<div style="flex-grow:1;min-height:0;overflow:hidden">
+
+<div class="pv-sk" style="position:relative;height:340px;border-radius:0">
+<a href="Pianos.dc.html" aria-label="Back to pianos" style="position:absolute;left:16px;top:12px;width:44px;height:44px;border-radius:50%;background:#FFFFFF;color:#1A1814;display:flex;align-items:center;justify-content:center">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+</a>
+</div>
+
+<div style="position:relative;margin-top:-24px;padding:24px 20px 0;border-radius:24px 24px 0 0;background:#FFFFFF">
+<div class="pv-sk" style="width:240px;height:28px;border-radius:8px"></div>
+<div class="pv-sk" style="width:210px;height:14px;border-radius:7px;margin-top:12px"></div>
+<div class="pv-sk" style="width:170px;height:15px;border-radius:7px;margin-top:12px"></div>
+
+<div style="height:1px;margin:24px 0;background:#E7E4DD"></div>
+
+<div class="pv-sk" style="width:90px;height:20px;border-radius:8px"></div>
+<div style="display:flex;align-items:center;gap:14px;margin-top:18px">
+<div class="pv-sk" style="width:48px;height:48px;border-radius:50%"></div>
+<div><div class="pv-sk" style="width:130px;height:16px;border-radius:8px"></div><div class="pv-sk" style="width:110px;height:13px;border-radius:6px;margin-top:8px"></div></div>
+</div>
+<div class="pv-sk" style="height:8px;border-radius:4px;margin-top:26px"></div>
+<div style="display:flex;justify-content:space-between;margin-top:12px"><div class="pv-sk" style="width:80px;height:14px;border-radius:7px"></div><div class="pv-sk" style="width:80px;height:14px;border-radius:7px"></div></div>
+
+<div style="margin-top:22px;border-top:1px solid #E7E4DD;padding:18px 0;display:flex;justify-content:space-between"><div class="pv-sk" style="width:60px;height:16px;border-radius:8px"></div><div class="pv-sk" style="width:80px;height:16px;border-radius:8px"></div></div>
+<div style="border-top:1px solid #E7E4DD;padding:18px 0;display:flex;justify-content:space-between"><div class="pv-sk" style="width:70px;height:16px;border-radius:8px"></div><div class="pv-sk" style="width:150px;height:16px;border-radius:8px"></div></div>
+</div>
+
+</div>
+
+<div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;height:84px;padding:0 20px 20px;background:#FFFFFF;border-top:1px solid #E7E4DD">
+<div><div class="pv-sk" style="width:70px;height:20px;border-radius:8px"></div><div class="pv-sk" style="width:90px;height:13px;border-radius:6px;margin-top:6px"></div></div>
+<div class="pv-sk" style="width:160px;height:48px;border-radius:14px"></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

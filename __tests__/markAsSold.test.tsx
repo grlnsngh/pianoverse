@@ -26,17 +26,12 @@ jest.mock("@/context/GlobalProvider", () => ({
     setIsLogged: jest.fn(),
   }),
 }));
-jest.mock("@react-native-community/datetimepicker", () => {
-  const React = require("react");
-  return (props: any) => React.createElement("DateTimePicker", props);
-});
 
 import React from "react";
 import { act, ReactTestRenderer } from "react-test-renderer";
 import { addDays } from "date-fns";
 import Home from "@/app/(tabs)/home";
 import Profile from "@/app/(tabs)/profile";
-import FilterButton from "@/components/FilterButton";
 import DetailScreen from "@/app/detail/[id]";
 import {
   scheduleAllRentalNotifications,
@@ -46,8 +41,8 @@ import * as appwrite from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { DEFAULT_FILTERS } from "@/constants/Piano";
+import { countActiveFilters } from "@/utils/filters";
 import { toStoredDate } from "@/utils/dates";
-import { getStatusLabel } from "@/utils/pianoStatus";
 import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
 import { fakeNotifications } from "./helpers/fakeNotifications";
 import { makePiano, testUser } from "./helpers/fixtures";
@@ -57,7 +52,7 @@ import {
   captureToasts,
   createTestStore,
   flushPromises,
-  queryAllByText,
+  pressDialog,
   renderWithStore,
 } from "./helpers/render";
 
@@ -88,29 +83,32 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-const field = (renderer: ReactTestRenderer, title: string) => {
+// The sheets' fields are found by the name they are read out as, and their
+// buttons by the label on them
+const field = (renderer: ReactTestRenderer, label: string) => {
   const [node] = renderer.root.findAll(
     (candidate) =>
-      candidate.props.title === title &&
-      typeof candidate.props.handleChangeText === "function"
+      candidate.props.accessibilityLabel === label &&
+      typeof candidate.props.onChangeText === "function"
   );
-  if (!node) throw new Error(`No field titled "${title}"`);
+  if (!node) throw new Error(`No field named "${label}"`);
   return node;
 };
 
-const typeInto = (renderer: ReactTestRenderer, title: string, text: string) =>
+const typeInto = (renderer: ReactTestRenderer, label: string, text: string) =>
   act(() => {
-    field(renderer, title).props.handleChangeText(text);
+    field(renderer, label).props.onChangeText(text);
   });
 
-const pressButton = async (renderer: ReactTestRenderer, title: string) => {
+const pressButton = async (renderer: ReactTestRenderer, label: string) => {
   const [button] = renderer.root.findAll(
     (node) =>
-      node.props.title === title && typeof node.props.handlePress === "function"
+      node.props.accessibilityLabel === label &&
+      typeof node.props.onPress === "function"
   );
-  if (!button) throw new Error(`No "${title}" button`);
+  if (!button) throw new Error(`No "${label}" button`);
   await act(async () => {
-    await button.props.handlePress();
+    await button.props.onPress();
   });
   await flushPromises();
 };
@@ -123,12 +121,15 @@ const openDetail = async (piano: PianoItem = rental) => {
   return { store, renderer };
 };
 
+// The row on the piano's page (or the bar, for a piano on sale) that opens the sheet
 const openSoldSheet = async (renderer: ReactTestRenderer) => {
-  const [button] = queryAllByText(renderer.root, "Mark as Sold");
-  let pressable: any = button;
-  while (typeof pressable.props.onPress !== "function")
-    pressable = pressable.parent;
-  await act(async () => pressable.props.onPress());
+  const [button] = renderer.root.findAll(
+    (node) =>
+      node.props.accessibilityLabel === "Mark as sold" &&
+      typeof node.props.onPress === "function"
+  );
+  if (!button) throw new Error("No Mark as sold on the page");
+  await act(async () => button.props.onPress());
 };
 
 describe("marking a piano as sold", () => {
@@ -137,10 +138,10 @@ describe("marking a piano as sold", () => {
     const { store, renderer } = await openDetail();
 
     await openSoldSheet(renderer);
-    typeInto(renderer, "Buyer Name", "  Ravi Kumar ");
-    typeInto(renderer, "Buyer Address", "5 Park Street");
-    typeInto(renderer, "Sale Price", "185000");
-    await pressButton(renderer, "Mark as Sold");
+    typeInto(renderer, "Buyer", "  Ravi Kumar ");
+    typeInto(renderer, "Address", "5 Park Street");
+    typeInto(renderer, "Sale price", "185000");
+    await pressButton(renderer, "Confirm sale");
 
     expect(alerts.titles()).toEqual([]);
     const saved = fakeBackend.documents.get("piano-1");
@@ -160,16 +161,16 @@ describe("marking a piano as sold", () => {
     expect(texts).toContain("SOLD");
     expect(texts).toContain("Ravi Kumar");
     expect(texts).toContain("₹1,85,000");
-    expect(texts).toContain("Undo Sale");
+    expect(texts).toContain("Undo sale");
   });
 
   it("saves the price as a number, the way the database stores it", async () => {
     const { renderer } = await openDetail();
 
     await openSoldSheet(renderer);
-    typeInto(renderer, "Buyer Name", "Ravi Kumar");
-    typeInto(renderer, "Sale Price", "185000");
-    await pressButton(renderer, "Mark as Sold");
+    typeInto(renderer, "Buyer", "Ravi Kumar");
+    typeInto(renderer, "Sale price", "185000");
+    await pressButton(renderer, "Confirm sale");
 
     expect(alerts.titles()).toEqual([]);
     expect(fakeBackend.documents.get("piano-1")?.sold_price).toBe(185000);
@@ -182,9 +183,9 @@ describe("marking a piano as sold", () => {
     );
 
     await openSoldSheet(renderer);
-    typeInto(renderer, "Buyer Name", "Ravi Kumar");
-    typeInto(renderer, "Sale Price", "185000");
-    await pressButton(renderer, "Mark as Sold");
+    typeInto(renderer, "Buyer", "Ravi Kumar");
+    typeInto(renderer, "Sale price", "185000");
+    await pressButton(renderer, "Confirm sale");
 
     expect(fakeNotifications.rentalReminders("piano-1")).toEqual([]);
   });
@@ -193,9 +194,9 @@ describe("marking a piano as sold", () => {
     const { renderer } = await openDetail();
     await openSoldSheet(renderer);
 
-    await pressButton(renderer, "Mark as Sold");
-    typeInto(renderer, "Buyer Name", "Ravi Kumar");
-    await pressButton(renderer, "Mark as Sold");
+    await pressButton(renderer, "Confirm sale");
+    typeInto(renderer, "Buyer", "Ravi Kumar");
+    await pressButton(renderer, "Confirm sale");
 
     expect(alerts.titles()).toEqual(["Missing Details", "Missing Details"]);
     expect(alerts.spy.mock.calls.map((call) => call[1])).toEqual([
@@ -212,10 +213,10 @@ describe("marking a piano as sold", () => {
 
     await openSoldSheet(renderer);
 
-    expect(field(renderer, "Sale Price").props.value).toBe("250000");
+    expect(field(renderer, "Sale price").props.value).toBe("2,50,000");
   });
 
-  it("no longer counts down the rental on the piano's page", async () => {
+  it("no longer counts down the rental on the piano's page, or shows who had it (the Sold board)", async () => {
     const sold = {
       ...rental,
       sold_date: inDays(-2),
@@ -225,9 +226,12 @@ describe("marking a piano as sold", () => {
     const { renderer } = await openDetail(sold);
 
     const texts = allTexts(renderer.root).join(" ");
-    expect(texts).not.toMatch(/Active Rental|remaining|Expiring Soon/);
-    // The rental's details are still there
-    expect(texts).toContain("Asha Mehta");
+    expect(texts).not.toMatch(/Rental ends|Rental ended|days left|Rent overdue/);
+    expect(texts).not.toContain("Rental");
+    expect(texts).not.toContain("Asha Mehta");
+    // It says it was sold, and to whom
+    expect(texts).toContain("Sold on");
+    expect(texts).toContain("Ravi Kumar");
   });
 
   it("can be undone", async () => {
@@ -239,12 +243,13 @@ describe("marking a piano as sold", () => {
     } as any;
     const { store, renderer } = await openDetail(sold);
 
-    const [undo] = queryAllByText(renderer.root, "Undo Sale");
-    let pressable: any = undo;
-    while (typeof pressable.props.onPress !== "function")
-      pressable = pressable.parent;
-    await act(async () => pressable.props.onPress());
-    await alerts.pressButton("Undo Sale");
+    const [undo] = renderer.root.findAll(
+      (node) =>
+        node.props.accessibilityLabel === "Undo sale" &&
+        typeof node.props.onPress === "function"
+    );
+    await act(async () => undo.props.onPress());
+    await pressDialog(renderer.root, "Undo sale");
 
     expect(fakeBackend.documents.get("piano-1")).toMatchObject({
       sold_date: null,
@@ -288,17 +293,9 @@ describe("sold pianos elsewhere", () => {
   });
 
   it("count as a filter on the filter button", () => {
-    const store = createTestStore();
-    const renderer = renderWithStore(<FilterButton />, store);
-
-    act(() => {
-      store.dispatch(setPianoFilters({ ...DEFAULT_FILTERS, isSold: true }));
-    });
-
-    const [badge] = renderer.root.findAll(
-      (node) => node.props.testID === "active-filter-badge"
-    );
-    expect(allTexts(badge)).toEqual(["1"]);
+    // The count on the round filter button is the number of filters in use
+    expect(countActiveFilters({ ...DEFAULT_FILTERS, isSold: true })).toBe(1);
+    expect(countActiveFilters(DEFAULT_FILTERS)).toBe(0);
   });
 
   it("get no rental reminders", async () => {
@@ -317,12 +314,8 @@ describe("sold pianos elsewhere", () => {
     );
 
     const texts = allTexts(renderer.root);
-    expect(texts[texts.indexOf("In Stock") - 1]).toBe("2");
-    expect(texts[texts.indexOf("Currently Rented") - 1]).toBe("1");
-  });
-
-  it("are labelled as sold in the list", () => {
-    expect(getStatusLabel(soldRental)).toBe("Rentable · Sold");
-    expect(getStatusLabel(inStock)).toBe("Warehouse");
+    // Only the piano that is here: the rental is out, and the sold one is gone
+    expect(texts[texts.indexOf("In stock") - 1]).toBe("1");
+    expect(texts[texts.indexOf("On rent") - 1]).toBe("1");
   });
 });

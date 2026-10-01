@@ -25,27 +25,23 @@ jest.mock("expo-image-picker", () => ({
   requestCameraPermissionsAsync: jest.fn(),
   MediaTypeOptions: { Images: "Images" },
 }));
-jest.mock("@react-native-picker/picker", () => {
-  const React = require("react");
-  const Picker = (props: any) =>
-    React.createElement("Picker", props, props.children);
-  Picker.Item = (props: any) => React.createElement("PickerItem", props);
-  return { Picker };
-});
 
 import fs from "fs";
 import path from "path";
 import React from "react";
+import { Linking } from "react-native";
 import { ReactTestRenderer } from "react-test-renderer";
 import * as ImagePicker from "expo-image-picker";
-import Create from "@/app/(tabs)/create";
+import Create from "@/app/create";
 import EditScreen from "@/app/edit/[id]";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
+  addPhotoFrom,
+  allTexts,
   captureAlerts,
   createTestStore,
-  pressText,
+  pressLabel,
   renderWithStore,
 } from "./helpers/render";
 
@@ -88,7 +84,7 @@ describe("taking a photo on the Create screen", () => {
   it("uses the camera, cropped like library photos", async () => {
     const renderer = renderCreate();
 
-    await pressText(renderer.root, "Take Photo");
+    await addPhotoFrom(renderer.root, "camera");
 
     expect(ImagePicker.launchCameraAsync).toHaveBeenCalledWith(
       expect.objectContaining({ allowsEditing: true, aspect: [4, 3] })
@@ -97,17 +93,50 @@ describe("taking a photo on the Create screen", () => {
     expect(shows(renderer, cameraPhoto.uri)).toBe(true);
   });
 
-  it("explains when camera access is refused", async () => {
-    jest
-      .mocked(ImagePicker.requestCameraPermissionsAsync)
-      .mockResolvedValue({ granted: false } as any);
-    const renderer = renderCreate();
+  describe("when camera access is refused", () => {
+    const refuse = async () => {
+      jest
+        .mocked(ImagePicker.requestCameraPermissionsAsync)
+        .mockResolvedValue({ granted: false } as any);
+      const renderer = renderCreate();
+      await addPhotoFrom(renderer.root, "camera");
+      return renderer;
+    };
 
-    await pressText(renderer.root, "Take Photo");
+    it("explains how to allow it, in a sheet rather than a system alert", async () => {
+      const renderer = await refuse();
 
-    expect(alerts.titles()).toEqual(["Camera Access Needed"]);
-    expect(ImagePicker.launchCameraAsync).not.toHaveBeenCalled();
-    expect(shows(renderer, cameraPhoto.uri)).toBe(false);
+      const texts = allTexts(renderer.root);
+      expect(texts).toContain("Camera access is off");
+      expect(texts).toContain(
+        "Allow camera access in Settings to take photos of your pianos. You can also choose photos from your gallery."
+      );
+      expect(alerts.titles()).toEqual([]);
+      expect(ImagePicker.launchCameraAsync).not.toHaveBeenCalled();
+      expect(shows(renderer, cameraPhoto.uri)).toBe(false);
+    });
+
+    it("opens the phone's settings", async () => {
+      const openSettings = jest.spyOn(Linking, "openSettings").mockResolvedValue();
+      const renderer = await refuse();
+
+      await pressLabel(renderer.root, "Open Settings");
+
+      expect(openSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it("offers the gallery instead", async () => {
+      jest.mocked(ImagePicker.launchImageLibraryAsync).mockResolvedValue({
+        canceled: false,
+        assets: [{ ...cameraPhoto, uri: "file:///cache/ImagePicker/gallery.jpg" }],
+      } as any);
+      const renderer = await refuse();
+
+      await pressLabel(renderer.root, "Choose from gallery");
+
+      expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalledTimes(1);
+      expect(shows(renderer, "file:///cache/ImagePicker/gallery.jpg")).toBe(true);
+    });
   });
 
   it("keeps the form as it was when the camera is closed", async () => {
@@ -116,7 +145,7 @@ describe("taking a photo on the Create screen", () => {
       .mockResolvedValue({ canceled: true, assets: null } as any);
     const renderer = renderCreate();
 
-    await pressText(renderer.root, "Take Photo");
+    await addPhotoFrom(renderer.root, "camera");
 
     expect(alerts.titles()).toEqual([]);
     expect(shows(renderer, cameraPhoto.uri)).toBe(false);
@@ -129,7 +158,7 @@ describe("taking a photo on the Create screen", () => {
     } as any);
     const renderer = renderCreate();
 
-    await pressText(renderer.root, "Take Photo");
+    await addPhotoFrom(renderer.root, "camera");
 
     expect(alerts.titles()).toEqual(["Image Too Small"]);
     expect(shows(renderer, cameraPhoto.uri)).toBe(false);
@@ -141,10 +170,10 @@ describe("taking a photo on the Create screen", () => {
       assets: [{ ...cameraPhoto, uri: "file:///cache/ImagePicker/old.jpg" }],
     } as any);
     const renderer = renderCreate();
-    await pressText(renderer.root, "Choose a file");
+    await addPhotoFrom(renderer.root, "library");
     expect(shows(renderer, "file:///cache/ImagePicker/old.jpg")).toBe(true);
 
-    await pressText(renderer.root, "Take Photo");
+    await addPhotoFrom(renderer.root, "camera");
 
     expect(shows(renderer, cameraPhoto.uri)).toBe(true);
     // The first photo is still there, and still the cover
@@ -161,7 +190,7 @@ describe("taking a photo on the Edit screen", () => {
       createTestStore({ user: testUser, items: [piano] })
     );
 
-    await pressText(renderer.root, "Take Photo");
+    await addPhotoFrom(renderer.root, "camera");
 
     expect(ImagePicker.launchCameraAsync).toHaveBeenCalledTimes(1);
     expect(shows(renderer, cameraPhoto.uri)).toBe(true);

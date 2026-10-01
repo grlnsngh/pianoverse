@@ -24,14 +24,15 @@ import React from "react";
 import { router } from "expo-router";
 import DetailScreen from "@/app/detail/[id]";
 import { cancelRentalNotification } from "@/services/notifications";
-import icons from "@/constants/icons";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   captureAlerts,
+  captureToastCalls,
   createTestStore,
-  findByImageSource,
+  dialogOf,
   press,
+  pressDialog,
   queryAllByText,
   renderWithStore,
 } from "./helpers/render";
@@ -45,8 +46,15 @@ const renderDetail = () => {
   return { store, renderer };
 };
 
-const pressTrash = (renderer: ReturnType<typeof renderDetail>["renderer"]) =>
-  press(findByImageSource(renderer.root, (source) => source === icons.trash));
+// "Delete piano", the red row at the bottom of the page
+const pressDelete = (renderer: ReturnType<typeof renderDetail>["renderer"]) => {
+  const [row] = renderer.root.findAll(
+    (node) =>
+      node.props.accessibilityLabel === "Delete piano" &&
+      typeof node.props.onPress === "function"
+  );
+  return press(row);
+};
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -68,12 +76,12 @@ afterEach(() => {
 it("deletes the piano after the user confirms, then goes back", async () => {
   const { store, renderer } = renderDetail();
 
-  await pressTrash(renderer);
-  expect(alerts.titles()).toEqual(["Delete Piano"]);
+  await pressDelete(renderer);
+  expect(dialogOf(renderer.root)?.title).toBe("Delete Yamaha U1?");
   // Nothing is removed until the user confirms
   expect(fakeBackend.documents.has("piano-1")).toBe(true);
 
-  await alerts.pressButton("Delete");
+  await pressDialog(renderer.root, "Delete");
 
   expect(fakeBackend.documents.has("piano-1")).toBe(false);
   expect(fakeBackend.files.has("old-file")).toBe(false);
@@ -88,8 +96,8 @@ it("deletes the piano after the user confirms, then goes back", async () => {
 it("keeps the piano when the user cancels", async () => {
   const { store, renderer } = renderDetail();
 
-  await pressTrash(renderer);
-  await alerts.pressButton("Cancel");
+  await pressDelete(renderer);
+  await pressDialog(renderer.root, "Cancel");
 
   expect(fakeBackend.documents.has("piano-1")).toBe(true);
   expect(store.getState().pianos.items).toEqual([piano]);
@@ -101,10 +109,21 @@ it("stays on the screen and reports the error when deleting fails", async () => 
   jest.spyOn(console, "error").mockImplementation(() => {});
   fakeBackend.documents.delete("piano-1"); // e.g. already removed on another device
 
-  await pressTrash(renderer);
-  await alerts.pressButton("Delete");
+  const toasts = captureToastCalls();
 
-  expect(alerts.titles()).toEqual(["Delete Piano", "Error"]);
+  await pressDelete(renderer);
+  await pressDialog(renderer.root, "Delete");
+
+  // Says so with an error toast and offers to try again, as on the Feedback board
+  expect(alerts.titles()).toEqual([]);
+  expect(toasts).toEqual([
+    {
+      message: "Couldn’t delete Yamaha U1. Check your connection.",
+      duration: "long",
+      variant: "error",
+      action: { label: "Retry", onPress: expect.any(Function) },
+    },
+  ]);
   expect(store.getState().pianos.items).toEqual([piano]);
   expect(router.back).not.toHaveBeenCalled();
 });

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Signing in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FFFFFF;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit}
+@keyframes pv-spin{to{transform:rotate(360deg)}}
+.pv-spin{animation:pv-spin 0.8s linear infinite}
+@media (prefers-reduced-motion:reduce){.pv-spin{animation:none}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#FFFFFF;display:flex;flex-direction:column;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="padding:12px 12px 0">
+<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#B4AEA3">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+</div>
+</div>
+
+<div style="padding:24px 24px 0">
+<h1 style="margin:0;font-size:32px;font-weight:700;line-height:38px;letter-spacing:-0.02em">Welcome back</h1>
+<p style="margin:6px 0 0;font-size:16px;font-weight:400;line-height:22px;color:#6B665D">Sign in to see your pianos and rentals.</p>
+
+<div style="margin-top:32px;padding:10px 16px 0;height:60px;border:1px solid #E7E4DD;border-radius:12px;background:#F6F5F2">
+<label for="sg-email" style="display:block;font-size:12px;font-weight:500;line-height:16px;color:#77716A">Email</label>
+<input id="sg-email" type="email" value="grlnsngh@gmail.com" disabled style="display:block;width:100%;height:28px;padding:0;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#6B665D">
+</div>
+
+<div style="display:flex;align-items:center;margin-top:12px;padding:10px 4px 0 16px;height:60px;border:1px solid #E7E4DD;border-radius:12px;background:#F6F5F2">
+<div style="flex-grow:1;min-width:0">
+<label for="sg-pass" style="display:block;font-size:12px;font-weight:500;line-height:16px;color:#77716A">Password</label>
+<input id="sg-pass" type="password" value="pianoverse1" disabled style="display:block;width:100%;height:28px;padding:0;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#6B665D">
+</div>
+</div>
+
+<div style="height:48px"></div>
+
+<button type="button" disabled aria-busy="true" style="width:100%;margin-top:12px;height:52px;display:flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:14px;background:#FF9C01;color:#1A1814;font-size:16px;font-weight:700">
+<svg class="pv-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="rgba(26,24,20,0.2)" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="#1A1814" stroke-width="3" stroke-linecap="round"/></svg>
+Signing in
+</button>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

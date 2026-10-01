@@ -5,6 +5,9 @@ import {
   TabKey,
 } from "./actions";
 
+/** The tab the app opens on, and the one chosen after signing in. */
+export const INITIAL_TAB: TabKey = "today";
+
 export interface NavigationState {
   activeTab: TabKey;
   // Changes whenever the Create form should start over
@@ -12,7 +15,7 @@ export interface NavigationState {
 }
 
 const initialState: NavigationState = {
-  activeTab: "home",
+  activeTab: INITIAL_TAB,
   createFormResetCount: 0,
 };
 

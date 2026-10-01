@@ -2,16 +2,14 @@
   "expo": {
     "name": "pianoverse",
     "slug": "pianoverse",
-    "version": "1.1.12",
+    "version": "1.1.13",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "pianoverse",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#161622",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FFFFFF",
     "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#161622"
+      "backgroundColor": "#FF9C01"
     },
     "ios": {
       "supportsTablet": true
@@ -22,7 +20,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.grlnsngh.pianoverse",
-      "versionCode": 23
+      "versionCode": 24
     },
     "web": {
       "bundler": "metro",

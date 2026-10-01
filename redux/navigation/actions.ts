@@ -1,4 +1,8 @@
-export type TabKey = "home" | "create" | "profile";
+/**
+ * The three tabs. Adding a piano is not a tab: it is its own screen, opened
+ * with the orange + button (router.push("/create")).
+ */
+export type TabKey = "today" | "pianos" | "account";
 
 export const SET_ACTIVE_TAB = "SET_ACTIVE_TAB";
 export const RESET_CREATE_FORM = "RESET_CREATE_FORM";

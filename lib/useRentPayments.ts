@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createRentPayment,
@@ -9,6 +8,7 @@ import {
 } from "@/lib/appwrite";
 import { paymentsChanged } from "@/redux/payments/actions";
 import { RootState } from "@/redux/store";
+import { parseStoredDate } from "@/utils/dates";
 import { showToast } from "@/utils/toast";
 
 export type PaymentsStatus = "loading" | "ready" | "error";
@@ -17,6 +17,7 @@ export interface NewPayment {
   amount: number;
   paidOn: Date;
   note?: string;
+  customerName?: string;
 }
 
 const newestFirst = (payments: RentPayment[]) =>
@@ -29,9 +30,10 @@ const newestFirst = (payments: RentPayment[]) =>
 /**
  * Loads the rent payments of a piano and returns them with functions to
  * record and delete one. Both ask the user again when saving fails, and
- * resolve to whether they worked.
+ * resolve to whether they worked. Pass `enabled` false for a piano that isn't
+ * a rental: nothing is loaded for it.
  */
-const useRentPayments = (pianoId: string) => {
+const useRentPayments = (pianoId: string, enabled = true) => {
   const user = useSelector((state: RootState) => state.users.user);
   const dispatch = useDispatch();
   const [payments, setPayments] = useState<RentPayment[]>([]);
@@ -59,54 +61,92 @@ const useRentPayments = (pianoId: string) => {
   }, [pianoId]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (enabled) load();
+  }, [load, enabled]);
 
   const add = useCallback(
-    async ({ amount, paidOn, note }: NewPayment) => {
+    async ({ amount, paidOn, note, customerName }: NewPayment) => {
+      if (!user) {
+        showToast("Please sign in again.", { variant: "error", duration: "long" });
+        return false;
+      }
       try {
-        if (!user) throw new Error("Please sign in again.");
         const created = await createRentPayment({
           pianoId,
           creator: user.accountId,
           amount,
           paidOn,
           note,
+          customerName,
         });
         setPayments((current) => newestFirst([created, ...current]));
         dispatch(paymentsChanged() as any);
-        showToast("Payment recorded");
+        showToast("Payment recorded", { variant: "success" });
         return true;
       } catch (error) {
-        Alert.alert(
-          "Couldn't Save",
-          error instanceof Error ? error.message : "Please try again."
-        );
+        // The sheet is still open, so the person can just press Save again
+        console.warn("Could not save the rent payment:", error);
+        showToast("Couldn’t save. Check your connection.", {
+          variant: "error",
+          duration: "long",
+        });
         return false;
       }
     },
     [pianoId, user, dispatch]
   );
 
-  const remove = useCallback(
+  // Records a deleted payment again: the same piano, amount, day, note and name
+  const restore = useCallback(
     async (payment: RentPayment) => {
+      try {
+        const created = await createRentPayment({
+          pianoId: payment.piano_id,
+          creator: payment.creator,
+          amount: payment.amount,
+          paidOn: parseStoredDate(payment.paid_on) ?? new Date(),
+          note: payment.note ?? undefined,
+          customerName: payment.customer_name ?? undefined,
+        });
+        setPayments((current) => newestFirst([created, ...current]));
+        dispatch(paymentsChanged() as any);
+        showToast("Payment restored", { variant: "success" });
+      } catch (error) {
+        console.warn("Could not restore the rent payment:", error);
+        showToast("Couldn’t restore the payment. Check your connection.", {
+          variant: "error",
+          duration: "long",
+        });
+      }
+    },
+    [dispatch]
+  );
+
+  const remove = useCallback(
+    async function removePayment(payment: RentPayment): Promise<boolean> {
       try {
         await deleteRentPayment(payment.$id);
         setPayments((current) =>
           current.filter((candidate) => candidate.$id !== payment.$id)
         );
         dispatch(paymentsChanged() as any);
-        showToast("Payment deleted");
+        showToast("Payment deleted", {
+          variant: "success",
+          duration: "long",
+          action: { label: "Undo", onPress: () => restore(payment) },
+        });
         return true;
       } catch (error) {
-        Alert.alert(
-          "Couldn't Delete",
-          error instanceof Error ? error.message : "Please try again."
-        );
+        console.warn("Could not delete the rent payment:", error);
+        showToast("Couldn’t delete. Check your connection.", {
+          variant: "error",
+          duration: "long",
+          action: { label: "Retry", onPress: () => removePayment(payment) },
+        });
         return false;
       }
     },
-    [dispatch]
+    [dispatch, restore]
   );
 
   return { payments, status, reload: load, add, remove };

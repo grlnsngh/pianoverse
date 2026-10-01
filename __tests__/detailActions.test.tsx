@@ -14,17 +14,13 @@ jest.mock("@/services/notifications", () => ({
 import React from "react";
 import { Linking, Share } from "react-native";
 import { act } from "react-test-renderer";
-import CardItem from "@/components/CardItem";
 import DetailScreen from "@/app/detail/[id]";
-import icons from "@/constants/icons";
 import { PianoItem } from "@/redux/pianos/types";
 import { toInternationalDigits } from "@/utils/contact";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
-  allTexts,
   captureAlerts,
   createTestStore,
-  findByImageSource,
   flushPromises,
   renderWithStore,
 } from "./helpers/render";
@@ -75,12 +71,34 @@ const pressByLabel = async (renderer: any, label: string) => {
 };
 
 describe("the customer's mobile number", () => {
-  it("calls the customer when the number is tapped", async () => {
+  it("calls the customer from the phone button, named after them", async () => {
     const renderer = renderDetail();
+
+    await pressByLabel(renderer, "Call Asha Mehta");
+
+    expect(Linking.openURL).toHaveBeenCalledWith("tel:9876543210");
+  });
+
+  it("names the number when there is no customer name", async () => {
+    const renderer = renderDetail({ ...rental, rental_customer_name: "" });
 
     await pressByLabel(renderer, "Call 98765 43210");
 
     expect(Linking.openURL).toHaveBeenCalledWith("tel:9876543210");
+  });
+
+  it("has no call or message buttons without a number", () => {
+    const renderer = renderDetail({ ...rental, rental_customer_mobile: null });
+
+    expect(
+      renderer.root.findAll(
+        (node) =>
+          typeof node.props.onPress === "function" &&
+          /^(Call|Message on WhatsApp)/.test(
+            node.props.accessibilityLabel ?? ""
+          )
+      )
+    ).toHaveLength(0);
   });
 
   it("opens a WhatsApp chat with the customer", async () => {
@@ -103,14 +121,6 @@ describe("the customer's mobile number", () => {
     await pressByLabel(renderer, "Message on WhatsApp");
 
     expect(alerts.titles()).toEqual(["Couldn't open WhatsApp"]);
-  });
-
-  it("no longer shows a search icon next to the number", () => {
-    const renderer = renderDetail();
-
-    expect(() =>
-      findByImageSource(renderer.root, (source) => source === icons.search)
-    ).toThrow();
   });
 });
 
@@ -156,38 +166,5 @@ describe("sharing a piano", () => {
 
     const [{ message }] = share.mock.calls[0] as any;
     expect(message).toBe("Yamaha C3\nYamaha · On Sale\nPrice: ₹12,50,000");
-  });
-});
-
-describe("bookmarks", () => {
-  // Bookmarks lived only in the row's state and were lost on scroll, and
-  // nothing ever listed them, so the button is gone
-  const warehousePiano = makePiano();
-  const hasBookmarkButton = (renderer: any) =>
-    renderer.root.findAll(
-      (node: any) =>
-        typeof node.props.onPress === "function" &&
-        node.findAll((child: any) => child.props.source === icons.bookmark)
-          .length > 0
-    ).length > 0;
-
-  it.each([
-    ["card", false],
-    ["compact card", true],
-  ])("aren't offered on a %s", (_name, isGridView) => {
-    const renderer = renderWithStore(
-      <CardItem
-        item={warehousePiano}
-        index={0}
-        visibleMenuId={null}
-        openMenu={jest.fn()}
-        closeMenu={jest.fn()}
-        isGridView={isGridView}
-      />,
-      createTestStore({ user: testUser, items: [warehousePiano] })
-    );
-
-    expect(hasBookmarkButton(renderer)).toBe(false);
-    expect(allTexts(renderer.root)).not.toContain("Save");
   });
 });

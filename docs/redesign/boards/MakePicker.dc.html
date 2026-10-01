@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Choose make</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#F6F5F2;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit;cursor:pointer}
+input{cursor:text}
+input::placeholder{color:#77716A}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;box-sizing:border-box;background:#F6F5F2;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="padding:20px 20px 0">
+<div style="font-size:28px;font-weight:700;line-height:34px;letter-spacing:-0.02em">About the piano</div>
+</div>
+
+<a href="Add1Basics.dc.html" aria-label="Close" style="position:absolute;left:0;top:0;width:390px;height:844px;background:rgba(26,24,20,0.45)"></a>
+
+<div style="position:absolute;left:0;bottom:0;width:390px;height:772px;display:flex;flex-direction:column;background:#FFFFFF;border-radius:24px 24px 0 0;overflow:hidden">
+<div style="width:36px;height:5px;border-radius:3px;background:#CFCBC2;margin:8px auto 0;flex-shrink:0"></div>
+
+<div style="display:flex;align-items:center;justify-content:center;position:relative;height:52px;flex-shrink:0">
+<a href="Add1Basics.dc.html" style="position:absolute;left:8px;top:4px;height:44px;padding:0 12px;display:flex;align-items:center;font-size:16px;font-weight:500">Cancel</a>
+<div style="font-size:17px;font-weight:700">Make</div>
+</div>
+
+<div style="padding:0 20px 8px;flex-shrink:0">
+<div style="display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;background:#EFEDE8;border-radius:12px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B665D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+<input type="search" placeholder="Search makes" aria-label="Search makes" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:16px;font-weight:500;color:#1A1814">
+</div>
+</div>
+
+<div style="position:relative;flex-grow:1;min-height:0;overflow:hidden">
+<div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="14">
+<sc-if value="{{r.isHeader}}" hint-placeholder-val="{{ false }}">
+<div style="height:32px;padding:0 20px;display:flex;align-items:center;background:#F6F5F2;font-size:13px;font-weight:700;color:#6B665D">{{r.name}}</div>
+</sc-if>
+<sc-if value="{{r.isRow}}" hint-placeholder-val="{{ true }}">
+<a href="Add1Basics.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:52px;margin:0 20px;border-bottom:1px solid #E7E4DD;font-size:16px;font-weight:{{r.weight}}">
+<span>{{r.name}}</span>
+<sc-if value="{{r.selected}}" hint-placeholder-val="{{ false }}">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A1814" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+</sc-if>
+</a>
+</sc-if>
+</sc-for>
+</div>
+<div style="position:absolute;right:4px;top:8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;line-height:13px;color:#6B665D" aria-hidden="true">
+<span>A</span><span>B</span><span>C</span><span>E</span><span>F</span><span>H</span><span>J</span><span>K</span><span>O</span><span>P</span><span>R</span><span>S</span><span>W</span><span>Y</span><span>Z</span>
+</div>
+</div>
+
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const src = [
+      ['P', ['Pearl River', 'Petrof']],
+      ['R', ['Rameau', 'Ritmuller', 'Ronish', 'Rosenstock', 'Russian']],
+      ['S', ['Samick', 'Saujin', 'Schimmel', 'Schumann']],
+      ['W', ['Weber']],
+      ['Y', ['Young Chang']],
+      ['Z', ['Zimmermann']]
+    ];
+    const rows = [];
+    src.forEach(([letter, names]) => {
+      rows.push({ isHeader: true, isRow: false, name: letter });
+      names.forEach((n) => rows.push({ isHeader: false, isRow: true, name: n, selected: n === 'Schumann', weight: n === 'Schumann' ? 700 : 500 }));
+    });
+    return { rows };
+  }
+}
+</script>
+</body>
+</html>

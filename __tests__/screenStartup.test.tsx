@@ -2,7 +2,13 @@ jest.mock("react-native-appwrite", () =>
   require("./helpers/fakeAppwrite").createFakeAppwriteModule()
 );
 jest.mock("expo-router", () => ({
-  router: { push: jest.fn(), back: jest.fn(), replace: jest.fn() },
+  router: {
+    push: jest.fn(),
+    back: jest.fn(),
+    replace: jest.fn(),
+    canDismiss: jest.fn(() => true),
+    dismissAll: jest.fn(),
+  },
   useLocalSearchParams: jest.fn(() => ({})),
   useNavigation: jest.fn(() => ({
     setOptions: jest.fn(),
@@ -27,11 +33,14 @@ import { act } from "react-test-renderer";
 import { useLocalSearchParams } from "expo-router";
 import Profile from "@/app/(tabs)/profile";
 import Review from "@/app/review";
+import * as appwrite from "@/lib/appwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
+  captureAlerts,
   createTestStore,
   findByImageSource,
+  pressText,
   queryAllByText,
   renderWithStore,
 } from "./helpers/render";
@@ -41,39 +50,31 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-describe("the profile", () => {
+describe("the account tab", () => {
   const renderProfile = () =>
     renderWithStore(
       <Profile />,
       createTestStore({ user: testUser, items: [makePiano()] })
     );
 
-  it("shows the profile straight away", () => {
+  it("shows the account straight away", () => {
     const renderer = renderProfile();
 
     const texts = allTexts(renderer.root);
     expect(texts).not.toContain("Loading Profile...");
-    expect(texts).toContain("Overview");
-    expect(texts).toContain("Sign Out");
+    expect(texts).toContain("Account");
+    expect(texts).toContain("Your data");
+    expect(texts).toContain("Sign out");
   });
 
-  it("fades in once and leaves no animation running", () => {
+  it("starts no animation of its own", () => {
     const loop = jest.spyOn(Animated, "loop");
-    const realParallel = Animated.parallel;
-    const entrances: Animated.CompositeAnimation[] = [];
-    jest.spyOn(Animated, "parallel").mockImplementation((...args) => {
-      const animation = realParallel(...args);
-      jest.spyOn(animation, "stop");
-      entrances.push(animation);
-      return animation;
-    });
+    const parallel = jest.spyOn(Animated, "parallel");
 
-    const renderer = renderProfile();
-    act(() => renderer.unmount());
+    renderProfile();
 
     expect(loop).not.toHaveBeenCalled();
-    expect(entrances).toHaveLength(1);
-    expect(entrances[0].stop).toHaveBeenCalled();
+    expect(parallel).not.toHaveBeenCalled();
   });
 });
 
@@ -103,9 +104,9 @@ describe("the review screen", () => {
   it.each([
     ["rentable", "Rentable", { rentalPrice: 4000 }, "₹4,000"],
     ["events", "Events", { eventPurchasePrice: 150000 }, "₹1,50,000"],
-    ["on_sale", "On Sale", { onSalePrice: 250000 }, "₹2,50,000"],
+    ["on_sale", "On sale", { onSalePrice: 250000 }, "₹2,50,000"],
   ])(
-    "shows a %s piano's category by name, its description and prices in rupees",
+    "shows a %s piano's category by name, its notes and prices in rupees",
     (category, label, price, shown) => {
       jest.mocked(useLocalSearchParams).mockReturnValue({
         formData: JSON.stringify({
@@ -125,54 +126,38 @@ describe("the review screen", () => {
       );
 
       const texts = allTexts(renderer.root);
-      expect(texts).toContain(label);
-      expect(texts).not.toContain(category);
+      expect(texts).toContain(`${label} · 1 photo`);
+      expect(texts.join(" ")).not.toContain(category);
       expect(texts).toContain("Black polish, recently tuned");
       expect(texts).toContain(shown);
       expect(texts.join(" ")).not.toContain("$");
     }
   );
 
-  it("centres its step under the step circles", () => {
+  it("is the last of the three steps", () => {
     const { renderer } = renderReview();
 
-    // The text component carrying the classes, around the drawn text
-    const [step] = renderer.root.findAll(
-      (node) =>
-        typeof node.props.className === "string" &&
-        allTexts(node).join("") === "Step 3 of 3"
-    );
-    expect(step.props.className).toMatch(/\btext-center\b/);
+    const texts = allTexts(renderer.root);
+    expect(texts).toContain("Step 3 of 3");
+    expect(texts).toContain("Ready to add?");
+    expect(texts).toContain("Check the details. You can edit them later.");
   });
 
-  it("reads the form once, not on every render", () => {
+  it("reads the form once, not on every render", async () => {
+    // Saving it and coming back after a failure re-render the screen
+    captureAlerts();
+    jest.spyOn(appwrite, "createPianoEntry").mockRejectedValue(new Error("offline"));
     const parse = jest.spyOn(JSON, "parse");
-    const { renderer, image } = renderReview();
+    const { renderer } = renderReview();
 
-    // Each of these re-renders the screen
-    act(() => image().props.onLoadStart());
-    act(() => image().props.onLoad());
-    act(() => image().props.onLoadStart());
+    await pressText(renderer.root, "Add piano");
 
     expect(queryAllByText(renderer.root, "Kawai K-300")).toHaveLength(1);
     const formParses = parse.mock.calls.filter(([text]) => text === formData);
     expect(formParses).toHaveLength(1);
   });
 
-  it("stops showing the loading message if the image never loads", () => {
-    jest.useFakeTimers();
-    const { renderer, image } = renderReview();
-
-    act(() => image().props.onLoadStart());
-    expect(allTexts(renderer.root)).toContain("Loading image...");
-
-    act(() => {
-      jest.advanceTimersByTime(2000);
-    });
-    expect(allTexts(renderer.root)).not.toContain("Loading image...");
-  });
-
-  it("shows the cover and says how many more photos there are", () => {
+  it("shows the cover and says how many photos there are", () => {
     const morePhotos = JSON.stringify({
       ...JSON.parse(formData),
       photos: [
@@ -188,26 +173,27 @@ describe("the review screen", () => {
       createTestStore({ user: testUser })
     );
 
-    expect(allTexts(renderer.root)).toContain("+ 2 more photos");
+    expect(allTexts(renderer.root)).toContain("Warehouse · 3 photos");
     expect(
       findByImageSource(renderer.root, (source) => source.uri === uri)
     ).toBeTruthy();
   });
 
-  it("says nothing about more photos when there is only one", () => {
+  it("says photo, not photos, when there is only one", () => {
     const { renderer } = renderReview();
 
-    expect(allTexts(renderer.root).join(" ")).not.toContain("more photo");
+    expect(allTexts(renderer.root)).toContain("Warehouse · 1 photo");
   });
 
-  it("explains when the image can't be shown", () => {
+  it("shows the drawing of a piano when the photo can't be shown", () => {
     const { renderer, image } = renderReview();
 
-    act(() => image().props.onLoadStart());
     act(() => image().props.onError());
 
-    const texts = allTexts(renderer.root);
-    expect(texts).toContain("Failed to load image");
-    expect(texts).not.toContain("Loading image...");
+    // The summary is still there, with the piano drawn in place of the photo
+    expect(allTexts(renderer.root)).toContain("Kawai K-300");
+    expect(
+      renderer.root.findAll((node) => node.props.source?.uri === uri)
+    ).toHaveLength(0);
   });
 });

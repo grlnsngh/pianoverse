@@ -5,7 +5,6 @@ export const SET_PIANO_LIST_ITEMS = "SET_PIANO_LIST_ITEMS";
 export const SET_PIANO_FILTERS = "SET_PIANO_FILTERS";
 export const SET_FILTERED_PIANO_LIST_ITEMS = "SET_FILTERED_PIANO_LIST_ITEMS";
 export const SET_BULK_SELECTION_MODE = "SET_BULK_SELECTION_MODE";
-export const SET_SELECTED_ITEMS = "SET_SELECTED_ITEMS";
 export const CLEAR_SELECTED_ITEMS = "CLEAR_SELECTED_ITEMS";
 export const TOGGLE_ITEM_SELECTION = "TOGGLE_ITEM_SELECTION";
 export const SELECT_ALL_ITEMS = "SELECT_ALL_ITEMS";
@@ -118,11 +117,6 @@ export interface SetBulkSelectionModeAction {
   payload: boolean;
 }
 
-export interface SetSelectedItemsAction {
-  type: typeof SET_SELECTED_ITEMS;
-  payload: string[];
-}
-
 export interface ClearSelectedItemsAction {
   type: typeof CLEAR_SELECTED_ITEMS;
 }
@@ -161,7 +155,6 @@ export type PianoActionTypes =
   | SetPianoListItemsAction
   | SetFilteredPianoListItemsAction
   | SetBulkSelectionModeAction
-  | SetSelectedItemsAction
   | ClearSelectedItemsAction
   | ToggleItemSelectionAction
   | SelectAllItemsAction

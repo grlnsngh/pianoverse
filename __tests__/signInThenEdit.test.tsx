@@ -61,7 +61,7 @@ it("lets a user who just signed in save their changes", async () => {
     context.setIsLogged(true);
     context.setUser(testUser);
   });
-  await pressText(renderer.root, "Save Changes");
+  await pressText(renderer.root, "Save changes");
 
   expect(alerts.titles()).toEqual([]);
   expect(fakeBackend.documents.get("piano-1")).toMatchObject({

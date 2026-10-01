@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Motion</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FFFFFF;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+@keyframes pv-demo-sheet{0%{transform:translateY(100%)}18%{transform:translateY(0)}72%{transform:translateY(0)}92%,100%{transform:translateY(100%)}}
+@keyframes pv-demo-dim{0%{opacity:0}18%{opacity:1}72%{opacity:1}92%,100%{opacity:0}}
+@keyframes pv-demo-a{0%,24%{opacity:1}28%,92%{opacity:0}96%,100%{opacity:1}}
+@keyframes pv-demo-b{0%,26%{opacity:0}30%,54%{opacity:1}58%,100%{opacity:0}}
+@keyframes pv-demo-c{0%,56%{opacity:0}60%,88%{opacity:1}92%,100%{opacity:0}}
+@keyframes pv-demo-hero{0%,8%{left:12px;top:12px;width:64px;height:64px;border-radius:10px}36%,72%{left:0;top:0;width:160px;height:118px;border-radius:0}92%,100%{left:12px;top:12px;width:64px;height:64px;border-radius:10px}}
+@keyframes pv-demo-detail{0%,30%{opacity:0}42%,72%{opacity:1}86%,100%{opacity:0}}
+@keyframes pv-demo-toast{0%{opacity:0;transform:translateY(24px)}10%,78%{opacity:1;transform:none}92%,100%{opacity:0;transform:translateY(12px)}}
+@keyframes pv-spin{to{transform:rotate(360deg)}}
+.pv-d-sheet{animation:pv-demo-sheet 4.5s cubic-bezier(0.2,0,0,1) infinite}
+.pv-d-dim{animation:pv-demo-dim 4.5s ease infinite}
+.pv-d-a{animation:pv-demo-a 4.5s linear infinite}
+.pv-d-b{animation:pv-demo-b 4.5s linear infinite}
+.pv-d-c{animation:pv-demo-c 4.5s linear infinite}
+.pv-d-hero{animation:pv-demo-hero 4.5s cubic-bezier(0.2,0,0,1) infinite}
+.pv-d-detail{animation:pv-demo-detail 4.5s ease infinite}
+.pv-d-toast{animation:pv-demo-toast 4.5s ease infinite}
+.pv-spin{animation:pv-spin 0.8s linear infinite}
+@media (prefers-reduced-motion:reduce){.pv-d-sheet,.pv-d-dim,.pv-d-a,.pv-d-b,.pv-d-c,.pv-d-hero,.pv-d-detail,.pv-d-toast,.pv-spin{animation:none}}
+</style>
+</helmet>
+<div style="width:1280px;height:1180px;box-sizing:border-box;padding:56px 64px;display:flex;flex-direction:column;gap:40px;background:#FFFFFF;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:64px">
+<div>
+<div style="font-size:40px;font-weight:700;line-height:44px;letter-spacing:-0.025em">Motion</div>
+<div style="margin-top:4px;font-size:15px;font-weight:500;line-height:22px;color:#6B665D">Timing, transitions and live loops</div>
+</div>
+<div style="width:600px;font-size:16px;font-weight:400;line-height:24px;color:#3C3831">Motion explains where things come from and where they go. It is quick, it follows the finger, and it never decorates. The animations on the right are running live.</div>
+</div>
+
+<div style="display:flex;gap:48px;flex-grow:1;min-height:0;border-top:1px solid #E7E4DD;padding-top:32px">
+
+<div style="width:352px;flex-shrink:0">
+<div style="font-size:20px;font-weight:700;line-height:26px;letter-spacing:-0.01em;margin-bottom:8px">Timing</div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Press</span><span style="font-size:14px;color:#6B665D">100 ms</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Switch, segmented control</span><span style="font-size:14px;color:#6B665D">200 ms spring</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Screen push and back</span><span style="font-size:14px;color:#6B665D">300 ms, platform default</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Sheet in</span><span style="font-size:14px;color:#6B665D">320 ms decelerate</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Sheet out</span><span style="font-size:14px;color:#6B665D">240 ms accelerate</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Photo card to hero</span><span style="font-size:14px;color:#6B665D">380 ms standard</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Tab switch</span><span style="font-size:14px;color:#6B665D">120 ms cross-fade</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Add step change</span><span style="font-size:14px;color:#6B665D">240 ms slide 24 px + fade</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Toast</span><span style="font-size:14px;color:#6B665D">220 in, 3 s, 180 out</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Success check</span><span style="font-size:14px;color:#6B665D">280 pop, 260 draw</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px;border-bottom:1px solid #E7E4DD"><span style="font-size:14px;font-weight:600">Skeleton shimmer</span><span style="font-size:14px;color:#6B665D">1.5 s linear loop</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;height:40px"><span style="font-size:14px;font-weight:600">Reduced motion</span><span style="font-size:14px;color:#6B665D">fades only, 120 ms</span></div>
+
+<div style="font-size:13px;font-weight:600;line-height:18px;color:#6B665D;margin:22px 0 8px">Tokens</div>
+<div style="padding:14px 16px;border-radius:12px;background:#F6F5F2;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:18px;color:#1A1814;white-space:pre;overflow:hidden">// motion.ts (react-native-reanimated)
+export const ms = {
+  press: 100, toggle: 200, push: 300,
+  sheetIn: 320, sheetOut: 240, hero: 380,
+  fade: 120, toastIn: 220, toastOut: 180,
+};
+export const ease = {
+  standard: Easing.bezier(0.2, 0, 0, 1),
+  accelerate: Easing.bezier(0.3, 0, 1, 1),
+  decelerate: Easing.bezier(0, 0, 0, 1),
+};</div>
+</div>
+
+<div style="width:352px;flex-shrink:0">
+<div style="font-size:20px;font-weight:700;line-height:26px;letter-spacing:-0.01em;margin-bottom:12px">Transitions</div>
+
+<div style="font-size:13px;font-weight:600;line-height:18px;color:#6B665D;margin-bottom:8px">1. Open a piano</div>
+<div style="display:flex;align-items:center;gap:8px">
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:8px;top:12px;width:38px;height:38px;border-radius:6px;background:#E9E1D3;box-shadow:0 0 0 2px #FF9C01"></div>
+<div style="position:absolute;left:50px;top:12px;width:38px;height:38px;border-radius:6px;background:#E9E1D3"></div>
+<div style="position:absolute;left:8px;top:58px;width:38px;height:38px;border-radius:6px;background:#E9E1D3"></div>
+<div style="position:absolute;left:50px;top:58px;width:38px;height:38px;border-radius:6px;background:#E9E1D3"></div>
+</div>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:50px;top:12px;width:38px;height:38px;border-radius:6px;background:#E9E1D3;opacity:0.3"></div>
+<div style="position:absolute;left:8px;top:58px;width:38px;height:38px;border-radius:6px;background:#E9E1D3;opacity:0.3"></div>
+<div style="position:absolute;left:50px;top:58px;width:38px;height:38px;border-radius:6px;background:#E9E1D3;opacity:0.3"></div>
+<div style="position:absolute;left:4px;top:4px;width:88px;height:64px;border-radius:8px;background:#D8CDBB"></div>
+</div>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:0;top:0;width:96px;height:62px;background:#D8CDBB"></div>
+<div style="position:absolute;left:8px;top:72px;width:56px;height:8px;border-radius:4px;background:#1A1814"></div>
+<div style="position:absolute;left:8px;top:86px;width:40px;height:6px;border-radius:3px;background:#D9D5CC"></div>
+<div style="position:absolute;left:8px;top:108px;width:80px;height:18px;border-radius:6px;background:#FF9C01"></div>
+</div>
+</div>
+<div style="margin-top:6px;font-size:12px;line-height:16px;color:#6B665D">The photo grows into the hero. The sticky bar slides up last.</div>
+
+<div style="font-size:13px;font-weight:600;line-height:18px;color:#6B665D;margin:20px 0 8px">2. Bottom sheet</div>
+<div style="display:flex;align-items:center;gap:8px">
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:8px;top:12px;width:60px;height:8px;border-radius:4px;background:#1A1814"></div>
+<div style="position:absolute;left:8px;top:32px;width:80px;height:36px;border-radius:8px;background:#E9E1D3"></div>
+<div style="position:absolute;left:8px;top:76px;width:80px;height:36px;border-radius:8px;background:#E9E1D3"></div>
+</div>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:8px;top:12px;width:60px;height:8px;border-radius:4px;background:#1A1814"></div>
+<div style="position:absolute;left:8px;top:32px;width:80px;height:36px;border-radius:8px;background:#E9E1D3"></div>
+<div style="position:absolute;left:0;top:0;width:96px;height:136px;background:rgba(26,24,20,0.22)"></div>
+<div style="position:absolute;left:0;bottom:-24px;width:96px;height:64px;border-radius:12px 12px 0 0;background:#F6F5F2"></div>
+</div>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:8px;top:12px;width:60px;height:8px;border-radius:4px;background:#1A1814"></div>
+<div style="position:absolute;left:0;top:0;width:96px;height:136px;background:rgba(26,24,20,0.45)"></div>
+<div style="position:absolute;left:0;bottom:0;width:96px;height:88px;border-radius:12px 12px 0 0;background:#F6F5F2">
+<div style="position:absolute;left:34px;top:5px;width:28px;height:3px;border-radius:2px;background:#CFCBC2"></div>
+<div style="position:absolute;left:10px;top:20px;width:76px;height:14px;border-radius:5px;background:#FFFFFF"></div>
+<div style="position:absolute;left:10px;top:38px;width:76px;height:14px;border-radius:5px;background:#FFFFFF"></div>
+<div style="position:absolute;left:10px;top:62px;width:76px;height:18px;border-radius:6px;background:#FF9C01"></div>
+</div>
+</div>
+</div>
+<div style="margin-top:6px;font-size:12px;line-height:16px;color:#6B665D">Dim fades in while the sheet rises. Drag down or tap the dim to leave.</div>
+
+<div style="font-size:13px;font-weight:600;line-height:18px;color:#6B665D;margin:20px 0 8px">3. Save an action</div>
+<div style="display:flex;align-items:center;gap:8px">
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#F6F5F2;overflow:hidden">
+<div style="position:absolute;left:10px;top:36px;width:76px;height:14px;border-radius:5px;background:#FFFFFF"></div>
+<div style="position:absolute;left:10px;top:100px;width:76px;height:22px;border-radius:7px;background:#FF9C01"></div>
+</div>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#F6F5F2;overflow:hidden">
+<div style="position:absolute;left:10px;top:36px;width:76px;height:14px;border-radius:5px;background:#FFFFFF"></div>
+<div style="position:absolute;left:10px;top:100px;width:76px;height:22px;border-radius:7px;background:#FF9C01;display:flex;align-items:center;justify-content:center"><svg class="pv-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="rgba(26,24,20,0.2)" stroke-width="3.5"/><path d="M21 12a9 9 0 0 0-9-9" stroke="#1A1814" stroke-width="3.5" stroke-linecap="round"/></svg></div>
+</div>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:8px;top:12px;width:60px;height:8px;border-radius:4px;background:#1A1814"></div>
+<div style="position:absolute;left:8px;top:32px;width:80px;height:36px;border-radius:8px;background:#E9E1D3"></div>
+<div style="position:absolute;left:8px;bottom:10px;width:80px;height:20px;border-radius:7px;background:#1A1814"></div>
+</div>
+</div>
+<div style="margin-top:6px;font-size:12px;line-height:16px;color:#6B665D">Button shows a spinner, the sheet closes, then a toast confirms.</div>
+
+<div style="font-size:13px;font-weight:600;line-height:18px;color:#6B665D;margin:20px 0 8px">4. Switch tab</div>
+<div style="display:flex;align-items:center;gap:8px">
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:8px;top:12px;width:60px;height:10px;border-radius:5px;background:#1A1814"></div>
+<div style="position:absolute;left:8px;top:32px;width:76px;height:20px;border-radius:5px;background:#D9D5CC"></div>
+<div style="position:absolute;left:8px;top:62px;width:80px;height:6px;border-radius:3px;background:#EFEDE8"></div>
+<div style="position:absolute;left:8px;top:74px;width:80px;height:6px;border-radius:3px;background:#EFEDE8"></div>
+</div>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:8px;top:12px;width:60px;height:10px;border-radius:5px;background:#1A1814;opacity:0.5"></div>
+<div style="position:absolute;left:8px;top:32px;width:76px;height:20px;border-radius:5px;background:#D9D5CC;opacity:0.5"></div>
+<div style="position:absolute;left:8px;top:32px;width:38px;height:38px;border-radius:6px;background:#E9E1D3;opacity:0.5"></div>
+<div style="position:absolute;left:50px;top:32px;width:38px;height:38px;border-radius:6px;background:#E9E1D3;opacity:0.5"></div>
+</div>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8479" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+<div style="position:relative;width:96px;height:136px;flex-shrink:0;border-radius:14px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:8px;top:32px;width:38px;height:38px;border-radius:6px;background:#E9E1D3"></div>
+<div style="position:absolute;left:50px;top:32px;width:38px;height:38px;border-radius:6px;background:#E9E1D3"></div>
+<div style="position:absolute;left:8px;top:78px;width:38px;height:38px;border-radius:6px;background:#E9E1D3"></div>
+<div style="position:absolute;left:50px;top:78px;width:38px;height:38px;border-radius:6px;background:#E9E1D3"></div>
+</div>
+</div>
+<div style="margin-top:6px;font-size:12px;line-height:16px;color:#6B665D">No slide between tabs. Each tab keeps its scroll position.</div>
+</div>
+
+<div style="width:352px;flex-shrink:0">
+<div style="font-size:20px;font-weight:700;line-height:26px;letter-spacing:-0.01em;margin-bottom:12px">Live</div>
+
+<div style="display:flex;gap:24px">
+<div>
+<div style="position:relative;width:160px;height:280px;border-radius:20px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:12px;top:14px;width:80px;height:10px;border-radius:5px;background:#1A1814"></div>
+<div style="position:absolute;left:12px;top:36px;width:64px;height:64px;border-radius:10px;background:#E9E1D3"></div>
+<div style="position:absolute;left:84px;top:36px;width:64px;height:64px;border-radius:10px;background:#E9E1D3"></div>
+<div style="position:absolute;left:12px;top:108px;width:64px;height:64px;border-radius:10px;background:#E9E1D3"></div>
+<div style="position:absolute;left:84px;top:108px;width:64px;height:64px;border-radius:10px;background:#E9E1D3"></div>
+<div class="pv-d-dim" style="position:absolute;left:0;top:0;width:160px;height:280px;background:rgba(26,24,20,0.45);opacity:0"></div>
+<div class="pv-d-sheet" style="position:absolute;left:0;bottom:0;width:160px;height:160px;border-radius:16px 16px 0 0;background:#F6F5F2;transform:translateY(100%)">
+<div style="position:absolute;left:66px;top:6px;width:28px;height:4px;border-radius:2px;background:#CFCBC2"></div>
+<div style="position:absolute;left:44px;top:22px;width:72px;height:8px;border-radius:4px;background:#1A1814"></div>
+<div style="position:absolute;left:12px;top:46px;width:136px;height:26px;border-radius:8px;background:#FFFFFF"></div>
+<div style="position:absolute;left:12px;top:78px;width:136px;height:26px;border-radius:8px;background:#FFFFFF"></div>
+<div style="position:absolute;left:12px;top:118px;width:136px;height:30px;border-radius:9px;background:#FF9C01"></div>
+</div>
+</div>
+<div style="margin-top:6px;font-size:12px;line-height:16px;color:#6B665D">Sheet in and out</div>
+</div>
+<div>
+<div style="position:relative;width:160px;height:280px;border-radius:20px;border:1px solid #D9D5CC;background:#FFFFFF;overflow:hidden">
+<div style="position:absolute;left:84px;top:12px;width:64px;height:64px;border-radius:10px;background:#DDE3DC"></div>
+<div style="position:absolute;left:12px;top:84px;width:64px;height:64px;border-radius:10px;background:#E8DDD9"></div>
+<div style="position:absolute;left:84px;top:84px;width:64px;height:64px;border-radius:10px;background:#E1E6EA"></div>
+<div class="pv-d-detail" style="position:absolute;left:0;top:0;width:160px;height:280px;background:#FFFFFF;opacity:0">
+<div style="position:absolute;left:12px;top:132px;width:100px;height:12px;border-radius:6px;background:#1A1814"></div>
+<div style="position:absolute;left:12px;top:154px;width:72px;height:8px;border-radius:4px;background:#D9D5CC"></div>
+<div style="position:absolute;left:12px;top:172px;width:136px;height:8px;border-radius:4px;background:#EFEDE8"></div>
+<div style="position:absolute;left:12px;top:188px;width:136px;height:8px;border-radius:4px;background:#EFEDE8"></div>
+<div style="position:absolute;left:0;bottom:0;width:160px;height:56px;border-top:1px solid #E7E4DD;background:#FFFFFF"><div style="position:absolute;left:44px;top:12px;width:104px;height:30px;border-radius:9px;background:#FF9C01"></div></div>
+</div>
+<div class="pv-d-hero" style="position:absolute;left:12px;top:12px;width:64px;height:64px;border-radius:10px;background:#E9E1D3;overflow:hidden">
+<svg width="100%" height="100%" viewBox="0 0 160 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="160" height="160" fill="#E9E1D3"/><rect y="112" width="160" height="48" fill="#D8CDBB"/><g transform="translate(28 40) scale(1.3)"><rect x="8" y="8" width="64" height="6" rx="2" fill="#4A3B30"/><rect x="11" y="14" width="58" height="22" rx="1.5" fill="#6A5545"/><rect x="17" y="19" width="46" height="12" rx="1" fill="#57453A"/><rect x="8" y="36" width="64" height="4" rx="1.5" fill="#4A3B30"/><rect x="13" y="40" width="54" height="7" fill="#F7F3EA"/><rect x="11" y="47" width="58" height="5" fill="#6A5545"/><rect x="11" y="47" width="5" height="11" rx="1" fill="#4A3B30"/><rect x="64" y="47" width="5" height="11" rx="1" fill="#4A3B30"/></g></svg>
+</div>
+</div>
+<div style="margin-top:6px;font-size:12px;line-height:16px;color:#6B665D">Card to hero</div>
+</div>
+</div>
+
+<div style="font-size:13px;font-weight:600;line-height:18px;color:#6B665D;margin:22px 0 8px">Save button</div>
+<div style="position:relative;width:224px;height:52px;border-radius:14px;background:#FF9C01;overflow:hidden">
+<div class="pv-d-a" style="position:absolute;left:0;top:0;width:224px;height:52px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#1A1814">Save payment</div>
+<div class="pv-d-b" style="position:absolute;left:0;top:0;width:224px;height:52px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;font-weight:700;color:#1A1814;opacity:0"><svg class="pv-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="rgba(26,24,20,0.2)" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="#1A1814" stroke-width="3" stroke-linecap="round"/></svg>Saving</div>
+<div class="pv-d-c" style="position:absolute;left:0;top:0;width:224px;height:52px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:700;color:#1A1814;opacity:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Saved</div>
+</div>
+
+<div style="font-size:13px;font-weight:600;line-height:18px;color:#6B665D;margin:22px 0 8px">Toast</div>
+<div style="position:relative;width:224px;height:88px;border-radius:14px;background:#F6F5F2;overflow:hidden">
+<div class="pv-d-toast" style="position:absolute;left:10px;right:10px;bottom:14px;height:44px;display:flex;align-items:center;gap:10px;padding:0 12px;border-radius:12px;background:#1A1814;color:#FFFFFF;font-size:13px;font-weight:600;opacity:0">
+<span style="width:20px;height:20px;flex-shrink:0;border-radius:50%;background:#FF9C01;color:#1A1814;display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>Payment saved</div>
+</div>
+</div>
+
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

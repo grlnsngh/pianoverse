@@ -20,14 +20,19 @@ describe("project layout", () => {
     }
   });
 
-  it("lets Tailwind see the class names used in components", () => {
-    const { content } = require(path.join(root, "tailwind.config.js"));
+  it("draws everything with styles: there is no Tailwind or NativeWind to read class names", () => {
+    const sourceFiles = (dir: string): string[] =>
+      fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) return sourceFiles(full);
+        return entry.name.endsWith(".tsx") ? [full] : [];
+      });
+    const withClassName = ["app", "components"]
+      .flatMap((dir) => sourceFiles(path.join(root, dir)))
+      .filter((file) => /\bclassName=/.test(fs.readFileSync(file, "utf8")))
+      .map((file) => path.relative(root, file));
 
-    expect(content).toEqual(
-      expect.arrayContaining([
-        "./app/**/*.{js,jsx,ts,tsx}",
-        "./components/**/*.{js,jsx,ts,tsx}",
-      ])
-    );
+    expect(withClassName).toEqual([]);
+    expect(fs.existsSync(path.join(root, "tailwind.config.js"))).toBe(false);
   });
 });

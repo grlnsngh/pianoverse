@@ -10,6 +10,8 @@ jest.mock("expo-router", () => ({
     back: jest.fn(),
     replace: jest.fn(),
     canGoBack: jest.fn(() => true),
+    canDismiss: jest.fn(() => true),
+    dismissAll: jest.fn(),
     setParams: jest.fn(),
   },
   useLocalSearchParams: jest.fn(() => ({ id: "piano-1" })),
@@ -19,19 +21,9 @@ jest.mock("expo-router", () => ({
   })),
   usePathname: jest.fn(() => "/"),
 }));
-jest.mock("@react-native-picker/picker", () => {
-  const React = require("react");
-  const Picker = (props: any) => React.createElement("Picker", props, props.children);
-  Picker.Item = (props: any) => React.createElement("PickerItem", props);
-  return { Picker };
-});
-jest.mock("@react-native-community/datetimepicker", () => {
-  const React = require("react");
-  return (props: any) => React.createElement("DateTimePicker", props);
-});
 
 import React from "react";
-import { act, ReactTestRenderer } from "react-test-renderer";
+import { act } from "react-test-renderer";
 import { addDays, format } from "date-fns";
 import { router, useLocalSearchParams } from "expo-router";
 import Home from "@/app/(tabs)/home";
@@ -50,9 +42,10 @@ import { fakeNotifications, reminderTapFor } from "./helpers/fakeNotifications";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   captureAlerts,
-  chooseDate,
+  chooseCategory,
   createTestStore,
   flushPromises,
+  pickDate,
   pressText,
   renderWithStore,
 } from "./helpers/render";
@@ -277,9 +270,6 @@ describe("tapping a reminder", () => {
 });
 
 describe("publishing and editing", () => {
-  const hostNodes = (renderer: ReactTestRenderer, type: string) =>
-    renderer.root.findAll((node) => (node.type as unknown) === type);
-
   it("schedules reminders for a newly published rental", async () => {
     const endDate = addDays(new Date(), 20);
     const form = {
@@ -315,7 +305,7 @@ describe("publishing and editing", () => {
     );
     await flushPromises();
 
-    await pressText(renderer.root, "Publish");
+    await pressText(renderer.root, "Add piano");
 
     const [created] = [...fakeBackend.documents.values()];
     expect(created).toMatchObject({ title: "Kawai K-300" });
@@ -339,8 +329,8 @@ describe("publishing and editing", () => {
     const renderer = await renderEdit(rental(day(20)));
     const newEnd = addDays(new Date(), 40);
 
-    chooseDate(renderer.root, "Rental Period End Date", newEnd);
-    await pressText(renderer.root, "Save Changes");
+    await pickDate(renderer.root, "Ends", newEnd);
+    await pressText(renderer.root, "Save changes");
 
     expect(reminderTimes("piano-1")).toContain(`${format(newEnd, "yyyy-MM-dd")} 09:00`);
     expect(reminderTimes("piano-1")).not.toContain(`${day(20)} 09:00`);
@@ -350,10 +340,8 @@ describe("publishing and editing", () => {
     captureAlerts();
     const renderer = await renderEdit(rental(day(20)));
 
-    act(() => {
-      hostNodes(renderer, "Picker")[0].props.onValueChange("warehouse");
-    });
-    await pressText(renderer.root, "Save Changes");
+    await chooseCategory(renderer.root, "warehouse");
+    await pressText(renderer.root, "Save changes");
 
     expect(reminderTimes("piano-1")).toEqual([]);
   });

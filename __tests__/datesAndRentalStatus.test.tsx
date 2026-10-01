@@ -27,8 +27,6 @@ jest.mock("@/context/GlobalProvider", () => ({
 
 import React from "react";
 import { addDays, format } from "date-fns";
-import CardItem from "@/components/CardItem";
-import ListItem from "@/components/ListItem";
 import Profile from "@/app/(tabs)/profile";
 import DetailScreen from "@/app/detail/[id]";
 import EditScreen from "@/app/edit/[id]";
@@ -116,7 +114,7 @@ describe("Edit screen dates", () => {
       createTestStore({ user: testUser, items: [piano] })
     );
 
-    await pressText(renderer.root, "Save Changes");
+    await pressText(renderer.root, "Save changes");
 
     expect(alerts.titles()).toEqual([]);
     expect(fakeBackend.documents.get("piano-1")).toMatchObject({
@@ -138,48 +136,21 @@ describe("Detail screen dates", () => {
       createTestStore({ user: testUser, items: [piano] })
     );
 
-    expect(allTexts(renderer.root)).toContain("Saturday, September 26, 2026");
-    expect(allTexts(renderer.root)).not.toContain("Friday, September 25, 2026");
+    expect(allTexts(renderer.root)).toContain("26 Sep 2026");
+    expect(allTexts(renderer.root)).not.toContain("25 Sep 2026");
   });
 });
 
 describe("rental status", () => {
-  const renderCard = (Component: any, piano: PianoItem, extra = {}) =>
-    renderWithStore(
-      <Component
-        item={piano}
-        index={0}
-        visibleMenuId={null}
-        openMenu={jest.fn()}
-        closeMenu={jest.fn()}
-        {...extra}
-      />,
-      createTestStore({ user: testUser, items: [piano] })
-    );
-
-  it.each<[string, React.ComponentType<any>]>([
-    ["card", CardItem],
-    ["list row", ListItem],
-  ])("a %s shows a rental ending today as due today", (_name, Component) => {
-    const renderer = renderCard(Component, rental(day(0)));
-
-    expect(allTexts(renderer.root)).toContain("Due today");
-    expect(allTexts(renderer.root).join(" ")).not.toMatch(/Expired/);
-  });
-
-  it("a grid card shows a rental ending today as due today", () => {
-    const renderer = renderCard(CardItem, rental(day(0)), { isGridView: true });
-
-    expect(allTexts(renderer.root)).toContain("Due today");
-  });
-
   it("the detail screen warns about a rental that ends today", () => {
     const renderer = renderWithStore(
       <DetailScreen />,
       createTestStore({ user: testUser, items: [rental(day(0))] })
     );
 
-    expect(allTexts(renderer.root)).toContain("Due Today");
+    expect(allTexts(renderer.root)).toEqual(
+      expect.arrayContaining(["Rental ends today", "Ends today"])
+    );
   });
 
   it("the detail screen warns about a rental that has ended", () => {
@@ -189,7 +160,7 @@ describe("rental status", () => {
     );
 
     expect(allTexts(renderer.root)).toEqual(
-      expect.arrayContaining(["Rental Ended", "Ended 3 days ago"])
+      expect.arrayContaining(["Rental ended 3 days ago", "Ended · 3 days over", "Rent overdue"])
     );
   });
 
@@ -200,12 +171,12 @@ describe("rental status", () => {
     );
 
     expect(allTexts(renderer.root)).toEqual(
-      expect.arrayContaining(["Active Rental", "2 weeks remaining"])
+      expect.arrayContaining(["Rental ends in 20 days", "20 days left"])
     );
   });
 });
 
-it("the profile counts a rental ending today as currently rented", async () => {
+it("the account tab counts a rental ending today as on rent", async () => {
   const pianos = [
     rental(day(0), { $id: "due-today" }),
     rental(day(10), { $id: "active" }),
@@ -218,5 +189,5 @@ it("the profile counts a rental ending today as currently rented", async () => {
   await flushPromises();
 
   const texts = allTexts(renderer.root);
-  expect(texts[texts.indexOf("Currently Rented") - 1]).toBe("2");
+  expect(texts[texts.indexOf("On rent") - 1]).toBe("2");
 });

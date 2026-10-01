@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FFFFFF;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit;cursor:pointer}
+input{cursor:text}
+input::placeholder{color:#77716A}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#FFFFFF;overflow:hidden;font-family:'Figtree',-apple-system,'Segoe UI',sans-serif;color:#1A1814">
+
+<div style="display:flex;align-items:center;gap:4px;padding:12px 8px 0 20px">
+<div style="flex-grow:1;min-width:0;height:52px;display:flex;align-items:center;gap:10px;padding:0 4px 0 16px;background:#FFFFFF;border:1px solid #E7E4DD;border-radius:26px;box-shadow:0 1px 6px rgba(26,24,20,0.08)">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1814" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+<input type="search" value="piano services" aria-label="Search pianos" style="flex-grow:1;min-width:0;height:100%;border:0;outline:0;background:transparent;color:#1A1814;font-size:16px;font-weight:600">
+<button type="button" aria-label="Clear search" style="width:40px;height:44px;border:0;background:none;color:#6B665D;display:flex;align-items:center;justify-content:center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/></svg>
+</button>
+</div>
+<a href="Pianos.dc.html" style="height:44px;padding:0 12px;display:flex;align-items:center;font-size:16px;font-weight:600;color:#1A1814">Cancel</a>
+</div>
+
+<div style="padding:16px 20px 12px;font-size:14px;font-weight:500;line-height:20px;color:#6B665D">3 results</div>
+
+<div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:20px 12px;padding:0 20px">
+<sc-for list="{{items}}" as="p" hint-placeholder-count="3">
+<a href="Detail.dc.html" style="display:block;min-width:0">
+<div style="position:relative;height:169px;border-radius:16px;overflow:hidden;background:#E9E1D3">
+<svg width="100%" height="100%" viewBox="0 0 160 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="160" height="160" fill="{{p.wall}}"/><rect y="112" width="160" height="48" fill="{{p.floor}}"/><ellipse cx="80" cy="115" rx="52" ry="4.5" fill="#1A1814" fill-opacity="0.14"/><g transform="translate(28 40) scale(1.3)"><rect x="8" y="8" width="64" height="6" rx="2" fill="{{p.dark}}"/><rect x="11" y="14" width="58" height="22" rx="1.5" fill="{{p.body}}"/><rect x="17" y="19" width="46" height="12" rx="1" fill="{{p.panel}}"/><rect x="8" y="36" width="64" height="4" rx="1.5" fill="{{p.dark}}"/><rect x="13" y="40" width="54" height="7" fill="#F7F3EA"/><path d="M18.4 40v7M23.8 40v7M29.2 40v7M34.6 40v7M40 40v7M45.4 40v7M50.8 40v7M56.2 40v7M61.6 40v7" stroke="#D2CABB" stroke-width="0.6"/><rect x="17.2" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="22.6" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="33.4" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="38.8" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="44.2" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="55" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="60.4" y="40" width="2.4" height="4.5" fill="#2B2320"/><rect x="11" y="47" width="58" height="5" fill="{{p.body}}"/><rect x="11" y="47" width="5" height="11" rx="1" fill="{{p.dark}}"/><rect x="64" y="47" width="5" height="11" rx="1" fill="{{p.dark}}"/></g></svg>
+<sc-if value="{{p.badgeRed}}" hint-placeholder-val="{{ false }}">
+<span style="position:absolute;left:8px;top:8px;padding:2px 9px;border-radius:999px;background:#C4321C;color:#FFFFFF;font-size:12px;font-weight:700;line-height:18px">{{p.badge}}</span>
+</sc-if>
+<span style="position:absolute;right:8px;top:8px;width:30px;height:30px;border-radius:50%;background:#FFFFFF;color:#1A1814;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.icon}}"/></svg></span>
+</div>
+<div style="margin-top:10px;font-size:15px;font-weight:600;line-height:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{p.title}}</div>
+<div style="font-size:14px;font-weight:400;line-height:20px;color:#6B665D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">The <span style="font-weight:700;color:#1A1814">Piano Services</span></div>
+<div style="font-size:14px;font-weight:400;line-height:20px;color:#6B665D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span style="font-weight:700;color:#1A1814">{{p.price}}</span>{{p.rest}}</div>
+</a>
+</sc-for>
+</div>
+
+<div style="padding:24px 20px 0;font-size:13px;font-weight:400;line-height:18px;color:#6B665D">Searches title, make, company, and the customer’s name or mobile number.</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const K = 'M12 15a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM11 12l9-9M16 7l3 3';
+    const B = 'M3 8l9-5 9 5v8l-9 5-9-5V8zM3 8l9 5 9-5M12 13v8';
+    return {
+      items: [
+        { title: 'Young Chang U-121', price: '₹4,500', rest: '', badge: 'Overdue · 9 months', badgeRed: true, icon: K, wall: '#E9E1D3', floor: '#D8CDBB', body: '#6A5545', dark: '#4A3B30', panel: '#57453A' },
+        { title: 'Petrof P118', price: '₹4,000', rest: ' · 2 months left', badge: '', badgeRed: false, icon: K, wall: '#E1E6EA', floor: '#CFD5DB', body: '#B08A5E', dark: '#8C6A43', panel: '#9C7A50' },
+        { title: 'Ronish R-112', price: '', rest: 'Stored since Mar 2026', badge: '', badgeRed: false, icon: B, wall: '#E1E6EA', floor: '#CFD5DB', body: '#B08A5E', dark: '#8C6A43', panel: '#9C7A50' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

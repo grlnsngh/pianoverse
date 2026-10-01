@@ -22,21 +22,16 @@ jest.mock("expo-router", () => ({
 import React from "react";
 import { addDays, subMonths } from "date-fns";
 import Home from "@/app/(tabs)/home";
-import Profile from "@/app/(tabs)/profile";
-import { DEFAULT_FILTERS } from "@/constants/Piano";
-import { getRentPaymentsBetween, getUserPianoEntries } from "@/lib/appwrite";
-import { setPianoFilters } from "@/redux/pianos/actions";
+import { getUserPianoEntries } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
-import { countActiveFilters } from "@/utils/filters";
 import { isOverdue } from "@/utils/pianoStatus";
-import { rentFromActiveRentals, salesInMonth } from "@/utils/stats";
+import { salesInMonth } from "@/utils/stats";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
   createTestStore,
   flushPromises,
-  pressText,
   renderWithStore,
 } from "./helpers/render";
 
@@ -61,7 +56,8 @@ const active = rental("active", 20, { rental_price: 5000 });
 const dueToday = rental("due-today", 0, { rental_price: 3000 });
 const overdue = rental("overdue", -3, { rental_price: 7000 });
 const soldRental = rental("sold", -3, {
-  sold_date: inDays(-1),
+  // Today, so it is always this month, even on the 1st
+  sold_date: inDays(0),
   sold_price: 90000,
 });
 const soldLastMonth = makePiano({
@@ -95,22 +91,17 @@ describe("overdue rentals", () => {
     ]);
   });
 
-  it("have a banner on Home that lists just them", async () => {
+  it("have no banner on the Pianos tab: Today's Needs attention says so", async () => {
     jest.mocked(getUserPianoEntries).mockResolvedValue(pianos as any);
     const store = createTestStore({ user: testUser });
     const renderer = renderWithStore(<Home />, store);
     await flushPromises();
 
-    expect(allTexts(renderer.root)).toContain("1 rental is overdue");
-
-    await pressText(renderer.root, "View");
-
-    const { filters, filteredItems } = store.getState().pianos;
-    expect(filters.isOverdue).toBe(true);
-    expect(countActiveFilters(filters)).toBe(1);
-    expect(filteredItems.map((piano) => piano.$id)).toEqual(["overdue"]);
-    // No need for the banner while they're shown
-    expect(allTexts(renderer.root)).not.toContain("1 rental is overdue");
+    // (A card still has its own "Overdue · 3 days" badge; it is the strip that went)
+    expect(allTexts(renderer.root).join(" ")).not.toMatch(/rentals? (is|are) overdue/);
+    expect(allTexts(renderer.root)).not.toContain("View");
+    // The list still shows every piano that isn't sold
+    expect(store.getState().pianos.filteredItems.map((piano) => piano.$id)).toContain("overdue");
   });
 
   it("have no banner when there are none", async () => {
@@ -128,11 +119,6 @@ describe("overdue rentals", () => {
 });
 
 describe("income", () => {
-  it("adds up the rent of the pianos rented out now", () => {
-    // Active and due today; not overdue or sold
-    expect(rentFromActiveRentals(pianos)).toBe(8000);
-  });
-
   it("adds up this month's sales", () => {
     expect(salesInMonth(pianos)).toEqual({ count: 1, total: 90000 });
     expect(salesInMonth(pianos, subMonths(new Date(), 1))).toEqual({
@@ -141,128 +127,4 @@ describe("income", () => {
     });
   });
 
-  it("is shown on the profile, with a link to the overdue rentals", async () => {
-    const store = createTestStore({ user: testUser, items: pianos });
-    const layoutStatus = {
-      card: "checked",
-      list: "unchecked",
-      grid: "unchecked",
-    };
-    store.dispatch(setPianoFilters({ ...DEFAULT_FILTERS, layoutStatus }));
-    jest
-      .mocked(getRentPaymentsBetween)
-      .mockResolvedValue([{ amount: 3000 }, { amount: 1500 }] as any);
-    const renderer = renderWithStore(<Profile />, store);
-    await flushPromises();
-
-    const texts = allTexts(renderer.root);
-    expect(texts).toContain("₹4,500");
-    expect(texts).toContain("Received this month");
-    expect(texts).toContain("2 payments");
-    // The rent of the rentals out now is still there, as an estimate
-    expect(texts).toContain("₹8,000");
-    expect(texts).toContain("Rent from 2 active rentals");
-    expect(texts).toContain("₹90,000");
-    expect(texts).toContain("1 sold this month");
-
-    await pressText(renderer.root, "1 rental is overdue");
-
-    expect(store.getState().navigation.activeTab).toBe("home");
-    expect(store.getState().pianos.filters).toEqual({
-      ...DEFAULT_FILTERS,
-      layoutStatus,
-      isOverdue: true,
-    });
-  });
-});
-
-it("says pianos added in the last 30 days were added in the last 30 days", () => {
-  const recent = makePiano({
-    $id: "recent",
-    $createdAt: new Date().toISOString(),
-  });
-  const renderer = renderWithStore(
-    <Profile />,
-    createTestStore({ user: testUser, items: [recent] })
-  );
-
-  const texts = allTexts(renderer.root);
-  expect(texts).toContain("LAST 30 DAYS");
-  expect(texts).not.toContain("THIS MONTH");
-});
-
-describe("the profile's shortcuts", () => {
-  const layoutStatus = {
-    card: "unchecked",
-    list: "unchecked",
-    grid: "checked",
-  };
-
-  const renderProfile = () => {
-    const store = createTestStore({ user: testUser, items: pianos });
-    store.dispatch(
-      setPianoFilters({ ...DEFAULT_FILTERS, layoutStatus, isSold: true })
-    );
-    return { store, renderer: renderWithStore(<Profile />, store) };
-  };
-
-  it("filter by category but keep the chosen layout", async () => {
-    const { store, renderer } = renderProfile();
-
-    await pressText(renderer.root, "Storage");
-
-    expect(store.getState().navigation.activeTab).toBe("home");
-    // Other filters start over, the layout stays
-    expect(store.getState().pianos.filters).toEqual({
-      ...DEFAULT_FILTERS,
-      layoutStatus,
-      category: "Warehouse",
-    });
-  });
-
-  it.each([
-    ["Rentable", "Rentable"],
-    ["Events", "Events"],
-    ["On Sale", "On Sale"],
-    ["Storage", "Warehouse"],
-  ])("open the %s pianos", async (row, category) => {
-    const store = createTestStore({
-      user: testUser,
-      items: [
-        ...pianos,
-        makePiano({ $id: "event", category: "events" }),
-        makePiano({ $id: "for-sale", category: "on_sale" }),
-      ],
-    });
-    const renderer = renderWithStore(<Profile />, store);
-
-    await pressText(renderer.root, row);
-
-    expect(store.getState().pianos.filters.category).toBe(category);
-  });
-
-  it("show every piano with View All Pianos, whatever was filtered", async () => {
-    const { store, renderer } = renderProfile();
-
-    await pressText(renderer.root, "View All Pianos");
-
-    expect(store.getState().navigation.activeTab).toBe("home");
-    expect(store.getState().pianos.filters).toEqual({
-      ...DEFAULT_FILTERS,
-      layoutStatus,
-    });
-  });
-
-  it("show active rentals but keep the chosen layout", async () => {
-    const { store, renderer } = renderProfile();
-
-    await pressText(renderer.root, "Active Rentals");
-
-    expect(store.getState().pianos.filters).toEqual({
-      ...DEFAULT_FILTERS,
-      layoutStatus,
-      category: "Rentable",
-      isActiveRentals: true,
-    });
-  });
 });

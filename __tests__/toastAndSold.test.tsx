@@ -24,7 +24,7 @@ import React from "react";
 import { Platform, ToastAndroid } from "react-native";
 import { act } from "react-test-renderer";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import FilterButton from "@/components/FilterButton";
+import FilterSheet from "@/components/FilterSheet";
 import ToastHost from "@/components/ToastHost";
 import EditScreen from "@/app/edit/[id]";
 import { showToast } from "@/utils/toast";
@@ -34,7 +34,6 @@ import {
   allTexts,
   captureAlerts,
   createTestStore,
-  press,
   pressText,
   renderWithStore,
 } from "./helpers/render";
@@ -71,8 +70,13 @@ describe("toasts", () => {
     act(() => showToast("Piano entry created successfully."));
     expect(allTexts(renderer.root)).toEqual(["Piano entry created successfully."]);
 
+    // It rises in over 220 ms, stays for 3 s, then leaves over 180 ms
     act(() => {
       jest.advanceTimersByTime(3000);
+    });
+    expect(allTexts(renderer.root)).toEqual(["Piano entry created successfully."]);
+    act(() => {
+      jest.advanceTimersByTime(500);
     });
     expect(allTexts(renderer.root)).toEqual([]);
   });
@@ -83,22 +87,26 @@ describe("toasts", () => {
 
     act(() => showToast("Password reset email sent!", "long"));
     act(() => {
-      jest.advanceTimersByTime(3000);
+      jest.advanceTimersByTime(3500);
     });
-
     expect(allTexts(renderer.root)).toEqual(["Password reset email sent!"]);
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+    expect(allTexts(renderer.root)).toEqual([]);
   });
 
-  it("uses the native toast on Android", () => {
+  it("shows the same dark pill on Android, not the native toast", () => {
+    jest.useFakeTimers();
     jest.replaceProperty(Platform, "OS", "android");
     const show = jest.spyOn(ToastAndroid, "show").mockImplementation(() => {});
+    const renderer = renderWithStore(withSafeArea(<ToastHost />), createTestStore());
 
-    showToast("Deleted Yamaha U1 successfully");
+    act(() => showToast("Deleted Yamaha U1 successfully"));
 
-    expect(show).toHaveBeenCalledWith(
-      "Deleted Yamaha U1 successfully",
-      ToastAndroid.SHORT
-    );
+    expect(show).not.toHaveBeenCalled();
+    expect(allTexts(renderer.root)).toEqual(["Deleted Yamaha U1 successfully"]);
   });
 
   it("confirms a saved edit on iOS", async () => {
@@ -114,7 +122,7 @@ describe("toasts", () => {
       createTestStore({ user: testUser, items: [piano] })
     );
 
-    await pressText(renderer.root, "Save Changes");
+    await pressText(renderer.root, "Save changes");
 
     expect(allTexts(renderer.root)).toContain("Piano entry updated successfully");
   });
@@ -122,12 +130,13 @@ describe("toasts", () => {
 
 describe("filters", () => {
   it("no longer offers a Sold filter, which nothing could fill", async () => {
-    const renderer = renderWithStore(<FilterButton />, createTestStore());
-
-    await press(renderer.root.findAll((node) => typeof node.props.onPress === "function")[0]);
+    const renderer = renderWithStore(
+      withSafeArea(<FilterSheet visible onClose={() => {}} />),
+      createTestStore()
+    );
 
     const texts = allTexts(renderer.root);
-    expect(texts).toContain("Active Rentals");
+    expect(texts).toContain("Active rentals");
     expect(texts).not.toContain("Sold");
   });
 });

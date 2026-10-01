@@ -14,13 +14,10 @@ jest.mock("expo-router", () => ({
 }));
 
 import React from "react";
-import { ActivityIndicator, TextInput } from "react-native";
 import { act } from "react-test-renderer";
 import { router, usePathname } from "expo-router";
 import Home from "@/app/(tabs)/home";
-import FilterButton from "@/components/FilterButton";
-import SearchInput from "@/components/SearchInput";
-import { DEFAULT_FILTERS, SORT_BY_OPTIONS } from "@/constants/Piano";
+import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { searchPianoItems } from "@/utils/ObjectManipulation";
@@ -104,54 +101,6 @@ describe("what search matches", () => {
   });
 });
 
-describe("the search box", () => {
-  const renderSearchInput = () => {
-    const renderer = renderWithStore(<SearchInput />, createTestStore());
-    const input = renderer.root.findByType(TextInput);
-    return {
-      type: (text: string) => act(() => input.props.onChangeText(text)),
-      submit: () => act(() => input.props.onSubmitEditing()),
-      input,
-    };
-  };
-
-  it("searches when Enter is pressed on the keyboard", () => {
-    const { input, type, submit } = renderSearchInput();
-    expect(input.props.returnKeyType).toBe("search");
-
-    type("  B-12/34 #2 ");
-    submit();
-
-    // The router encodes the query, so "/" and "#" can't break the route
-    expect(router.push).toHaveBeenCalledWith({
-      pathname: "/search/[query]",
-      params: { query: "B-12/34 #2" },
-    });
-  });
-
-  it("updates the results in place when already searching", () => {
-    jest.mocked(usePathname).mockReturnValue("/search/yamaha");
-    const { type, submit } = renderSearchInput();
-
-    type("kawai ");
-    submit();
-
-    expect(router.setParams).toHaveBeenCalledWith({ query: "kawai" });
-    expect(router.push).not.toHaveBeenCalled();
-  });
-
-  it("asks for a search term instead of searching for spaces", () => {
-    const alerts = captureAlerts();
-    const { type, submit } = renderSearchInput();
-
-    type("   ");
-    submit();
-
-    expect(alerts.titles()).toEqual(["Missing Query"]);
-    expect(router.push).not.toHaveBeenCalled();
-  });
-});
-
 describe("when the Home list is empty", () => {
   const renderHome = async (pianos = [makePiano()]) => {
     jest.mocked(getUserPianoEntries).mockResolvedValue(pianos as any);
@@ -181,9 +130,9 @@ describe("when the Home list is empty", () => {
 
     const texts = allTexts(renderer.root);
     expect(texts).toContain("No pianos match your filters");
-    expect(texts).not.toContain("No Pianos created yet");
+    expect(texts).not.toContain("No pianos yet");
 
-    await pressText(renderer.root, "Clear Filters");
+    await pressText(renderer.root, "Clear filters");
 
     expect(store.getState().pianos.filters).toEqual({
       ...DEFAULT_FILTERS,
@@ -193,16 +142,17 @@ describe("when the Home list is empty", () => {
   });
 
   it("offers to add the first piano when there are none", async () => {
-    const { store, renderer } = await renderHome([]);
+    const { renderer } = await renderHome([]);
 
-    expect(allTexts(renderer.root)).toContain("No Pianos Yet");
+    expect(allTexts(renderer.root)).toContain("No pianos yet");
 
-    await pressText(renderer.root, "Add a Piano");
+    await pressText(renderer.root, "Add your first piano");
 
-    expect(store.getState().navigation.activeTab).toBe("create");
+    // Adding a piano is a screen of its own now, not a tab
+    expect(router.push).toHaveBeenCalledWith("/create");
   });
 
-  it("shows a spinner, not 'No Pianos Yet', while the pianos load", async () => {
+  it("shows grey placeholders, not 'No pianos yet', while the pianos load, but only after 200 ms", async () => {
     jest
       .mocked(getUserPianoEntries)
       .mockReturnValue(new Promise(() => {}) as any);
@@ -211,9 +161,21 @@ describe("when the Home list is empty", () => {
       createTestStore({ user: testUser })
     );
     await flushPromises();
+    const skeletons = () =>
+      renderer.root.findAll(
+        (node: any) => node.props.testID === "pianos-skeleton"
+      ).length;
 
-    expect(renderer.root.findAllByType(ActivityIndicator)).toHaveLength(1);
-    expect(allTexts(renderer.root)).not.toContain("No Pianos Yet");
+    // A quick load never flashes a placeholder
+    expect(skeletons()).toBe(0);
+    expect(allTexts(renderer.root)).not.toContain("No pianos yet");
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 260));
+    });
+
+    expect(skeletons()).toBeGreaterThan(0);
+    expect(allTexts(renderer.root)).not.toContain("No pianos yet");
   });
 
   it("offers to try again when the pianos couldn't load", async () => {
@@ -228,54 +190,11 @@ describe("when the Home list is empty", () => {
 
     expect(alerts.titles()).toEqual(["Error"]);
     const texts = allTexts(renderer.root);
-    expect(texts).toContain("Couldn't load your pianos");
-    expect(texts).not.toContain("No Pianos Yet");
+    expect(texts).toContain("Couldn’t load your pianos");
+    expect(texts).not.toContain("No pianos yet");
 
-    await pressText(renderer.root, "Try Again");
+    await pressText(renderer.root, "Try again");
 
     expect(store.getState().pianos.items).toHaveLength(1);
-  });
-});
-
-describe("the filter button", () => {
-  const badge = (renderer: any) =>
-    renderer.root
-      .findAll((node: any) => node.props.testID === "active-filter-badge")
-      .map((node: any) => allTexts(node).join(""))[0];
-
-  it("shows how many filters are narrowing the list", () => {
-    const store = createTestStore();
-    const renderer = renderWithStore(<FilterButton />, store);
-    expect(badge(renderer)).toBeUndefined();
-
-    act(() => {
-      store.dispatch(
-        setPianoFilters({ ...DEFAULT_FILTERS, category: "rentable" })
-      );
-    });
-    expect(badge(renderer)).toBe("1");
-
-    act(() => {
-      store.dispatch(
-        setPianoFilters({
-          ...DEFAULT_FILTERS,
-          category: "rentable",
-          sortBy: SORT_BY_OPTIONS.DUE_DATE,
-          isActiveRentals: true,
-        })
-      );
-    });
-    expect(badge(renderer)).toBe("3");
-
-    // Sorting alone doesn't hide anything
-    act(() => {
-      store.dispatch(
-        setPianoFilters({
-          ...DEFAULT_FILTERS,
-          sortBy: SORT_BY_OPTIONS.TITLE_ASC,
-        })
-      );
-    });
-    expect(badge(renderer)).toBeUndefined();
   });
 });
