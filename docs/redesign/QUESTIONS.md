@@ -13,15 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q27. How soon should the app lock after you leave it?
-- **Status:** Open. Nothing is blocked on it.
-- **Raised:** Batch 17 (app lock).
-- **What the app does now (default):** with App lock on, it asks when it starts, and when you come back after being away for **a full minute**. Sending a WhatsApp reminder, taking a photo or answering a call and coming straight back doesn’t ask again.
-- **Options:**
-  - **A. One minute** (now).
-  - **B. Every time** you leave it, however briefly. Safest, but you would be asked after each WhatsApp message and each photo.
-  - **C. Five minutes.** Fewer questions, a longer gap for someone who picks up the phone.
-- **Your answer:**
+_(Nothing is waiting for you right now.)_
 
 ---
 
@@ -154,3 +146,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q26. What should the reminder and the receipt say, and in which language?
 - **Answer:** Keep English (option A, the default) (2026-10-01).
 - **Why it stays:** the words are in one file, `utils/reminders.ts`, so another language or other wording later is a small change.
+
+### Q27. How soon should the app lock after you leave it?
+- **Answer:** One minute (option A, the default) (2026-10-01).
+- **Why it stays:** sending a WhatsApp reminder, taking a photo or answering a call and coming straight back doesn't ask again, and a phone left on a table still locks. It is one number, `LOCK_AFTER_MS` in `utils/appLock.ts`.
