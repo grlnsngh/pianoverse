@@ -13,3 +13,11 @@ jest.mock("expo-updates", () => ({
   fetchUpdateAsync: jest.fn(() => Promise.resolve({ isNew: false })),
   reloadAsync: jest.fn(() => Promise.resolve()),
 }));
+
+// The phone's fingerprint and screen lock. Every test sees a phone that has one
+// set up and says yes; a test that needs otherwise changes the answers
+jest.mock("expo-local-authentication", () => ({
+  SecurityLevel: { NONE: 0, SECRET: 1, BIOMETRIC: 2 },
+  getEnrolledLevelAsync: jest.fn(() => Promise.resolve(2)),
+  authenticateAsync: jest.fn(() => Promise.resolve({ success: true })),
+}));
