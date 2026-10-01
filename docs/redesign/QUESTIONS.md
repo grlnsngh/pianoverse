@@ -18,8 +18,8 @@ Status key: **Open** = waiting for you.
 - **Raised:** Batch 22 (Sign in with Google).
 - **What the app does now (default):** the button is on Sign in and Create account. Until Google is switched on in Appwrite, pressing it ends with the red box "Google sign-in isn’t switched on for Pianoverse yet." The email and password sign in is unchanged.
 - **What to do** (the full steps with the exact names are in the README, "Sign in with Google (one-time setup)"):
-  - In **Google Cloud Console**: set up the OAuth consent screen (External, app name Pianoverse, your Google account and your staff’s as **Test users** while it is in Testing), then create an **OAuth client ID** of type **Web application** with the redirect address that Appwrite shows you.
-  - In the **Appwrite Console** (Auth, Settings, OAuth2 Providers, Google): switch it on and paste the Client ID and Client secret.
+  - In **Google Cloud Console**, in **Google Auth Platform**: press **Get started** (app name Pianoverse, **External**, your email), add your Google account and your staff’s as **Test users** under **Audience** while it is in Testing, then **Clients, Create client** of type **Web application** with the redirect address that Appwrite shows you.
+  - In the **Appwrite Console** (Auth, Social providers, Google): switch **Browser sign-in** on (leave Native sign-in off) and paste the Client ID and Client secret.
   - Make the new build (**1.1.17**, runtime 3). This one cannot go over the air.
 - **Options:**
   - **A. Set it up** (recommended), and tell me what you see when you try it (the "How to check" list has what to look for).
