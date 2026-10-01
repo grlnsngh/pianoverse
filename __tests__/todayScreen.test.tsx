@@ -219,14 +219,19 @@ describe("the money", () => {
     expect(has(renderer, "1 payment so far")).toBe(true);
   });
 
-  it("asks for last month's and this month's payments, for the signed-in owner", async () => {
+  it("asks for last month's and this month's payments, for the signed-in owner, and for the six months of the income chart", async () => {
     await open();
 
-    expect(getRentPaymentsBetween).toHaveBeenCalledTimes(1);
+    // Two requests: Today's own, then the income section's
+    expect(getRentPaymentsBetween).toHaveBeenCalledTimes(2);
     const [account, from, to] = jest.mocked(getRentPaymentsBetween).mock.calls[0];
     expect(account).toBe(testUser.accountId);
     expect(from).toEqual(new Date(2026, 7, 1));
     expect(to).toEqual(new Date(2026, 9, 1));
+    const [incomeAccount, incomeFrom, incomeTo] = jest.mocked(getRentPaymentsBetween).mock.calls[1];
+    expect(incomeAccount).toBe(testUser.accountId);
+    expect(incomeFrom).toEqual(new Date(2026, 3, 1));
+    expect(incomeTo).toEqual(new Date(2026, 9, 1));
   });
 
   it("asks for nothing without a signed-in user, and shows no money", async () => {
@@ -509,7 +514,7 @@ describe("sizes and colours from the Main board", () => {
       (node: any) => typeof node.type === "string" && node.props.accessibilityRole === "header"
     );
 
-    expect(headings.map(textContent)).toEqual(["Needs attention", "Rented out", "Recent payments"]);
+    expect(headings.map(textContent)).toEqual(["Needs attention", "Rented out", "Recent payments", "Income"]);
   });
 });
 
@@ -619,14 +624,16 @@ describe("pulling down to refresh", () => {
   it("loads the pianos again, through the Pianos tab, and the payments", async () => {
     const refresher = jest.fn(() => Promise.resolve());
     const { renderer } = await open({ refresher });
-    expect(getRentPaymentsBetween).toHaveBeenCalledTimes(1);
+    // Today's payments and the income chart's
+    expect(getRentPaymentsBetween).toHaveBeenCalledTimes(2);
 
     await act(async () => {
       await renderer.root.findByType(RefreshControl).props.onRefresh();
     });
 
     expect(refresher).toHaveBeenCalledTimes(1);
-    expect(getRentPaymentsBetween).toHaveBeenCalledTimes(2);
+    // Each of the two loads again
+    expect(getRentPaymentsBetween).toHaveBeenCalledTimes(4);
   });
 
   it("spins until both have finished", async () => {
@@ -657,7 +664,79 @@ describe("pulling down to refresh", () => {
       await renderer.root.findByType(RefreshControl).props.onRefresh();
     });
 
-    expect(getRentPaymentsBetween).toHaveBeenCalledTimes(2);
+    expect(getRentPaymentsBetween).toHaveBeenCalledTimes(4);
     expect(renderer.root.findByType(RefreshControl).props.refreshing).toBe(false);
+  });
+});
+
+describe("the Income section", () => {
+  // The same payments answer both requests: ₹5,500 in August, ₹19,000 in September,
+  // and the Estonia sold in September for ₹1,42,000
+  it("comes after Recent payments, with a title that opens every month", async () => {
+    const { renderer } = await open();
+
+    expect(has(renderer, "Income")).toBe(true);
+    expect(byLabel(renderer, "See income for every month")).toBeDefined();
+    expect(has(renderer, "See all months")).toBe(true);
+
+    const texts = allTexts(renderer.root);
+    expect(texts.indexOf("Income")).toBeGreaterThan(texts.indexOf("Recent payments"));
+  });
+
+  it("opens the Income screen from See all months", async () => {
+    const { renderer } = await open();
+
+    await act(async () => {
+      byLabel(renderer, "See income for every month").props.onPress();
+    });
+
+    expect(router.push).toHaveBeenCalledWith("/income");
+  });
+
+  it("shows the rent of the six months as a chart a screen reader gets in words, and names the bars and the dot", async () => {
+    const { renderer } = await open();
+    const [chart] = renderer.root.findAll(
+      (node: any) =>
+        typeof node.type === "string" &&
+        typeof node.props.accessibilityLabel === "string" &&
+        node.props.accessibilityLabel.startsWith("Rent received by month.")
+    );
+
+    expect(chart.props.accessibilityLabel).toBe(
+      "Rent received by month. April 2026: ₹0. May 2026: ₹0. June 2026: ₹0. July 2026: ₹0. August 2026: ₹5,500. September 2026: ₹19,000, 1 piano sold for ₹1,42,000."
+    );
+    expect(has(renderer, "Rent received")).toBe(true);
+    expect(has(renderer, "Piano sold")).toBe(true);
+  });
+
+  it("puts the rent of this month so far next to the whole of last month", async () => {
+    const { renderer } = await open();
+
+    expect(has(renderer, "Rent: September so far ₹19,000 · August ₹5,500")).toBe(true);
+  });
+
+  it("says so, without a chart or a link, when nothing has come in yet", async () => {
+    const { renderer } = await open({ paid: [], items: [warehouse, forSale] });
+
+    expect(
+      has(renderer, "No income recorded yet. Rent you record and pianos you mark as sold show up here.")
+    ).toBe(true);
+    expect(byLabel(renderer, "See income for every month")).toBeUndefined();
+  });
+
+  it("says it couldn't load, when the payments can't be had", async () => {
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+    jest.mocked(getRentPaymentsBetween).mockRejectedValue(new Error("offline"));
+    const store = createTestStore({ user: testUser, items: pianos });
+    const renderer = await mount(
+      <Provider store={store}>
+        <PianoDataContext.Provider value={{ status: "ready", reportStatus: jest.fn(), refresher: { current: null } }}>
+          <Today />
+        </PianoDataContext.Provider>
+      </Provider>
+    );
+
+    expect(has(renderer, "Couldn’t load income. Pull down to try again.")).toBe(true);
+    expect(byLabel(renderer, "See income for every month")).toBeUndefined();
   });
 });
