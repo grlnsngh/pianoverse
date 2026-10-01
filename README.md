@@ -154,7 +154,7 @@ A person who signs in with Google and whose email is already an account is put o
 - `app/`: screens only. [Expo Router](https://docs.expo.dev/router/introduction/) turns every file here into a route.
 - `components/`: the screens' parts (piano cards and rows, sheets, dialogs); `components/ui/` holds the design system (buttons, fields, sheets, segmented control and so on).
 - `constants/`: the theme (colours, radii, spacing, type, motion), categories and companies.
-- `docs/redesign/`: the plan, the spec and the boards the screens follow.
+- `docs/redesign/`: the plan, the spec and the boards the screens follow, and [IDEAS.md](docs/redesign/IDEAS.md), the list of features that could be built next.
 - `lib/`: Appwrite access and data hooks.
 - `redux/`: the store (pianos, filters, signed-in user, active tab).
 - `services/`: rental reminders.
