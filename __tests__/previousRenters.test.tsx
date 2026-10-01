@@ -108,7 +108,7 @@ describe("Previous renters on a piano's page", () => {
     const texts = allTexts(renderer.root);
 
     expect(has(renderer, "Previous renters")).toBe(true);
-    expect(has(renderer, "2 other people have paid rent for it")).toBe(true);
+    expect(has(renderer, "2 earlier rentals")).toBe(true);
     expect(texts.indexOf("Ravi Kumar")).toBeLessThan(
       texts.indexOf("Meera Kapoor")
     );
@@ -139,7 +139,7 @@ describe("Previous renters on a piano's page", () => {
 
     const renderer = await openDetail();
 
-    expect(has(renderer, "1 other person has paid rent for it")).toBe(true);
+    expect(has(renderer, "1 earlier rental")).toBe(true);
   });
 
   it("is usable: named and big enough to press", async () => {
@@ -186,8 +186,165 @@ describe("when there is nothing to say", () => {
       sold_price: 150000,
     } as any);
 
-    expect(has(renderer, "2 other people have paid rent for it")).toBe(true);
+    expect(has(renderer, "2 earlier rentals")).toBe(true);
     expect(has(renderer, "Asha Mehta")).toBe(true);
     expect(has(renderer, "Ravi Kumar")).toBe(true);
+  });
+});
+
+describe("Previous renters with the rentals that were kept", () => {
+  const keep = (id: string, extra: Record<string, unknown>) =>
+    fakeBackend.history.set(id, {
+      $id: id,
+      $createdAt: "2026-09-01T00:00:00.000+00:00",
+      piano_id: "piano-1",
+      creator: testUser.accountId,
+      closed_on: "2026-06-01",
+      ...extra,
+    });
+
+  it("shows a kept rental with its dates, its rent and what that person paid in it", async () => {
+    keep("h1", {
+      customer_name: "Ravi Kumar",
+      period_start: "2026-02-01",
+      period_end: "2026-05-31",
+      price: 3500,
+    });
+    seed("r1", "2026-05-02", 3500, "Ravi Kumar");
+    seed("r2", "2026-03-02", 3500, "Ravi Kumar");
+
+    const renderer = await openDetail();
+
+    expect(has(renderer, "1 earlier rental")).toBe(true);
+    expect(has(renderer, "Ravi Kumar")).toBe(true);
+    expect(
+      has(renderer, "1 Feb 2026 to 31 May 2026 · ₹3,500 rent · 2 payments")
+    ).toBe(true);
+    expect(has(renderer, "₹7,000")).toBe(true);
+  });
+
+  it("shows a kept rental that has no payment without an amount", async () => {
+    keep("h1", {
+      customer_name: "Meera Kapoor",
+      period_start: "2025-10-01",
+      period_end: "2025-12-31",
+      price: 3000,
+    });
+
+    const renderer = await openDetail();
+
+    expect(has(renderer, "1 Oct 2025 to 31 Dec 2025 · ₹3,000 rent")).toBe(true);
+    // The row says what the rental was, and no amount paid after it
+    const labels = renderer.root
+      .findAll((node: any) => typeof node.props.accessibilityLabel === "string")
+      .map((node: any) => node.props.accessibilityLabel as string);
+    expect(labels).toContain(
+      "Meera Kapoor, 1 Oct 2025 to 31 Dec 2025 · ₹3,000 rent"
+    );
+  });
+
+  it("lists the kept rentals, the one that ended last first, then the people known only from payments", async () => {
+    keep("old", {
+      customer_name: "Meera Kapoor",
+      period_start: "2025-10-01",
+      period_end: "2025-12-31",
+      closed_on: "2026-01-02",
+    });
+    keep("new", {
+      customer_name: "Ravi Kumar",
+      period_start: "2026-02-01",
+      period_end: "2026-05-31",
+      closed_on: "2026-06-01",
+    });
+    seed("n1", "2024-04-02", 800, "Priya Nair");
+
+    const renderer = await openDetail();
+    const texts = allTexts(renderer.root);
+
+    expect(has(renderer, "3 earlier rentals")).toBe(true);
+    expect(texts.indexOf("Ravi Kumar")).toBeLessThan(
+      texts.indexOf("Meera Kapoor")
+    );
+    expect(texts.indexOf("Meera Kapoor")).toBeLessThan(
+      texts.indexOf("Priya Nair")
+    );
+    expect(has(renderer, "1 payment · Apr 2024")).toBe(true);
+  });
+
+  it("counts a payment in the rental it belongs to once, and shows a late stray one apart", async () => {
+    keep("h1", {
+      customer_name: "Ravi Kumar",
+      period_start: "2026-02-01",
+      period_end: "2026-05-31",
+      closed_on: "2026-06-01",
+    });
+    seed("in", "2026-04-02", 3500, "Ravi Kumar");
+    seed("late", "2026-06-20", 3500, "ravi kumar");
+    seed("stray", "2026-10-02", 100, "Ravi Kumar");
+
+    const renderer = await openDetail();
+
+    // The kept rental takes the two inside it and a month after it closed
+    expect(has(renderer, "1 Feb 2026 to 31 May 2026 · 2 payments")).toBe(true);
+    expect(has(renderer, "₹7,000")).toBe(true);
+    // The one long after it is known only from the payments
+    expect(has(renderer, "2 earlier rentals")).toBe(true);
+    expect(has(renderer, "1 payment · Oct 2026")).toBe(true);
+  });
+
+  it("leaves out the rentals of other pianos", async () => {
+    keep("h1", {
+      customer_name: "Ravi Kumar",
+      period_start: "2026-02-01",
+      period_end: "2026-05-31",
+      piano_id: "piano-9",
+    });
+
+    const renderer = await openDetail();
+
+    expect(has(renderer, "Previous renters")).toBe(false);
+  });
+
+  it("opens the customer of a kept rental, and not of one with no name", async () => {
+    keep("h1", {
+      customer_name: "Ravi Kumar",
+      period_start: "2026-02-01",
+      period_end: "2026-05-31",
+    });
+    keep("h2", {
+      period_start: "2025-02-01",
+      period_end: "2025-05-31",
+      closed_on: "2025-06-01",
+    });
+
+    const renderer = await openDetail();
+    const opens = (node: any) =>
+      !!node &&
+      node.props.accessibilityHint === "Opens this customer" &&
+      typeof node.props.onPress === "function";
+    const buttons = renderer.root.findAll(
+      (node: any) => opens(node) && !opens(node.parent)
+    );
+
+    expect(buttons).toHaveLength(1);
+    await act(async () => buttons[0].props.onPress());
+    expect(router.push).toHaveBeenCalledWith("/customer/ravi%20kumar");
+    expect(has(renderer, "Someone")).toBe(true);
+  });
+
+  it("still shows the people from the payments when the table isn't there yet", async () => {
+    fakeBackend.missingCollections.add("rental_history");
+    seed("r1", "2026-05-02", 3500, "Ravi Kumar");
+
+    const renderer = await openDetail();
+
+    expect(has(renderer, "1 earlier rental")).toBe(true);
+    expect(has(renderer, "Ravi Kumar")).toBe(true);
+  });
+
+  it("asks for nothing for a piano that isn't a rental", async () => {
+    await openDetail(makePiano({ $id: "piano-1", category: "on_sale" }));
+
+    expect(fakeBackend.listCalls).toEqual([]);
   });
 });

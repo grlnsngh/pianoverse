@@ -25,12 +25,13 @@ import { PIANO_CATEGORY } from "@/constants/Piano";
 import type { RentPayment } from "@/lib/appwrite";
 import { usePianoData } from "@/lib/PianoDataContext";
 import useDeletePiano from "@/lib/useDeletePiano";
+import useOwnerRentalHistory from "@/lib/useOwnerRentalHistory";
 import useRentPayments from "@/lib/useRentPayments";
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { sendMessage } from "@/utils/contact";
-import { pastRenters } from "@/utils/customers";
+import { pastRentals } from "@/utils/customers";
 import { formatRupees } from "@/utils/money";
 import { getPianoPhotos } from "@/utils/photos";
 import { isSold } from "@/utils/pianoStatus";
@@ -90,6 +91,7 @@ const DetailScreen = () => {
     (item) => item.$id === id,
   );
   const rentable = piano?.category === PIANO_CATEGORY.RENTABLE;
+  const rentalHistory = useOwnerRentalHistory(rentable);
   const rentPayments = useRentPayments(
     typeof id === "string" ? id : "",
     rentable,
@@ -272,7 +274,7 @@ const DetailScreen = () => {
   const primary = primaryAction(piano);
   const previous =
     rentable && rentPayments.status === "ready"
-      ? pastRenters(rentPayments.payments, piano)
+      ? pastRentals(rentPayments.payments, rentalHistory.entries, piano)
       : [];
 
   return (
@@ -351,7 +353,7 @@ const DetailScreen = () => {
             {previous.length > 0 && (
               <>
                 <Divider />
-                <PastRentersSection renters={previous} onOpen={openCustomer} />
+                <PastRentersSection rentals={previous} onOpen={openCustomer} />
               </>
             )}
 

@@ -19,6 +19,7 @@ export const appwriteConfig = {
   userCollectionId: "66b26b2a00163be2e73a",
   pianoCollectionId: "66b26b3c002284a5a862",
   rentPaymentsCollectionId: "rent_payments",
+  rentalHistoryCollectionId: "rental_history",
   storageId: "66b26b77003445e612b4",
 };
 
@@ -623,6 +624,12 @@ export async function deletePianoEntry(item: any) {
     await deleteRentPaymentsForPiano(item.$id).catch((error) =>
       console.warn("Could not delete the piano's rent payments:", error)
     );
+    // And the rentals it had before, for the same reason
+    await deleteRentalHistoryForPiano(item.$id).catch((error) => {
+      if (!isMissingTable(error)) {
+        console.warn("Could not delete the piano's rental history:", error);
+      }
+    });
 
     return response;
   } catch (error) {
@@ -774,6 +781,123 @@ export async function deleteRentPayment(paymentId: string) {
 export async function deleteRentPaymentsForPiano(pianoId: string) {
   const payments = await getRentPayments(pianoId);
   await Promise.all(payments.map((payment) => deleteRentPayment(payment.$id)));
+}
+
+/** A rental that is over, kept so the piano's history and a customer's page can show it. */
+export interface RentalHistoryEntry {
+  $id: string;
+  $createdAt: string;
+  piano_id: string;
+  // The owner's account ID
+  creator: string;
+  // What the piano was called then, in case it is renamed
+  piano_title?: string | null;
+  customer_name?: string | null;
+  customer_mobile?: string | null;
+  customer_address?: string | null;
+  // Calendar days, as the piano stores them
+  period_start?: string | null;
+  period_end?: string | null;
+  price?: number | null;
+  // The day the rental was replaced or ended
+  closed_on: string;
+  // "replaced" (a new renter or a new period) or "ended" (no longer rented out)
+  reason?: string | null;
+}
+
+export interface NewRentalHistory {
+  pianoId: string;
+  pianoTitle?: string | null;
+  creator: string;
+  customerName?: string | null;
+  customerMobile?: string | null;
+  customerAddress?: string | null;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  price?: number | null;
+  closedOn: Date;
+  reason: "replaced" | "ended";
+}
+
+/**
+ * Whether Appwrite said the table doesn't exist: the owner hasn't created
+ * rental_history yet. The app works without it, it just can't keep a history.
+ */
+export const isMissingTable = (error: unknown) =>
+  /collection with the requested id could not be found|collection_not_found/i.test(
+    String((error as { message?: string; type?: string })?.message ?? "") +
+      String((error as { type?: string })?.type ?? "")
+  );
+
+/** Keeps a rental that is over. Only the details that were filled in are saved. */
+export async function createRentalHistory(
+  entry: NewRentalHistory
+): Promise<RentalHistoryEntry> {
+  const clean = (value?: string | null) => value?.trim() || undefined;
+  const data = {
+    piano_id: entry.pianoId,
+    creator: entry.creator,
+    closed_on: toStoredDate(entry.closedOn),
+    reason: entry.reason,
+    ...(clean(entry.pianoTitle) ? { piano_title: clean(entry.pianoTitle) } : {}),
+    ...(clean(entry.customerName) ? { customer_name: clean(entry.customerName) } : {}),
+    ...(clean(entry.customerMobile) ? { customer_mobile: clean(entry.customerMobile) } : {}),
+    ...(clean(entry.customerAddress) ? { customer_address: clean(entry.customerAddress) } : {}),
+    ...(entry.periodStart ? { period_start: entry.periodStart } : {}),
+    ...(entry.periodEnd ? { period_end: entry.periodEnd } : {}),
+    ...(typeof entry.price === "number" ? { price: entry.price } : {}),
+  };
+  return (await databases.createDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.rentalHistoryCollectionId,
+    ID.unique(),
+    data
+  )) as unknown as RentalHistoryEntry;
+}
+
+/**
+ * Every past rental an owner has kept, for all their pianos, page by page. An
+ * owner who hasn't created the table yet has none.
+ */
+export async function getRentalHistory(creator: string): Promise<RentalHistoryEntry[]> {
+  const entries: RentalHistoryEntry[] = [];
+  let cursor: string | undefined;
+  try {
+    for (let page = 0; page < MAX_PAYMENT_PAGES; page++) {
+      const queries = [Query.equal("creator", creator), Query.limit(PAYMENT_PAGE_SIZE)];
+      if (cursor) queries.push(Query.cursorAfter(cursor));
+      const { documents } = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.rentalHistoryCollectionId,
+        queries
+      );
+      entries.push(...(documents as unknown as RentalHistoryEntry[]));
+      if (documents.length < PAYMENT_PAGE_SIZE) break;
+      cursor = documents[documents.length - 1].$id;
+    }
+  } catch (error) {
+    if (isMissingTable(error)) return [];
+    throw error;
+  }
+  return entries;
+}
+
+/** Deletes every kept rental of a piano, e.g. because the piano is deleted. */
+export async function deleteRentalHistoryForPiano(pianoId: string) {
+  const { documents } = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.rentalHistoryCollectionId,
+    [Query.equal("piano_id", pianoId), Query.limit(PAYMENT_PAGE_SIZE)]
+  );
+  await Promise.all(
+    documents.map((document) =>
+      databases.deleteDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.rentalHistoryCollectionId,
+        document.$id
+      )
+    )
+  );
 }
 
 /**

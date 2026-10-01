@@ -9,7 +9,7 @@
  *    because the real SDK skips its upload loop in that case
  *  - the price columns of the pianos collection are numbers (double) and the
  *    server rejects anything else, e.g. the text "185000"
- *  - pianos and rent payments live in separate collections, and a collection
+ *  - pianos, rent payments and kept rentals live in separate collections, and a collection
  *    that does not exist yet (`missingCollections`) rejects every request
  *
  * `Query` and `ID` are the real SDK implementations, so query strings are genuine.
@@ -20,6 +20,7 @@ export const ENDPOINT = "https://cloud.appwrite.io/v1";
 export const PROJECT_ID = "66b2693000154e2fa3c8";
 export const BUCKET_ID = "66b26b77003445e612b4";
 export const PAYMENTS_COLLECTION_ID = "rent_payments";
+export const RENTAL_HISTORY_COLLECTION_ID = "rental_history";
 
 type StoredFile = { name: string; type: string; size: number; uri: string };
 type Doc = Record<string, any> & { $id: string; $createdAt: string };
@@ -28,6 +29,8 @@ export const fakeBackend = {
   // Pianos
   documents: new Map<string, Doc>(),
   payments: new Map<string, Doc>(),
+  // Rentals that are over (the rental_history table)
+  history: new Map<string, Doc>(),
   missingCollections: new Set<string>(),
   // Columns the tables don't have (yet): a document that uses one is rejected
   unknownColumns: new Set<string>(),
@@ -38,6 +41,7 @@ export const fakeBackend = {
   reset() {
     this.documents.clear();
     this.payments.clear();
+    this.history.clear();
     this.missingCollections.clear();
     this.unknownColumns.clear();
     this.files.clear();
@@ -57,15 +61,16 @@ const NUMBER_COLUMNS = [
   "on_sale_price",
   "sold_price",
   "amount",
+  "price",
 ];
 
 const storeFor = (collectionId: string) => {
   if (fakeBackend.missingCollections.has(collectionId)) {
     throw new Error("Collection with the requested ID could not be found.");
   }
-  return collectionId === PAYMENTS_COLLECTION_ID
-    ? fakeBackend.payments
-    : fakeBackend.documents;
+  if (collectionId === PAYMENTS_COLLECTION_ID) return fakeBackend.payments;
+  if (collectionId === RENTAL_HISTORY_COLLECTION_ID) return fakeBackend.history;
+  return fakeBackend.documents;
 };
 
 const rejectNonNumbers = (data: Record<string, unknown>) => {

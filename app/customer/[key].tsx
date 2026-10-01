@@ -18,6 +18,7 @@ import { Icon, Spinner, StateView } from "@/components/ui";
 import { colors, fonts, spacing, type } from "@/constants/theme";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useOwnerPayments from "@/lib/useOwnerPayments";
+import useOwnerRentalHistory from "@/lib/useOwnerRentalHistory";
 import { RootState } from "@/redux/store";
 import { callNumber, messageOnWhatsApp } from "@/utils/contact";
 import {
@@ -26,6 +27,7 @@ import {
   customerKey,
   paymentsOfCustomer,
   paymentsText,
+  rangeText,
 } from "@/utils/customers";
 import { parseStoredDate } from "@/utils/dates";
 import { formatRupees } from "@/utils/money";
@@ -106,6 +108,8 @@ const Customer = () => {
   const key = customerKey(decodeURIComponent(String(param ?? "")));
   const pianos = useSelector((state: RootState) => state.pianos.items);
   const { loaded, failed, payments, reload } = useOwnerPayments(null);
+  const history = useOwnerRentalHistory();
+  const reloadHistory = history.reload;
   useCurrentDay();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -119,19 +123,21 @@ const Customer = () => {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await reload();
+      await Promise.all([reload(), reloadHistory()]);
     } finally {
       if (mounted.current) setRefreshing(false);
     }
-  }, [reload]);
+  }, [reload, reloadHistory]);
   const openPiano = useCallback(
     (id: string) => router.push(`/detail/${id}`),
     []
   );
 
-  const customer = buildCustomers(payments, pianos).customers.find(
-    (candidate) => candidate.key === key
-  );
+  const customer = buildCustomers(
+    payments,
+    pianos,
+    history.entries
+  ).customers.find((candidate) => candidate.key === key);
   const theirs = customer ? paymentsOfCustomer(payments, key) : [];
   const titles = new Map(
     pianos.map((piano) => [piano.$id, piano.title || "Untitled piano"])
@@ -293,6 +299,51 @@ const Customer = () => {
                     onOpen={openPiano}
                   />
                 ))}
+              </>
+            )}
+
+            {customer.rentals.length > 0 && (
+              <>
+                <SectionTitle>Rental history</SectionTitle>
+                {customer.rentals.map((rental) => {
+                  const title =
+                    titles.get(rental.piano_id) ??
+                    (rental.piano_title?.trim() || "A piano");
+                  const range = rangeText(
+                    rental.period_start
+                      ? parseStoredDate(rental.period_start)
+                      : null,
+                    rental.period_end
+                      ? parseStoredDate(rental.period_end)
+                      : parseStoredDate(rental.closed_on)
+                  );
+                  const price =
+                    typeof rental.price === "number"
+                      ? `${formatRupees(rental.price)} rent`
+                      : "";
+                  const detail = [range, price].filter(Boolean).join(" · ");
+                  return (
+                    <View
+                      key={rental.$id}
+                      accessible
+                      accessibilityLabel={[title, detail]
+                        .filter(Boolean)
+                        .join(", ")}
+                      style={styles.paymentRow}
+                    >
+                      <View style={styles.rowTexts}>
+                        <Text style={styles.rowTitle} numberOfLines={1}>
+                          {title}
+                        </Text>
+                        {!!detail && (
+                          <Text style={styles.rowDetail} numberOfLines={2}>
+                            {detail}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  );
+                })}
               </>
             )}
 

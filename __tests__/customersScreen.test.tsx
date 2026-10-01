@@ -10,6 +10,7 @@ jest.mock("expo-router", () => ({
 }));
 jest.mock("@/lib/appwrite", () => ({
   getRentPaymentsBetween: jest.fn(),
+  getRentalHistory: jest.fn(() => Promise.resolve([])),
 }));
 
 import React from "react";

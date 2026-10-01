@@ -3,51 +3,69 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/ui";
 import { colors, fonts, spacing, type } from "@/constants/theme";
 import { formatRupees } from "@/utils/money";
-import { PastRenter, paymentsText, periodText } from "@/utils/customers";
+import { PastRental, pastRentalDetail } from "@/utils/customers";
 import { SectionTitle } from "./DetailParts";
 
 export type PastRentersSectionProps = {
-  renters: PastRenter[];
+  rentals: PastRental[];
   /** Opens a customer's page, with the key that names them */
   onOpen: (key: string) => void;
 };
 
 /**
- * "Previous renters" on a rented piano's page: who else has paid rent for it,
- * with how many payments, over which months, and how much, the one who paid
- * most recently first. It is worked out from the names saved with the payments.
+ * "Previous renters" on a rented piano's page: the rentals it has had before
+ * this one, the one that ended last first. A kept rental shows its dates and
+ * rent and what that person paid in it; someone who only appears in the
+ * piano's payments (from before rentals were kept) shows their payments.
  */
-const PastRentersSection = ({ renters, onOpen }: PastRentersSectionProps) => (
+const PastRentersSection = ({ rentals, onOpen }: PastRentersSectionProps) => (
   <View>
     <SectionTitle>Previous renters</SectionTitle>
     <Text style={styles.subtitle}>
-      {renters.length === 1 ? "1 other person has paid rent for it" : `${renters.length} other people have paid rent for it`}
+      {rentals.length === 1 ? "1 earlier rental" : `${rentals.length} earlier rentals`}
     </Text>
     <View style={styles.list}>
-      {renters.map((renter) => {
-        const period = periodText(renter.firstPaidOn, renter.lastPaidOn);
-        const detail = [paymentsText(renter.paymentsCount), period].filter(Boolean).join(" · ");
-        const total = formatRupees(renter.total);
-        return (
+      {rentals.map((rental) => {
+        const detail = pastRentalDetail(rental);
+        const total = rental.paymentsCount > 0 ? formatRupees(rental.total) : "";
+        const open = () => onOpen(rental.key);
+        const body = (
+          <>
+            <View style={styles.texts}>
+              <Text style={styles.name} numberOfLines={1}>
+                {rental.name}
+              </Text>
+              {!!detail && (
+                <Text style={styles.detail} numberOfLines={2}>
+                  {detail}
+                </Text>
+              )}
+            </View>
+            {!!total && <Text style={styles.total}>{total}</Text>}
+            {!!rental.key && <Icon name="chevronRight" size={18} color={colors.chevron} strokeWidth={2} />}
+          </>
+        );
+        // A rental with no name can't open anyone
+        return rental.key ? (
           <Pressable
-            key={renter.key}
-            onPress={() => onOpen(renter.key)}
+            key={rental.id}
+            onPress={open}
             accessibilityRole="button"
-            accessibilityLabel={`${renter.name}, ${detail}, ${total}`}
+            accessibilityLabel={[rental.name, detail, total].filter(Boolean).join(", ")}
             accessibilityHint="Opens this customer"
             style={({ pressed }) => [styles.row, pressed && styles.pressed]}
           >
-            <View style={styles.texts}>
-              <Text style={styles.name} numberOfLines={1}>
-                {renter.name}
-              </Text>
-              <Text style={styles.detail} numberOfLines={1}>
-                {detail}
-              </Text>
-            </View>
-            <Text style={styles.total}>{total}</Text>
-            <Icon name="chevronRight" size={18} color={colors.chevron} strokeWidth={2} />
+            {body}
           </Pressable>
+        ) : (
+          <View
+            key={rental.id}
+            accessible
+            accessibilityLabel={[rental.name, detail, total].filter(Boolean).join(", ")}
+            style={styles.row}
+          >
+            {body}
+          </View>
         );
       })}
     </View>
@@ -62,6 +80,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
+    paddingVertical: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
   },
