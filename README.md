@@ -30,6 +30,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **App lock:** Optionally ask for your fingerprint, face or screen lock when you open Pianoverse and after a minute away (Account, Security). It uses the phone's own prompt and turns itself off if the phone has no screen lock any more.
 - **Customers:** Call or WhatsApp a rental customer from the piano's page.
 - **Reminders and receipts:** Remind a customer about a rental that has ended or is about to end, and send a receipt for a payment, each as a WhatsApp message already typed for you to check and send.
+- **Rent due:** Today lists the rentals that owe rent, the most owed first, each with a WhatsApp reminder that says how much; a rented piano's page shows what is due or that the rent is paid up. Rent is counted monthly, in advance, on the day of the month the rental started, from the payments you record, starting with the month of the first payment recorded for the rental (the rules are in `utils/rentDue.ts`).
 - **Sharing and export:** Share a piano's details, or export the whole list as CSV.
 - **Offline list:** The piano list is kept on the device and shown when there is no connection.
 - **Password Reset:** Secure password recovery with a web page that looks like the app (see below).

@@ -167,11 +167,22 @@ describe("reminding the renter", () => {
     expect(buttonsLabelled(renderer, "Send reminder")).toHaveLength(1);
   });
 
-  it("has no button for a rental with weeks to go, only the row", async () => {
+  it("has no button for a rental with weeks to go and its rent paid, only the row", async () => {
+    // The rent for the month is in, so nothing is due either
+    seedPayment("p", inDays(0), {
+      customer_name: "Asha Mehta",
+      amount: 4000,
+    });
     const { renderer } = await openDetail(rental(30));
 
     expect(buttonsLabelled(renderer, "Send reminder")).toHaveLength(0);
     expect(buttonsLabelled(renderer, "Remind customer")).toHaveLength(1);
+  });
+
+  it("has the button for a rental with weeks to go once its rent is due", async () => {
+    const { renderer } = await openDetail(rental(30));
+
+    expect(buttonsLabelled(renderer, "Send reminder")).toHaveLength(1);
   });
 
   it("offers nothing without a number to message", async () => {

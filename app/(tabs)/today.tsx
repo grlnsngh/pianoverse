@@ -8,6 +8,7 @@ import AttentionRow from "@/components/AttentionRow";
 import IncomeCard from "@/components/IncomeCard";
 import PaymentRow from "@/components/PaymentRow";
 import RefreshBand, { HIDDEN_REFRESH_INDICATOR } from "@/components/RefreshBand";
+import RentDueRow from "@/components/RentDueRow";
 import ShelfCard from "@/components/ShelfCard";
 import TodaySkeleton from "@/components/TodaySkeleton";
 import { AddButton, useSkeletonDelay } from "@/components/ui";
@@ -20,8 +21,11 @@ import { setActiveTab } from "@/redux/navigation/actions";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { RootState } from "@/redux/store";
 import { categoryFilterOf, clearFilters } from "@/utils/filters";
+import { sendMessage } from "@/utils/contact";
 import { incomeByMonth, TODAY_MONTHS } from "@/utils/income";
 import { formatRupees } from "@/utils/money";
+import { buildReminderMessage } from "@/utils/reminders";
+import { type RentDueEntry, rentDueEntries, rentDueMonths } from "@/utils/rentDue";
 import {
   needsAttention,
   receivedInMonth,
@@ -35,8 +39,9 @@ const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : 
 /**
  * The Today tab: what needs the owner. The money received this month, how many
  * pianos are in stock, on rent and sold, the rentals that have ended or end
- * within a week, the rentals out now, and the latest payments. The pianos come
- * from redux, where the Pianos tab loads them; the payments load here.
+ * within a week, the rentals that owe rent, the rentals out now, and the latest
+ * payments. The pianos come from redux, where the Pianos tab loads them; the
+ * payments load here.
  */
 const Today = () => {
   const dispatch = useDispatch();
@@ -44,7 +49,9 @@ const Today = () => {
   const filters = useSelector((state: RootState) => state.pianos.filters);
   const { status: pianoStatus, refresher } = usePianoData();
   const { loaded, failed, payments, reload } = useTodayPayments();
-  const income = useIncome(TODAY_MONTHS);
+  // The income chart's months, or further back when a rental out began before
+  // them: the rent that is due needs every payment since its start
+  const income = useIncome(Math.max(TODAY_MONTHS, rentDueMonths(pianos)));
   const reloadIncome = income.reload;
   // Re-renders on a new day, even if the app stayed open, so what follows
   // (which reads today's date) is worked out again
@@ -76,10 +83,21 @@ const Today = () => {
   const recent = recentPayments(payments, pianos);
 
   const months = incomeByMonth(income.payments, pianos, TODAY_MONTHS);
+  // Not worked out until the payments are here: with none, every rental would owe
+  const owing =
+    income.loaded && !income.failed ? rentDueEntries(pianos, income.payments) : [];
 
   const openAdd = useCallback(() => router.push("/create"), []);
   const openIncome = useCallback(() => router.push("/income"), []);
   const openPiano = useCallback((id: string) => router.push(`/detail/${id}`), []);
+  // A reminder that says how much is due, typed into the renter's WhatsApp chat
+  const remind = useCallback((entry: RentDueEntry) => {
+    sendMessage(
+      entry.piano.rental_customer_mobile?.trim() || null,
+      buildReminderMessage(entry.piano, undefined, entry.balance),
+      `${entry.piano.title} rental`
+    );
+  }, []);
 
   // The Pianos tab, showing the rentals that are out (what the shelf holds)
   const seeAll = useCallback(() => {
@@ -194,6 +212,26 @@ const Today = () => {
               ? "No pianos yet. Add one with the + button."
               : "Nothing needs your attention."}
           </Text>
+        )}
+
+        {owing.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle} accessibilityRole="header">
+                Rent due
+              </Text>
+              <Text style={styles.sectionCount}>{owing.length}</Text>
+            </View>
+            {owing.map((entry) => (
+              <RentDueRow
+                key={entry.piano.$id}
+                entry={entry}
+                today={now}
+                onOpen={openPiano}
+                onRemind={remind}
+              />
+            ))}
+          </>
         )}
 
         {shelf.length > 0 && (

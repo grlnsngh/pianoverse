@@ -219,8 +219,25 @@ describe("the money", () => {
     expect(has(renderer, "1 payment so far")).toBe(true);
   });
 
-  it("asks for last month's and this month's payments, for the signed-in owner, and for the six months of the income chart", async () => {
+  it("asks for the six months of the income chart when no rental began before them", async () => {
+    await open({ items: pianos.filter((piano) => piano !== youngChang) });
+
+    expect(getRentPaymentsBetween).toHaveBeenCalledTimes(2);
+    const [, from, to] = jest.mocked(getRentPaymentsBetween).mock.calls[1];
+    expect(from).toEqual(new Date(2026, 3, 1));
+    expect(to).toEqual(new Date(2026, 9, 1));
+  });
+
+  it("asks further back when a rental out began before them: the rent due needs every payment since", async () => {
     await open();
+
+    const [, from] = jest.mocked(getRentPaymentsBetween).mock.calls[1];
+    // Young Chang began on 29 March 2025
+    expect(from).toEqual(new Date(2025, 2, 1));
+  });
+
+  it("asks for last month's and this month's payments, for the signed-in owner, and for the months of the income chart", async () => {
+    await open({ items: pianos.filter((piano) => piano !== youngChang) });
 
     // Two requests: Today's own, then the income section's
     expect(getRentPaymentsBetween).toHaveBeenCalledTimes(2);
@@ -341,9 +358,11 @@ describe("Rented out", () => {
     const { renderer } = await open();
     const shelf = cards(renderer).filter((node: any) => /Samick|Petrof|Schimmel/.test(node.props.accessibilityLabel));
 
-    // Schimmel is also in Needs attention, so it appears twice: list row, then card
+    // Schimmel is also in Needs attention, so it appears twice: list row, then card.
+    // Samick is also in Rent due: it has paid ₹3,800 of its ₹4,000
     expect(shelf.map((node: any) => node.props.accessibilityLabel)).toEqual([
       "Schimmel W114, Naina Verma, Ends in 3 days",
+      "Samick SU-118, Arjun Bedi, ₹200 due · 1 month, since 1 Sep",
       "Schimmel W114, Naina Verma, Ends in 3 days",
       "Samick SU-118, Arjun Bedi, 12 days left",
       "Petrof P118, Sana Qureshi, 2 months left",
@@ -467,8 +486,8 @@ describe("sizes and colours from the Main board", () => {
   it("draws the rows' photos 64 square with a 12 radius", async () => {
     const { renderer } = await open();
 
-    // Three rows that need attention, plus the payments have none
-    expect(boxes(renderer, 64, 64, 12)).toHaveLength(3);
+    // Three rows that need attention and one that owes rent, plus the payments have none
+    expect(boxes(renderer, 64, 64, 12)).toHaveLength(4);
   });
 
   it("draws the shelf's photos 244 by 152 with a 16 radius", async () => {
@@ -514,7 +533,13 @@ describe("sizes and colours from the Main board", () => {
       (node: any) => typeof node.type === "string" && node.props.accessibilityRole === "header"
     );
 
-    expect(headings.map(textContent)).toEqual(["Needs attention", "Rented out", "Recent payments", "Income"]);
+    expect(headings.map(textContent)).toEqual([
+      "Needs attention",
+      "Rent due",
+      "Rented out",
+      "Recent payments",
+      "Income",
+    ]);
   });
 });
 
