@@ -158,6 +158,8 @@ eas build -p android --profile preview --local
 
 The build runs on your machine, not on Expo's servers, so it needs no paid plan; you only have to be logged in to Expo once (`eas login`). Without `--local` the same command builds in Expo's cloud, where the free plan allows a limited number of builds a month. (Expo officially supports local builds on macOS and Linux; on Windows they have worked here, but Expo doesn't test that.) Changes to native settings (`app.json` plugins, splash screen, permissions) and new native modules only reach users through a new build.
 
+If the build stops with `A problem occurred starting process 'command 'node''` (Gradle can't start `node`), a Gradle daemon left over from your previous build is being reused. Stop it and build again: `pkill -f GradleDaemon` (in WSL). A build started from a terminal that has `ANDROID_HOME` set (the interactive shell, not a bare `wsl -e bash script`) is needed too, or Gradle says `SDK location not found`.
+
 ## Fixing the App Without a New Build (Over-the-Air Updates)
 
 A change to the app's JavaScript (screens, wording, logic, styles) can be sent straight to installed phones, with no new APK and no version bump. This works for builds made **from this version on**, because they carry `expo-updates`.
