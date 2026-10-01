@@ -1,11 +1,13 @@
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import AuthScreen, { AuthError, AuthSwitch } from "@/components/AuthScreen";
+import AuthScreen, { AuthDivider, AuthError, AuthSwitch } from "@/components/AuthScreen";
+import GoogleButton from "@/components/GoogleButton";
 import { Button, Field } from "@/components/ui";
 import { spacing } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { createUser } from "@/lib/appwrite";
+import useGoogleSignIn from "@/lib/useGoogleSignIn";
 import {
   emailError,
   newPasswordError,
@@ -33,6 +35,8 @@ const SignUp = () => {
   const [errors, setErrors] = useState({ username: "", email: "", password: "" });
   const [failure, setFailure] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
+  const google = useGoogleSignIn("/sign-up", setFailure);
+  const working = isSubmitting || google.busy;
   const fields = {
     username: useRef<TextInput>(null),
     email: useRef<TextInput>(null),
@@ -79,7 +83,7 @@ const SignUp = () => {
     <AuthScreen
       title="Create account"
       subtitle="Takes a minute. Add your first piano right after."
-      busy={isSubmitting}
+      busy={working}
       onBack={() => (router.canGoBack?.() ? router.back() : router.replace("/"))}
       footer={
         <AuthSwitch
@@ -100,7 +104,7 @@ const SignUp = () => {
           onChangeText={change("username")}
           onBlur={leave("username")}
           error={errors.username}
-          disabled={isSubmitting}
+          disabled={working}
           autoCapitalize="none"
           autoCorrect={false}
           autoComplete="username-new"
@@ -117,7 +121,7 @@ const SignUp = () => {
           onChangeText={change("email")}
           onBlur={leave("email")}
           error={errors.email}
-          disabled={isSubmitting}
+          disabled={working}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
@@ -136,7 +140,7 @@ const SignUp = () => {
           onChangeText={change("password")}
           onBlur={leave("password")}
           error={errors.password}
-          disabled={isSubmitting}
+          disabled={working}
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}
@@ -152,9 +156,13 @@ const SignUp = () => {
         title="Create account"
         loading={isSubmitting}
         loadingTitle="Creating account"
+        disabled={google.busy}
         onPress={submit}
         style={styles.button}
       />
+
+      <AuthDivider />
+      <GoogleButton onPress={google.start} loading={google.busy} disabled={isSubmitting} />
     </AuthScreen>
   );
 };

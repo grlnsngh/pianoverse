@@ -29,6 +29,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Income:** Today shows the rent received in the last six months as a chart, with a dot over months a piano was sold in, and an Income screen with twelve months month by month (rent and sales).
 - **App lock:** Optionally ask for your fingerprint, face or screen lock when you open Pianoverse and after a minute away (Account, Security). It uses the phone's own prompt and turns itself off if the phone has no screen lock any more.
 - **Customers:** Call or WhatsApp a rental customer from the piano's page.
+- **Sign in with Google:** Sign in or create an account with a Google account instead of a password, from the Sign in and Create account screens. It needs the one-time setup under "Sign in with Google" in Backend (Appwrite) below, and a build made after it was added.
 - **Reminders and receipts:** Remind a customer about a rental that has ended or is about to end, and send a receipt for a payment, each as a WhatsApp message already typed for you to check and send.
 - **Rent due:** Today lists the rentals that owe rent, the most owed first, each with a WhatsApp reminder that says how much; a rented piano's page shows what is due or that the rent is paid up. Rent is counted monthly, in advance, on the day of the month the rental started, from the payments you record, starting with the month of the first payment recorded for the rental (the rules are in `utils/rentDue.ts`).
 - **Sharing and export:** Share a piano's details, or export the whole list as CSV.
@@ -133,6 +134,18 @@ Rentals that are over are kept in a `rental_history` table (use `rental_history`
 
 Permissions: **Create** for All users only, with **Row level security** on, like `rent_payments`. A row is added when the Edit screen saves a piano whose rental is over: it is rented to someone else, or from a new start date, or taken off the piano, or the piano stops being a rental. Extending a rental, correcting a name or changing the rent or number is the same rental and adds nothing. **Create the table before using this version.** Without it the app still works: the piano is saved and a message says the old rental wasn't kept, and a piano's previous renters come from its payments only. A piano's rentals are deleted with it.
 The `pianos` table also needs an `image_urls` column: an array of varchar (size 1000), not required. It holds the link of every photo in the order shown, and `image_url` stays the cover (the first photo). Pianos saved before this column existed simply have one photo. **Create the column before using this version**: creating or editing a piano writes to it, and fails while it is missing.
+
+### Sign in with Google (one-time setup)
+
+The buttons are in the app, but Google and Appwrite have to be told about each other first. Until then the button answers "Google sign-in isn't switched on for Pianoverse yet." Nothing else in the app is affected. The app opens Google's page in the phone's browser, Appwrite signs the person in and sends them back to the app (`appwrite-callback-<project id>://`, which is a second scheme in `app.json`), and the app makes its own `users` row for a first-time sign-in.
+
+1. **Google Cloud Console** ([console.cloud.google.com](https://console.cloud.google.com)): pick or create a project. Under **APIs & Services, OAuth consent screen**: user type **External**, app name Pianoverse, your email as the support and developer contact, and keep the basic scopes (email, profile, openid). While the app is in **Testing**, only the Google accounts listed under **Test users** can sign in; add yours and your staff's. **Publish app** when anyone should be able to (with only the basic scopes it usually needs no review).
+2. Under **APIs & Services, Credentials**: **Create credentials, OAuth client ID**, application type **Web application** (it is called web because Appwrite's server does the Google login, not the phone). Under **Authorized redirect URIs** add the address Appwrite shows you in the next step. It looks like `https://cloud.appwrite.io/v1/account/sessions/oauth2/callback/google/66b2693000154e2fa3c8`. Create it and copy the **Client ID** and the **Client secret**.
+3. **Appwrite Console**, your project, **Auth, Settings, OAuth2 Providers, Google**: switch it on, paste the Client ID as **App ID** and the Client secret as **App secret**, and **Update**. The redirect address the dialog shows is the one to give Google in step 2 (copy it from there if it differs from the example).
+4. Overview, Platforms: the Android platform with the package `com.grlnsngh.pianoverse` is already there (the app uses it). Nothing to add.
+5. Make a new build (this adds a native package, so it is a new runtime, 3) and install it. Over-the-air updates cannot add it.
+
+A person who signs in with Google and whose email is already an account is put on that account (Appwrite matches the email), so their pianos are all there. Someone new gets a new account and an empty piano list.
 
 ## Project Structure
 

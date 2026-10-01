@@ -91,6 +91,15 @@ export const AuthError = ({ message }: { message: string }) => (
   </View>
 );
 
+/** A line with "or" in the middle, between the form and the other way in. */
+export const AuthDivider = () => (
+  <View style={styles.divider} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View style={styles.dividerLine} />
+    <Text style={styles.dividerText}>or</Text>
+    <View style={styles.dividerLine} />
+  </View>
+);
+
 /** "New to Pianoverse? Create account": grey words and a bold underlined link. */
 export const AuthSwitch = ({
   question,
@@ -146,6 +155,15 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: colors.lateTintText,
   },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginTop: spacing.xl,
+    marginBottom: spacing.xl,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.hairline },
+  dividerText: { fontFamily: fonts.medium, fontSize: 14, color: colors.ink2 },
   switchRow: {
     flexDirection: "row",
     flexWrap: "wrap",
