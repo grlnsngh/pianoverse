@@ -19,7 +19,7 @@ const pathsOf = (renderer: ReactTestRenderer) =>
 const names = Object.keys(ICONS) as IconName[];
 
 describe("Icon set", () => {
-  it("has every icon in the spec, and the lock that the app lock added", () => {
+  it("has every icon in the spec, and the lock and chart that later features added", () => {
     expect(names.sort()).toEqual(
       [
         "search",
@@ -47,6 +47,7 @@ describe("Icon set", () => {
         "download",
         "logout",
         "lock",
+        "chart",
         "wifiOff",
         "camera",
         "cameraOff",
