@@ -13,19 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q31. Rent due: when does rent fall due, and where does counting start?
-- **Status:** Open. The defaults below are built, and you agreed to them for now ("usually in advance, but there can be exceptions"). This is where you confirm or change them later.
-- **Raised:** Batch 21 (Rent due).
-- **What the app does now (default):**
-  - Rent is **monthly**, paid **in advance**, on the **same day of the month as the rental’s start date**. A rental that started on the 12th owes each month’s rent on the 12th. A month that would start on the rental’s last day is not charged, and a part month at the end counts as a whole one.
-  - What has been paid is the payments you recorded for that piano, from that renter (or recorded before names were saved), dated on or after the start.
-  - **Counting starts with the month of the first payment recorded for the rental, not its start date.** The app only began recording payments recently, so counting from the start date would show every older rental as owing months of rent you have already collected. With no payment recorded yet, only the month that is running counts, and a rental that ended with nothing recorded shows nothing.
-  - You see it as **Rent due** on Today (the most owed first, with a WhatsApp reminder that says the amount) and as a line in the Rental section of a rented piano’s page.
-- **Options:**
-  - **A. Keep this** (the default).
-  - **B. Count from the rental’s start date.** Shows the whole backlog; sensible once every rental’s payments are recorded, but older rentals show large amounts until a catch-up payment is recorded for them.
-  - **C. Exceptions.** Tell me the terms you really use (for example rent paid at the end of the month, a rental with its own due day, or a different amount in some months) and I will add a setting on each rental. That needs a new column in Appwrite.
-- **Your answer:**
+None right now.
 
 ---
 
@@ -178,3 +166,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q30. Please create the rental_history table in Appwrite
 - **Answer:** Created (option A) (2026-10-01): the table exists and the Batch 20 pull request is merged.
 - **Acted on:** nothing more to build. The app keeps a replaced or ended rental in it, and shows it under Previous renters and Rental history. The columns and permissions are in the README. Still to try on the phone: the Batch 20 check above.
+
+### Q31. Rent due: when does rent fall due, and where does counting start?
+- **Answer:** Keep it as built (option A, the default) (2026-10-01): rent is monthly, paid in advance on the start date’s day of the month, and counting starts with the month of the first payment recorded for the rental.
+- **Why it stays:** it is what you agreed to for now (“usually in advance, but there can be exceptions”). The rules are all in `utils/rentDue.ts`. If you later want the whole backlog counted from the start date (option B), or a rental with its own due day or end-of-month payment (option C, which needs a new column in Appwrite), tell me which rentals and I will change it.
