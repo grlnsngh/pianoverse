@@ -17,8 +17,8 @@ Status key: **Open** = waiting for you.
 - **Status:** Open. Needed before the rental history is used; nothing breaks until then.
 - **Raised:** Batch 20 (the real rental history, which you chose in Q29).
 - **What the app does now (default):** without the table, saving a piano works as before and a message says the old rental wasn’t kept; a piano’s previous renters come from its payments only. A rental replaced before the table exists is not kept.
-- **What to do in the Appwrite console** (Databases, your database, **Create collection**), with the ID `rental_history` (type that exact ID):
-  - Columns: `piano_id` string (255), required; `creator` string (255), required; `closed_on` datetime, required; and optional: `piano_title` string (255), `customer_name` string (255), `customer_mobile` string (50), `customer_address` string (1000), `period_start` datetime, `period_end` datetime, `price` float, `reason` string (50).
+- **What to do in the Appwrite console** (Databases, your database, **Create table**), with the ID `rental_history` (type that exact ID). Newer consoles call the text type **Varchar** (the old **String** type is deprecated), so:
+  - Columns: `piano_id` varchar (255), required; `creator` varchar (255), required; `closed_on` datetime, required; and optional: `piano_title` varchar (255), `customer_name` varchar (255), `customer_mobile` varchar (50), `customer_address` varchar (1000), `period_start` datetime, `period_end` datetime, `price` float, `reason` varchar (50).
   - Settings, Permissions: add the role **All users** with **Create** only, and switch **Row security** on, the same as `rent_payments`.
 - **Options:**
   - **A. Create it now** (recommended), and tell me when it is done.

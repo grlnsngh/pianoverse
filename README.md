@@ -110,25 +110,25 @@ Besides the `users` and `pianos` tables, the app needs a `rent_payments` table (
 | `note`     | string, optional  |
 | `customer_name` | string, optional |
 
-Permissions: **Create** for All users only, with **Row level security** on. Each payment then belongs to the account that recorded it. Without the table, a rented piano's page shows "Couldn't load payments" and deleting a piano still works.
+Permissions: **Create** for All users only, with **Row level security** on. (The `string` columns of this table and of `pianos` are **Varchar** in newer consoles, with the same size.) Each payment then belongs to the account that recorded it. Without the table, a rented piano's page shows "Couldn't load payments" and deleting a piano still works.
 
 `customer_name` holds who was renting the piano when the payment was recorded, so the name on the Today tab stays right after the piano is rented to someone else. Create it (size 255, not required). Until it exists, payments are still saved, just without the name, and payments recorded before it existed show the piano's title.
 
-Rentals that are over are kept in a `rental_history` table (use `rental_history` as its ID when creating it), so a piano's page and a customer's page can show who rented it and when:
+Rentals that are over are kept in a `rental_history` table (use `rental_history` as its ID when creating it; newer Appwrite consoles call the text type **Varchar**, since the old **String** type is deprecated), so a piano's page and a customer's page can show who rented it and when:
 
 | Column             | Type                        |
 | ------------------ | --------------------------- |
-| `piano_id`         | string (255), required      |
-| `creator`          | string (255), required      |
+| `piano_id`         | varchar (255), required     |
+| `creator`          | varchar (255), required     |
 | `closed_on`        | datetime, required          |
-| `piano_title`      | string (255), optional      |
-| `customer_name`    | string (255), optional      |
-| `customer_mobile`  | string (50), optional       |
-| `customer_address` | string (1000), optional     |
+| `piano_title`      | varchar (255), optional     |
+| `customer_name`    | varchar (255), optional     |
+| `customer_mobile`  | varchar (50), optional      |
+| `customer_address` | varchar (1000), optional    |
 | `period_start`     | datetime, optional          |
 | `period_end`       | datetime, optional          |
 | `price`            | float, optional             |
-| `reason`           | string (50), optional       |
+| `reason`           | varchar (50), optional      |
 
 Permissions: **Create** for All users only, with **Row level security** on, like `rent_payments`. A row is added when the Edit screen saves a piano whose rental is over: it is rented to someone else, or from a new start date, or taken off the piano, or the piano stops being a rental. Extending a rental, correcting a name or changing the rent or number is the same rental and adds nothing. **Create the table before using this version.** Without it the app still works: the piano is saved and a message says the old rental wasn't kept, and a piano's previous renters come from its payments only. A piano's rentals are deleted with it.
 The `pianos` table also needs an `image_urls` column: an array of varchar (size 1000), not required. It holds the link of every photo in the order shown, and `image_url` stays the cover (the first photo). Pianos saved before this column existed simply have one photo. **Create the column before using this version**: creating or editing a piano writes to it, and fails while it is missing.
