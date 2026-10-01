@@ -2,7 +2,7 @@
   "expo": {
     "name": "pianoverse",
     "slug": "pianoverse",
-    "version": "1.1.15",
+    "version": "1.1.16",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "pianoverse",
@@ -20,9 +20,9 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.grlnsngh.pianoverse",
-      "versionCode": 26
+      "versionCode": 27
     },
-    "runtimeVersion": "1",
+    "runtimeVersion": "2",
     "updates": {
       "url": "https://u.expo.dev/9002c527-c408-455a-925b-2d4c09ae3118",
       "checkAutomatically": "ON_LOAD",
@@ -40,6 +40,12 @@
         {
           "photosPermission": "Pianoverse uses your photos so you can add pictures of your pianos.",
           "cameraPermission": "Pianoverse uses the camera so you can take pictures of your pianos."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Pianoverse uses Face ID to unlock the app."
         }
       ]
     ],

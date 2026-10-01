@@ -25,6 +25,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Adding a piano:** Three steps with a progress bar (the basics, the category details, a review), a Make list with a letter strip, a calendar for every date, and the camera or library for photos.
 - **Quick actions:** Swipe a piano in the list for Edit and Delete, pull down to refresh, and feel a light tap when something is saved. Everything only fades if the phone asks for Reduce Motion.
 - **Photos:** Add up to 10 photos to a piano by taking them with the camera or choosing them. The first is the cover shown in the lists, and the piano's page lets you swipe through all of them. Tap a photo to see it on the whole screen: pinch or double tap to zoom, swipe or use the arrows for the next photo. Photos are resized before upload.
+- **App lock:** Optionally ask for your fingerprint, face or screen lock when you open Pianoverse and after a minute away (Account, Security). It uses the phone's own prompt and turns itself off if the phone has no screen lock any more.
 - **Customers:** Call or WhatsApp a rental customer from the piano's page.
 - **Reminders and receipts:** Remind a customer about a rental that has ended or is about to end, and send a receipt for a payment, each as a WhatsApp message already typed for you to check and send.
 - **Sharing and export:** Share a piano's details, or export the whole list as CSV.
