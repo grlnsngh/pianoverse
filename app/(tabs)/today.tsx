@@ -5,6 +5,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "r
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import AttentionRow from "@/components/AttentionRow";
+import IncomeCard from "@/components/IncomeCard";
 import PaymentRow from "@/components/PaymentRow";
 import RefreshBand, { HIDDEN_REFRESH_INDICATOR } from "@/components/RefreshBand";
 import ShelfCard from "@/components/ShelfCard";
@@ -13,11 +14,13 @@ import { AddButton, useSkeletonDelay } from "@/components/ui";
 import { colors, fonts, spacing, type } from "@/constants/theme";
 import { usePianoData } from "@/lib/PianoDataContext";
 import useCurrentDay from "@/lib/useCurrentDay";
+import useIncome from "@/lib/useIncome";
 import useTodayPayments from "@/lib/useTodayPayments";
 import { setActiveTab } from "@/redux/navigation/actions";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { RootState } from "@/redux/store";
 import { categoryFilterOf, clearFilters } from "@/utils/filters";
+import { incomeByMonth, TODAY_MONTHS } from "@/utils/income";
 import { formatRupees } from "@/utils/money";
 import {
   needsAttention,
@@ -41,6 +44,8 @@ const Today = () => {
   const filters = useSelector((state: RootState) => state.pianos.filters);
   const { status: pianoStatus, refresher } = usePianoData();
   const { loaded, failed, payments, reload } = useTodayPayments();
+  const income = useIncome(TODAY_MONTHS);
+  const reloadIncome = income.reload;
   // Re-renders on a new day, even if the app stayed open, so what follows
   // (which reads today's date) is worked out again
   useCurrentDay();
@@ -70,7 +75,10 @@ const Today = () => {
   const received = receivedInMonth(payments);
   const recent = recentPayments(payments, pianos);
 
+  const months = incomeByMonth(income.payments, pianos, TODAY_MONTHS);
+
   const openAdd = useCallback(() => router.push("/create"), []);
+  const openIncome = useCallback(() => router.push("/income"), []);
   const openPiano = useCallback((id: string) => router.push(`/detail/${id}`), []);
 
   // The Pianos tab, showing the rentals that are out (what the shelf holds)
@@ -89,11 +97,11 @@ const Today = () => {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refresher.current?.(), reload()]);
+      await Promise.all([refresher.current?.(), reload(), reloadIncome()]);
     } finally {
       if (mounted.current) setRefreshing(false);
     }
-  }, [refresher, reload]);
+  }, [refresher, reload, reloadIncome]);
 
   if (loadingFirstTime) {
     return (
@@ -227,6 +235,13 @@ const Today = () => {
             ))}
           </>
         )}
+
+        <IncomeCard
+          months={months}
+          loaded={income.loaded}
+          failed={income.failed}
+          onSeeAll={openIncome}
+        />
       </ScrollView>
     </SafeAreaView>
   );

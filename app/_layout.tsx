@@ -61,6 +61,8 @@ export default function RootLayout() {
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                 {/* The Add flow: its own screen above the tabs, with its own back button */}
                 <Stack.Screen name="create" options={{ headerShown: false }} />
+              {/* The Income screen, opened from Today, draws its own back button */}
+              <Stack.Screen name="income" options={{ headerShown: false }} />
                 {/* Its third step, the review, and the Edit screen draw their own top bar */}
                 <Stack.Screen name="review" options={{ headerShown: false }} />
                 <Stack.Screen
