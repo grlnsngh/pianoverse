@@ -30,6 +30,10 @@ jest.mock("@/context/GlobalProvider", () => {
 jest.mock("@/utils/csvExport", () => ({
   exportPianosToCSV: jest.fn(() => Promise.resolve()),
 }));
+jest.mock("@/lib/exportData", () => ({
+  exportPayments: jest.fn(() => Promise.resolve()),
+  exportCustomers: jest.fn(() => Promise.resolve()),
+}));
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React from "react";
@@ -44,7 +48,9 @@ import { savePianosToCache } from "@/lib/pianoCache";
 import { setActiveTab } from "@/redux/navigation/actions";
 import { getRentalReminderTimes, scheduleAllRentalNotifications } from "@/services/notifications";
 import { formatLastUpdated } from "@/utils/account";
+import { exportCustomers, exportPayments } from "@/lib/exportData";
 import { exportPianosToCSV } from "@/utils/csvExport";
+import { exportPeriods } from "@/utils/exportPeriods";
 import { toStoredDate } from "@/utils/dates";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { fakeNotifications } from "./helpers/fakeNotifications";
@@ -284,6 +290,143 @@ describe("your data", () => {
     await flushPromises();
 
     expect(allTexts(renderer.root)).toContain(formatLastUpdated(saved!.savedAt));
+  });
+});
+
+describe("the other downloads", () => {
+  const PAYMENTS = "Download payments. CSV file for your accountant. You choose the period.";
+  const CUSTOMERS = "Download customers. CSV file: who has rented, and what they paid.";
+  const PIANOS = "Download piano list. CSV file. Sold pianos are marked Sold.";
+  const row = (renderer: any, label: string) =>
+    renderer.root.find(
+      (node: any) => node.props.accessibilityLabel === label && typeof node.props.onPress === "function"
+    );
+  // What the sheet chose runs 300 ms after the sheet has left
+  const waitForSheetToLeave = () =>
+    act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 350));
+    });
+
+  it("has a row for the payments and one for the customers, after the piano list", async () => {
+    const { renderer } = await renderAccount();
+
+    const texts = allTexts(renderer.root);
+    expect(texts).toContain("Download payments");
+    expect(texts).toContain("CSV file for your accountant. You choose the period.");
+    expect(texts).toContain("Download customers");
+    expect(texts).toContain("CSV file: who has rented, and what they paid.");
+    expect(texts.indexOf("Download piano list")).toBeLessThan(texts.indexOf("Download payments"));
+    expect(texts.indexOf("Download payments")).toBeLessThan(texts.indexOf("Download customers"));
+  });
+
+  it("asks which period when the payments are pressed, and offers each of them with what it covers", async () => {
+    const { renderer } = await renderAccount();
+
+    await pressLabel(renderer.root, PAYMENTS);
+
+    expect(allTexts(renderer.root)).toContain("Download payments");
+    for (const period of exportPeriods()) {
+      expect(
+        renderer.root.findAll(
+          (node: any) =>
+            node.props.accessibilityLabel === `${period.label}, ${period.detail}` &&
+            typeof node.props.onPress === "function"
+        )
+      ).not.toHaveLength(0);
+    }
+    expect(exportPayments).not.toHaveBeenCalled();
+  });
+
+  it("downloads the period that was chosen, for this owner and these pianos", async () => {
+    const items = [makePiano({ $id: "a" }), makePiano({ $id: "b" })];
+    const { renderer } = await renderAccount(items);
+    await pressLabel(renderer.root, PAYMENTS);
+    const lastYear = exportPeriods().find((period) => period.key === "last-financial-year")!;
+
+    await pressLabel(renderer.root, `${lastYear.label}, ${lastYear.detail}`);
+    await waitForSheetToLeave();
+
+    expect(exportPayments).toHaveBeenCalledTimes(1);
+    expect(exportPayments).toHaveBeenCalledWith(testUser.accountId, items, expect.objectContaining({ key: "last-financial-year" }));
+    const period = jest.mocked(exportPayments).mock.calls[0][2];
+    expect(period.from).toEqual(lastYear.from);
+    expect(period.to).toEqual(lastYear.to);
+  });
+
+  it("closes the sheet when a period is chosen", async () => {
+    const { renderer } = await renderAccount();
+    await pressLabel(renderer.root, PAYMENTS);
+    const sheet = () =>
+      renderer.root.findAll((node: any) => node.props.testID === "export-payments-sheet" && "visible" in node.props)[0];
+    expect(sheet().props.visible).toBe(true);
+
+    await pressLabel(renderer.root, `This month, ${exportPeriods()[0].detail}`);
+
+    expect(sheet().props.visible).toBe(false);
+  });
+
+  it("downloads nothing when the sheet is left without choosing", async () => {
+    const { renderer } = await renderAccount();
+    await pressLabel(renderer.root, PAYMENTS);
+
+    await pressLabel(renderer.root, "Cancel");
+    await waitForSheetToLeave();
+
+    expect(exportPayments).not.toHaveBeenCalled();
+  });
+
+  it("downloads the customers when they are pressed", async () => {
+    const items = [makePiano({ $id: "a" })];
+    const { renderer } = await renderAccount(items);
+
+    await pressLabel(renderer.root, CUSTOMERS);
+
+    expect(exportCustomers).toHaveBeenCalledWith(testUser.accountId, items);
+  });
+
+  it("downloads the piano list as before", async () => {
+    const items = [makePiano({ $id: "a" })];
+    const { renderer } = await renderAccount(items);
+
+    await pressLabel(renderer.root, PIANOS);
+
+    expect(exportPianosToCSV).toHaveBeenCalledWith(items);
+    expect(exportCustomers).not.toHaveBeenCalled();
+    expect(exportPayments).not.toHaveBeenCalled();
+  });
+
+  it("shows the one that is working, and locks all three until it is done", async () => {
+    let finish: () => void = () => {};
+    jest.mocked(exportCustomers).mockImplementationOnce(() => new Promise<void>((resolve) => (finish = resolve)));
+    const { renderer } = await renderAccount();
+
+    act(() => {
+      row(renderer, CUSTOMERS).props.onPress();
+    });
+
+    expect(allTexts(renderer.root)).not.toContain("Download piano list, working");
+    expect(
+      renderer.root.findAll((node: any) => node.props.accessibilityLabel === "Download customers, working")
+    ).not.toHaveLength(0);
+    for (const label of [PIANOS, PAYMENTS, CUSTOMERS]) expect(row(renderer, label).props.disabled).toBe(true);
+
+    await act(async () => finish());
+
+    for (const label of [PIANOS, PAYMENTS, CUSTOMERS]) expect(row(renderer, label).props.disabled).toBe(false);
+  });
+
+  it("is ready again when a download fails unexpectedly, and nothing is left unhandled", async () => {
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+    jest.mocked(exportCustomers).mockRejectedValueOnce(new Error("nope"));
+    const { renderer } = await renderAccount();
+
+    await act(async () => {
+      await row(renderer, CUSTOMERS).props.onPress();
+    });
+    await flushPromises();
+
+    expect(row(renderer, CUSTOMERS).props.disabled).toBe(false);
+    expect(console.warn).toHaveBeenCalledWith("A download failed:", expect.any(Error));
   });
 });
 

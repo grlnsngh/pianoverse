@@ -11,7 +11,7 @@ import { isSold } from "./pianoStatus";
 /**
  * Escapes CSV field values by wrapping them in quotes if they contain special characters
  */
-const escapeCSVField = (field: any): string => {
+export const escapeCSVField = (field: any): string => {
   if (field === null || field === undefined) return "";
   const stringField = String(field);
   // If the field contains comma, quote, or newline, wrap it in quotes and escape internal quotes
@@ -255,6 +255,80 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
 };
 
 /**
+ * The byte order mark that tells Excel a file is UTF-8, so a ₹ or a name in
+ * Hindi isn't read as something else. Spreadsheet apps on a phone ignore it.
+ */
+export const CSV_BOM = "\uFEFF";
+
+/** A CSV file's text: the header line and a line for each row, fields escaped. */
+export const toCSVText = (headers: string[], rows: unknown[][]): string =>
+  [headers.map(escapeCSVField).join(","), ...rows.map((row) => row.map(escapeCSVField).join(","))].join(
+    "\n"
+  );
+
+/** "2026-10-01T09-30-00", for the end of a file's name. */
+export const fileTimestamp = (now = new Date()): string =>
+  now.toISOString().replace(/[:.]/g, "-").slice(0, -5);
+
+/** Tells the person an export didn't work, with the reason. */
+export const reportExportFailure = (error: unknown) => {
+  console.error("Error exporting CSV:", error);
+  Alert.alert(
+    "Export Failed",
+    `Failed to export CSV: ${error instanceof Error ? error.message : "Unknown error"}`
+  );
+};
+
+/**
+ * Saves a CSV file and opens it: straight in a spreadsheet app on Android (the
+ * share sheet if none takes it), the share sheet on iPhone, and a message with
+ * where it was saved elsewhere.
+ *
+ * @throws {Error} If the file can't be written or shared; the caller tells the person.
+ */
+export const saveAndOpenCSV = async (fileName: string, content: string): Promise<void> => {
+  const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+  // Write to file
+  await FileSystem.writeAsStringAsync(fileUri, content, {
+    encoding: FileSystem.EncodingType.UTF8,
+  });
+
+  // Try to open directly in spreadsheet apps
+  if (Platform.OS === "android") {
+    try {
+      // Get file info to get content URI
+      const contentUri = await FileSystem.getContentUriAsync(fileUri);
+
+      // Try to open with intent launcher for spreadsheet apps
+      await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
+        data: contentUri,
+        flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
+        type: "text/csv",
+      });
+    } catch (intentError) {
+      console.warn("No app opened the CSV directly, sharing it instead:", intentError);
+      // If direct opening fails, use share as fallback
+      await Sharing.shareAsync(fileUri, {
+        mimeType: "text/csv",
+        dialogTitle: "Open CSV file with...",
+        UTI: "public.comma-separated-values-text",
+      });
+    }
+  } else if (Platform.OS === "ios") {
+    // On iOS, use share which shows apps that can open CSV files
+    await Sharing.shareAsync(fileUri, {
+      mimeType: "text/csv",
+      dialogTitle: "Open CSV file with...",
+      UTI: "public.comma-separated-values-text",
+    });
+  } else {
+    // Web or other platforms
+    Alert.alert("Export Successful", `File saved to: ${fileUri}`, [{ text: "OK" }]);
+  }
+};
+
+/**
  * Exports piano data to CSV and opens directly in spreadsheet apps
  */
 export const exportPianosToCSV = async (pianos: PianoItem[]): Promise<void> => {
@@ -264,66 +338,11 @@ export const exportPianosToCSV = async (pianos: PianoItem[]): Promise<void> => {
       return;
     }
 
-    // Convert to CSV
-    const csvContent = convertPianosToCSV(pianos);
-
-    // Generate filename with timestamp
-    const timestamp = new Date()
-      .toISOString()
-      .replace(/[:.]/g, "-")
-      .slice(0, -5);
-    const fileName = `pianos_export_${timestamp}.csv`;
-    const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-
-    // Write to file
-    await FileSystem.writeAsStringAsync(fileUri, csvContent, {
-      encoding: FileSystem.EncodingType.UTF8,
-    });
-
-    // Try to open directly in spreadsheet apps
-    if (Platform.OS === "android") {
-      try {
-        // Get file info to get content URI
-        const contentUri = await FileSystem.getContentUriAsync(fileUri);
-
-        // Try to open with intent launcher for spreadsheet apps
-        await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
-          data: contentUri,
-          flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
-          type: "text/csv",
-        });
-      } catch (intentError) {
-        console.warn(
-          "No app opened the CSV directly, sharing it instead:",
-          intentError
-        );
-        // If direct opening fails, use share as fallback
-        await Sharing.shareAsync(fileUri, {
-          mimeType: "text/csv",
-          dialogTitle: "Open CSV file with...",
-          UTI: "public.comma-separated-values-text",
-        });
-      }
-    } else if (Platform.OS === "ios") {
-      // On iOS, use share which shows apps that can open CSV files
-      await Sharing.shareAsync(fileUri, {
-        mimeType: "text/csv",
-        dialogTitle: "Open CSV file with...",
-        UTI: "public.comma-separated-values-text",
-      });
-    } else {
-      // Web or other platforms
-      Alert.alert("Export Successful", `File saved to: ${fileUri}`, [
-        { text: "OK" },
-      ]);
-    }
-  } catch (error) {
-    console.error("Error exporting CSV:", error);
-    Alert.alert(
-      "Export Failed",
-      `Failed to export CSV: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`
+    await saveAndOpenCSV(
+      `pianos_export_${fileTimestamp()}.csv`,
+      convertPianosToCSV(pianos)
     );
+  } catch (error) {
+    reportExportFailure(error);
   }
 };
