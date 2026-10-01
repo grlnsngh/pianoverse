@@ -91,6 +91,57 @@ export const usernameFor = (
   return "Pianoverse user";
 };
 
+/** What Google says about the person that the app uses: the name and the photo. */
+export interface GoogleProfile {
+  name: string | null;
+  picture: string | null;
+}
+
+const text = (value: unknown) =>
+  typeof value === "string" && value.trim() ? value.trim() : null;
+
+/**
+ * Reads Google's answer about the person (`userinfo`). The photo is only taken
+ * if it is a secure address, and either part may be missing. Null when there is
+ * nothing usable in it.
+ */
+export const parseGoogleProfile = (data: unknown): GoogleProfile | null => {
+  if (!data || typeof data !== "object") return null;
+  const { name, picture } = data as Record<string, unknown>;
+  const photo = text(picture);
+  const profile = {
+    name: text(name),
+    picture: photo && /^https:\/\//i.test(photo) ? photo : null,
+  };
+  return profile.name || profile.picture ? profile : null;
+};
+
+/** Google's photo addresses end in a size, `=s96-c`; this asks for a bigger one, sharp on a phone's screen. */
+export const largerGooglePhoto = (url: string, size = 192) =>
+  url.replace(/=s\d+(-c)?$/, `=s${size}-c`);
+
+const isGooglePhoto = (url: string) =>
+  /^https:\/\/[a-z0-9-]+\.googleusercontent\.com\//i.test(url);
+
+/** An avatar the app made for itself (the letters Appwrite draws), or none: nobody chose it. */
+export const isGeneratedAvatar = (avatar: string | null | undefined) =>
+  !avatar || /\/avatars\/initials/i.test(avatar);
+
+/**
+ * What to save as the person's avatar after a sign-in with Google, or null to
+ * leave it. The Google photo replaces letters the app made up and an older
+ * Google photo (so a new one follows), and never a picture from anywhere else.
+ */
+export const avatarToStore = (
+  current: string | null | undefined,
+  picture: string | null | undefined
+): string | null => {
+  if (!picture) return null;
+  const photo = largerGooglePhoto(picture);
+  if (photo === current) return null;
+  return isGeneratedAvatar(current) || isGooglePhoto(current as string) ? photo : null;
+};
+
 const CONNECTION =
   /network request failed|failed to fetch|network error|timed out|could not connect/i;
 

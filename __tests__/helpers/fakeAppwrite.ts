@@ -53,6 +53,7 @@ export const fakeBackend = {
     fakeAccount.deleteSession.mockReset().mockImplementation(deleteSessionAsUsual);
     fakeAccount.createOAuth2Token.mockReset().mockImplementation(googleLoginUrl);
     fakeAccount.createSession.mockReset();
+    fakeAccount.listIdentities.mockReset().mockResolvedValue({ total: 0, identities: [] });
   },
 };
 
@@ -231,7 +232,8 @@ export const fakeAccount: Record<
   | "createEmailPasswordSession"
   | "deleteSession"
   | "createOAuth2Token"
-  | "createSession",
+  | "createSession"
+  | "listIdentities",
   jest.Mock
 > = {
   get: jest.fn(),
@@ -239,6 +241,7 @@ export const fakeAccount: Record<
   deleteSession: jest.fn(deleteSessionAsUsual),
   createOAuth2Token: jest.fn(googleLoginUrl),
   createSession: jest.fn(),
+  listIdentities: jest.fn(() => Promise.resolve({ total: 0, identities: [] })),
 };
 
 /** An error as the SDK throws it: `code` is the HTTP status, 0 when offline. */
@@ -253,6 +256,7 @@ class Account {
   deleteSession = (...args: unknown[]) => fakeAccount.deleteSession(...args);
   createOAuth2Token = (...args: unknown[]) => fakeAccount.createOAuth2Token(...args);
   createSession = (...args: unknown[]) => fakeAccount.createSession(...args);
+  listIdentities = (...args: unknown[]) => fakeAccount.listIdentities(...args);
   createRecovery = jest.fn();
   updateRecovery = jest.fn();
 }

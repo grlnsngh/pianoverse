@@ -1,6 +1,11 @@
 import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
-import { usernameFor } from "@/utils/googleSignIn";
+import {
+  avatarToStore,
+  GoogleProfile,
+  largerGooglePhoto,
+  usernameFor,
+} from "@/utils/googleSignIn";
 import {
   Account,
   Client,
@@ -150,30 +155,71 @@ export async function createSessionFromToken(
 }
 
 /**
+ * The access token Google gave Appwrite when the person signed in with Google,
+ * which Google's own `userinfo` answers to for a minute or so. Null when this
+ * account has no Google sign-in. It is used once, right after signing in, and
+ * is never kept.
+ */
+export async function getGoogleAccessToken(): Promise<string | null> {
+  const { identities } = await account.listIdentities();
+  const google = identities.find((identity) => identity.provider === "google");
+  return google?.providerAccessToken || null;
+}
+
+/**
  * Returns the signed-in person's user document, making one when there is none.
  * Signing in with Google makes the Appwrite account but not this document,
  * which the app looks for everywhere; email sign up makes both.
  *
+ * `profile` is what Google says about the person. A new document gets their
+ * Google name and photo (their initials when there is no photo). One that is
+ * there already keeps its name, and takes the Google photo only in place of
+ * letters the app made up or an older Google photo.
+ *
+ * @param {GoogleProfile | null} profile - The Google name and photo, if they could be read.
  * @returns {Promise<any>} A promise that resolves to the user document.
  * @throws {Error} If Appwrite can't be reached or the document can't be made.
  */
-export async function ensureUserDocument(): Promise<any> {
+export async function ensureUserDocument(
+  profile: GoogleProfile | null = null
+): Promise<any> {
   const existing = await getCurrentUser();
-  if (existing) return existing;
+  if (existing) {
+    const photo = avatarToStore(existing.avatar, profile?.picture);
+    if (!photo) return existing;
+    try {
+      return await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.userCollectionId,
+        existing.$id,
+        { avatar: photo }
+      );
+    } catch (error) {
+      // The photo is a nicety: signing in doesn't depend on it
+      console.warn("Could not save the Google photo:", error);
+      return existing;
+    }
+  }
 
   const current = await account.get();
-  const username = usernameFor(current.name, current.email);
-  return databases.createDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.userCollectionId,
-    ID.unique(),
-    {
-      accountId: current.$id,
-      email: current.email,
-      username,
-      avatar: avatars.getInitials(username),
-    }
-  );
+  const username = usernameFor(profile?.name ?? current.name, current.email);
+  const create = (avatar: unknown) =>
+    databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      ID.unique(),
+      { accountId: current.$id, email: current.email, username, avatar }
+    );
+
+  if (!profile?.picture) return create(avatars.getInitials(username));
+  try {
+    return await create(largerGooglePhoto(profile.picture));
+  } catch (error) {
+    // Say the photo address doesn't fit the column, or anything else about it:
+    // the person still gets an account, with their initials
+    console.warn("Could not save the Google photo, using initials:", error);
+    return create(avatars.getInitials(username));
+  }
 }
 
 /**
