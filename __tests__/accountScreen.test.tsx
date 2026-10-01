@@ -109,6 +109,28 @@ describe("the profile card", () => {
     expect(texts).toContain("grlnsngh@gmail.com");
   });
 
+  it("opens Edit profile when the card is pressed, which says whose it is", async () => {
+    const { renderer } = await renderAccount();
+
+    await pressLabel(renderer.root, "Edit profile, grlnsngh");
+
+    expect(router.push).toHaveBeenCalledWith("/edit-profile");
+    const card = renderer.root.findAll(
+      (node: any) => node.props.accessibilityLabel === "Edit profile, grlnsngh" && typeof node.props.onPress === "function"
+    )[0];
+    expect(card.props.accessibilityRole).toBe("button");
+    expect(card.props.accessibilityHint).toBe("Change your photo or name");
+  });
+
+  it("says Edit profile, User when there is no name", async () => {
+    (useGlobalContext() as any).user.username = "";
+    const { renderer } = await renderAccount();
+
+    expect(
+      renderer.root.findAll((node: any) => node.props.accessibilityLabel === "Edit profile, User")
+    ).not.toHaveLength(0);
+  });
+
   describe("their photo", () => {
     const PHOTO = "https://lh3.googleusercontent.com/a/ACg8ocJxyz123=s192-c";
     const INITIALS = "https://cloud.appwrite.io/v1/avatars/initials?name=grlnsngh&project=66b2693000154e2fa3c8";

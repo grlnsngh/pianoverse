@@ -6,6 +6,7 @@ import {
   largerGooglePhoto,
   usernameFor,
 } from "@/utils/googleSignIn";
+import { markRemoved } from "@/utils/profile";
 import {
   Account,
   Client,
@@ -220,6 +221,34 @@ export async function ensureUserDocument(
     console.warn("Could not save the Google photo, using initials:", error);
     return create(avatars.getInitials(username));
   }
+}
+
+/**
+ * The avatar that says the person chose to have no picture: the letters
+ * Appwrite draws for `username`, marked as removed (see `utils/profile.ts`).
+ */
+export function removedAvatarUrl(username: string): string {
+  return markRemoved(String(avatars.getInitials(username)));
+}
+
+/**
+ * Changes the name or the picture saved on the person's user document.
+ *
+ * @param {string} userDocumentId - The user document's ID.
+ * @param {{ username?: string; avatar?: string }} fields - What to change.
+ * @returns {Promise<any>} A promise that resolves to the updated user document.
+ * @throws {Error} If Appwrite can't be reached or refuses the change.
+ */
+export async function updateUserProfile(
+  userDocumentId: string,
+  fields: { username?: string; avatar?: string }
+): Promise<any> {
+  return databases.updateDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.userCollectionId,
+    userDocumentId,
+    fields
+  );
 }
 
 /**
