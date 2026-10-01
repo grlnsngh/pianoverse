@@ -12,6 +12,7 @@ import {
 } from "@/components/DetailParts";
 import ExtendRentalSheet from "@/components/ExtendRentalSheet";
 import MarkAsSoldSheet from "@/components/MarkAsSoldSheet";
+import PastRentersSection from "@/components/PastRentersSection";
 import PaymentsSection from "@/components/PaymentsSection";
 import PhotoHero from "@/components/PhotoHero";
 import PianoActionsSheet from "@/components/PianoActionsSheet";
@@ -29,6 +30,7 @@ import useUpdatePiano from "@/lib/useUpdatePiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { sendMessage } from "@/utils/contact";
+import { pastRenters } from "@/utils/customers";
 import { formatRupees } from "@/utils/money";
 import { getPianoPhotos } from "@/utils/photos";
 import { isSold } from "@/utils/pianoStatus";
@@ -201,6 +203,11 @@ const DetailScreen = () => {
     [rentPayments],
   );
 
+  const openCustomer = useCallback(
+    (key: string) => router.push(`/customer/${encodeURIComponent(key)}`),
+    [],
+  );
+
   const run = (action: ActionKey) => {
     switch (action) {
       case "recordPayment":
@@ -263,6 +270,10 @@ const DetailScreen = () => {
     );
   const sale = saleRows(piano);
   const primary = primaryAction(piano);
+  const previous =
+    rentable && rentPayments.status === "ready"
+      ? pastRenters(rentPayments.payments, piano)
+      : [];
 
   return (
     <View style={styles.page}>
@@ -334,6 +345,13 @@ const DetailScreen = () => {
                   onDelete={confirmRemovePayment}
                   onReceipt={sendReceipt}
                 />
+              </>
+            )}
+
+            {previous.length > 0 && (
+              <>
+                <Divider />
+                <PastRentersSection renters={previous} onOpen={openCustomer} />
               </>
             )}
 

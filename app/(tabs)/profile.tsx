@@ -204,6 +204,21 @@ const Profile = () => {
           </View>
         </View>
 
+        <Group title="Reports" radius="panel" style={styles.section}>
+          <DataRow
+            icon="chart"
+            title="Income"
+            hint="Rent and sales, month by month"
+            onPress={() => router.push("/income")}
+          />
+          <DataRow
+            icon="tabAccount"
+            title="Customers"
+            hint="Who has rented your pianos, and what they paid"
+            onPress={() => router.push("/customers")}
+          />
+        </Group>
+
         <Group title="Your data" radius="panel" style={styles.section}>
           <DataRow
             icon="download"
