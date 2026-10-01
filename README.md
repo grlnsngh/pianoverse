@@ -16,7 +16,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Three tabs:** Today (what is due, overdue and received), Pianos (grid or list, search, filters, select several) and Account (income, reminders, CSV export, sign out). The design is in `docs/redesign/`.
 - **Cross-platform:** Built for iOS and Android phones in light mode; the app also starts on the web.
 - **Category Management:** Rentable, events, on sale and warehouse pianos, each with their own details.
-- **Rentals:** Due dates with reminders at 9:00 a week before, the day before, on the day, and when overdue. Extend a rental by 1, 3 or 6 months in one tap.
+- **Rentals:** Due dates with reminders at 9:00 a week before, the day before, on the day, and when overdue. Extend a rental by 1, 3 or 6 months in one tap, and mark a piano as **returned** when it comes back: the rental is kept in its history and the piano goes back into stock.
 - **Overdue view:** Today lists rentals that have ended but not been extended, with the rent still to collect.
 - **Rent payments:** Record each payment for a rented piano (amount, date, note) and see what has been received. Press and hold a payment to send its receipt, edit it (the amount, the day, who paid and the note, with Undo) or delete it.
 - **Sales:** Mark a piano as sold with the buyer, price and date; sold pianos leave the stock and can be shown with a filter.
@@ -133,7 +133,7 @@ Rentals that are over are kept in a `rental_history` table (use `rental_history`
 | `price`            | float, optional             |
 | `reason`           | varchar (50), optional      |
 
-Permissions: **Create** for All users only, with **Row level security** on, like `rent_payments`. A row is added when the Edit screen saves a piano whose rental is over: it is rented to someone else, or from a new start date, or taken off the piano, or the piano stops being a rental. Extending a rental, correcting a name or changing the rent or number is the same rental and adds nothing. **Create the table before using this version.** Without it the app still works: the piano is saved and a message says the old rental wasn't kept, and a piano's previous renters come from its payments only. A piano's rentals are deleted with it.
+Permissions: **Create** for All users only, with **Row level security** on, like `rent_payments`. A row is added when the Edit screen saves a piano whose rental is over: it is rented to someone else, or from a new start date, or taken off the piano, or the piano stops being a rental, or it is marked as returned (the reason is then `returned`, and Undo deletes the row again). Extending a rental, correcting a name or changing the rent or number is the same rental and adds nothing. **Create the table before using this version.** Without it the app still works: the piano is saved and a message says the old rental wasn't kept, and a piano's previous renters come from its payments only. A piano's rentals are deleted with it.
 The `pianos` table also needs an `image_urls` column: an array of varchar (size 1000), not required. It holds the link of every photo in the order shown, and `image_url` stays the cover (the first photo). Pianos saved before this column existed simply have one photo. **Create the column before using this version**: creating or editing a piano writes to it, and fails while it is missing.
 
 ### Sign in with Google (one-time setup)

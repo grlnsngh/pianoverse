@@ -143,7 +143,7 @@ describe("the actions", () => {
   });
 
   it("lists the rest at the bottom of the page, without repeating the one in the bar", () => {
-    expect(listActions(rented(10))).toEqual(["extend", "edit", "markSold", "delete"]);
+    expect(listActions(rented(10))).toEqual(["extend", "returned", "edit", "markSold", "delete"]);
     expect(listActions(onSale)).toEqual(["edit", "delete"]);
     expect(listActions(events)).toEqual(["markSold", "delete"]);
     expect(listActions(warehouse)).toEqual(["markSold", "delete"]);
@@ -151,7 +151,7 @@ describe("the actions", () => {
   });
 
   it("gathers all of them for the ⋯ button, the one in the bar first, each once", () => {
-    expect(menuActions(rented(10))).toEqual(["recordPayment", "extend", "edit", "markSold", "delete"]);
+    expect(menuActions(rented(10))).toEqual(["recordPayment", "extend", "returned", "edit", "markSold", "delete"]);
     expect(menuActions(onSale)).toEqual(["markSold", "edit", "delete"]);
     expect(menuActions(events)).toEqual(["edit", "markSold", "delete"]);
     expect(menuActions(sold)).toEqual(["undoSale", "edit", "delete"]);
@@ -167,6 +167,7 @@ describe("the actions", () => {
       recordPayment: "Record payment",
       remind: "Remind customer",
       extend: "Extend rental",
+      returned: "Mark as returned",
       edit: "Edit piano",
       markSold: "Mark as sold",
       undoSale: "Undo sale",
