@@ -18,7 +18,7 @@ Status key: **Open** = waiting for you.
 - **Raised:** Batch 22 (Sign in with Google).
 - **What the app does now (default):** the button is on Sign in and Create account. Until Google is switched on in Appwrite, pressing it ends with the red box "Google sign-in isn’t switched on for Pianoverse yet." The email and password sign in is unchanged.
 - **What to do** (the full steps with the exact names are in the README, "Sign in with Google (one-time setup)"):
-  - In **Google Cloud Console**, in **Google Auth Platform**: press **Get started** (app name Pianoverse, **External**, your email), add your Google account and your staff’s as **Test users** under **Audience** while it is in Testing, then **Clients, Create client** of type **Web application** with the redirect address that Appwrite shows you.
+  - In **Google Cloud Console**, in **Google Auth Platform**: press **Get started** (app name Pianoverse, **External**, your email), add your Google account and your staff’s as **Test users** under **Audience** while it is in Testing, then **Clients, Create client** of type **Web application** with both redirect addresses: the one Appwrite shows you (it may say `fra.cloud.appwrite.io`) **and** `https://cloud.appwrite.io/v1/account/sessions/oauth2/callback/google/66b2693000154e2fa3c8`, which is the one the app really sends. With only the first, Google says `Error 400: redirect_uri_mismatch`.
   - In the **Appwrite Console** (Auth, Social providers, Google): switch **Browser sign-in** on (leave Native sign-in off) and paste the Client ID and Client secret.
   - Make the new build (**1.1.17**, runtime 3). This one cannot go over the air.
 - **Options:**
