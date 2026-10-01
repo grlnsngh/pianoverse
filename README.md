@@ -174,21 +174,25 @@ GitHub Actions runs the lint, the type check and the tests on every pull request
 
 ## Incrementing Version
 
-Do this before **every new build** you install over an older one: Android only accepts an APK whose versionCode is higher than the installed one. (A fix sent as an over-the-air update, below, needs no new version.) To increment the app version and versionCode in app.json:
+Android only accepts an APK whose versionCode is higher than the installed one, so a build you install over an older one needs a higher version. (A fix sent as an over-the-air update, below, needs no new version.) **You don't have to do this yourself:** `npm run build:android` (next section) raises the version and the versionCode in `app.json` when it is needed. It is needed when `last-build.json`, which records the last build made, says the current number was already built; a number that hasn't been built yet is used as it is.
+
+To raise them by hand instead (for example from "1.1.9" to "1.1.10" and versionCode 20 to 21):
 
 ```sh
 npm run plus
 ```
-
-This script updates the version from e.g., "1.1.9" to "1.1.10" and versionCode from 20 to 21.
 
 ## Build for Android Internal Testing
 
 To build the project for Android internal testing (an APK you can install) **on your own computer**:
 
 ```sh
-eas build -p android --profile preview --local
+npm run build:android
 ```
+
+It raises the version first if the current one was already built (see above), runs `eas build -p android --profile preview --local`, and when the build works writes down what was built in `last-build.json`. Then **commit `app.json` and `last-build.json`** (it prints the command), so that `main` matches the build on your phone. If the build fails, the record is not written, so the next run builds the same number again instead of skipping one.
+
+Options go after `--`: `npm run build:android -- --bump` raises the version even when it isn't needed, `-- --no-bump` builds with the version as it is, and anything else (for example `--clear-cache` or `--profile production`) is passed to `eas`. Plain `eas build -p android --profile preview --local` still works, but then the version is yours to raise (`npm run plus`).
 
 The build runs on your machine, not on Expo's servers, so it needs no paid plan; you only have to be logged in to Expo once (`eas login`). Without `--local` the same command builds in Expo's cloud, where the free plan allows a limited number of builds a month. (Expo officially supports local builds on macOS and Linux; on Windows they have worked here, but Expo doesn't test that.) Changes to native settings (`app.json` plugins, splash screen, permissions) and new native modules only reach users through a new build.
 
