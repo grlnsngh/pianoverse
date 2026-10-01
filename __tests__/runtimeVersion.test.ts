@@ -171,6 +171,70 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
       experiments: { typedRoutes: true },
     },
   },
+  "3": {
+    packages: [
+      "@react-native-async-storage/async-storage@1.23.1",
+      "expo@51.0.39",
+      "expo-constants@16.0.2",
+      "expo-dev-client@4.0.21",
+      "expo-file-system@17.0.1",
+      "expo-font@12.0.10",
+      "expo-haptics@13.0.1",
+      "expo-image@1.12.13",
+      "expo-image-manipulator@12.0.5",
+      "expo-image-picker@15.0.7",
+      "expo-intent-launcher@11.0.1",
+      "expo-local-authentication@14.0.1",
+      "expo-notifications@0.28.19",
+      "expo-router@3.5.20",
+      "expo-sharing@12.0.1",
+      "expo-splash-screen@0.27.5",
+      "expo-system-ui@3.0.7",
+      "expo-updates@0.25.28",
+      "expo-web-browser@13.0.3",
+      "react-native@0.74.3",
+      "react-native-gesture-handler@2.16.2",
+      "react-native-reanimated@3.10.1",
+      "react-native-safe-area-context@4.10.5",
+      "react-native-screens@3.31.1",
+      "react-native-svg@15.2.0",
+    ],
+    config: {
+      name: "pianoverse",
+      slug: "pianoverse",
+      orientation: "portrait",
+      icon: "./assets/images/icon.png",
+      scheme: ["pianoverse", "appwrite-callback-66b2693000154e2fa3c8"],
+      userInterfaceStyle: "light",
+      backgroundColor: "#FFFFFF",
+      splash: { backgroundColor: "#FF9C01" },
+      ios: { supportsTablet: true },
+      android: {
+        adaptiveIcon: {
+          foregroundImage: "./assets/images/adaptive-icon.png",
+          backgroundColor: "#ffffff",
+        },
+        package: "com.grlnsngh.pianoverse",
+      },
+      plugins: [
+        "expo-router",
+        [
+          "expo-image-picker",
+          {
+            photosPermission:
+              "Pianoverse uses your photos so you can add pictures of your pianos.",
+            cameraPermission:
+              "Pianoverse uses the camera so you can take pictures of your pianos.",
+          },
+        ],
+        [
+          "expo-local-authentication",
+          { faceIDPermission: "Pianoverse uses Face ID to unlock the app." },
+        ],
+      ],
+      experiments: { typedRoutes: true },
+    },
+  },
 };
 
 describe("the runtime version for over-the-air updates", () => {

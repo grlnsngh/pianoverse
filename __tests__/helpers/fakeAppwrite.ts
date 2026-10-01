@@ -51,6 +51,8 @@ export const fakeBackend = {
     fakeAccount.get.mockReset();
     fakeAccount.createEmailPasswordSession.mockReset();
     fakeAccount.deleteSession.mockReset().mockImplementation(deleteSessionAsUsual);
+    fakeAccount.createOAuth2Token.mockReset().mockImplementation(googleLoginUrl);
+    fakeAccount.createSession.mockReset();
   },
 };
 
@@ -207,6 +209,14 @@ class Storage {
   }
 }
 
+/** The page Appwrite would send the person to for Google, as the SDK builds it. */
+const googleLoginUrl = (provider: string, success?: string, failure?: string) =>
+  new URL(
+    `${ENDPOINT}/account/tokens/oauth2/${provider}?project=test&success=${encodeURIComponent(
+      success ?? ""
+    )}&failure=${encodeURIComponent(failure ?? "")}`
+  );
+
 const deleteSessionAsUsual = async () => {
   if (fakeBackend.signOutError) throw fakeBackend.signOutError;
   return {};
@@ -217,12 +227,18 @@ const deleteSessionAsUsual = async () => {
  * say what they answer (e.g. who is signed in). Reset with the backend.
  */
 export const fakeAccount: Record<
-  "get" | "createEmailPasswordSession" | "deleteSession",
+  | "get"
+  | "createEmailPasswordSession"
+  | "deleteSession"
+  | "createOAuth2Token"
+  | "createSession",
   jest.Mock
 > = {
   get: jest.fn(),
   createEmailPasswordSession: jest.fn(),
   deleteSession: jest.fn(deleteSessionAsUsual),
+  createOAuth2Token: jest.fn(googleLoginUrl),
+  createSession: jest.fn(),
 };
 
 /** An error as the SDK throws it: `code` is the HTTP status, 0 when offline. */
@@ -235,6 +251,8 @@ class Account {
   createEmailPasswordSession = (...args: unknown[]) =>
     fakeAccount.createEmailPasswordSession(...args);
   deleteSession = (...args: unknown[]) => fakeAccount.deleteSession(...args);
+  createOAuth2Token = (...args: unknown[]) => fakeAccount.createOAuth2Token(...args);
+  createSession = (...args: unknown[]) => fakeAccount.createSession(...args);
   createRecovery = jest.fn();
   updateRecovery = jest.fn();
 }
@@ -254,4 +272,5 @@ export const createFakeAppwriteModule = () => ({
   Avatars,
   Query: sdk.Query,
   ID: sdk.ID,
+  OAuthProvider: sdk.OAuthProvider,
 });

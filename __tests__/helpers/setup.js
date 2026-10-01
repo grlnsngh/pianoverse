@@ -14,6 +14,12 @@ jest.mock("expo-updates", () => ({
   reloadAsync: jest.fn(() => Promise.resolve()),
 }));
 
+// The phone's browser, which Google's sign-in opens. By default the person
+// closes it without signing in; a test that needs otherwise changes the answer
+jest.mock("expo-web-browser", () => ({
+  openAuthSessionAsync: jest.fn(() => Promise.resolve({ type: "cancel" })),
+}));
+
 // The phone's fingerprint and screen lock. Every test sees a phone that has one
 // set up and says yes; a test that needs otherwise changes the answers
 jest.mock("expo-local-authentication", () => ({

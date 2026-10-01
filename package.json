@@ -68,7 +68,8 @@
     "redux": "^5.0.1",
     "redux-logger": "^3.0.6",
     "expo-updates": "~0.25.28",
-    "expo-local-authentication": "~14.0.1"
+    "expo-local-authentication": "~14.0.1",
+    "expo-web-browser": "~13.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

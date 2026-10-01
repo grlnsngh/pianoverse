@@ -1,11 +1,13 @@
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import AuthScreen, { AuthError, AuthSwitch } from "@/components/AuthScreen";
+import AuthScreen, { AuthDivider, AuthError, AuthSwitch } from "@/components/AuthScreen";
+import GoogleButton from "@/components/GoogleButton";
 import { Button, Field } from "@/components/ui";
 import { colors, fonts, spacing } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { getCurrentUser, signIn } from "@/lib/appwrite";
+import useGoogleSignIn from "@/lib/useGoogleSignIn";
 import { emailError, signInFailure, signInPasswordError } from "@/utils/authForms";
 import { showToast } from "@/utils/toast";
 
@@ -25,6 +27,8 @@ const SignIn = () => {
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [failure, setFailure] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
+  const google = useGoogleSignIn("/sign-in", setFailure);
+  const working = isSubmitting || google.busy;
   const fields = { email: useRef<TextInput>(null), password: useRef<TextInput>(null) };
 
   const change = (key: Key) => (text: string) => {
@@ -65,7 +69,7 @@ const SignIn = () => {
     <AuthScreen
       title="Welcome back"
       subtitle="Sign in to see your pianos and rentals."
-      busy={isSubmitting}
+      busy={working}
       onBack={() => (router.canGoBack?.() ? router.back() : router.replace("/"))}
       footer={
         <AuthSwitch
@@ -85,7 +89,7 @@ const SignIn = () => {
           onChangeText={change("email")}
           onBlur={leave("email")}
           error={errors.email}
-          disabled={isSubmitting}
+          disabled={working}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
@@ -102,7 +106,7 @@ const SignIn = () => {
           onChangeText={change("password")}
           onBlur={leave("password")}
           error={errors.password}
-          disabled={isSubmitting}
+          disabled={working}
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}
@@ -134,9 +138,13 @@ const SignIn = () => {
         title="Sign in"
         loading={isSubmitting}
         loadingTitle="Signing in"
+        disabled={google.busy}
         onPress={submit}
         style={styles.button}
       />
+
+      <AuthDivider />
+      <GoogleButton onPress={google.start} loading={google.busy} disabled={isSubmitting} />
     </AuthScreen>
   );
 };

@@ -1,11 +1,13 @@
 import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
+import { usernameFor } from "@/utils/googleSignIn";
 import {
   Account,
   Client,
   ID,
   Avatars,
   Databases,
+  OAuthProvider,
   Query,
   Storage,
 } from "react-native-appwrite";
@@ -105,6 +107,73 @@ export async function signIn(email: string, password: string): Promise<any> {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(errorMessage);
   }
+}
+
+/**
+ * The Google page to open to sign in. Appwrite sends the person back to
+ * `redirect` (on success or failure) with a one-time token, which
+ * `createSessionFromToken` turns into a session. The token way works in a phone
+ * app, where the cookie way of createOAuth2Session doesn't.
+ *
+ * @param {string} redirect - The address that opens this app again.
+ * @returns {string} The address of the Google login page.
+ */
+export function getGoogleLoginUrl(redirect: string): string {
+  const url = account.createOAuth2Token(OAuthProvider.Google, redirect, redirect);
+  if (!url) throw new Error("Couldn’t start Google sign-in.");
+  return url.toString();
+}
+
+/**
+ * Signs in with the token Appwrite sent back after Google signed the person in.
+ *
+ * @param {string} userId - The account Google's sign-in belongs to.
+ * @param {string} secret - The one-time token.
+ * @returns {Promise<any>} A promise that resolves to the session.
+ * @throws {Error} If the token is wrong or has been used.
+ */
+export async function createSessionFromToken(
+  userId: string,
+  secret: string
+): Promise<any> {
+  try {
+    return await account.createSession(userId, secret);
+  } catch (error) {
+    // A session left from before blocks a new one, so end it and try again
+    if ((error as { type?: string })?.type === "user_session_already_exists") {
+      await account.deleteSession("current").catch(() => {});
+      return account.createSession(userId, secret);
+    }
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(errorMessage);
+  }
+}
+
+/**
+ * Returns the signed-in person's user document, making one when there is none.
+ * Signing in with Google makes the Appwrite account but not this document,
+ * which the app looks for everywhere; email sign up makes both.
+ *
+ * @returns {Promise<any>} A promise that resolves to the user document.
+ * @throws {Error} If Appwrite can't be reached or the document can't be made.
+ */
+export async function ensureUserDocument(): Promise<any> {
+  const existing = await getCurrentUser();
+  if (existing) return existing;
+
+  const current = await account.get();
+  const username = usernameFor(current.name, current.email);
+  return databases.createDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.userCollectionId,
+    ID.unique(),
+    {
+      accountId: current.$id,
+      email: current.email,
+      username,
+      avatar: avatars.getInitials(username),
+    }
+  );
 }
 
 /**
