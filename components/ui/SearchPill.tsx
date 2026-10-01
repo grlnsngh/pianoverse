@@ -1,7 +1,8 @@
 import React from "react";
-import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import { colors, fonts, shadows, type } from "@/constants/theme";
+import { Pressable, StyleProp, Text, View, ViewStyle } from "react-native";
+import { fonts, shadows, type } from "@/constants/theme";
 import Icon from "./Icon";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const HEIGHT = 52;
 const FILTER_SIZE = 40;
@@ -29,6 +30,8 @@ const SearchPill = ({
   style,
   testID,
 }: SearchPillProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const withFilter = !!onFilterPress;
 
   return (
@@ -77,7 +80,7 @@ const SearchPill = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   pill: {
     height: HEIGHT,
     flexDirection: "row",
@@ -85,7 +88,7 @@ const styles = StyleSheet.create({
     borderRadius: HEIGHT / 2,
     borderWidth: 1,
     borderColor: colors.hairline,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     ...shadows.searchPill,
   },
   pillWithFilter: { gap: 6, paddingLeft: 4, paddingRight: 6 },
@@ -121,9 +124,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.brand,
     borderWidth: 2,
-    borderColor: colors.white,
+    borderColor: colors.surface,
   },
-  countText: { fontFamily: fonts.bold, fontSize: 10, lineHeight: 12, color: colors.ink },
-});
+  countText: { fontFamily: fonts.bold, fontSize: 10, lineHeight: 12, color: colors.onBrand },
+}));
 
 export default React.memo(SearchPill);

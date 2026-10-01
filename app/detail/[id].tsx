@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, ScrollView, Share, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, Share, Text, View } from "react-native";
 import { useSelector } from "react-redux";
 import { router, useLocalSearchParams } from "expo-router";
 import DetailSkeleton from "@/components/DetailSkeleton";
@@ -22,7 +22,7 @@ import RecordPaymentSheet from "@/components/RecordPaymentSheet";
 import RentalSection from "@/components/RentalSection";
 import StickyActionBar from "@/components/StickyActionBar";
 import { Button, ScreenEntrance, useSkeletonDelay } from "@/components/ui";
-import { colors, fonts, type } from "@/constants/theme";
+import { fonts, type } from "@/constants/theme";
 import { PIANO_CATEGORY } from "@/constants/Piano";
 import type { RentPayment } from "@/lib/appwrite";
 import { usePianoData } from "@/lib/PianoDataContext";
@@ -62,6 +62,7 @@ import {
 } from "@/utils/reminders";
 import { rentBalance } from "@/utils/rentDue";
 import { buildShareMessage } from "@/utils/share";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 // The ⋯ sheet takes 240 ms to leave; what it chose runs after that, so the
 // sheet or dialog it opens isn't started under a sheet that is still going
@@ -79,6 +80,8 @@ const goBack = () => {
  * actions as a list, and one main action in the bar at the bottom.
  */
 const DetailScreen = () => {
+  const styles = useStyles();
+  const colors = useColors();
   const { id } = useLocalSearchParams();
   const pianosList = useSelector((state: RootState) => state.pianos.items);
   const { status: pianoLoad } = usePianoData();
@@ -323,12 +326,12 @@ const DetailScreen = () => {
                   <View
                     style={[
                       styles.dot,
-                      { backgroundColor: toneColor(status.tone) },
+                      { backgroundColor: toneColor(status.tone, colors) },
                     ]}
                   />
                 )}
                 <Text
-                  style={[styles.statusText, { color: toneColor(status.tone) }]}
+                  style={[styles.statusText, { color: toneColor(status.tone, colors) }]}
                 >
                   {status.text}
                 </Text>
@@ -454,8 +457,8 @@ const DetailScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+const useStyles = makeStyles((colors) => ({
+  page: { flex: 1, backgroundColor: colors.surface },
   grow: { flex: 1 },
   scroll: { paddingBottom: 24 },
   // Rises over the bottom of the photo, with rounded top corners
@@ -465,7 +468,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   title: { ...type.pianoTitle, color: colors.ink },
   meta: { ...type.secondary, marginTop: 2, color: colors.ink2 },
@@ -482,6 +485,6 @@ const styles = StyleSheet.create({
   missing: { alignItems: "center", justifyContent: "center" },
   missingTitle: { ...type.rowTitle, fontSize: 18, color: colors.ink },
   missingButton: { marginTop: 16, width: 128 },
-});
+}));
 
 export default DetailScreen;

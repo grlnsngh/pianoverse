@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { addDays, addMonths, format, startOfToday } from "date-fns";
 import { Button, DatePickerSheet, Group, Icon, Sheet } from "@/components/ui";
-import { colors, fonts, type } from "@/constants/theme";
+import { fonts, type } from "@/constants/theme";
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate, toStoredDate } from "@/utils/dates";
 import { getPianoRentalState } from "@/utils/pianoStatus";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 interface ExtendRentalSheetProps {
   piano: PianoItem;
@@ -33,6 +34,8 @@ const ExtendRentalSheet: React.FC<ExtendRentalSheetProps> = ({
   visible,
   onClose,
 }) => {
+  const colors = useColors();
+  const styles = useStyles();
   const updatePiano = useUpdatePiano();
   const [choice, setChoice] = useState<Choice>(DEFAULT_CHOICE);
   const [choosingDate, setChoosingDate] = useState(false);
@@ -128,7 +131,7 @@ const ExtendRentalSheet: React.FC<ExtendRentalSheetProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   explain: { ...type.secondary, textAlign: "center", color: colors.ink2 },
   group: { marginTop: 20 },
   option: {
@@ -143,6 +146,6 @@ const styles = StyleSheet.create({
   optionLabel: { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22, color: colors.ink },
   optionUntil: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
   bottom: { height: 8 },
-});
+}));
 
 export default ExtendRentalSheet;

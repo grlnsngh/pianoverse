@@ -21,7 +21,8 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ToastHost from "@/components/ToastHost";
 import useReducedMotion from "@/lib/useReducedMotion";
-import { bottomBar, colors, motion, radii, spacing, type } from "@/constants/theme";
+import { bottomBar, motion, radii, spacing, type } from "@/constants/theme";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 /** Dragging the header down further than this lets go of the sheet */
 const DISMISS_DRAG = 100;
@@ -69,6 +70,8 @@ const Sheet = ({
   children,
   testID,
 }: SheetProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -188,7 +191,7 @@ const Sheet = ({
             style={[
               styles.sheet,
               {
-                backgroundColor: tone === "grouped" ? colors.grouped : colors.white,
+                backgroundColor: tone === "grouped" ? colors.grouped : colors.surface,
                 // A tall sheet gives way to the keyboard rather than run off the top
                 ...(tall
                   ? { height: windowHeight * MAX_HEIGHT_SHARE, maxHeight: "100%" }
@@ -253,7 +256,7 @@ const Sheet = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   fill: { flex: 1 },
   dim: { backgroundColor: colors.dim },
   bottom: { flex: 1, justifyContent: "flex-end" },
@@ -292,6 +295,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingHorizontal: spacing.screen,
   },
-});
+}));
 
 export default Sheet;

@@ -1,10 +1,10 @@
-import { colors } from "@/constants/theme";
+import { darkColors, lightColors as colors } from "@/constants/theme";
 import { getRemainingPeriod, getRentalState } from "@/utils/dates";
 import {
   getPianoRentalStatus,
   getRentalStatus,
   isEndingSoon,
-  STATUS_TONE_COLORS,
+  statusToneColor,
 } from "@/utils/rentalStatus";
 import { makePiano } from "./helpers/fixtures";
 
@@ -148,13 +148,15 @@ describe("a piano's status", () => {
 
 describe("status colours", () => {
   it("are red for late, orange text for ending soon and grey for the rest", () => {
-    expect(STATUS_TONE_COLORS).toEqual({
-      late: "#C4321C",
-      soon: "#A85D00",
-      normal: "#6B665D",
-    });
-    expect(STATUS_TONE_COLORS.late).toBe(colors.late);
-    expect(STATUS_TONE_COLORS.soon).toBe(colors.brandText);
-    expect(STATUS_TONE_COLORS.normal).toBe(colors.ink2);
+    expect(statusToneColor("late", colors)).toBe("#C4321C");
+    expect(statusToneColor("soon", colors)).toBe("#A85D00");
+    expect(statusToneColor("normal", colors)).toBe("#6B665D");
+  });
+
+  it("follow the theme: the same three roles, lightened for the dark one", () => {
+    expect(statusToneColor("late", darkColors)).toBe(darkColors.late);
+    expect(statusToneColor("soon", darkColors)).toBe(darkColors.brandText);
+    expect(statusToneColor("normal", darkColors)).toBe(darkColors.ink2);
+    expect(statusToneColor("late", darkColors)).not.toBe(statusToneColor("late", colors));
   });
 });

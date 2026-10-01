@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
+import { Pressable, StyleProp, ViewStyle } from "react-native";
 import Animated, {
   Easing,
   interpolateColor,
@@ -8,7 +8,8 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import useReducedMotion from "@/lib/useReducedMotion";
-import { colors, motion } from "@/constants/theme";
+import { motion } from "@/constants/theme";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const WIDTH = 51;
 const HEIGHT = 31;
@@ -39,6 +40,8 @@ const Switch = ({
   style,
   testID,
 }: SwitchProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const reduced = useReducedMotion();
   // 0 is off, 1 is on. Starts where it should be, so it doesn't animate on mount.
   const position = useSharedValue(value ? 1 : 0);
@@ -87,7 +90,7 @@ const Switch = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   track: {
     width: WIDTH,
     height: HEIGHT,
@@ -102,6 +105,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   disabled: { opacity: 0.4 },
-});
+}));
 
 export default React.memo(Switch);

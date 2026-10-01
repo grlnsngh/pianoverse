@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,7 +19,7 @@ import PianoBasicsFields from "@/components/PianoBasicsFields";
 import PianoCategoryFields from "@/components/PianoCategoryFields";
 import PianoPhotoField from "@/components/PianoPhotoField";
 import { Button, StepTransition } from "@/components/ui";
-import { colors, spacing } from "@/constants/theme";
+import { spacing } from "@/constants/theme";
 import usePianoPhotos from "@/lib/usePianoPhotos";
 import { RootState } from "@/redux/store";
 import { AddStep, setAddStepListener } from "@/utils/addFlow";
@@ -33,6 +32,7 @@ import {
   parsePianoForm,
   PianoFormState,
 } from "@/utils/pianoForm";
+import { makeStyles } from "@/lib/ThemeContext";
 
 const HEADINGS: Record<AddStep, { title: string; subtitle: string }> = {
   1: { title: "About the piano", subtitle: "You can change anything later." },
@@ -49,6 +49,7 @@ const HEADINGS: Record<AddStep, { title: string; subtitle: string }> = {
  * keeps what was typed while the review is open.
  */
 const Create = () => {
+  const styles = useStyles();
   const params = useLocalSearchParams();
   const navigation = useNavigation();
   const store = useStore<RootState>();
@@ -209,12 +210,12 @@ const Create = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.grouped },
   content: { paddingBottom: spacing.xxl },
   fields: { paddingHorizontal: spacing.screen, marginTop: spacing.xl },
   back: { width: 104 },
   primary: { flex: 1 },
-});
+}));
 
 export default Create;

@@ -2,7 +2,8 @@ import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BrandMark, Button } from "@/components/ui";
-import { colors, spacing, type } from "@/constants/theme";
+import { spacing, type } from "@/constants/theme";
+import { makeStyles } from "@/lib/ThemeContext";
 
 /**
  * What covers the app while it is locked: the mark, a line saying so, and an
@@ -19,6 +20,7 @@ const LockScreen = ({
   /** Asks the phone to check the person */
   onUnlock: () => void;
 }) => {
+  const styles = useStyles();
   useEffect(() => {
     onUnlock();
     // Asks once each time the lock comes up
@@ -52,7 +54,7 @@ const LockScreen = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   page: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.page },
   center: {
     flex: 1,
@@ -79,6 +81,6 @@ const styles = StyleSheet.create({
     color: colors.late,
   },
   bottom: { paddingHorizontal: 24, paddingBottom: 28 },
-});
+}));
 
 export default LockScreen;

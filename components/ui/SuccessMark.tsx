@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleProp, StyleSheet, ViewStyle } from "react-native";
+import { StyleProp, ViewStyle } from "react-native";
 import Animated, {
   Easing,
   useAnimatedProps,
@@ -10,7 +10,8 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 import useReducedMotion from "@/lib/useReducedMotion";
-import { colors, motion } from "@/constants/theme";
+import { motion } from "@/constants/theme";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -29,6 +30,8 @@ export type SuccessMarkProps = {
  * check is drawn. With reduced motion it simply appears.
  */
 const SuccessMark = ({ style, testID }: SuccessMarkProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const reduced = useReducedMotion();
   const pop = useSharedValue(reduced ? 1 : 0);
   const draw = useSharedValue(reduced ? 1 : 0);
@@ -68,7 +71,7 @@ const SuccessMark = ({ style, testID }: SuccessMarkProps) => {
       <Svg width={48} height={48} viewBox="0 0 24 24" fill="none">
         <AnimatedPath
           d="m5 12.5 4.5 4.5L19 7.5"
-          stroke={colors.ink}
+          stroke={colors.onBrand}
           strokeWidth={2.4}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -80,7 +83,7 @@ const SuccessMark = ({ style, testID }: SuccessMarkProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   circle: {
     width: SIZE,
     height: SIZE,
@@ -89,6 +92,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.brand,
   },
-});
+}));
 
 export default SuccessMark;

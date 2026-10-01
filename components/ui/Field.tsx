@@ -11,8 +11,9 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { colors, fonts, radii, type } from "@/constants/theme";
+import { fonts, radii, type } from "@/constants/theme";
 import Icon from "./Icon";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const HEIGHT = 60;
 const ERROR_ICON_SIZE = 14;
@@ -50,6 +51,8 @@ const Field = forwardRef<TextInput, FieldProps>(function Field(
   },
   forwardedRef
 ) {
+  const colors = useColors();
+  const styles = useStyles();
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const localRef = useRef<TextInput | null>(null);
@@ -145,7 +148,7 @@ const Field = forwardRef<TextInput, FieldProps>(function Field(
   );
 });
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   box: {
     height: HEIGHT,
     flexDirection: "row",
@@ -185,6 +188,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   errorText: { ...type.caption, flexShrink: 1, color: colors.late },
-});
+}));
 
 export default Field;

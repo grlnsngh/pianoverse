@@ -1,13 +1,14 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
 import {
   clearSelectedItems,
   selectAllItems,
   setBulkSelectionMode,
 } from "@/redux/pianos/actions";
 import { RootState } from "@/redux/store";
+import { makeStyles } from "@/lib/ThemeContext";
 
 /**
  * The bar at the top of the Pianos tab while choosing pianos: Cancel, how many
@@ -15,6 +16,7 @@ import { RootState } from "@/redux/store";
  * takes the place of the search field and the tabs.
  */
 const SelectionHeader = () => {
+  const styles = useStyles();
   const dispatch = useDispatch();
   const { selectedItems, filteredItems } = useSelector(
     (state: RootState) => state.pianos,
@@ -67,7 +69,7 @@ const SelectionHeader = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   bar: {
     height: 56,
     flexDirection: "row",
@@ -97,6 +99,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: { ...type.sheetTitle, color: colors.ink },
-});
+}));
 
 export default SelectionHeader;

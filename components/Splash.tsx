@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -7,8 +7,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { BrandMark, KeysLoader } from "@/components/ui";
-import { colors, fonts, motion } from "@/constants/theme";
+import { fonts, motion } from "@/constants/theme";
 import useReducedMotion from "@/lib/useReducedMotion";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 /** The logo starts this much smaller and grows to full size as it fades in */
 const START_SCALE = 0.88;
@@ -20,6 +21,8 @@ const START_SCALE = 0.88;
  * before this. With reduced motion the logo is simply there.
  */
 const Splash = () => {
+  const styles = useStyles();
+  const colors = useColors();
   const reduced = useReducedMotion();
   const progress = useSharedValue(reduced ? 1 : 0);
 
@@ -45,13 +48,13 @@ const Splash = () => {
       </Animated.View>
 
       <View style={styles.loader}>
-        <KeysLoader size={32} accent={null} accessibilityLabel="Loading" />
+        <KeysLoader size={32} color={colors.onBrand} accent={null} accessibilityLabel="Loading" />
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: {
     flex: 1,
     alignItems: "center",
@@ -66,10 +69,10 @@ const styles = StyleSheet.create({
     fontSize: 34,
     lineHeight: 40,
     letterSpacing: -0.85,
-    color: colors.ink,
+    color: colors.onBrand,
   },
   // 172 above the bottom of the board's 844 px screen
   loader: { position: "absolute", left: 0, right: 0, bottom: 172, alignItems: "center" },
-});
+}));
 
 export default Splash;

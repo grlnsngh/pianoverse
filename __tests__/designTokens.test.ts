@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import {
-  colors,
+  lightColors as colors,
   fonts,
   motion,
   pianoPalettes,

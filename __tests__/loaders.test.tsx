@@ -3,7 +3,7 @@ import { AccessibilityInfo, Text } from "react-native";
 import Svg, { Circle, Path, Rect, Stop } from "react-native-svg";
 import { act } from "react-test-renderer";
 import { KeysLoader, Skeleton, Spinner, useSkeletonDelay } from "@/components/ui";
-import { colors } from "@/constants/theme";
+import { lightColors as colors } from "@/constants/theme";
 import {
   advance,
   animatedStyleOf,

@@ -3,15 +3,15 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import * as Updates from "expo-updates";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import ExportPaymentsSheet from "@/components/ExportPaymentsSheet";
 import ReminderPreview, { SAMPLE_REMINDER } from "@/components/ReminderPreview";
 import SignOutSheet from "@/components/SignOutSheet";
-import { Group, Icon, Spinner, Switch } from "@/components/ui";
+import { Group, Icon, Segmented, Spinner, Switch } from "@/components/ui";
 import type { IconName } from "@/components/ui";
-import { colors, fonts, radii, spacing, type } from "@/constants/theme";
+import { fonts, radii, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { useAppLock } from "@/lib/AppLockContext";
 import { signOut } from "@/lib/appwrite";
@@ -29,6 +29,13 @@ import { ExportPeriod, exportPeriods } from "@/utils/exportPeriods";
 import { showDialog } from "@/utils/dialog";
 import { showToast } from "@/utils/toast";
 import { stockCounts } from "@/utils/today";
+import { makeStyles, useColors, useTheme } from "@/lib/ThemeContext";
+import { APPEARANCE_LABELS, APPEARANCE_SETTINGS } from "@/utils/appearance";
+
+const THEME_OPTIONS = APPEARANCE_SETTINGS.map((value) => ({
+  value,
+  label: APPEARANCE_LABELS[value],
+}));
 
 const CountCell = ({
   value,
@@ -38,16 +45,19 @@ const CountCell = ({
   value: number;
   label: string;
   last?: boolean;
-}) => (
-  <View
-    accessible
-    accessibilityLabel={`${label}, ${value}`}
-    style={[styles.count, !last && styles.countDivider]}
-  >
-    <Text style={styles.countValue}>{value}</Text>
-    <Text style={styles.countLabel}>{label}</Text>
-  </View>
-);
+}) => {
+  const styles = useStyles();
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${label}, ${value}`}
+      style={[styles.count, !last && styles.countDivider]}
+    >
+      <Text style={styles.countValue}>{value}</Text>
+      <Text style={styles.countLabel}>{label}</Text>
+    </View>
+  );
+};
 
 /** A row of "Your data": an icon, what it is, and a hint, then a chevron or a value. */
 const DataRow = ({
@@ -69,6 +79,8 @@ const DataRow = ({
   /** Something else is working: it can't be pressed, with nothing to show for it */
   locked?: boolean;
 }) => {
+  const colors = useColors();
+  const styles = useStyles();
   const body = (
     <>
       <Icon name={icon} size={24} color={colors.ink} />
@@ -106,6 +118,8 @@ const DataRow = ({
  * when this phone's copy was last updated), what the reminders are, and Sign out.
  */
 const Profile = () => {
+  const colors = useColors();
+  const styles = useStyles();
   const dispatch = useDispatch();
   const { user, setUser, setIsLogged } = useGlobalContext();
   const items = useSelector((state: RootState) => state.pianos.items);
@@ -130,6 +144,7 @@ const Profile = () => {
   // The photo that couldn't be loaded, so the initial shows instead of an empty circle
   const [brokenPhoto, setBrokenPhoto] = useState<string | null>(null);
   const appLock = useAppLock();
+  const theme = useTheme();
 
   const counts = stockCounts(items);
   const since = memberSince(user?.$createdAt);
@@ -310,6 +325,24 @@ const Profile = () => {
           />
         </Group>
 
+        <Group title="Appearance" radius="panel" style={styles.section}>
+          <View style={styles.themeRow}>
+            <View style={styles.themeHead}>
+              <Icon name="moon" size={24} color={colors.ink} />
+              <View style={styles.rowText}>
+                <Text style={styles.rowTitle}>Theme</Text>
+                <Text style={styles.rowHint}>Light, dark, or the same as your phone</Text>
+              </View>
+            </View>
+            <Segmented
+              options={THEME_OPTIONS}
+              value={theme.setting}
+              onChange={theme.setSetting}
+              accessibilityLabel="Theme"
+            />
+          </View>
+        </Group>
+
         <Group title="Security" radius="panel" style={styles.section}>
           <View style={styles.dataRow}>
             <Icon name="lock" size={24} color={colors.ink} />
@@ -381,14 +414,14 @@ const Profile = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.grouped },
   content: { paddingHorizontal: spacing.screen, paddingBottom: spacing.xxl },
   title: { ...type.largeTitle, paddingTop: spacing.xl, color: colors.ink },
   card: {
     marginTop: spacing.xl,
     borderRadius: radii.panel,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     overflow: "hidden",
   },
   who: {
@@ -410,7 +443,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand,
   },
   photo: { width: 64, height: 64 },
-  initial: { fontFamily: fonts.bold, fontSize: 28, color: colors.ink },
+  initial: { fontFamily: fonts.bold, fontSize: 28, color: colors.onBrand },
   whoText: { flex: 1, minWidth: 0 },
   name: {
     fontFamily: fonts.bold,
@@ -451,6 +484,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   pressed: { backgroundColor: colors.grouped },
+  themeRow: { gap: spacing.md, padding: spacing.lg },
+  themeHead: { flexDirection: "row", alignItems: "center", gap: 14 },
   rowText: { flex: 1 },
   rowTitle: { ...type.rowTitle, color: colors.ink },
   rowHint: { ...type.caption, fontFamily: fonts.regular, color: colors.ink2 },
@@ -458,7 +493,7 @@ const styles = StyleSheet.create({
   reminders: {
     padding: spacing.lg,
     borderRadius: radii.panel,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   reminderHead: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   reminderTitle: { ...type.rowTitle, color: colors.ink },
@@ -472,7 +507,7 @@ const styles = StyleSheet.create({
   },
   signOutCard: {
     borderRadius: radii.panel,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     overflow: "hidden",
   },
   signOut: {
@@ -490,6 +525,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: colors.ink2,
   },
-});
+}));
 
 export default Profile;

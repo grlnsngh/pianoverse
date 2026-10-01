@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text } from "react-native";
 import { ReactTestRenderer } from "react-test-renderer";
 import { Button } from "@/components/ui";
 import Spinner from "@/components/ui/Spinner";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import { findAllMemo, mount } from "./helpers/ui";
 
 type Props = Partial<React.ComponentProps<typeof Button>>;

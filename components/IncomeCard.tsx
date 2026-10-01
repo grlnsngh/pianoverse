@@ -1,8 +1,9 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import IncomeChart from "@/components/IncomeChart";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
 import { MonthIncome, noIncome, sofarLine } from "@/utils/income";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 export type IncomeCardProps = {
   months: MonthIncome[];
@@ -14,24 +15,28 @@ export type IncomeCardProps = {
 };
 
 /** The two colours of the bars, named under the chart. */
-export const IncomeLegend = () => (
-  <View
-    style={styles.legend}
-    accessibilityElementsHidden
-    importantForAccessibility="no-hide-descendants"
-  >
-    <View style={styles.key}>
-      <View style={[styles.swatch, { backgroundColor: colors.ink }]} />
-      <Text style={styles.keyText}>Rent received</Text>
+export const IncomeLegend = () => {
+  const colors = useColors();
+  const styles = useStyles();
+  return (
+    <View
+      style={styles.legend}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      <View style={styles.key}>
+        <View style={[styles.swatch, { backgroundColor: colors.ink }]} />
+        <Text style={styles.keyText}>Rent received</Text>
+      </View>
+      <View style={styles.key}>
+        <View
+          style={[styles.swatch, styles.dot, { backgroundColor: colors.brand }]}
+        />
+        <Text style={styles.keyText}>Piano sold</Text>
+      </View>
     </View>
-    <View style={styles.key}>
-      <View
-        style={[styles.swatch, styles.dot, { backgroundColor: colors.brand }]}
-      />
-      <Text style={styles.keyText}>Piano sold</Text>
-    </View>
-  </View>
-);
+  );
+};
 
 /**
  * Today's Income section: the last six months as bars, what this month has
@@ -40,6 +45,7 @@ export const IncomeLegend = () => (
  * it says so in a line (pulling Today down tries again).
  */
 const IncomeCard = ({ months, loaded, failed, onSeeAll }: IncomeCardProps) => {
+  const styles = useStyles();
   if (!loaded) return null;
   const empty = noIncome(months);
   const line = sofarLine(months);
@@ -82,7 +88,7 @@ const IncomeCard = ({ months, loaded, failed, onSeeAll }: IncomeCardProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   header: {
     flexDirection: "row",
     alignItems: "baseline",
@@ -110,6 +116,6 @@ const styles = StyleSheet.create({
     color: colors.ink2,
     fontVariant: ["tabular-nums"],
   },
-});
+}));
 
 export default IncomeCard;

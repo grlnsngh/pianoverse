@@ -1,7 +1,8 @@
 import React from "react";
-import { Linking, StyleSheet, Text, View } from "react-native";
+import { Linking, Text, View } from "react-native";
 import { Button, Icon, Sheet } from "@/components/ui";
-import { colors, fonts, spacing } from "@/constants/theme";
+import { fonts, spacing } from "@/constants/theme";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 type CameraDeniedSheetProps = {
   visible: boolean;
@@ -21,42 +22,46 @@ const CameraDeniedSheet = ({
   onClose,
   onChooseFromGallery,
   message = "Allow camera access in Settings to take photos of your pianos. You can also choose photos from your gallery.",
-}: CameraDeniedSheetProps) => (
-  <Sheet
-    visible={visible}
-    onClose={onClose}
-    tone="white"
-    testID="camera-denied-sheet"
-    footer={
-      <View style={styles.buttons}>
-        <Button
-          title="Open Settings"
-          onPress={() => {
-            onClose();
-            Linking.openSettings().catch(() => {});
-          }}
-        />
-        <Button
-          title="Choose from gallery"
-          variant="secondary"
-          onPress={onChooseFromGallery}
-        />
+}: CameraDeniedSheetProps) => {
+  const colors = useColors();
+  const styles = useStyles();
+  return (
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      tone="white"
+      testID="camera-denied-sheet"
+      footer={
+        <View style={styles.buttons}>
+          <Button
+            title="Open Settings"
+            onPress={() => {
+              onClose();
+              Linking.openSettings().catch(() => {});
+            }}
+          />
+          <Button
+            title="Choose from gallery"
+            variant="secondary"
+            onPress={onChooseFromGallery}
+          />
+        </View>
+      }
+    >
+      <View style={styles.body}>
+        <View style={styles.circle}>
+          <Icon name="cameraOff" size={30} color={colors.ink} />
+        </View>
+        <Text style={styles.title} accessibilityRole="header">
+          Camera access is off
+        </Text>
+        <Text style={styles.message}>{message}</Text>
       </View>
-    }
-  >
-    <View style={styles.body}>
-      <View style={styles.circle}>
-        <Icon name="cameraOff" size={30} color={colors.ink} />
-      </View>
-      <Text style={styles.title} accessibilityRole="header">
-        Camera access is off
-      </Text>
-      <Text style={styles.message}>{message}</Text>
-    </View>
-  </Sheet>
-);
+    </Sheet>
+  );
+};
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   body: {
     alignItems: "center",
     paddingTop: spacing.lg,
@@ -89,6 +94,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   buttons: { gap: 10 },
-});
+}));
 
 export default CameraDeniedSheet;

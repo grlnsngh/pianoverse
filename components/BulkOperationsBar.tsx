@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -11,8 +11,9 @@ import {
 import { deleteMultiplePianoEntries } from "@/lib/appwrite";
 import { cancelRentalNotification } from "@/services/notifications";
 import { Button, Dialog } from "@/components/ui";
-import { colors, spacing } from "@/constants/theme";
+import { spacing } from "@/constants/theme";
 import { showToast } from "@/utils/toast";
+import { makeStyles } from "@/lib/ThemeContext";
 
 interface BulkOperationsBarProps {
   onRefresh: () => void;
@@ -27,6 +28,7 @@ const pianos = (count: number) =>
  * many.
  */
 const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
+  const styles = useStyles();
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   const { selectedItems, filteredItems, isBulkSelectionMode } = useSelector(
@@ -120,7 +122,7 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   bar: {
     paddingTop: spacing.md,
     paddingHorizontal: spacing.screen,
@@ -128,6 +130,6 @@ const styles = StyleSheet.create({
     borderTopColor: colors.hairline,
     backgroundColor: colors.page,
   },
-});
+}));
 
 export default BulkOperationsBar;

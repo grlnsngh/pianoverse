@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet } from "react-native";
 import TodaySkeleton from "@/components/TodaySkeleton";
-import { colors } from "@/constants/theme";
+import { lightColors as colors } from "@/constants/theme";
 import { mount } from "./helpers/ui";
 
 const flat = (style: unknown) => StyleSheet.flatten(style as any);

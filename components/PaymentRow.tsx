@@ -1,8 +1,9 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { colors, fonts } from "@/constants/theme";
+import { Text, View } from "react-native";
+import { fonts } from "@/constants/theme";
 import { formatRupees } from "@/utils/money";
 import type { RecentPayment } from "@/utils/today";
+import { makeStyles } from "@/lib/ThemeContext";
 
 export type PaymentRowProps = {
   payment: RecentPayment;
@@ -14,6 +15,7 @@ export type PaymentRowProps = {
  * opens from it.
  */
 const PaymentRow = ({ payment }: PaymentRowProps) => {
+  const styles = useStyles();
   const amount = formatRupees(payment.amount);
 
   return (
@@ -37,7 +39,7 @@ const PaymentRow = ({ payment }: PaymentRowProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: { paddingLeft: 20 },
   content: {
     flexDirection: "row",
@@ -58,6 +60,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontVariant: ["tabular-nums"],
   },
-});
+}));
 
 export default React.memo(PaymentRow);

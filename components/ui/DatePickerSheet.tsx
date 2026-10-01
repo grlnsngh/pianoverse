@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import {
   addDays,
   addMonths,
@@ -12,10 +12,11 @@ import {
   startOfDay,
   startOfMonth,
 } from "date-fns";
-import { colors, fonts, spacing } from "@/constants/theme";
+import { fonts, spacing } from "@/constants/theme";
 import Button from "./Button";
 import Icon from "./Icon";
 import Sheet from "./Sheet";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const DAY = 44;
 const ROW = 46;
@@ -53,6 +54,8 @@ const DatePickerSheet = ({
   onSelect,
   onClose,
 }: DatePickerSheetProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const [picked, setPicked] = useState(startOfDay(value));
   const [month, setMonth] = useState(startOfMonth(value));
 
@@ -174,7 +177,7 @@ const DatePickerSheet = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   monthRow: {
     height: 48,
     flexDirection: "row",
@@ -206,9 +209,9 @@ const styles = StyleSheet.create({
   selected: { backgroundColor: colors.ink },
   today: { borderWidth: 2, borderColor: colors.brand },
   dayText: { fontFamily: fonts.medium, fontSize: 16, color: colors.ink },
-  selectedText: { fontFamily: fonts.bold, color: colors.white },
+  selectedText: { fontFamily: fonts.bold, color: colors.onInk },
   todayText: { fontFamily: fonts.bold },
   disabledText: { color: colors.disabledText },
-});
+}));
 
 export default DatePickerSheet;

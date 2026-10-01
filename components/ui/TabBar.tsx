@@ -1,8 +1,9 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { bottomBar, colors, type } from "@/constants/theme";
+import { bottomBar, type } from "@/constants/theme";
 import Icon, { IconName } from "./Icon";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const ICON_SIZE = 26;
 
@@ -25,6 +26,8 @@ export type TabBarProps<T extends string> = {
  * 84 high on an iPhone (50 plus the home indicator), with a hairline on top.
  */
 function TabBar<T extends string>({ tabs, active, onSelect, testID }: TabBarProps<T>) {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
 
   return (
@@ -69,7 +72,7 @@ function TabBar<T extends string>({ tabs, active, onSelect, testID }: TabBarProp
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   bar: {
     flexDirection: "row",
     paddingTop: 8,
@@ -82,6 +85,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 3,
   },
-});
+}));
 
 export default TabBar;

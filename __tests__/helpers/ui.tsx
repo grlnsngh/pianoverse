@@ -1,5 +1,7 @@
 import React from "react";
-import { AccessibilityInfo } from "react-native";
+import { AccessibilityInfo, StyleSheet } from "react-native";
+import { darkColors, lightColors } from "@/constants/theme";
+import { ThemeContext, ThemeValue } from "@/lib/ThemeContext";
 import { resetReducedMotion } from "@/lib/useReducedMotion";
 import {
   act,
@@ -36,6 +38,46 @@ export const mount = async (element: React.ReactElement) => {
   mounted.add(renderer);
   return renderer;
 };
+
+const DARK_THEME: ThemeValue = {
+  scheme: "dark",
+  colors: darkColors,
+  setting: "dark",
+  setSetting: () => {},
+  ready: true,
+};
+
+/** Draws an element the way it looks with the dark theme on. Components outside a provider are light. */
+export const inDark = (element: React.ReactElement) => (
+  <ThemeContext.Provider value={DARK_THEME}>{element}</ThemeContext.Provider>
+);
+
+/** Every colour the host views of a tree are drawn with, read from their styles. */
+export const colorsDrawn = (renderer: ReactTestRenderer) => {
+  const drawn = new Set<string>();
+  const visit = (node: ReactTestInstance) => {
+    if (typeof node.type === "string") {
+      const style = StyleSheet.flatten(
+        typeof node.props.style === "function" ? node.props.style({ pressed: false }) : node.props.style
+      );
+      for (const [key, value] of Object.entries(style ?? {})) {
+        if (/olor$/.test(key) && typeof value === "string") drawn.add(value);
+      }
+    }
+    node.children.forEach((child) => typeof child !== "string" && visit(child));
+  };
+  visit(renderer.root);
+  return drawn;
+};
+
+/** Colours that only the light palette has: drawing one in the dark theme is a leak. */
+export const lightOnlyColors: string[] = Object.values(lightColors).filter(
+  (value) => !(Object.values(darkColors) as string[]).includes(value)
+);
+
+/** The colours of the light theme that a tree drawn in dark still uses. */
+export const lightLeaks = (renderer: ReactTestRenderer) =>
+  [...colorsDrawn(renderer)].filter((color) => lightOnlyColors.includes(color));
 
 /** Re-renders with new props, letting effects run, like a state change would. */
 export const update = (renderer: ReactTestRenderer, element: React.ReactElement) =>

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 import { format, isToday } from "date-fns";
 import { AmountInput, Button, DatePickerSheet, FormRow, Group, Sheet } from "@/components/ui";
-import { colors, type } from "@/constants/theme";
+import { type } from "@/constants/theme";
 import type { RentPayment, RentPaymentChanges } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { changesOf, draftOf, hasChanges, monthMoveNote, PaymentDraft } from "@/utils/paymentEdit";
+import { makeStyles } from "@/lib/ThemeContext";
 
 interface EditPaymentSheetProps {
   /** The payment being changed. The sheet shows while there is one. */
@@ -27,6 +28,7 @@ const dayLabel = (date: Date) =>
  * the income of both months changes.
  */
 const EditPaymentSheet: React.FC<EditPaymentSheetProps> = ({ payment, piano, onClose, onSave }) => {
+  const styles = useStyles();
   // What was being changed stays while the sheet leaves
   const [shown, setShown] = useState<RentPayment | null>(null);
   const [draft, setDraft] = useState<PaymentDraft | null>(null);
@@ -137,11 +139,11 @@ const EditPaymentSheet: React.FC<EditPaymentSheetProps> = ({ payment, piano, onC
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   subject: { ...type.secondary, textAlign: "center", color: colors.ink2 },
   group: { marginTop: 24 },
   moves: { ...type.caption, marginTop: 12, textAlign: "center", color: colors.ink2 },
   bottom: { height: 8 },
-});
+}));
 
 export default EditPaymentSheet;

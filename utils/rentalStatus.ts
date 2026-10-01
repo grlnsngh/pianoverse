@@ -1,4 +1,4 @@
-import { colors } from "@/constants/theme";
+import { Palette } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { getRemainingPeriod, Period, RentalState } from "@/utils/dates";
 import { getPianoRentalState } from "@/utils/pianoStatus";
@@ -28,12 +28,9 @@ export interface RentalStatus {
   tone: StatusTone;
 }
 
-/** The text colour for each tone. `late` and `soon` also get a badge on the photo. */
-export const STATUS_TONE_COLORS: Record<StatusTone, string> = {
-  late: colors.late,
-  soon: colors.brandText,
-  normal: colors.ink2,
-};
+/** The text colour of a tone, in the theme `colors` belongs to. `late` and `soon` also get a badge on the photo. */
+export const statusToneColor = (tone: StatusTone, colors: Palette): string =>
+  tone === "late" ? colors.late : tone === "soon" ? colors.brandText : colors.ink2;
 
 /** From this many days on, a span is given in months, as in "Overdue · 9 months". */
 const DAYS_BEFORE_MONTHS = 60;

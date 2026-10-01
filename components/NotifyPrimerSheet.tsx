@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { useStore } from "react-redux";
 import ReminderPreview, { SAMPLE_REMINDER } from "@/components/ReminderPreview";
 import { Button, Icon, Sheet } from "@/components/ui";
-import { colors, fonts, spacing } from "@/constants/theme";
+import { fonts, spacing } from "@/constants/theme";
 import { markNotifyPrimerSeen, shouldShowNotifyPrimer } from "@/lib/notifyPrimer";
 import { RootState } from "@/redux/store";
 import {
   requestNotificationPermissions,
   scheduleAllRentalNotifications,
 } from "@/services/notifications";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 /** Let the screen behind settle before the sheet rises over it */
 const SHOW_AFTER_MS = 600;
@@ -22,6 +23,8 @@ const SHOW_AFTER_MS = 600;
  * Not now leaves it.
  */
 const NotifyPrimerSheet = () => {
+  const colors = useColors();
+  const styles = useStyles();
   const store = useStore<RootState>();
   const [visible, setVisible] = useState(false);
 
@@ -63,7 +66,7 @@ const NotifyPrimerSheet = () => {
     >
       <View style={styles.body}>
         <View style={styles.circle}>
-          <Icon name="bell" size={30} color={colors.ink} strokeWidth={1.9} />
+          <Icon name="bell" size={30} color={colors.onBrand} strokeWidth={1.9} />
         </View>
         <Text style={styles.title} accessibilityRole="header">
           Get reminders before rentals end
@@ -79,7 +82,7 @@ const NotifyPrimerSheet = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   body: { alignItems: "center", paddingTop: spacing.xl, paddingHorizontal: spacing.xs },
   circle: {
     width: 64,
@@ -108,6 +111,6 @@ const styles = StyleSheet.create({
   },
   preview: { alignSelf: "stretch", marginTop: spacing.xl },
   buttons: { gap: 6 },
-});
+}));
 
 export default NotifyPrimerSheet;

@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from "react";
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import { colors, fonts, radii, type } from "@/constants/theme";
+import { StyleProp, Text, View, ViewStyle } from "react-native";
+import { fonts, radii, type } from "@/constants/theme";
+import { makeStyles } from "@/lib/ThemeContext";
 
 /** What a group tells the rows inside it. */
 type GroupSettings = {
@@ -47,6 +48,7 @@ const Group = ({
   style,
   testID,
 }: GroupProps) => {
+  const styles = useStyles();
   const rows = rowsOf(children);
 
   return (
@@ -90,7 +92,7 @@ const rowsOf = (children: React.ReactNode): React.ReactNode[] =>
       : [child]
   );
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   title: {
     ...type.status,
     marginLeft: 16,
@@ -99,7 +101,7 @@ const styles = StyleSheet.create({
   },
   panel: {
     overflow: "hidden",
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   divider: { height: 1, backgroundColor: colors.hairline },
   footer: {
@@ -109,6 +111,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     color: colors.ink2,
   },
-});
+}));
 
 export default Group;

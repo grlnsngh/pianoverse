@@ -1,15 +1,16 @@
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import AuthScreen, { AuthDivider, AuthError, AuthSwitch } from "@/components/AuthScreen";
 import GoogleButton from "@/components/GoogleButton";
 import { Button, Field } from "@/components/ui";
-import { colors, fonts, spacing } from "@/constants/theme";
+import { fonts, spacing } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { getCurrentUser, signIn } from "@/lib/appwrite";
 import useGoogleSignIn from "@/lib/useGoogleSignIn";
 import { emailError, signInFailure, signInPasswordError } from "@/utils/authForms";
 import { showToast } from "@/utils/toast";
+import { makeStyles } from "@/lib/ThemeContext";
 
 type Key = "email" | "password";
 
@@ -22,6 +23,7 @@ const check = (key: Key, value: string) =>
  * again; a failed attempt puts a red box above the fields.
  */
 const SignIn = () => {
+  const styles = useStyles();
   const { setUser, setIsLogged } = useGlobalContext();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({ email: "", password: "" });
@@ -149,7 +151,7 @@ const SignIn = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   fields: { marginTop: spacing.xxxl },
   fieldsAfterError: { marginTop: spacing.xl },
   next: { marginTop: spacing.md },
@@ -158,6 +160,6 @@ const styles = StyleSheet.create({
   forgotPress: { height: spacing.minTarget, justifyContent: "center" },
   forgotText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.brandText },
   button: { marginTop: spacing.md },
-});
+}));
 
 export default SignIn;

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { colors, motion } from "@/constants/theme";
+import { lightColors as colors, motion } from "@/constants/theme";
 
 /**
  * The pages that open in a browser (the landing page and the reset page,

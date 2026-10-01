@@ -4,13 +4,13 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Icon } from "@/components/ui";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 type AuthScreenProps = {
   title: string;
@@ -40,65 +40,76 @@ const AuthScreen = ({
   busy = false,
   footer,
   children,
-}: AuthScreenProps) => (
-  <SafeAreaView edges={["top", "bottom"]} style={styles.page}>
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={styles.page}
-    >
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+}: AuthScreenProps) => {
+  const colors = useColors();
+  const styles = useStyles();
+  return (
+    <SafeAreaView edges={["top", "bottom"]} style={styles.page}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.page}
       >
-        <View style={styles.top}>
-          <Pressable
-            onPress={onBack}
-            disabled={busy}
-            accessibilityRole="button"
-            accessibilityLabel={backLabel}
-            accessibilityState={{ disabled: busy }}
-            style={styles.back}
-          >
-            <Icon
-              name="chevronLeft"
-              size={24}
-              color={busy ? colors.disabledText : colors.ink}
-              strokeWidth={2.2}
-            />
-          </Pressable>
-        </View>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}
+        >
+          <View style={styles.top}>
+            <Pressable
+              onPress={onBack}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel={backLabel}
+              accessibilityState={{ disabled: busy }}
+              style={styles.back}
+            >
+              <Icon
+                name="chevronLeft"
+                size={24}
+                color={busy ? colors.disabledText : colors.ink}
+                strokeWidth={2.2}
+              />
+            </Pressable>
+          </View>
 
-        <View style={styles.body}>
-          <Text style={styles.title} accessibilityRole="header">
-            {title}
-          </Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
-          {children}
-        </View>
+          <View style={styles.body}>
+            <Text style={styles.title} accessibilityRole="header">
+              {title}
+            </Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
+            {children}
+          </View>
 
-        {footer ? <View style={styles.footer}>{footer}</View> : null}
-      </ScrollView>
-    </KeyboardAvoidingView>
-  </SafeAreaView>
-);
+          {footer ? <View style={styles.footer}>{footer}</View> : null}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+};
 
 /** The red box above the fields when the whole attempt failed (SignInError board). */
-export const AuthError = ({ message }: { message: string }) => (
-  <View style={styles.error} accessibilityRole="alert" accessibilityLiveRegion="polite">
-    <Icon name="alert" size={20} color={colors.late} strokeWidth={2} style={styles.errorIcon} />
-    <Text style={styles.errorText}>{message}</Text>
-  </View>
-);
+export const AuthError = ({ message }: { message: string }) => {
+  const colors = useColors();
+  const styles = useStyles();
+  return (
+    <View style={styles.error} accessibilityRole="alert" accessibilityLiveRegion="polite">
+      <Icon name="alert" size={20} color={colors.late} strokeWidth={2} style={styles.errorIcon} />
+      <Text style={styles.errorText}>{message}</Text>
+    </View>
+  );
+};
 
 /** A line with "or" in the middle, between the form and the other way in. */
-export const AuthDivider = () => (
-  <View style={styles.divider} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-    <View style={styles.dividerLine} />
-    <Text style={styles.dividerText}>or</Text>
-    <View style={styles.dividerLine} />
-  </View>
-);
+export const AuthDivider = () => {
+  const styles = useStyles();
+  return (
+    <View style={styles.divider} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View style={styles.dividerLine} />
+      <Text style={styles.dividerText}>or</Text>
+      <View style={styles.dividerLine} />
+    </View>
+  );
+};
 
 /** "New to Pianoverse? Create account": grey words and a bold underlined link. */
 export const AuthSwitch = ({
@@ -109,22 +120,25 @@ export const AuthSwitch = ({
   question: string;
   action: string;
   onPress: () => void;
-}) => (
-  <View style={styles.switchRow}>
-    <Text style={styles.switch}>{question}</Text>
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="link"
-      accessibilityLabel={action}
-      style={styles.switchPress}
-    >
-      <Text style={styles.switchLink}>{action}</Text>
-    </Pressable>
-  </View>
-);
+}) => {
+  const styles = useStyles();
+  return (
+    <View style={styles.switchRow}>
+      <Text style={styles.switch}>{question}</Text>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="link"
+        accessibilityLabel={action}
+        style={styles.switchPress}
+      >
+        <Text style={styles.switchLink}>{action}</Text>
+      </Pressable>
+    </View>
+  );
+};
 
-const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+const useStyles = makeStyles((colors) => ({
+  page: { flex: 1, backgroundColor: colors.surface },
   scroll: { flexGrow: 1 },
   top: { paddingTop: spacing.md, paddingHorizontal: spacing.md },
   back: {
@@ -178,6 +192,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     textDecorationLine: "underline",
   },
-});
+}));
 
 export default AuthScreen;

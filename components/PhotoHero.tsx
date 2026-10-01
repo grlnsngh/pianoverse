@@ -13,8 +13,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, PianoPhoto } from "@/components/ui";
 import type { IconName } from "@/components/ui";
-import { colors, fonts } from "@/constants/theme";
+import { fonts } from "@/constants/theme";
 import PhotoViewer from "./PhotoViewer";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 /** The photo is this high below the status bar, as on the Detail boards */
 export const HERO_HEIGHT = 340;
@@ -43,16 +44,20 @@ type RoundButtonProps = {
 };
 
 /** A white circle on the photo. 44 px, so it is easy to hit. */
-const RoundButton = ({ icon, label, onPress, iconSize, strokeWidth, style }: RoundButtonProps) => (
-  <Pressable
-    onPress={onPress}
-    accessibilityRole="button"
-    accessibilityLabel={label}
-    style={({ pressed }) => [styles.round, style, pressed && styles.pressed]}
-  >
-    <Icon name={icon} size={iconSize} color={colors.ink} strokeWidth={strokeWidth} />
-  </Pressable>
-);
+const RoundButton = ({ icon, label, onPress, iconSize, strokeWidth, style }: RoundButtonProps) => {
+  const colors = useColors();
+  const styles = useStyles();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [styles.round, style, pressed && styles.pressed]}
+    >
+      <Icon name={icon} size={iconSize} color={colors.ink} strokeWidth={strokeWidth} />
+    </Pressable>
+  );
+};
 
 /**
  * The top of a piano's page: its photos edge to edge, swiped through one by
@@ -61,6 +66,7 @@ const RoundButton = ({ icon, label, onPress, iconSize, strokeWidth, style }: Rou
  * a Retry tile. A piano with no photo shows the drawing.
  */
 const PhotoHero = ({ pianoId, photos, sold = false, onBack, onShare, onMore }: PhotoHeroProps) => {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const window = useWindowDimensions();
   const [width, setWidth] = useState(window.width);
@@ -154,7 +160,7 @@ const PhotoHero = ({ pianoId, photos, sold = false, onBack, onShare, onMore }: P
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   round: {
     position: "absolute",
     width: BUTTON,
@@ -162,7 +168,7 @@ const styles = StyleSheet.create({
     borderRadius: BUTTON / 2,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   pressed: { opacity: 0.9 },
   wash: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.soldWash },
@@ -175,8 +181,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     letterSpacing: 0.48,
-    color: colors.white,
+    color: colors.onInk,
   },
-});
+}));
 
 export default PhotoHero;

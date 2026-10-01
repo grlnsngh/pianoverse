@@ -5,7 +5,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -17,7 +16,7 @@ import RefreshBand, {
   HIDDEN_REFRESH_INDICATOR,
 } from "@/components/RefreshBand";
 import { Icon, Spinner, StateView } from "@/components/ui";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useIncome from "@/lib/useIncome";
 import { RootState } from "@/redux/store";
@@ -30,6 +29,7 @@ import {
   noIncome,
   totalsOf,
 } from "@/utils/income";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const goBack = () => {
   if (router.canGoBack()) router.back();
@@ -37,6 +37,7 @@ const goBack = () => {
 };
 
 const MonthRow = ({ entry }: { entry: MonthIncome }) => {
+  const styles = useStyles();
   const name = format(entry.month, "MMMM yyyy");
   const detail = monthDetail(entry);
   const amount = formatRupees(entry.total);
@@ -66,6 +67,8 @@ const MonthRow = ({ entry }: { entry: MonthIncome }) => {
  * that was received (the payments recorded) and what pianos sold for.
  */
 const Income = () => {
+  const colors = useColors();
+  const styles = useStyles();
   const pianos = useSelector((state: RootState) => state.pianos.items);
   const { loaded, failed, payments, reload } = useIncome(INCOME_MONTHS);
   // A new day can start a new month while the screen is open
@@ -174,7 +177,7 @@ const Income = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.page },
   bar: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   back: {
@@ -236,6 +239,6 @@ const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
   rowAmountNone: { color: colors.ink2, fontFamily: fonts.regular },
-});
+}));
 
 export default Income;

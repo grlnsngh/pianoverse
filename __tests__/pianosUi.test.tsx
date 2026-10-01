@@ -6,7 +6,7 @@ import { IconTabs, PickerSheet, SearchPill, Skeleton, StateView } from "@/compon
 import type { IconTabItem } from "@/components/ui";
 import { ICONS } from "@/components/ui/Icon";
 import PianosSkeleton from "@/components/PianosSkeleton";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import { findAllMemo, hostByTestId, mount, textContent } from "./helpers/ui";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;

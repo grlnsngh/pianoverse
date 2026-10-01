@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
-import { colors, fonts } from "@/constants/theme";
+import { Text, TextInput, View } from "react-native";
+import { fonts } from "@/constants/theme";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 export type AmountInputProps = {
   /** The amount, in rupees. 0 shows an empty field. */
@@ -64,6 +65,8 @@ const AmountInput = ({
   autoFocus,
   testID,
 }: AmountInputProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const { text, onChangeText } = useAmountText(value, onChangeValue);
 
   return (
@@ -86,7 +89,7 @@ const AmountInput = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, marginTop: 8 },
   rupee: {
     fontFamily: fonts.bold,
@@ -104,6 +107,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontVariant: ["tabular-nums"],
   },
-});
+}));
 
 export default AmountInput;

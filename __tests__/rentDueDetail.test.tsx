@@ -24,7 +24,7 @@ import React from "react";
 import { Linking, StyleSheet } from "react-native";
 import { act, ReactTestRenderer } from "react-test-renderer";
 import DetailScreen from "@/app/detail/[id]";
-import { colors } from "@/constants/theme";
+import { lightColors as colors } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { fakeNotifications } from "./helpers/fakeNotifications";

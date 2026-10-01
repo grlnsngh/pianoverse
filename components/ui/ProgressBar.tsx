@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { StyleProp, View, ViewStyle } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import useReducedMotion from "@/lib/useReducedMotion";
-import { colors } from "@/constants/theme";
+import { makeStyles } from "@/lib/ThemeContext";
 
 export type ProgressBarProps = {
   /** How far along, from 0 to 1 */
@@ -33,6 +33,7 @@ const ProgressBar = ({
   style,
   testID,
 }: ProgressBarProps) => {
+  const styles = useStyles();
   const reduced = useReducedMotion();
   const clamped = Math.min(1, Math.max(0, progress));
   const filled = useSharedValue(clamped);
@@ -58,7 +59,7 @@ const ProgressBar = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   track: {
     width: DEFAULT_WIDTH,
     height: HEIGHT,
@@ -71,6 +72,6 @@ const styles = StyleSheet.create({
     borderRadius: HEIGHT / 2,
     backgroundColor: colors.brand,
   },
-});
+}));
 
 export default ProgressBar;

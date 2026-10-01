@@ -1,7 +1,8 @@
 import React from "react";
-import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import { colors, type } from "@/constants/theme";
+import { Pressable, StyleProp, Text, View, ViewStyle } from "react-native";
+import { type } from "@/constants/theme";
 import Icon, { IconName } from "./Icon";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const ICON_SIZE = 24;
 
@@ -35,6 +36,8 @@ function IconTabs<T extends string>({
   style,
   testID,
 }: IconTabsProps<T>) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View
       accessibilityRole="tablist"
@@ -85,7 +88,7 @@ function IconTabs<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     flexDirection: "row",
     paddingHorizontal: 12,
@@ -102,6 +105,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     marginBottom: -1,
   },
-});
+}));
 
 export default IconTabs;

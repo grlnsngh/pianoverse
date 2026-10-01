@@ -1,8 +1,9 @@
 import React from "react";
-import { Pressable, StyleProp, StyleSheet, Text, ViewStyle } from "react-native";
+import { Pressable, StyleProp, Text, ViewStyle } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { Spinner } from "@/components/ui";
-import { colors, radii, type } from "@/constants/theme";
+import { radii, type } from "@/constants/theme";
+import { makeStyles } from "@/lib/ThemeContext";
 
 const HEIGHT = 52;
 const LOGO = 20;
@@ -43,6 +44,7 @@ export type GoogleButtonProps = {
  * Google asks for. It is as tall as the main button above it.
  */
 const GoogleButton = ({ onPress, loading = false, disabled = false, style }: GoogleButtonProps) => {
+  const styles = useStyles();
   const blocked = loading || disabled;
   const label = loading ? "Opening Google" : "Continue with Google";
 
@@ -68,7 +70,7 @@ const GoogleButton = ({ onPress, loading = false, disabled = false, style }: Goo
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   base: {
     height: HEIGHT,
     flexDirection: "row",
@@ -78,11 +80,11 @@ const styles = StyleSheet.create({
     borderRadius: radii.control,
     borderWidth: 1,
     borderColor: colors.controlBorder,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   pressed: { backgroundColor: colors.grouped },
   greyed: { opacity: 0.5 },
   label: { ...type.buttonQuiet, color: colors.ink },
-});
+}));
 
 export default GoogleButton;

@@ -5,7 +5,7 @@ import Svg, { Path } from "react-native-svg";
 import { AddButton, TabBar } from "@/components/ui";
 import type { TabBarItem } from "@/components/ui";
 import { ICONS } from "@/components/ui/Icon";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import { hostByTestId, mount, textContent } from "./helpers/ui";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;

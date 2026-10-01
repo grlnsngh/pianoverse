@@ -4,13 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import NotifyPrimerSheet from "@/components/NotifyPrimerSheet";
 import { TabBar, TabScenes } from "@/components/ui";
 import type { TabBarItem } from "@/components/ui";
-import { colors } from "@/constants/theme";
 import { setActiveTab, TabKey } from "@/redux/navigation/actions";
 import { INITIAL_TAB } from "@/redux/navigation/reducer";
 import { RootState } from "@/redux/store";
 import Home from "./home";
 import Profile from "./profile";
 import Today from "./today";
+import { useColors } from "@/lib/ThemeContext";
 
 const TABS: readonly TabBarItem<TabKey>[] = [
   { key: "today", label: "Today", icon: "tabToday" },
@@ -29,6 +29,7 @@ const SCENES: Record<TabKey, React.ComponentType> = {
 const LOADS_DATA: readonly TabKey[] = ["pianos"];
 
 const TabsLayout = () => {
+  const colors = useColors();
   const dispatch = useDispatch();
   // Kept in the store so other screens can switch tabs instead of pushing
   // another copy of the tabs

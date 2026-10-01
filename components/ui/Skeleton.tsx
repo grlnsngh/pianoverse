@@ -16,7 +16,8 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import useReducedMotion from "@/lib/useReducedMotion";
-import { colors, motion } from "@/constants/theme";
+import { motion } from "@/constants/theme";
+import { useColors } from "@/lib/ThemeContext";
 
 /**
  * Whether to show a skeleton for something that is loading. False for the
@@ -62,6 +63,7 @@ const Skeleton = ({
   style,
   testID,
 }: SkeletonProps) => {
+  const colors = useColors();
   const reduced = useReducedMotion();
   const [measured, setMeasured] = useState(0);
   // The width also lives in a shared value, so the animated style below reads

@@ -3,7 +3,6 @@ import {
   LayoutChangeEvent,
   Pressable,
   StyleProp,
-  StyleSheet,
   Text,
   View,
   ViewStyle,
@@ -14,8 +13,9 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { colors, fonts, motion } from "@/constants/theme";
+import { fonts, motion } from "@/constants/theme";
 import useReducedMotion from "@/lib/useReducedMotion";
+import { makeStyles } from "@/lib/ThemeContext";
 
 const PADDING = 2;
 const OPTION_HEIGHT = 40;
@@ -48,6 +48,7 @@ function Segmented<T extends string>({
   style,
   testID,
 }: SegmentedProps<T>) {
+  const styles = useStyles();
   const reduced = useReducedMotion();
   const [width, setWidth] = useState(0);
   const x = useSharedValue(0);
@@ -120,7 +121,7 @@ function Segmented<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   track: {
     flexDirection: "row",
     padding: PADDING,
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
     left: PADDING,
     height: OPTION_HEIGHT,
     borderRadius: 8,
-    backgroundColor: colors.white,
+    backgroundColor: colors.raised,
   },
   option: {
     flex: 1,
@@ -145,6 +146,6 @@ const styles = StyleSheet.create({
   },
   label: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink2 },
   labelSelected: { fontFamily: fonts.bold, color: colors.ink },
-});
+}));
 
 export default Segmented;

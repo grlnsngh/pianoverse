@@ -6,7 +6,6 @@ import {
   BackHandler,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -26,7 +25,7 @@ import {
   SuccessMark,
 } from "@/components/ui";
 import { PIANO_CATEGORY } from "@/constants/Piano";
-import { colors, fonts, radii, spacing, type } from "@/constants/theme";
+import { fonts, radii, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { createPianoEntry, toPianoItem } from "@/lib/appwrite";
 import { resetCreateForm, setActiveTab } from "@/redux/navigation/actions";
@@ -45,6 +44,7 @@ import {
   toPianoEntryInput,
 } from "@/utils/pianoForm";
 import { formatMobile } from "@/utils/validation";
+import { makeStyles } from "@/lib/ThemeContext";
 
 const day = (date: Date) => format(new Date(date), "d MMM yyyy");
 
@@ -113,20 +113,23 @@ const categoryRows = (form: PianoFormState): { title: string; rows: Row[] } => {
   }
 };
 
-const ReviewRow = ({ label, value, strong, tabular }: Row) => (
-  <View style={styles.row}>
-    <Text style={styles.rowLabel}>{label}</Text>
-    <Text
-      style={[
-        styles.rowValue,
-        strong && { fontFamily: fonts.bold },
-        tabular && { fontVariant: ["tabular-nums"] },
-      ]}
-    >
-      {value}
-    </Text>
-  </View>
-);
+const ReviewRow = ({ label, value, strong, tabular }: Row) => {
+  const styles = useStyles();
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text
+        style={[
+          styles.rowValue,
+          strong && { fontFamily: fonts.bold },
+          tabular && { fontVariant: ["tabular-nums"] },
+        ]}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+};
 
 const Section = ({
   title,
@@ -136,29 +139,32 @@ const Section = ({
   title: string;
   rows: Row[];
   onEdit: () => void;
-}) => (
-  <View>
-    <View style={styles.sectionHead}>
-      <Text style={styles.sectionTitle} accessibilityRole="header">
-        {title}
-      </Text>
-      <Pressable
-        onPress={onEdit}
-        accessibilityRole="button"
-        accessibilityLabel={`Edit ${title.toLowerCase()}`}
-        hitSlop={{ top: 6, bottom: 6 }}
-        style={styles.edit}
-      >
-        <Text style={styles.editText}>Edit</Text>
-      </Pressable>
+}) => {
+  const styles = useStyles();
+  return (
+    <View>
+      <View style={styles.sectionHead}>
+        <Text style={styles.sectionTitle} accessibilityRole="header">
+          {title}
+        </Text>
+        <Pressable
+          onPress={onEdit}
+          accessibilityRole="button"
+          accessibilityLabel={`Edit ${title.toLowerCase()}`}
+          hitSlop={{ top: 6, bottom: 6 }}
+          style={styles.edit}
+        >
+          <Text style={styles.editText}>Edit</Text>
+        </Pressable>
+      </View>
+      <Group>
+        {rows.map((row) => (
+          <ReviewRow key={row.label} {...row} />
+        ))}
+      </Group>
     </View>
-    <Group>
-      {rows.map((row) => (
-        <ReviewRow key={row.label} {...row} />
-      ))}
-    </Group>
-  </View>
-);
+  );
+};
 
 /**
  * The third step of adding a piano: a summary to check (Add3Review board),
@@ -166,6 +172,7 @@ const Section = ({
  * got (Publishing), and last a screen saying it worked (Published).
  */
 const Review = () => {
+  const styles = useStyles();
   const { user } = useGlobalContext();
   const dispatch = useDispatch();
   const params = useLocalSearchParams();
@@ -396,9 +403,9 @@ const Review = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.grouped },
-  whiteScreen: { flex: 1, backgroundColor: colors.white },
+  whiteScreen: { flex: 1, backgroundColor: colors.surface },
   content: { paddingBottom: spacing.xxl },
   body: { paddingHorizontal: spacing.screen },
   summary: {
@@ -489,6 +496,6 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: spacing.xxl,
   },
-});
+}));
 
 export default Review;

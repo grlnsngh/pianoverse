@@ -3,7 +3,7 @@ import { Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text } from "reac
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { act } from "react-test-renderer";
 import { Sheet } from "@/components/ui";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import {
   advance,
   animatedStyles,

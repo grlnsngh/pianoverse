@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 import { format, isToday } from "date-fns";
 import { AmountInput, Button, DatePickerSheet, FormRow, Group, Sheet } from "@/components/ui";
-import { colors, type } from "@/constants/theme";
+import { type } from "@/constants/theme";
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
+import { makeStyles } from "@/lib/ThemeContext";
 
 interface MarkAsSoldSheetProps {
   piano: PianoItem;
@@ -27,6 +28,7 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
   visible,
   onClose,
 }) => {
+  const styles = useStyles();
   const updatePiano = useUpdatePiano();
   const [buyerName, setBuyerName] = useState("");
   const [buyerAddress, setBuyerAddress] = useState("");
@@ -135,11 +137,11 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   subject: { ...type.secondary, textAlign: "center", color: colors.ink2 },
   group: { marginTop: 20 },
   note: { ...type.caption, marginTop: 12, marginHorizontal: 16, fontFamily: type.secondary.fontFamily, color: colors.ink2 },
   bottom: { height: 8 },
-});
+}));
 
 export default MarkAsSoldSheet;

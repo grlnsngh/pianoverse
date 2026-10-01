@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Dialog } from "@/components/ui";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import { hostByTestId, mount, textContent } from "./helpers/ui";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;

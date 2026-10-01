@@ -1,7 +1,8 @@
 import React from "react";
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import { colors, radii, type } from "@/constants/theme";
+import { StyleProp, Text, View, ViewStyle } from "react-native";
+import { radii, type } from "@/constants/theme";
 import type { StatusTone } from "@/utils/rentalStatus";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 /**
  * `late` is a red pill for an overdue rental. `soon` is a white pill with an
@@ -23,31 +24,35 @@ export type BadgeProps = {
   testID?: string;
 };
 
-const Badge = ({ tone, label, onPhoto = false, style, testID }: BadgeProps) => (
-  <View
-    accessible
-    accessibilityLabel={label}
-    testID={testID}
-    style={[
-      styles.pill,
-      { backgroundColor: tone === "late" ? colors.late : colors.white },
-      onPhoto && styles.onPhoto,
-      style,
-    ]}
-  >
-    {tone === "soon" && <View style={styles.dot} />}
-    <Text
+const Badge = ({ tone, label, onPhoto = false, style, testID }: BadgeProps) => {
+  const colors = useColors();
+  const styles = useStyles();
+  return (
+    <View
+      accessible
+      accessibilityLabel={label}
+      testID={testID}
       style={[
-        type.badge,
-        { color: tone === "late" ? colors.white : colors.ink },
+        styles.pill,
+        { backgroundColor: tone === "late" ? colors.lateFill : colors.surface },
+        onPhoto && styles.onPhoto,
+        style,
       ]}
     >
-      {label}
-    </Text>
-  </View>
-);
+      {tone === "soon" && <View style={styles.dot} />}
+      <Text
+        style={[
+          type.badge,
+          { color: tone === "late" ? colors.white : colors.ink },
+        ]}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+};
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   pill: {
     flexDirection: "row",
     alignItems: "center",
@@ -64,6 +69,6 @@ const styles = StyleSheet.create({
     borderRadius: DOT_SIZE / 2,
     backgroundColor: colors.brand,
   },
-});
+}));
 
 export default React.memo(Badge);
