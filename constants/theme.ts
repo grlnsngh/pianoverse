@@ -3,10 +3,11 @@ import type { TextStyle, ViewStyle } from "react-native";
 /**
  * Design tokens for the redesign (docs/redesign/SPEC.md sections 3, 4, 5 and 7).
  *
- * tailwind.config.js repeats the colours and radii for `className`. It can't
- * import TypeScript, so __tests__/designTokens.test.ts keeps the two in step.
- * Use these values directly where a style has to change at runtime (pressed
- * states, animations) or where a class name can't reach (svg, shadows).
+ * web/site.css (the pages on GitHub Pages) and email/password-recovery.html
+ * repeat the colours. They can't import TypeScript, so
+ * __tests__/webPages.test.ts and __tests__/recoveryEmail.test.ts keep them in
+ * step. Use these values directly where a style has to change at runtime
+ * (pressed states, animations) or where a class name can't reach (svg, shadows).
  */
 
 // The four category colours in constants/colors.ts are not part of the new

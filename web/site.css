@@ -1,0 +1,636 @@
+/*
+ * The Pianoverse web pages (index.html, reset-password.html): the same colours,
+ * type, radii and motion as the app. The values below are copied from
+ * constants/theme.ts and __tests__/webPages.test.ts keeps them in step.
+ * No inline styles anywhere: the pages' Content-Security-Policy forbids them.
+ */
+:root {
+  --ink: #1a1814;
+  --ink-2: #6b665d;
+  --brand: #ff9c01;
+  --brand-pressed: #e88a00;
+  --brand-text: #a85d00;
+  --late: #c4321c;
+  --late-tint: #fcedea;
+  --late-tint-text: #7a1f10;
+  --page: #ffffff;
+  --grouped: #f6f5f2;
+  --fill: #efede8;
+  --fill-pressed: #e4e0d8;
+  --hairline: #e7e4dd;
+  --input-border: #c9c4b9;
+  --disabled-text: #a39d92;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --font:
+    "Figtree", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 22px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---- Top bar: the mark and the name, as on the Welcome board ---- */
+.bar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 1088px;
+  margin: 0 auto;
+  padding: 20px 24px 0;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.brand-name {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ---- The page: a phone-width column, and on a wide screen a card ---- */
+.stage {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 16px 24px 40px;
+}
+
+.card {
+  width: 100%;
+  max-width: 440px;
+}
+
+@media (min-width: 640px) {
+  .on-grouped {
+    background: var(--grouped);
+  }
+
+  .stage {
+    align-items: center;
+    padding-bottom: 10vh;
+  }
+
+  .card {
+    padding: 40px;
+    background: var(--page);
+    border: 1px solid var(--hairline);
+    border-radius: 20px;
+  }
+}
+
+/* ---- Type ---- */
+.title {
+  margin: 0;
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.title:focus {
+  outline: none;
+}
+
+.lead {
+  margin: 6px 0 0;
+  color: var(--ink-2);
+}
+
+.section {
+  margin: 0;
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Views: the reset page shows one at a time ---- */
+.view[hidden] {
+  display: none;
+}
+
+.view {
+  animation: view-in 240ms var(--ease) both;
+}
+
+@keyframes view-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---- Fields (the app's Field: label inside, 60 high, 12 radius) ---- */
+.form {
+  margin-top: 32px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding: 10px 4px 0 16px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--input-border);
+  transition: box-shadow 100ms var(--ease);
+}
+
+.field + .field-note + .field,
+.field + .field {
+  margin-top: 12px;
+}
+
+.field:focus-within {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.field.is-error {
+  box-shadow: inset 0 0 0 2px var(--late);
+}
+
+.field-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.field label {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.field.is-error label {
+  color: var(--late);
+}
+
+.field input {
+  display: block;
+  width: 100%;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 500 16px/22px var(--font);
+}
+
+.reveal {
+  height: 44px;
+  margin-top: -10px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 700 14px/20px var(--font);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.field-note {
+  margin: 6px 4px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.field-note[hidden] {
+  display: none;
+}
+
+.field-note.is-error {
+  color: var(--late);
+}
+
+.field-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.field-note svg[hidden] {
+  display: none;
+}
+
+/* ---- The red box (the app's AuthError) ---- */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--late-tint);
+  color: var(--late-tint-text);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.notice[hidden] {
+  display: none;
+}
+
+.notice svg {
+  flex-shrink: 0;
+  margin-top: 0;
+  color: var(--late);
+}
+
+/* ---- Buttons: 52 high, 14 radius, ink on orange ---- */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 52px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--brand);
+  color: var(--ink);
+  font: 700 16px/22px var(--font);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 100ms var(--ease),
+    background-color 100ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn:hover {
+    background: var(--brand-pressed);
+  }
+
+  .btn-quiet:hover {
+    background: var(--fill-pressed);
+  }
+}
+
+.btn:active {
+  background: var(--brand-pressed);
+  transform: scale(0.98);
+}
+
+.btn-quiet {
+  background: var(--fill);
+}
+
+.btn-quiet:active {
+  background: var(--fill-pressed);
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  background: var(--fill);
+  color: var(--disabled-text);
+  cursor: default;
+  transform: none;
+}
+
+.btn-text {
+  height: 44px;
+  background: none;
+  color: var(--ink-2);
+  font: 600 15px/20px var(--font);
+}
+
+.btn-text:hover,
+.btn-text:active {
+  background: none;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+.spinner[hidden] {
+  display: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- The big round mark of a finished or failed page (Published board) ---- */
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  margin: 8px 0 28px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--ink);
+  animation: pop 280ms var(--ease) both;
+}
+
+.status.is-late {
+  background: var(--late-tint);
+  color: var(--late);
+}
+
+.status svg {
+  width: 48px;
+  height: 48px;
+}
+
+.status .check {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 0;
+  animation: draw 260ms ease-out both;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 20;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.small {
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.link {
+  color: var(--brand-text);
+  font-weight: 600;
+}
+
+/* ---- Landing page ---- */
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 16px 24px 24px;
+}
+
+.hero {
+  display: grid;
+  gap: 28px;
+  padding-top: 8px;
+}
+
+.hero-art {
+  order: -1;
+  height: 260px;
+  border-radius: 32px;
+  background: var(--brand);
+  overflow: hidden;
+  animation: fade-in 240ms var(--ease) both;
+}
+
+.hero-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.display {
+  margin: 0;
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hero-copy {
+  animation: view-in 240ms var(--ease) both;
+}
+
+.help {
+  margin-top: 40px;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--grouped);
+  animation: view-in 240ms var(--ease) 80ms both;
+}
+
+.steps {
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 16px;
+}
+
+.steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.step-n {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--page);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+}
+
+.steps strong {
+  display: block;
+  font-weight: 600;
+}
+
+.steps p {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-2);
+}
+
+.help-note {
+  margin: 20px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-2);
+}
+
+@media (min-width: 880px) {
+  .hero {
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 64px;
+    padding-top: 24px;
+  }
+
+  .hero-art {
+    order: 0;
+    height: 400px;
+  }
+
+  .display {
+    font-size: 44px;
+    line-height: 50px;
+    letter-spacing: -0.03em;
+  }
+
+  .lead {
+    margin-top: 12px;
+    font-size: 18px;
+    line-height: 26px;
+  }
+
+  .help {
+    margin-top: 64px;
+    padding: 40px;
+  }
+
+  .steps {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+}
+
+/* ---- Footer ---- */
+.foot {
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-2);
+}
+
+.foot a {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---- Reduce Motion: everything only fades, for 120 ms ---- */
+@media (prefers-reduced-motion: reduce) {
+  .view,
+  .hero-copy,
+  .hero-art,
+  .help {
+    animation: fade-in 120ms linear both;
+  }
+
+  .status {
+    animation: fade-in 120ms linear both;
+  }
+
+  .status .check {
+    animation: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+
+  .btn,
+  .field {
+    transition: none;
+  }
+
+  .btn:active {
+    transform: none;
+  }
+}
