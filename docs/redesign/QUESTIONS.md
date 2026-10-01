@@ -13,15 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q33. Should the app follow the name on the Google account?
-- **Status:** Open. What is built is the default below.
-- **Raised:** Batch 24 (the Google name and photo).
-- **What the app does now (default):** when someone signs in with Google, the app reads their Google name and photo once. A **new** account is given the Google name and the photo. An account that **already existed** (your own email and password account, for example) keeps the name it was signed up with, and gets the Google photo in place of the letters the app drew. The photo follows Google if they change it; the name does not.
-- **Options:**
-  - **A. Keep this** (default). A name can't be overwritten by mistake, since the app has no screen to edit the name and so can't tell a name you chose from one it set.
-  - **B. Follow Google every time.** The name is set from Google at every Google sign-in, for every account, including your own existing account (its name would change from what you signed up with to your Google name).
-  - **C. Follow Google only for accounts made by a Google sign-in.** Needs the app to remember which accounts those are (a small marker saved with the account).
-- **Your answer:**
+None right now.
 
 ---
 
@@ -184,3 +176,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q32. Please set up Google sign-in in Google Cloud and Appwrite
 - **Answer:** Set up (option A) (2026-10-01), and **Continue with Google works on the phone** (“working perfectly fine”).
 - **What it took:** the Google client needed **both** redirect addresses, `https://fra.cloud.appwrite.io/v1/...` as Appwrite’s dialog showed it and `https://cloud.appwrite.io/v1/...`, which is the one the app really sends; with only the first, Google answered `Error 400: redirect_uri_mismatch`. The README and this file now say so. Still not reported: the checks about the return to the app (no flash of the Welcome screen) and about the Gmail that already had an email and password account.
+
+### Q33. Should the app follow the name on the Google account?
+- **Answer:** Keep it as built (option A, the default) (2026-10-01): only a **brand new** account gets its name from Google; an account that already exists keeps the name it was signed up with. The photo follows Google.
+- **Why it stays:** the app has no screen to edit a name, so it can’t tell a name you chose from one it set; following Google every time would rename your own existing account. If that changes (for example a screen to edit the name), options B and C are a small change.
