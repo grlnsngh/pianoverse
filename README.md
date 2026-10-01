@@ -150,13 +150,13 @@ This script updates the version from e.g., "1.1.9" to "1.1.10" and versionCode f
 
 ## Build for Android Internal Testing
 
-To build the project for Android internal testing (an APK you can install):
+To build the project for Android internal testing (an APK you can install) **on your own computer**:
 
 ```sh
-eas build -p android --profile preview
+eas build -p android --profile preview --local
 ```
 
-(`--local` builds run on macOS and Linux only.) Changes to native settings (`app.json` plugins, splash screen, permissions) and new native modules only reach users through a new build.
+The build runs on your machine, not on Expo's servers, so it needs no paid plan; you only have to be logged in to Expo once (`eas login`). Without `--local` the same command builds in Expo's cloud, where the free plan allows a limited number of builds a month. (Expo officially supports local builds on macOS and Linux; on Windows they have worked here, but Expo doesn't test that.) Changes to native settings (`app.json` plugins, splash screen, permissions) and new native modules only reach users through a new build.
 
 ## Fixing the App Without a New Build (Over-the-Air Updates)
 
