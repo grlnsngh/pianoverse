@@ -151,13 +151,15 @@ This script updates the version from e.g., "1.1.9" to "1.1.10" and versionCode f
 
 ## Build for Android Internal Testing
 
-To build the project for Android internal testing (an APK you can install):
+To build the project for Android internal testing (an APK you can install) **on your own computer**:
 
 ```sh
-eas build -p android --profile preview
+eas build -p android --profile preview --local
 ```
 
-(`--local` builds run on macOS and Linux only.) Changes to native settings (`app.json` plugins, splash screen, permissions) and new native modules only reach users through a new build.
+The build runs on your machine, not on Expo's servers, so it needs no paid plan; you only have to be logged in to Expo once (`eas login`). Without `--local` the same command builds in Expo's cloud, where the free plan allows a limited number of builds a month. (Expo officially supports local builds on macOS and Linux; on Windows they have worked here, but Expo doesn't test that.) Changes to native settings (`app.json` plugins, splash screen, permissions) and new native modules only reach users through a new build.
+
+If the build stops with `A problem occurred starting process 'command 'node''` (Gradle can't start `node`), a Gradle daemon left over from your previous build is being reused. Stop it and build again: `pkill -f GradleDaemon` (in WSL). A build started from a terminal that has `ANDROID_HOME` set (the interactive shell, not a bare `wsl -e bash script`) is needed too, or Gradle says `SDK location not found`.
 
 ## Fixing the App Without a New Build (Over-the-Air Updates)
 
@@ -170,6 +172,8 @@ npm run update -- --message "Fix the reminder wording"
 That publishes to the `preview` channel, which is what `eas build --profile preview` builds listen to (`npm run update:production` is for the `production` profile). Publish from an up-to-date `main`, never from a branch that isn't finished. The phone looks for an update when the app starts and when you come back to it after ten minutes; when one has downloaded, a message says **An update is ready** with a **Restart** button, and if you ignore it the update is used the next time the app starts. The bottom of the Account tab shows `Version 1.1.15 · update 9f8e7d6c` once an update is running.
 
 **When a new build is needed instead:** a native package is added, removed or upgraded, or a native setting in `app.json` changes (permissions, plugins, icon, splash, scheme). An update built for the old native part would crash a phone that has the new one, and the other way round. So `runtimeVersion` in `app.json` names the native part: an update only reaches builds with the same number. `__tests__/runtimeVersion.test.ts` fails when the native part changes; the fix is to raise `runtimeVersion`, record the new list in that test, and make a new build before publishing any update.
+
+**If nothing arrives:** the installed app must be a build made with `expo-updates` (Account shows `Version 1.1.15` or later, and the build was made after this was added), made from a project whose `runtimeVersion` in `app.json` is the same as the one you publish from; the phone needs internet; and the update must go to the channel the build was made for (`preview` for `--profile preview`). The first time, `eas update` may say the channel doesn't exist: create it once with `eas channel:create preview`. `eas update:list` and the project's Updates page on expo.dev show what has been published.
 
 **If an update turns out bad:** publish the fix the same way, or send the previous one again with `eas update:republish`.
 ## Clear Cache and Start Fresh
