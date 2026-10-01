@@ -446,26 +446,29 @@ describe("the Payments section (Detail board)", () => {
     expect(allTexts(renderer.root).some((text) => /^Show (all|fewer)/.test(text))).toBe(false);
   });
 
-  it("says how to delete a payment, since no button does", async () => {
+  it("says how to send a receipt and how to delete a payment, since no button does", async () => {
     seedPayment("p", "2026-08-05", 5000);
     const { renderer } = await openDetail();
 
-    expect(allTexts(renderer.root)).toContain("Press and hold a payment to delete it.");
-    expect(rows(renderer)[0].props.accessibilityHint).toBe("Press and hold to delete this payment");
+    expect(allTexts(renderer.root)).toContain("Tap a payment to send a receipt. Press and hold to delete it.");
+    expect(rows(renderer)[0].props.accessibilityHint).toBe("Sends a receipt. Press and hold to delete this payment");
   });
 
   it("doesn't say it when there are no payments to delete", async () => {
     const { renderer } = await openDetail();
 
-    expect(allTexts(renderer.root)).not.toContain("Press and hold a payment to delete it.");
+    expect(allTexts(renderer.root)).not.toContain("Tap a payment to send a receipt. Press and hold to delete it.");
   });
 
-  it("lets a screen reader delete a payment with an action, too", async () => {
+  it("lets a screen reader send a receipt and delete a payment with actions, too", async () => {
     seedPayment("p", "2026-08-05", 5000);
     const { renderer } = await openDetail();
     const [row] = rows(renderer);
 
-    expect(row.props.accessibilityActions).toEqual([{ name: "delete", label: "Delete payment" }]);
+    expect(row.props.accessibilityActions).toEqual([
+      { name: "receipt", label: "Send receipt" },
+      { name: "delete", label: "Delete payment" },
+    ]);
     await act(async () => {
       row.props.onAccessibilityAction({ nativeEvent: { actionName: "delete" } });
     });

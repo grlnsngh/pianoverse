@@ -6,6 +6,7 @@ import { getRemainingPeriod, parseStoredDate, StoredDate } from "@/utils/dates";
 import { formatRupees } from "@/utils/money";
 import { getPianoDisplay } from "@/utils/pianoDisplay";
 import { getPianoRentalState, isSold } from "@/utils/pianoStatus";
+import { canRemind } from "@/utils/reminders";
 import { getRentalStatusAgo, StatusTone } from "@/utils/rentalStatus";
 
 // What a piano's page says, worked out from the piano: which sections it has,
@@ -71,6 +72,7 @@ export const titlePrice = (piano: PianoItem): string | null =>
 
 export type ActionKey =
   | "recordPayment"
+  | "remind"
   | "extend"
   | "edit"
   | "markSold"
@@ -79,6 +81,7 @@ export type ActionKey =
 
 export const ACTION_LABELS: Record<ActionKey, string> = {
   recordPayment: "Record payment",
+  remind: "Remind customer",
   extend: "Extend rental",
   edit: "Edit piano",
   markSold: "Mark as sold",
@@ -97,7 +100,16 @@ export const primaryAction = (piano: PianoItem): ActionKey => {
 /** The rows at the bottom of the page. The action in the bar isn't repeated there. */
 export const listActions = (piano: PianoItem): ActionKey[] => {
   if (isSold(piano)) return ["edit", "delete"];
-  if (isRentable(piano)) return ["extend", "edit", "markSold", "delete"];
+  if (isRentable(piano)) {
+    // A reminder needs a number to message
+    return [
+      ...(canRemind(piano) ? (["remind"] as const) : []),
+      "extend",
+      "edit",
+      "markSold",
+      "delete",
+    ];
+  }
   if (piano.category === PIANO_CATEGORY.ON_SALE) return ["edit", "delete"];
   return ["markSold", "delete"];
 };

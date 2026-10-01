@@ -13,6 +13,11 @@ import { showToast } from "@/utils/toast";
 
 export type PaymentsStatus = "loading" | "ready" | "error";
 
+/** What to do after a payment is recorded: offer to send its receipt. */
+export interface AddOptions {
+  onReceipt?: (payment: RentPayment) => void;
+}
+
 export interface NewPayment {
   amount: number;
   paidOn: Date;
@@ -65,7 +70,10 @@ const useRentPayments = (pianoId: string, enabled = true) => {
   }, [load, enabled]);
 
   const add = useCallback(
-    async ({ amount, paidOn, note, customerName }: NewPayment) => {
+    async (
+      { amount, paidOn, note, customerName }: NewPayment,
+      { onReceipt }: AddOptions = {}
+    ) => {
       if (!user) {
         showToast("Please sign in again.", { variant: "error", duration: "long" });
         return false;
@@ -81,7 +89,16 @@ const useRentPayments = (pianoId: string, enabled = true) => {
         });
         setPayments((current) => newestFirst([created, ...current]));
         dispatch(paymentsChanged() as any);
-        showToast("Payment recorded", { variant: "success" });
+        showToast(
+          "Payment recorded",
+          onReceipt
+            ? {
+                variant: "success",
+                duration: "long",
+                action: { label: "Send receipt", onPress: () => onReceipt(created) },
+              }
+            : { variant: "success" }
+        );
         return true;
       } catch (error) {
         // The sheet is still open, so the person can just press Save again

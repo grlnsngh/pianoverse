@@ -1,4 +1,4 @@
-import { Alert, Linking } from "react-native";
+import { Alert, Linking, Share } from "react-native";
 import { toNationalMobile } from "@/utils/validation";
 
 /**
@@ -24,5 +24,27 @@ const open = async (url: string, appName: string) => {
 export const callNumber = (mobile: string) =>
   open(`tel:${mobile.replace(/[^\d+]/g, "")}`, "the phone app");
 
-export const messageOnWhatsApp = (mobile: string) =>
-  open(`https://wa.me/${toInternationalDigits(mobile)}`, "WhatsApp");
+/** Opens a WhatsApp chat with the number, with `text` already typed if given. */
+export const messageOnWhatsApp = (mobile: string, text?: string) =>
+  open(
+    `https://wa.me/${toInternationalDigits(mobile)}${
+      text ? `?text=${encodeURIComponent(text)}` : ""
+    }`,
+    "WhatsApp"
+  );
+
+/** Opens the phone's share sheet with a message. */
+export const shareMessage = async (message: string, title: string) => {
+  try {
+    await Share.share({ title, message });
+  } catch (error) {
+    Alert.alert(
+      "Couldn't Share",
+      error instanceof Error ? error.message : "Please try again."
+    );
+  }
+};
+
+/** A message for a renter: straight into their WhatsApp chat, or the share sheet without a number. */
+export const sendMessage = (mobile: string | null, message: string, title: string) =>
+  mobile ? messageOnWhatsApp(mobile, message) : shareMessage(message, title);

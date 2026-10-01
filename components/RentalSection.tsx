@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Icon } from "@/components/ui";
+import { Button, Icon } from "@/components/ui";
 import { colors, fonts, spacing } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { callNumber, messageOnWhatsApp } from "@/utils/contact";
@@ -15,10 +15,17 @@ const MIN_DATE_WIDTH = 110;
 
 /**
  * A rented piano's Rental section: who has it (with buttons to call or message
- * them), a bar showing how much of the rental has passed, the start and end
+ * them, and one to remind them when the rental is ending), a bar showing how much of the rental has passed, the start and end
  * dates, and the rent and address.
  */
-const RentalSection = ({ piano }: { piano: PianoItem }) => {
+const RentalSection = ({
+  piano,
+  onRemind,
+}: {
+  piano: PianoItem;
+  /** Given when the rental has ended or is about to: shows the Send reminder button */
+  onRemind?: () => void;
+}) => {
   const name = piano.rental_customer_name?.trim() || "";
   const mobile = piano.rental_customer_mobile?.trim() || "";
   const period = rentalPeriod(piano);
@@ -71,6 +78,16 @@ const RentalSection = ({ piano }: { piano: PianoItem }) => {
             </View>
           )}
         </View>
+      )}
+
+      {onRemind && (
+        <Button
+          title="Send reminder"
+          variant="outline"
+          size="compact"
+          onPress={onRemind}
+          style={styles.remind}
+        />
       )}
 
       {bar && (
@@ -169,6 +186,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   pressed: { backgroundColor: colors.grouped },
+  remind: { marginTop: spacing.lg },
   bar: { flexDirection: "row", gap: 3, height: BAR, marginTop: spacing.xxl },
   segment: { height: BAR },
   leftEnd: { borderTopLeftRadius: BAR / 2, borderBottomLeftRadius: BAR / 2 },

@@ -13,7 +13,28 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-_(Nothing is waiting for you right now.)_
+### Q26. What should the reminder and the receipt say, and in which language?
+- **Status:** Open. Nothing is blocked on it.
+- **Raised:** Batch 15 (rent collection helpers).
+- **What the app does now (default):** both are in English, and open in WhatsApp for you to change before you press send. A reminder for a rental that has ended:
+  > Hello Asha Mehta,
+  >
+  > Your rental of Kawai K-300 ended on 28 Sep 2026. The rent is ₹4,000. Please arrange the payment, or let us know if you would like to extend the rental.
+  >
+  > Thank you.
+- **A receipt:**
+  > Payment receipt
+  >
+  > Received ₹4,000 from Asha Mehta on 29 Sep 2026.
+  > For the rent of Kawai K-300.
+  > Note: UPI
+  >
+  > Thank you.
+- **Options:**
+  - **A. Keep English** (now).
+  - **B. Hindi** (in Devanagari), or English and Hindi together. Tell me which, and whether you want to check the wording.
+  - **C. Your own wording.** Send me the text you would write, and I will use it.
+- **Your answer:**
 
 ---
 
@@ -29,6 +50,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 - **Batch 5:** the filter sheet (Sort by list on top of it, the "Show N pianos" button), select mode (top bar, red Delete bar in the tab bar's place, the dialog, Android back), the refresh spinner, and Search (keyboard up at once, results as you type, bold matches, Clear, Cancel, no results).
 - **Batch 6:** the app opening on Today (then switch to Pianos at once: its list should be there), the amount and the three counts against what you know (In stock is now only the pianos that are here), Needs attention (order, red and orange), the Rented out shelf (sideways scroll, the bars, See all), Recent payments, pull down on Today, the skeleton on a slow connection, and airplane mode.
 - **Batch 13 (the whole redesign, on a real phone):** **needs a new native build first.** Build it (`eas build -p android --profile preview --local`, or a development build on iPhone), sign in, and go through each board in `docs/redesign/boards/` next to the real screen: Splash and Welcome; Sign in, Create account and the two reset screens (keyboard up); Today (the amount, the three counts, Needs attention, Recent payments, pull to refresh); Pianos (grid and list, swipe a row, select several and delete, filters and Sort by, Search); a piano's page for a rental, a piano on sale, an events and a warehouse piano, and a sold one (the photo viewer, Record payment, Extend rental, Mark as sold, Undo sale, Edit, Delete); Add a piano (the three steps, the Make list, the calendar, the camera sheet, Publishing and Published); Account (the counts, Download piano list, Last updated, reminders, Sign out). Then the same with **Reduce Motion** on (everything should only fade), with **airplane mode** (the offline strip, Retry), and once with **TalkBack** or **VoiceOver** on a list row and a toast. Anything that differs from a board: tell me which screen and which board.
+- **Batch 15 (rent collection helpers; needs the next build):** on a rental that has a customer number: open the piano's page and tap **Remind customer** (WhatsApp opens on the customer's chat with the reminder typed; nothing is sent until you press send). On a rental that has ended or ends within a week, a **Send reminder** button shows under the customer too. Record a payment: the toast has **Send receipt**, which opens the same chat with the receipt typed. Tap a payment in the list: the same receipt. Pressing and holding a payment still deletes it. Try a piano with no customer number (no reminder offered, and the receipt opens the share sheet), and a payment recorded for an earlier customer (share sheet, never the new customer's chat).
 - **Batch 14 (the web pages and the email; after the merge into `main`, since GitHub Pages builds from `main`):** open https://grlnsngh.github.io/pianoverse/ and then `reset-password.html` (with no link it should say the link isn't valid), on your phone and on a computer. For a real reset: in the app choose Sign in, then Forgot password, use your own email, open the link from the email on your phone, try a short password and two that differ (the red messages), Show / Hide, then choose a good one and watch the check draw in, then tap **Open Pianoverse**. With Reduce Motion on, the pages should only fade. The email itself can only be looked at once Q23 is answered; `docs/redesign/WEB.md` has the steps.
 - **Batch 12:** **needs a new native build first** (`expo-haptics`, `react-native-gesture-handler`, and the Batch 11 `app.json` changes; one build covers both). In the Pianos list in the list layout: swipe a row left for Edit and Delete (Edit opens the Edit screen, Delete asks first), only one row open at a time, and a long press still starts choosing pianos; the photo grid has no swipe. Pull down on Pianos and on Today: the phone's own spinner should **not** show (look closely on Android for a faint disc at the top), and the ink spinner in its band should show until the refresh ends. Add a piano: the steps slide 24 px and fade, the category choice's white chip slides. Open a piano: its page fades in and grows a little and the bar rises after it. Feel the taps: a light one when a payment is saved, when a piano is published and when an edit is saved; a firmer one when you confirm Delete, Discard or Undo sale and when you press Sign out; none when a save fails. Turn on Reduce Motion (Android: Remove animations; iOS: Reduce Motion): nothing should slide, only fade. With TalkBack or VoiceOver: a row in the list offers Edit and Delete as actions, and a toast is read out.
 - **Batch 11:** **needs a new native build first** (the orange launch screen, the white base and light mode are in `app.json`). The launch screen into the app's own splash (orange, the logo popping in, the keys loader) and then the Welcome screen: the keyboard illustration on a short and a tall phone, Sign in and Create account; each of the four auth screens with the keyboard up (the button still reachable), Show / Hide on passwords, the message under a field when you leave it, pressing the button with fields empty, the red box (try a wrong password, and airplane mode), the greyed "Signing in" state, and opening the reset link from the email; system dialogs and the keyboard now light; and on a fresh install (or after clearing the app's data) the "Get reminders before rentals end" sheet after signing in: Turn on reminders (the phone's own question follows, then a rental's reminders should be set) and Not now (it should not come back).

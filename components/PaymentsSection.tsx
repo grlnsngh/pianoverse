@@ -15,14 +15,22 @@ export type PaymentsSectionProps = {
   onRetry: () => void;
   /** Asks to delete a payment (the person presses and holds it) */
   onDelete: (payment: RentPayment) => void;
+  /** Sends the receipt of a payment (the person taps it) */
+  onReceipt: (payment: RentPayment) => void;
 };
 
 /**
  * A rented piano's Payments section: what has been received in all, the latest
- * three payments, and "Show all N payments" for the rest. A payment is deleted
- * by pressing and holding it, which asks first.
+ * three payments, and "Show all N payments" for the rest. Tapping a payment
+ * sends its receipt; pressing and holding it deletes it, which asks first.
  */
-const PaymentsSection = ({ payments, status, onRetry, onDelete }: PaymentsSectionProps) => {
+const PaymentsSection = ({
+  payments,
+  status,
+  onRetry,
+  onDelete,
+  onReceipt,
+}: PaymentsSectionProps) => {
   const [showAll, setShowAll] = useState(false);
   const shown = showAll ? payments : payments.slice(0, PAYMENTS_SHOWN);
   const hidden = payments.length - PAYMENTS_SHOWN;
@@ -59,11 +67,17 @@ const PaymentsSection = ({ payments, status, onRetry, onDelete }: PaymentsSectio
               return (
                 <Pressable
                   key={payment.$id}
+                  onPress={() => onReceipt(payment)}
                   onLongPress={() => onDelete(payment)}
+                  accessibilityRole="button"
                   accessibilityLabel={[date, payment.note, amount].filter(Boolean).join(", ")}
-                  accessibilityHint="Press and hold to delete this payment"
-                  accessibilityActions={[{ name: "delete", label: "Delete payment" }]}
+                  accessibilityHint="Sends a receipt. Press and hold to delete this payment"
+                  accessibilityActions={[
+                    { name: "receipt", label: "Send receipt" },
+                    { name: "delete", label: "Delete payment" },
+                  ]}
                   onAccessibilityAction={(event) => {
+                    if (event.nativeEvent.actionName === "receipt") onReceipt(payment);
                     if (event.nativeEvent.actionName === "delete") onDelete(payment);
                   }}
                   style={({ pressed }) => [styles.row, pressed && styles.pressed]}
@@ -92,7 +106,7 @@ const PaymentsSection = ({ payments, status, onRetry, onDelete }: PaymentsSectio
             />
           )}
 
-          <Text style={styles.hint}>Press and hold a payment to delete it.</Text>
+          <Text style={styles.hint}>Tap a payment to send a receipt. Press and hold to delete it.</Text>
         </>
       )}
     </View>

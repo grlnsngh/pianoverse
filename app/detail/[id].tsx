@@ -28,6 +28,7 @@ import useRentPayments from "@/lib/useRentPayments";
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
+import { sendMessage } from "@/utils/contact";
 import { formatRupees } from "@/utils/money";
 import { getPianoPhotos } from "@/utils/photos";
 import { isSold } from "@/utils/pianoStatus";
@@ -48,6 +49,12 @@ import {
   titlePrice,
 } from "@/utils/pianoDetail";
 import { showDialog } from "@/utils/dialog";
+import {
+  buildReceiptMessage,
+  buildReminderMessage,
+  needsReminder,
+  receiptNumber,
+} from "@/utils/reminders";
 import { buildShareMessage } from "@/utils/share";
 
 // The ⋯ sheet takes 240 ms to leave; what it chose runs after that, so the
@@ -148,6 +155,29 @@ const DetailScreen = () => {
     }
   }, [piano]);
 
+  // A reminder about the rental, typed into the renter's WhatsApp chat ready to send
+  const remindCustomer = useCallback(() => {
+    if (!piano) return;
+    sendMessage(
+      piano.rental_customer_mobile?.trim() || null,
+      buildReminderMessage(piano),
+      `${piano.title} rental`,
+    );
+  }, [piano]);
+
+  // A payment's receipt: to the renter who paid it, or the share sheet
+  const sendReceipt = useCallback(
+    (payment: RentPayment) => {
+      if (!piano) return;
+      sendMessage(
+        receiptNumber(payment, piano),
+        buildReceiptMessage(payment, piano),
+        "Payment receipt",
+      );
+    },
+    [piano],
+  );
+
   const confirmRemovePayment = useCallback(
     (payment: RentPayment) => {
       const whose = payment.customer_name?.trim()
@@ -175,6 +205,8 @@ const DetailScreen = () => {
     switch (action) {
       case "recordPayment":
         return setShowPaymentSheet(true);
+      case "remind":
+        return remindCustomer();
       case "extend":
         return setShowExtendSheet(true);
       case "edit":
@@ -277,7 +309,10 @@ const DetailScreen = () => {
             {showRental && (
               <>
                 <Divider />
-                <RentalSection piano={piano} />
+                <RentalSection
+                  piano={piano}
+                  onRemind={needsReminder(piano) ? remindCustomer : undefined}
+                />
               </>
             )}
 
@@ -297,6 +332,7 @@ const DetailScreen = () => {
                   status={rentPayments.status}
                   onRetry={rentPayments.reload}
                   onDelete={confirmRemovePayment}
+                  onReceipt={sendReceipt}
                 />
               </>
             )}
@@ -352,7 +388,9 @@ const DetailScreen = () => {
           piano={piano}
           visible={showPaymentSheet}
           onClose={() => setShowPaymentSheet(false)}
-          onSave={rentPayments.add}
+          onSave={(payment) =>
+            rentPayments.add(payment, { onReceipt: sendReceipt })
+          }
         />
       )}
     </View>

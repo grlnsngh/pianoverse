@@ -599,8 +599,8 @@ describe("the ⋯ menu", () => {
       (node) => typeof node.props.onPress === "function" && (node.props.accessibilityLabel ?? "") !== "" && !isControl(node.props.accessibilityLabel)(node.parent)
     ) as any[]).map((node) => node.props.accessibilityLabel);
 
-    // The page's own controls come first, then the sheet's rows (five of them)
-    expect(rows.slice(-5)).toEqual(["Record payment", "Extend rental", "Edit piano", "Mark as sold", "Delete piano"]);
+    // The page's own controls come first, then the sheet's rows (six of them)
+    expect(rows.slice(-6)).toEqual(["Record payment", "Remind customer", "Extend rental", "Edit piano", "Mark as sold", "Delete piano"]);
   });
 
   it("runs the chosen action once the menu has closed, not under it", async () => {
