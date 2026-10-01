@@ -2,7 +2,7 @@
   "expo": {
     "name": "pianoverse",
     "slug": "pianoverse",
-    "version": "1.1.13",
+    "version": "1.1.15",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "pianoverse",
@@ -20,7 +20,13 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.grlnsngh.pianoverse",
-      "versionCode": 24
+      "versionCode": 26
+    },
+    "runtimeVersion": "1",
+    "updates": {
+      "url": "https://u.expo.dev/9002c527-c408-455a-925b-2d4c09ae3118",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     },
     "web": {
       "bundler": "metro",

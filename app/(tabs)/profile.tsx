@@ -1,4 +1,6 @@
+import Constants from "expo-constants";
 import { router } from "expo-router";
+import * as Updates from "expo-updates";
 import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +19,7 @@ import { resetPianoState } from "@/redux/pianos/actions";
 import { RootState } from "@/redux/store";
 import { scheduleAllRentalNotifications } from "@/services/notifications";
 import { formatLastUpdated, initialOf, memberSince } from "@/utils/account";
+import { versionLabel } from "@/utils/appVersion";
 import { exportPianosToCSV } from "@/utils/csvExport";
 import { stockCounts } from "@/utils/today";
 
@@ -98,6 +101,11 @@ const Profile = () => {
   const activeTab = useSelector((state: RootState) => state.navigation.activeTab);
   const [signOutOpen, setSignOutOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const version = versionLabel(
+    Constants.expoConfig?.version,
+    Updates.updateId,
+    Updates.isEmbeddedLaunch
+  );
   const [exporting, setExporting] = useState(false);
 
   const counts = stockCounts(items);
@@ -218,6 +226,8 @@ const Profile = () => {
             <Text style={styles.signOutText}>Sign out</Text>
           </Pressable>
         </View>
+
+        {!!version && <Text style={styles.version}>{version}</Text>}
       </ScrollView>
 
       <SignOutSheet
@@ -329,6 +339,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   signOutText: { ...type.rowTitle, color: colors.late },
+  version: {
+    marginTop: spacing.xl,
+    ...type.caption,
+    fontFamily: fonts.regular,
+    textAlign: "center",
+    color: colors.ink2,
+  },
 });
 
 export default Profile;

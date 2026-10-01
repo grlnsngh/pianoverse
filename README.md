@@ -140,7 +140,7 @@ GitHub Actions runs the lint, the type check and the tests on every pull request
 
 ## Incrementing Version
 
-To increment the app version and versionCode in app.json:
+Do this before **every new build** you install over an older one: Android only accepts an APK whose versionCode is higher than the installed one. (A fix sent as an over-the-air update, below, needs no new version.) To increment the app version and versionCode in app.json:
 
 ```sh
 npm run plus
@@ -150,14 +150,27 @@ This script updates the version from e.g., "1.1.9" to "1.1.10" and versionCode f
 
 ## Build for Android Internal Testing
 
-To build the project for Android internal testing:
+To build the project for Android internal testing (an APK you can install):
 
 ```sh
-eas build -p android --profile preview --local
+eas build -p android --profile preview
 ```
 
-Changes to native settings (`app.json` plugins, splash screen, permissions) and new native modules only reach users through a new build, not an over-the-air update.
+(`--local` builds run on macOS and Linux only.) Changes to native settings (`app.json` plugins, splash screen, permissions) and new native modules only reach users through a new build.
 
+## Fixing the App Without a New Build (Over-the-Air Updates)
+
+A change to the app's JavaScript (screens, wording, logic, styles) can be sent straight to installed phones, with no new APK and no version bump. This works for builds made **from this version on**, because they carry `expo-updates`.
+
+```sh
+npm run update -- --message "Fix the reminder wording"
+```
+
+That publishes to the `preview` channel, which is what `eas build --profile preview` builds listen to (`npm run update:production` is for the `production` profile). Publish from an up-to-date `main`, never from a branch that isn't finished. The phone looks for an update when the app starts and when you come back to it after ten minutes; when one has downloaded, a message says **An update is ready** with a **Restart** button, and if you ignore it the update is used the next time the app starts. The bottom of the Account tab shows `Version 1.1.15 · update 9f8e7d6c` once an update is running.
+
+**When a new build is needed instead:** a native package is added, removed or upgraded, or a native setting in `app.json` changes (permissions, plugins, icon, splash, scheme). An update built for the old native part would crash a phone that has the new one, and the other way round. So `runtimeVersion` in `app.json` names the native part: an update only reaches builds with the same number. `__tests__/runtimeVersion.test.ts` fails when the native part changes; the fix is to raise `runtimeVersion`, record the new list in that test, and make a new build before publishing any update.
+
+**If an update turns out bad:** publish the fix the same way, or send the previous one again with `eas update:republish`.
 ## Clear Cache and Start Fresh
 
 To start the project with a clear cache, you can use the following command:

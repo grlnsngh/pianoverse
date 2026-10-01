@@ -5,6 +5,8 @@
   "scripts": {
     "start": "expo start",
     "plus": "node ./scripts/increment-version.js",
+    "update": "eas update --channel preview",
+    "update:production": "eas update --channel production",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
@@ -64,7 +66,8 @@
     "react-native-web": "~0.19.10",
     "react-redux": "^9.1.2",
     "redux": "^5.0.1",
-    "redux-logger": "^3.0.6"
+    "redux-logger": "^3.0.6",
+    "expo-updates": "~0.25.28"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
