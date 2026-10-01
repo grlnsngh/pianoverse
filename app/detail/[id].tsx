@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { useSelector } from "react-redux";
 import { router, useLocalSearchParams } from "expo-router";
@@ -58,6 +58,7 @@ import {
   needsReminder,
   receiptNumber,
 } from "@/utils/reminders";
+import { rentBalance } from "@/utils/rentDue";
 import { buildShareMessage } from "@/utils/share";
 
 // The ⋯ sheet takes 240 ms to leave; what it chose runs after that, so the
@@ -159,15 +160,24 @@ const DetailScreen = () => {
     }
   }, [piano]);
 
+  // What the renter owes, once this piano's payments are here (without them it would look like everything is owed)
+  const balance = useMemo(
+    () =>
+      piano && rentPayments.status === "ready"
+        ? rentBalance(piano, rentPayments.payments)
+        : null,
+    [piano, rentPayments.status, rentPayments.payments],
+  );
+
   // A reminder about the rental, typed into the renter's WhatsApp chat ready to send
   const remindCustomer = useCallback(() => {
     if (!piano) return;
     sendMessage(
       piano.rental_customer_mobile?.trim() || null,
-      buildReminderMessage(piano),
+      buildReminderMessage(piano, undefined, balance),
       `${piano.title} rental`,
     );
-  }, [piano]);
+  }, [piano, balance]);
 
   // A payment's receipt: to the renter who paid it, or the share sheet
   const sendReceipt = useCallback(
@@ -324,7 +334,12 @@ const DetailScreen = () => {
                 <Divider />
                 <RentalSection
                   piano={piano}
-                  onRemind={needsReminder(piano) ? remindCustomer : undefined}
+                  balance={balance}
+                  onRemind={
+                    needsReminder(piano, undefined, balance)
+                      ? remindCustomer
+                      : undefined
+                  }
                 />
               </>
             )}

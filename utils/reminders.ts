@@ -5,6 +5,7 @@ import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate, StoredDate } from "@/utils/dates";
 import { formatRupees } from "@/utils/money";
 import { isSold } from "@/utils/pianoStatus";
+import type { RentBalance } from "@/utils/rentDue";
 import { ATTENTION_DAYS } from "@/utils/today";
 
 // The messages the owner sends a renter: a reminder about the rental, and a
@@ -28,20 +29,39 @@ export const canRemind = (piano: PianoItem) =>
   !isSold(piano) &&
   !!clean(piano.rental_customer_mobile);
 
-/** Worth sending now: the rental has ended or ends within the week Today watches. */
-export const needsReminder = (piano: PianoItem, today = startOfToday()) => {
+/**
+ * Worth sending now: the rental has ended or ends within the week Today
+ * watches, or it owes rent (when `balance` says so).
+ */
+export const needsReminder = (
+  piano: PianoItem,
+  today = startOfToday(),
+  balance: RentBalance | null = null
+) => {
   if (!canRemind(piano)) return false;
+  if (balance && balance.due > 0) return true;
   const end = parseStoredDate(piano.rental_period_end);
   return !!end && differenceInCalendarDays(end, today) <= ATTENTION_DAYS;
 };
 
+/** "₹8,000 of the rent is due (2 months, since 1 Aug 2026)." */
+const dueSentence = (balance: RentBalance) => {
+  const since = balance.since ? format(balance.since, "d MMM yyyy") : null;
+  return `${formatRupees(balance.due)} of the rent is due (${plural(
+    balance.monthsDue,
+    "month"
+  )}${since ? `, since ${since}` : ""}).`;
+};
+
 /**
  * The reminder for a rental, worded for where it is: ended, ending today,
- * ending soon, or still running.
+ * ending soon, or still running. When `balance` says rent is due, it says how
+ * much, and asks for that payment.
  */
 export const buildReminderMessage = (
   piano: PianoItem,
-  today = startOfToday()
+  today = startOfToday(),
+  balance: RentBalance | null = null
 ) => {
   const name = clean(piano.rental_customer_name);
   const title = clean(piano.title) || "the piano";
@@ -53,23 +73,33 @@ export const buildReminderMessage = (
   const endDay = dayOf(piano.rental_period_end);
   const left = end ? differenceInCalendarDays(end, today) : null;
 
+  const owes = balance && balance.due > 0 ? dueSentence(balance) : "";
+  // What it asks for when the rental is ending: the payment too, if rent is due
+  const extend = (what: string) =>
+    owes
+      ? `Please arrange the payment, or let us know if you would like to extend ${what}.`
+      : `Please let us know if you would like to extend ${what}.`;
+
   const sentences: string[] = [];
   if (end && left !== null && left < 0) {
     sentences.push(`Your rental of ${title} ended on ${endDay}.`);
     if (rent) sentences.push(rent);
+    if (owes) sentences.push(owes);
     sentences.push(
       "Please arrange the payment, or let us know if you would like to extend the rental."
     );
   } else if (left === 0) {
     sentences.push(`Your rental of ${title} ends today.`);
     if (rent) sentences.push(rent);
-    sentences.push("Please let us know if you would like to extend it.");
+    if (owes) sentences.push(owes);
+    sentences.push(extend("it"));
   } else if (left !== null && left <= ATTENTION_DAYS) {
     sentences.push(
       `Your rental of ${title} ends on ${endDay} (in ${plural(left, "day")}).`
     );
     if (rent) sentences.push(rent);
-    sentences.push("Please let us know if you would like to extend it.");
+    if (owes) sentences.push(owes);
+    sentences.push(extend("it"));
   } else {
     sentences.push(
       endDay
@@ -77,6 +107,9 @@ export const buildReminderMessage = (
         : `This is a note about your rental of ${title}.`
     );
     if (rent) sentences.push(rent);
+    if (owes) {
+      sentences.push(owes, "Please arrange the payment.");
+    }
   }
 
   return [

@@ -5,6 +5,7 @@ import { colors, fonts, spacing } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { callNumber, messageOnWhatsApp } from "@/utils/contact";
 import { initialsOf, rentalPeriod, rentalRows } from "@/utils/pianoDetail";
+import { balanceLine, type RentBalance } from "@/utils/rentDue";
 import { InfoRows, SectionTitle, toneColor } from "./DetailParts";
 
 const AVATAR = 48;
@@ -20,10 +21,13 @@ const MIN_DATE_WIDTH = 110;
  */
 const RentalSection = ({
   piano,
+  balance,
   onRemind,
 }: {
   piano: PianoItem;
-  /** Given when the rental has ended or is about to: shows the Send reminder button */
+  /** What the renter owes, when it can be worked out: shows "₹8,000 due · 2 months, since 1 Aug" or "Rent is paid up" */
+  balance?: RentBalance | null;
+  /** Given when the rental has ended or is about to, or rent is due: shows the Send reminder button */
   onRemind?: () => void;
 }) => {
   const name = piano.rental_customer_name?.trim() || "";
@@ -78,6 +82,12 @@ const RentalSection = ({
             </View>
           )}
         </View>
+      )}
+
+      {balance && (
+        <Text style={[styles.balance, balance.due > 0 && styles.balanceDue]}>
+          {balanceLine(balance)}
+        </Text>
       )}
 
       {onRemind && (
@@ -186,6 +196,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   pressed: { backgroundColor: colors.grouped },
+  balance: {
+    marginTop: spacing.lg,
+    fontFamily: fonts.semibold,
+    fontSize: 15,
+    lineHeight: 20,
+    color: colors.ink2,
+    fontVariant: ["tabular-nums"],
+  },
+  balanceDue: { color: colors.late },
   remind: { marginTop: spacing.lg },
   bar: { flexDirection: "row", gap: 3, height: BAR, marginTop: spacing.xxl },
   segment: { height: BAR },
