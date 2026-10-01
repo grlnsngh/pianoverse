@@ -285,7 +285,7 @@ describe("the receipt of a payment", () => {
     expect(Share.share).toHaveBeenCalledTimes(1);
   });
 
-  it("still deletes a payment by pressing and holding it", async () => {
+  it("still deletes a payment, from the choices that pressing and holding it opens", async () => {
     seedPayment("p", "2026-08-05", { customer_name: "Asha Mehta" });
     const { renderer } = await openDetail(rental(30));
 
@@ -297,8 +297,14 @@ describe("the receipt of a payment", () => {
     await act(async () => row.props.onLongPress());
     await flushPromises();
 
+    // Holding doesn't send the receipt: it offers it, with the other choices
     expect(Linking.openURL).not.toHaveBeenCalled();
     expect(Share.share).not.toHaveBeenCalled();
+    await pressText(renderer.root, "Delete payment");
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 350));
+    });
+    await flushPromises();
     await pressText(renderer.root, "Delete");
     await flushPromises();
     expect(fakeBackend.payments.size).toBe(0);

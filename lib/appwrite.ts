@@ -912,6 +912,49 @@ export async function getRentPaymentsBetween(
   ]);
 }
 
+/**
+ * What can be changed on a recorded payment. Only what is given is saved. An
+ * empty `note` or `customerName` takes the note or the name off the payment.
+ */
+export interface RentPaymentChanges {
+  amount?: number;
+  paidOn?: Date;
+  note?: string;
+  /** Who had paid it: the name saved with the payment */
+  customerName?: string;
+}
+
+/**
+ * Changes a rent payment that was recorded, for example a wrong amount, a
+ * wrong day or a misspelled name. Only the fields in `changes` are sent, so a
+ * table that has no `customer_name` column yet is only a problem when the name
+ * itself is changed.
+ *
+ * @param {string} paymentId - The payment's ID.
+ * @param {RentPaymentChanges} changes - What to change.
+ * @returns {Promise<RentPayment>} The payment as it is now.
+ * @throws {Error} If Appwrite can't be reached or refuses the change.
+ */
+export async function updateRentPayment(
+  paymentId: string,
+  changes: RentPaymentChanges
+): Promise<RentPayment> {
+  const data: Record<string, unknown> = {};
+  if (changes.amount !== undefined) data.amount = changes.amount;
+  if (changes.paidOn !== undefined) data.paid_on = toStoredDate(changes.paidOn);
+  if (changes.note !== undefined) data.note = changes.note.trim() || null;
+  if (changes.customerName !== undefined) {
+    data.customer_name = changes.customerName.trim() || null;
+  }
+
+  return (await databases.updateDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.rentPaymentsCollectionId,
+    paymentId,
+    data
+  )) as unknown as RentPayment;
+}
+
 /** Deletes one rent payment. */
 export async function deleteRentPayment(paymentId: string) {
   return databases.deleteDocument(

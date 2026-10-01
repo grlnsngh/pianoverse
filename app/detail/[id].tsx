@@ -10,6 +10,7 @@ import {
   SectionTitle,
   toneColor,
 } from "@/components/DetailParts";
+import EditPaymentSheet from "@/components/EditPaymentSheet";
 import ExtendRentalSheet from "@/components/ExtendRentalSheet";
 import MarkAsSoldSheet from "@/components/MarkAsSoldSheet";
 import PastRentersSection from "@/components/PastRentersSection";
@@ -84,6 +85,8 @@ const DetailScreen = () => {
   const [showSoldSheet, setShowSoldSheet] = useState(false);
   const [showExtendSheet, setShowExtendSheet] = useState(false);
   const [showPaymentSheet, setShowPaymentSheet] = useState(false);
+  // The recorded payment being changed, while its sheet shows
+  const [editingPayment, setEditingPayment] = useState<RentPayment | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const confirmDelete = useDeletePiano();
   const updatePiano = useUpdatePiano();
@@ -360,6 +363,7 @@ const DetailScreen = () => {
                   status={rentPayments.status}
                   onRetry={rentPayments.reload}
                   onDelete={confirmRemovePayment}
+                  onEdit={setEditingPayment}
                   onReceipt={sendReceipt}
                 />
               </>
@@ -418,6 +422,14 @@ const DetailScreen = () => {
         visible={showExtendSheet}
         onClose={() => setShowExtendSheet(false)}
       />
+      {rentable && (
+        <EditPaymentSheet
+          payment={editingPayment}
+          piano={piano}
+          onClose={() => setEditingPayment(null)}
+          onSave={rentPayments.update}
+        />
+      )}
       {rentable && (
         <RecordPaymentSheet
           piano={piano}

@@ -18,7 +18,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Category Management:** Rentable, events, on sale and warehouse pianos, each with their own details.
 - **Rentals:** Due dates with reminders at 9:00 a week before, the day before, on the day, and when overdue. Extend a rental by 1, 3 or 6 months in one tap.
 - **Overdue view:** Today lists rentals that have ended but not been extended, with the rent still to collect.
-- **Rent payments:** Record each payment for a rented piano (amount, date, note) and see what has been received.
+- **Rent payments:** Record each payment for a rented piano (amount, date, note) and see what has been received. Press and hold a payment to send its receipt, edit it (the amount, the day, who paid and the note, with Undo) or delete it.
 - **Sales:** Mark a piano as sold with the buyer, price and date; sold pianos leave the stock and can be shown with a filter.
 - **Search and filters:** Search by title, make, customer, mobile, model or B-number; filter by category, active or overdue rentals, and sold pianos.
 - **Customers:** A Customers screen (Account, Reports) lists everyone who has rented a piano, what they paid and which pianos, and a rented piano's page shows its previous renters. It is worked out from the names saved with the rent payments and, from when it was switched on, the rentals kept in `rental_history`.

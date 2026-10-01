@@ -39,6 +39,7 @@ import {
   dialogOf,
   flushPromises,
   pressDialog,
+  pressLabel,
   pressText,
   renderWithStore,
 } from "./helpers/render";
@@ -124,7 +125,7 @@ const pressButton = async (renderer: ReactTestRenderer, label: string) => {
   await flushPromises();
 };
 
-// Presses and holds the payment whose row says `text`: how a payment is deleted
+// Presses and holds the payment whose row says `text`: what opens its choices (receipt, edit, delete)
 const holdPayment = async (renderer: ReactTestRenderer, text: string) => {
   const [row] = renderer.root.findAll(
     (node) =>
@@ -135,6 +136,20 @@ const holdPayment = async (renderer: ReactTestRenderer, text: string) => {
   await act(async () => {
     await row.props.onLongPress();
   });
+  await flushPromises();
+};
+
+// The sheet takes 240 ms to leave, and what it chose runs after 300 ms
+const waitForSheetToLeave = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 350));
+  });
+
+// Presses and holds a payment and chooses Delete payment: how a payment is deleted
+const askToDelete = async (renderer: ReactTestRenderer, text: string) => {
+  await holdPayment(renderer, text);
+  await pressLabel(renderer.root, "Delete payment");
+  await waitForSheetToLeave();
   await flushPromises();
 };
 
@@ -297,7 +312,7 @@ describe("rent payments on the Detail screen", () => {
     await pressButton(renderer, "Save payment");
     expect(store.getState().payments.changeCount).toBe(1);
 
-    await holdPayment(renderer, "₹4,000");
+    await askToDelete(renderer, "₹4,000");
     await pressDialog(renderer.root, "Delete");
     expect(store.getState().payments.changeCount).toBe(2);
   });
@@ -366,7 +381,7 @@ describe("rent payments on the Detail screen", () => {
     seedPayment("p", "2026-08-05", 5000);
     const { renderer } = await openDetail();
 
-    await holdPayment(renderer, "₹5,000");
+    await askToDelete(renderer, "₹5,000");
     expect(dialogOf(renderer.root)).toEqual({
       title: "Delete this payment?",
       message: "₹5,000 paid on 5 Aug 2026 will be removed from this rental.",
@@ -384,7 +399,7 @@ describe("rent payments on the Detail screen", () => {
     seedPayment("p", "2026-08-05", 5000);
     const { renderer } = await openDetail();
 
-    await holdPayment(renderer, "₹5,000");
+    await askToDelete(renderer, "₹5,000");
     await pressDialog(renderer.root, "Cancel");
 
     expect(fakeBackend.payments.size).toBe(1);
@@ -446,27 +461,30 @@ describe("the Payments section (Detail board)", () => {
     expect(allTexts(renderer.root).some((text) => /^Show (all|fewer)/.test(text))).toBe(false);
   });
 
-  it("says how to send a receipt and how to delete a payment, since no button does", async () => {
+  it("says how to send a receipt and how to edit or delete a payment, since no button does", async () => {
     seedPayment("p", "2026-08-05", 5000);
     const { renderer } = await openDetail();
 
-    expect(allTexts(renderer.root)).toContain("Tap a payment to send a receipt. Press and hold to delete it.");
-    expect(rows(renderer)[0].props.accessibilityHint).toBe("Sends a receipt. Press and hold to delete this payment");
+    expect(allTexts(renderer.root)).toContain("Tap a payment to send a receipt. Press and hold to edit or delete it.");
+    expect(rows(renderer)[0].props.accessibilityHint).toBe(
+      "Sends a receipt. Press and hold to edit or delete this payment"
+    );
   });
 
-  it("doesn't say it when there are no payments to delete", async () => {
+  it("doesn't say it when there are no payments to change", async () => {
     const { renderer } = await openDetail();
 
-    expect(allTexts(renderer.root)).not.toContain("Tap a payment to send a receipt. Press and hold to delete it.");
+    expect(allTexts(renderer.root)).not.toContain("Tap a payment to send a receipt. Press and hold to edit or delete it.");
   });
 
-  it("lets a screen reader send a receipt and delete a payment with actions, too", async () => {
+  it("lets a screen reader send a receipt, edit a payment and delete it with actions, too", async () => {
     seedPayment("p", "2026-08-05", 5000);
     const { renderer } = await openDetail();
     const [row] = rows(renderer);
 
     expect(row.props.accessibilityActions).toEqual([
       { name: "receipt", label: "Send receipt" },
+      { name: "edit", label: "Edit payment" },
       { name: "delete", label: "Delete payment" },
     ]);
     await act(async () => {
@@ -549,7 +567,7 @@ describe("the renter's name saved with a payment", () => {
     seedPayment("p", "2026-08-05", 5000, { customer_name: "Asha Mehta" });
     const { renderer } = await openDetail();
 
-    await holdPayment(renderer, "₹5,000");
+    await askToDelete(renderer, "₹5,000");
 
     expect(dialogOf(renderer.root)?.message).toBe("₹5,000 paid on 5 Aug 2026 will be removed from Asha Mehta’s rental.");
   });
