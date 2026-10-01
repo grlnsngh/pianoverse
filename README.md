@@ -170,6 +170,8 @@ That publishes to the `preview` channel, which is what `eas build --profile prev
 
 **When a new build is needed instead:** a native package is added, removed or upgraded, or a native setting in `app.json` changes (permissions, plugins, icon, splash, scheme). An update built for the old native part would crash a phone that has the new one, and the other way round. So `runtimeVersion` in `app.json` names the native part: an update only reaches builds with the same number. `__tests__/runtimeVersion.test.ts` fails when the native part changes; the fix is to raise `runtimeVersion`, record the new list in that test, and make a new build before publishing any update.
 
+**If nothing arrives:** the installed app must be a build made with `expo-updates` (Account shows `Version 1.1.15` or later, and the build was made after this was added), made from a project whose `runtimeVersion` in `app.json` is the same as the one you publish from; the phone needs internet; and the update must go to the channel the build was made for (`preview` for `--profile preview`). The first time, `eas update` may say the channel doesn't exist: create it once with `eas channel:create preview`. `eas update:list` and the project's Updates page on expo.dev show what has been published.
+
 **If an update turns out bad:** publish the fix the same way, or send the previous one again with `eas update:republish`.
 ## Clear Cache and Start Fresh
 
