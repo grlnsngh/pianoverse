@@ -7,10 +7,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import ReminderPreview, { SAMPLE_REMINDER } from "@/components/ReminderPreview";
 import SignOutSheet from "@/components/SignOutSheet";
-import { Group, Icon, Spinner } from "@/components/ui";
+import { Group, Icon, Spinner, Switch } from "@/components/ui";
 import type { IconName } from "@/components/ui";
 import { colors, fonts, radii, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
+import { useAppLock } from "@/lib/AppLockContext";
 import { signOut } from "@/lib/appwrite";
 import { clearPianoCache } from "@/lib/pianoCache";
 import useSavedAt from "@/lib/useSavedAt";
@@ -21,6 +22,8 @@ import { scheduleAllRentalNotifications } from "@/services/notifications";
 import { formatLastUpdated, initialOf, memberSince } from "@/utils/account";
 import { versionLabel } from "@/utils/appVersion";
 import { exportPianosToCSV } from "@/utils/csvExport";
+import { showDialog } from "@/utils/dialog";
+import { showToast } from "@/utils/toast";
 import { stockCounts } from "@/utils/today";
 
 const CountCell = ({
@@ -107,6 +110,7 @@ const Profile = () => {
     Updates.isEmbeddedLaunch
   );
   const [exporting, setExporting] = useState(false);
+  const appLock = useAppLock();
 
   const counts = stockCounts(items);
   const since = memberSince(user?.$createdAt);
@@ -119,6 +123,30 @@ const Profile = () => {
       await exportPianosToCSV(items);
     } finally {
       setExporting(false);
+    }
+  };
+
+  // Turning it on first asks the phone to check the person, so it can never be turned on and not work
+  const handleAppLock = async (turnOn: boolean) => {
+    if (!turnOn) {
+      await appLock.disable();
+      showToast("App lock is off");
+      return;
+    }
+    const result = await appLock.enable();
+    if (result.ok) {
+      showToast("App lock is on", { variant: "success" });
+    } else if (result.reason === "unavailable") {
+      showDialog({
+        title: "Set up a screen lock first",
+        message:
+          "App lock uses your fingerprint, face or screen lock. Set one up in your phone's settings, then try again.",
+        actions: [{ label: "OK", onPress: () => {} }],
+      });
+    } else if (result.reason === "lockout") {
+      showToast("Too many tries. Wait a moment and try again.", { variant: "error" });
+    } else if (result.reason === "failed") {
+      showToast("Couldn't turn on app lock. Try again.", { variant: "error" });
     }
   };
 
@@ -190,6 +218,23 @@ const Profile = () => {
             hint="Saved on this device for offline use"
             value={savedAt ? formatLastUpdated(savedAt) : "Not yet"}
           />
+        </Group>
+
+        <Group title="Security" radius="panel" style={styles.section}>
+          <View style={styles.dataRow}>
+            <Icon name="lock" size={24} color={colors.ink} />
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>App lock</Text>
+              <Text style={styles.rowHint}>
+                Ask for your fingerprint or screen lock when you open Pianoverse
+              </Text>
+            </View>
+            <Switch
+              value={appLock.enabled}
+              onValueChange={handleAppLock}
+              accessibilityLabel="App lock"
+            />
+          </View>
         </Group>
 
         <View style={styles.section}>

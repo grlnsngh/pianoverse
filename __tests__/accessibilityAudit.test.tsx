@@ -55,6 +55,7 @@ import EditScreen from "@/app/edit/[id]";
 import Review from "@/app/review";
 import FilterSheet from "@/components/FilterSheet";
 import MakePickerSheet from "@/components/MakePickerSheet";
+import LockScreen from "@/components/LockScreen";
 import NotifyPrimerSheet from "@/components/NotifyPrimerSheet";
 import PianoActionsSheet from "@/components/PianoActionsSheet";
 import RecordPaymentSheet from "@/components/RecordPaymentSheet";
@@ -297,6 +298,16 @@ describe("sheets and dialogs", () => {
 
     expect(renderer.root.findAll((node) => node.props.testID === "notify-primer").length).toBeGreaterThan(0);
     expect(audit(renderer)).toEqual([]);
+  });
+});
+
+describe("the lock screen", () => {
+  it("is usable, with and without a message", () => {
+    for (const message of ["", "Too many tries. Wait a moment, or use your screen lock."]) {
+      const renderer = renderWithStore(<LockScreen message={message} onUnlock={() => {}} />, createTestStore());
+
+      expect(audit(renderer)).toEqual([]);
+    }
   });
 });
 
