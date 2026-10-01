@@ -1,10 +1,11 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { format } from "date-fns";
 import { Icon } from "@/components/ui";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
 import { Customer, customerLine } from "@/utils/customers";
 import { formatRupees } from "@/utils/money";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 export type CustomerRowProps = {
   customer: Customer;
@@ -28,6 +29,8 @@ const initialsOf = (name: string) =>
  * and whether they have a piano now or when they last paid.
  */
 const CustomerRow = ({ customer, onOpen }: CustomerRowProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const total = formatRupees(customer.total);
   const note = customer.renting
     ? "Renting now"
@@ -80,7 +83,7 @@ const CustomerRow = ({ customer, onOpen }: CustomerRowProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -115,6 +118,6 @@ const styles = StyleSheet.create({
   total: { ...type.rowTitle, color: colors.ink, fontVariant: ["tabular-nums"] },
   note: { ...type.caption, fontFamily: fonts.regular, color: colors.ink2 },
   renting: { fontFamily: fonts.semibold, color: colors.brandText },
-});
+}));
 
 export default CustomerRow;

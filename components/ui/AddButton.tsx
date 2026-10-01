@@ -1,7 +1,8 @@
 import React from "react";
-import { Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
-import { colors, motion } from "@/constants/theme";
+import { Pressable, StyleProp, ViewStyle } from "react-native";
+import { motion } from "@/constants/theme";
 import Icon from "./Icon";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const SIZE = 44;
 const ICON_SIZE = 22;
@@ -23,26 +24,30 @@ const AddButton = ({
   accessibilityLabel = "Add piano",
   style,
   testID,
-}: AddButtonProps) => (
-  <Pressable
-    onPress={onPress}
-    accessibilityRole="button"
-    accessibilityLabel={accessibilityLabel}
-    testID={testID}
-    style={({ pressed }) => [
-      styles.button,
-      pressed && {
-        backgroundColor: colors.brandPressed,
-        transform: [{ scale: motion.pressedScale }],
-      },
-      style,
-    ]}
-  >
-    <Icon name="plus" size={ICON_SIZE} color={colors.ink} strokeWidth={2.2} />
-  </Pressable>
-);
+}: AddButtonProps) => {
+  const colors = useColors();
+  const styles = useStyles();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      testID={testID}
+      style={({ pressed }) => [
+        styles.button,
+        pressed && {
+          backgroundColor: colors.brandPressed,
+          transform: [{ scale: motion.pressedScale }],
+        },
+        style,
+      ]}
+    >
+      <Icon name="plus" size={ICON_SIZE} color={colors.onBrand} strokeWidth={2.2} />
+    </Pressable>
+  );
+};
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   button: {
     width: SIZE,
     height: SIZE,
@@ -51,6 +56,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.brand,
   },
-});
+}));
 
 export default React.memo(AddButton);

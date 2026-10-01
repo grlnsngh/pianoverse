@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 import { format, isToday } from "date-fns";
 import { AmountInput, Button, DatePickerSheet, FormRow, Group, Sheet } from "@/components/ui";
-import { colors, type } from "@/constants/theme";
+import { type } from "@/constants/theme";
 import { NewPayment } from "@/lib/useRentPayments";
 import { PianoItem } from "@/redux/pianos/types";
 import { formatRupees } from "@/utils/money";
+import { makeStyles } from "@/lib/ThemeContext";
 
 interface RecordPaymentSheetProps {
   piano: PianoItem;
@@ -31,6 +32,7 @@ const RecordPaymentSheet: React.FC<RecordPaymentSheetProps> = ({
   onClose,
   onSave,
 }) => {
+  const styles = useStyles();
   const [amount, setAmount] = useState(0);
   const [paidOn, setPaidOn] = useState(new Date());
   const [note, setNote] = useState("");
@@ -113,10 +115,10 @@ const RecordPaymentSheet: React.FC<RecordPaymentSheetProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   subject: { ...type.secondary, textAlign: "center", color: colors.ink2 },
   group: { marginTop: 24 },
   bottom: { height: 8 },
-});
+}));
 
 export default RecordPaymentSheet;

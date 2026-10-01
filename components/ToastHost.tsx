@@ -1,10 +1,9 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, Pressable, Text, View } from "react-native";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 import Icon from "@/components/ui/Icon";
 import {
   bottomBar,
-  colors,
   fonts,
   motion,
   radii,
@@ -13,6 +12,7 @@ import {
 } from "@/constants/theme";
 import useReducedMotion from "@/lib/useReducedMotion";
 import { addToastListener, setToastListener, ToastDetails, ToastListener } from "@/utils/toast";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const HOLD_MS = {
   short: motion.duration.toastHold,
@@ -44,6 +44,8 @@ export type ToastHostProps = {
  * above sheets and dialogs too.
  */
 const ToastHost = ({ embedded = false, bottomOffset }: ToastHostProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const [toast, setToast] = useState<ActiveToast | null>(null);
   const opacity = useRef(new Animated.Value(0)).current;
   const offset = useRef(new Animated.Value(0)).current;
@@ -151,7 +153,7 @@ const ToastHost = ({ embedded = false, bottomOffset }: ToastHostProps) => {
       <View style={styles.toast}>
         {variant === "success" && (
           <View style={styles.check}>
-            <Icon name="check" size={CHECK_SIZE} color={colors.ink} strokeWidth={3.2} />
+            <Icon name="check" size={CHECK_SIZE} color={colors.onBrand} strokeWidth={3.2} />
           </View>
         )}
         {variant === "error" && (
@@ -176,7 +178,7 @@ const ToastHost = ({ embedded = false, bottomOffset }: ToastHostProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   position: {
     position: "absolute",
     left: spacing.screen,
@@ -200,7 +202,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.brand,
   },
-  text: { ...type.status, flexGrow: 1, flexShrink: 1, color: colors.white },
+  text: { ...type.status, flexGrow: 1, flexShrink: 1, color: colors.onInk },
   action: {
     minHeight: spacing.minTarget,
     justifyContent: "center",
@@ -211,6 +213,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     color: colors.brandOnInk,
   },
-});
+}));
 
 export default ToastHost;

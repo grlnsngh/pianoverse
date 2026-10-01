@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import CameraDeniedSheet from "@/components/CameraDeniedSheet";
 import { Button, Field, Icon, Sheet, Spinner } from "@/components/ui";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { changeProfilePhoto, removeProfilePhoto, renameProfile } from "@/lib/profileEdits";
 import { initialOf, profilePhoto } from "@/utils/account";
@@ -22,6 +22,7 @@ import { showDialog } from "@/utils/dialog";
 import { PhotoSource, pickProfilePhoto } from "@/utils/photo";
 import { cleanName, nameError } from "@/utils/profile";
 import { showToast } from "@/utils/toast";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const AVATAR = 112;
 
@@ -37,6 +38,8 @@ const goBack = () => {
  * the app's: the person's Google account is not changed.
  */
 const EditProfile = () => {
+  const colors = useColors();
+  const styles = useStyles();
   const { user, setUser } = useGlobalContext();
   const [name, setName] = useState<string>(user?.username ?? "");
   const [error, setError] = useState("");
@@ -267,7 +270,7 @@ const EditProfile = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.page },
   bar: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   back: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
@@ -284,12 +287,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand,
   },
   photo: { width: AVATAR, height: AVATAR },
-  initial: { fontFamily: fonts.bold, fontSize: 44, color: colors.ink },
+  initial: { fontFamily: fonts.bold, fontSize: 44, color: colors.onBrand },
   busy: {
     ...StyleSheet.absoluteFillObject,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    backgroundColor: colors.veil,
   },
   photoButtons: {
     flexDirection: "row",
@@ -309,6 +312,6 @@ const styles = StyleSheet.create({
   },
   optionPressed: { backgroundColor: colors.grouped },
   optionLabel: { fontFamily: fonts.medium, fontSize: 16, color: colors.ink },
-});
+}));
 
 export default EditProfile;

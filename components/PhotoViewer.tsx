@@ -15,7 +15,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/components/ui";
-import { colors, fonts } from "@/constants/theme";
+import { fonts } from "@/constants/theme";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 interface PhotoViewerProps {
   // The URLs of the photos, the cover first
@@ -46,6 +47,8 @@ const PhotoViewer: React.FC<PhotoViewerProps> = ({
   visible,
   onClose,
 }) => {
+  const colors = useColors();
+  const styles = useStyles();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(startIndex);
@@ -233,7 +236,7 @@ const PhotoViewer: React.FC<PhotoViewerProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.viewer },
   top: {
     position: "absolute",
@@ -272,6 +275,6 @@ const styles = StyleSheet.create({
   retryWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center" },
   retry: { alignItems: "center", gap: 6, padding: 24 },
   retryText: { fontFamily: fonts.bold, fontSize: 12, lineHeight: 16, color: colors.white },
-});
+}));
 
 export default PhotoViewer;

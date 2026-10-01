@@ -1,13 +1,14 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { HighlightedText, PianoPhoto } from "@/components/ui";
-import { colors, fonts, radii } from "@/constants/theme";
+import { fonts, radii } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { getPianoDisplay } from "@/utils/pianoDisplay";
 import { getPianoPhotos } from "@/utils/photos";
-import { STATUS_TONE_COLORS } from "@/utils/rentalStatus";
+import { statusToneColor } from "@/utils/rentalStatus";
 import SelectionMark from "./SelectionMark";
 import SwipeableRow from "./SwipeableRow";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const THUMBNAIL = 64;
 
@@ -47,6 +48,8 @@ const PianoRow = ({
   onEdit,
   onDelete,
 }: PianoRowProps) => {
+  const styles = useStyles();
+  const colors = useColors();
   const display = getPianoDisplay(item);
   const id = item.$id;
   const company = item.company_associated;
@@ -104,7 +107,7 @@ const PianoRow = ({
             )}
           </Text>
           <Text
-            style={[styles.status, { color: STATUS_TONE_COLORS[display.status.tone] }]}
+            style={[styles.status, { color: statusToneColor(display.status.tone, colors) }]}
             numberOfLines={1}
           >
             {display.status.text}
@@ -128,9 +131,9 @@ const PianoRow = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   // White, so what slides over the buttons behind it hides them
-  row: { flexDirection: "row", paddingLeft: 20, backgroundColor: colors.white },
+  row: { flexDirection: "row", paddingLeft: 20, backgroundColor: colors.surface },
   pressed: { backgroundColor: colors.grouped },
   photoCell: { paddingVertical: 12, paddingRight: 14 },
   photo: { width: THUMBNAIL, height: THUMBNAIL, borderRadius: radii.input },
@@ -158,6 +161,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontVariant: ["tabular-nums"],
   },
-});
+}));
 
 export default React.memo(PianoRow);

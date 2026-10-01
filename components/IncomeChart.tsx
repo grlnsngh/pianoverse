@@ -1,8 +1,9 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { format } from "date-fns";
-import { colors, fonts, radii } from "@/constants/theme";
+import { fonts, radii } from "@/constants/theme";
 import { barHeight, chartSummary, MonthIncome } from "@/utils/income";
+import { makeStyles } from "@/lib/ThemeContext";
 
 export type IncomeChartProps = {
   /** Oldest first, ending with this month */
@@ -28,6 +29,7 @@ const IncomeChart = ({
   narrow = false,
   testID,
 }: IncomeChartProps) => {
+  const styles = useStyles();
   // Bars are the rent, which comes every month. A piano sale is far bigger and would flatten them, so a sale is a dot.
   const max = Math.max(0, ...months.map((entry) => entry.rent));
 
@@ -65,7 +67,7 @@ const IncomeChart = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   chart: { flexDirection: "row", alignItems: "flex-end", gap: 4 },
   column: { flex: 1, alignItems: "center" },
   // Bars grow up from the bottom of this; a sale dot sits just over the bar
@@ -91,6 +93,6 @@ const styles = StyleSheet.create({
     color: colors.ink2,
   },
   currentLabel: { fontFamily: fonts.bold, color: colors.ink },
-});
+}));
 
 export default IncomeChart;

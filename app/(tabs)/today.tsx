@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { format } from "date-fns";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import AttentionRow from "@/components/AttentionRow";
@@ -12,7 +12,7 @@ import RentDueRow from "@/components/RentDueRow";
 import ShelfCard from "@/components/ShelfCard";
 import TodaySkeleton from "@/components/TodaySkeleton";
 import { AddButton, useSkeletonDelay } from "@/components/ui";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
 import { usePianoData } from "@/lib/PianoDataContext";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useIncome from "@/lib/useIncome";
@@ -33,6 +33,7 @@ import {
   rentedOut,
   stockCounts,
 } from "@/utils/today";
+import { makeStyles } from "@/lib/ThemeContext";
 
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -44,6 +45,7 @@ const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : 
  * payments load here.
  */
 const Today = () => {
+  const styles = useStyles();
   const dispatch = useDispatch();
   const pianos = useSelector((state: RootState) => state.pianos.items);
   const filters = useSelector((state: RootState) => state.pianos.filters);
@@ -285,7 +287,7 @@ const Today = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.page },
   content: { paddingBottom: spacing.xxl },
   header: {
@@ -339,6 +341,6 @@ const styles = StyleSheet.create({
     color: colors.ink2,
   },
   shelf: { gap: spacing.md, paddingHorizontal: spacing.screen },
-});
+}));
 
 export default Today;

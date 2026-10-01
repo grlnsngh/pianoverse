@@ -4,7 +4,7 @@ import { Path } from "react-native-svg";
 import { Badge, Banner } from "@/components/ui";
 import { ICONS } from "@/components/ui/Icon";
 import Spinner from "@/components/ui/Spinner";
-import { colors, fonts, radii } from "@/constants/theme";
+import { lightColors as colors, fonts, radii } from "@/constants/theme";
 import { findAllMemo, hostByTestId, mount, textContent } from "./helpers/ui";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;

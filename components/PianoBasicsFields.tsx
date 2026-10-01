@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { TextInput, View } from "react-native";
 import DateRow from "@/components/DateRow";
 import MakePickerSheet from "@/components/MakePickerSheet";
 import { FormRow, Group, PickerSheet } from "@/components/ui";
 import { COMPANY_ASSOCIATED, pianoCompaniesMakeList } from "@/constants/Piano";
-import { colors, fonts, radii, spacing } from "@/constants/theme";
+import { fonts, radii, spacing } from "@/constants/theme";
 import { PianoFormState } from "@/utils/pianoForm";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 interface PianoBasicsFieldsProps {
   form: PianoFormState;
@@ -30,6 +31,8 @@ const PianoBasicsFields: React.FC<PianoBasicsFieldsProps> = ({
   onChange,
   photo,
 }) => {
+  const colors = useColors();
+  const styles = useStyles();
   const [picker, setPicker] = useState<"make" | "company" | null>(null);
 
   return (
@@ -106,12 +109,12 @@ const PianoBasicsFields: React.FC<PianoBasicsFieldsProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   panel: { marginTop: spacing.xxl },
   notes: {
     marginTop: spacing.md,
     borderRadius: radii.card,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     overflow: "hidden",
   },
   notesInput: {
@@ -122,6 +125,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: colors.ink,
   },
-});
+}));
 
 export default PianoBasicsFields;

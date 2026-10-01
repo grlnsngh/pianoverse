@@ -1,16 +1,16 @@
 import React, { useRef } from "react";
 import {
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   TextInputProps,
   TextStyle,
   View,
 } from "react-native";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
 import { useGroup } from "./Group";
 import Icon from "./Icon";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const CHEVRON_SIZE = 18;
 const KEYBOARDS_WITH_DIGITS = ["numeric", "number-pad", "decimal-pad", "phone-pad"];
@@ -53,6 +53,8 @@ const FormRow = ({
   accessibilityLabel,
   testID,
 }: FormRowProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const group = useGroup();
   const inputRef = useRef<TextInput>(null);
   const showChevron = chevron ?? !!onPress;
@@ -153,7 +155,7 @@ const FormRow = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -172,6 +174,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     includeFontPadding: false,
   },
-});
+}));
 
 export default FormRow;

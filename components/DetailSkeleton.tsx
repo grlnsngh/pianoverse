@@ -1,9 +1,10 @@
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, Skeleton } from "@/components/ui";
-import { bottomBar, colors, radii } from "@/constants/theme";
+import { bottomBar, radii } from "@/constants/theme";
 import { HERO_HEIGHT } from "./PhotoHero";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 export type DetailSkeletonProps = {
   /** The Back button is real, so the person can leave while it loads */
@@ -16,6 +17,8 @@ export type DetailSkeletonProps = {
  * rows and the bar at the bottom. Show it with useSkeletonDelay, not at once.
  */
 const DetailSkeleton = ({ onBack }: DetailSkeletonProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const inset = Math.max(insets.bottom, bottomBar.minInset);
 
@@ -87,8 +90,8 @@ const DetailSkeleton = ({ onBack }: DetailSkeletonProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+const useStyles = makeStyles((colors) => ({
+  page: { flex: 1, backgroundColor: colors.surface },
   fill: { flex: 1 },
   sheet: {
     marginTop: -24,
@@ -96,7 +99,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderTopLeftRadius: radii.sheet,
     borderTopRightRadius: radii.sheet,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   divider: { height: 1, marginVertical: 24, backgroundColor: colors.hairline },
   customer: { flexDirection: "row", alignItems: "center", gap: 14, marginTop: 18 },
@@ -118,7 +121,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   bottomBar: {
     flexDirection: "row",
@@ -127,11 +130,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   gap6: { marginTop: 6 },
   gap8: { marginTop: 8 },
   gap12: { marginTop: 12 },
-});
+}));
 
 export default React.memo(DetailSkeleton);

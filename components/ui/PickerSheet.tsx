@@ -1,8 +1,9 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, fonts } from "@/constants/theme";
+import { Pressable, Text, View } from "react-native";
+import { fonts } from "@/constants/theme";
 import Icon from "./Icon";
 import Sheet from "./Sheet";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 export type PickerOption<T extends string> = {
   value: T;
@@ -34,6 +35,8 @@ function PickerSheet<T extends string>({
   onClose,
   testID,
 }: PickerSheetProps<T>) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Sheet
       visible={visible}
@@ -76,7 +79,7 @@ function PickerSheet<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     height: 52,
     flexDirection: "row",
@@ -87,6 +90,6 @@ const styles = StyleSheet.create({
   },
   pressed: { backgroundColor: colors.grouped },
   label: { fontSize: 16, color: colors.ink },
-});
+}));
 
 export default PickerSheet;

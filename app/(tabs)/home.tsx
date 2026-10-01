@@ -22,7 +22,7 @@ import {
   useSkeletonDelay,
 } from "@/components/ui";
 import type { IconTabItem } from "@/components/ui";
-import { colors, fonts, spacing } from "@/constants/theme";
+import { fonts, spacing } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import {
   CategoryTab,
@@ -51,7 +51,6 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -66,6 +65,7 @@ import PianosSkeleton from "@/components/PianosSkeleton";
 import BulkOperationsBar from "@/components/BulkOperationsBar";
 import SelectionHeader from "@/components/SelectionHeader";
 import { scheduleAllRentalNotifications } from "@/services/notifications";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const CATEGORY_TABS: readonly IconTabItem<CategoryTab>[] = [
   { key: "all", label: "All", icon: "categoryAll" },
@@ -85,6 +85,8 @@ const formatSavedAt = (savedAt: string) =>
   );
 
 const Home = () => {
+  const colors = useColors();
+  const styles = useStyles();
   const dispatch = useDispatch();
   const store = useStore<RootState>();
 
@@ -373,6 +375,7 @@ const Home = () => {
       confirmDelete,
       handleToggleItemSelection,
       handleEnterBulkSelection,
+      styles.blankCell,
     ],
   );
 
@@ -521,7 +524,7 @@ const Home = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.page },
   searchRow: {
     flexDirection: "row",
@@ -577,6 +580,6 @@ const styles = StyleSheet.create({
   gridContent: { rowGap: 20, paddingTop: 4, paddingBottom: 24, flexGrow: 1 },
   listContent: { paddingBottom: 24, flexGrow: 1 },
   blankCell: { flex: 1 },
-});
+}));
 
 export default Home;

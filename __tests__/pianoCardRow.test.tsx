@@ -8,7 +8,7 @@ import PianoRow from "@/components/PianoRow";
 import SelectionMark from "@/components/SelectionMark";
 import { Badge, PianoPhoto } from "@/components/ui";
 import { ICONS } from "@/components/ui/Icon";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import { findAllMemo, hostByTestId, mount, textContent } from "./helpers/ui";
 import { makePiano } from "./helpers/fixtures";
 

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { format, isToday, startOfToday } from "date-fns";
 import { Button, DatePickerSheet, FormRow, Group, Sheet } from "@/components/ui";
-import { colors, type } from "@/constants/theme";
+import { type } from "@/constants/theme";
 import useReturnPiano from "@/lib/useReturnPiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate } from "@/utils/dates";
 import { formatRupees } from "@/utils/money";
 import type { RentBalance } from "@/utils/rentDue";
+import { makeStyles } from "@/lib/ThemeContext";
 
 interface MarkReturnedSheetProps {
   piano: PianoItem;
@@ -34,6 +35,7 @@ const MarkReturnedSheet: React.FC<MarkReturnedSheetProps> = ({
   onClose,
   owing = null,
 }) => {
+  const styles = useStyles();
   const returnPiano = useReturnPiano();
   const [returnedOn, setReturnedOn] = useState(startOfToday());
   const [choosingDay, setChoosingDay] = useState(false);
@@ -107,7 +109,7 @@ const MarkReturnedSheet: React.FC<MarkReturnedSheetProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   subject: { ...type.secondary, textAlign: "center", color: colors.ink2 },
   group: { marginTop: 20 },
   note: {
@@ -119,6 +121,6 @@ const styles = StyleSheet.create({
   },
   owes: { color: colors.late },
   bottom: { height: 8 },
-});
+}));
 
 export default MarkReturnedSheet;

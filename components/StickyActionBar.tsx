@@ -1,10 +1,11 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui";
-import { bottomBar, colors, fonts, spacing } from "@/constants/theme";
+import { bottomBar, fonts, spacing } from "@/constants/theme";
 import type { BarInfo } from "@/utils/pianoDetail";
 import { toneColor } from "./DetailParts";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 export type StickyActionBarProps = {
   /** The amount and the line under it, on the left */
@@ -22,6 +23,8 @@ export type StickyActionBarProps = {
  * on an iPhone), so a toast clears it the same way.
  */
 const StickyActionBar = ({ info, label, variant = "primary", onPress }: StickyActionBarProps) => {
+  const styles = useStyles();
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   const emphasised = info.tone === "late" || info.tone === "soon";
   const inset = Math.max(insets.bottom, bottomBar.minInset);
@@ -37,7 +40,7 @@ const StickyActionBar = ({ info, label, variant = "primary", onPress }: StickyAc
           <Text
             style={[
               styles.caption,
-              { fontFamily: emphasised ? fonts.semibold : fonts.medium, color: toneColor(info.tone) },
+              { fontFamily: emphasised ? fonts.semibold : fonts.medium, color: toneColor(info.tone, colors) },
             ]}
             numberOfLines={1}
           >
@@ -50,7 +53,7 @@ const StickyActionBar = ({ info, label, variant = "primary", onPress }: StickyAc
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   bar: {
     flexDirection: "row",
     alignItems: "center",
@@ -59,7 +62,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screen,
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   left: { flexShrink: 1, minWidth: 0 },
   amount: {
@@ -71,6 +74,6 @@ const styles = StyleSheet.create({
   },
   caption: { fontSize: 13, lineHeight: 18 },
   button: { paddingHorizontal: 24 },
-});
+}));
 
 export default StickyActionBar;

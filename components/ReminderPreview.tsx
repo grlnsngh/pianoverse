@@ -1,7 +1,8 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { KeyboardMark } from "@/components/ui";
-import { colors, fonts, radii, spacing } from "@/constants/theme";
+import { fonts, radii, spacing } from "@/constants/theme";
+import { makeStyles } from "@/lib/ThemeContext";
 
 /** What a reminder looks like, in the words the app really sends at 9:00 AM */
 export const SAMPLE_REMINDER = {
@@ -23,26 +24,29 @@ type ReminderPreviewProps = {
  * square, the title with its time, and the message. Shows what a reminder
  * looks like before any has arrived (Account and NotifyPrimer boards).
  */
-const ReminderPreview = ({ title, time, body }: ReminderPreviewProps) => (
-  <View
-    style={styles.box}
-    accessible
-    accessibilityLabel={`Example reminder. ${title}. ${body}`}
-  >
-    <View style={styles.app}>
-      <KeyboardMark />
-    </View>
-    <View style={styles.text}>
-      <View style={styles.titleRow}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.time}>{time}</Text>
+const ReminderPreview = ({ title, time, body }: ReminderPreviewProps) => {
+  const styles = useStyles();
+  return (
+    <View
+      style={styles.box}
+      accessible
+      accessibilityLabel={`Example reminder. ${title}. ${body}`}
+    >
+      <View style={styles.app}>
+        <KeyboardMark />
       </View>
-      <Text style={styles.body}>{body}</Text>
+      <View style={styles.text}>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.time}>{time}</Text>
+        </View>
+        <Text style={styles.body}>{body}</Text>
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   box: {
     flexDirection: "row",
     gap: spacing.md,
@@ -63,6 +67,6 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, color: colors.ink },
   time: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 20, color: colors.ink2 },
   body: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.inkBody },
-});
+}));
 
 export default ReminderPreview;

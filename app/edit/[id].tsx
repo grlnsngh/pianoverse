@@ -22,7 +22,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,11 +30,13 @@ import { AddFlowFooter, AddFlowTopBar } from "@/components/AddFlowChrome";
 import PianoFormFields from "@/components/PianoFormFields";
 import PianoPhotoField from "@/components/PianoPhotoField";
 import { Button } from "@/components/ui";
-import { colors, spacing, type } from "@/constants/theme";
+import { spacing, type } from "@/constants/theme";
 import usePianoPhotos from "@/lib/usePianoPhotos";
 import { scheduleRentalDueNotification } from "@/services/notifications";
+import { makeStyles } from "@/lib/ThemeContext";
 
 const EditScreen = () => {
+  const styles = useStyles();
   const { id } = useLocalSearchParams();
   const pianosList = useSelector((state: RootState) => state.pianos.items);
   const user = useSelector((state: RootState) => state.users.user);
@@ -174,7 +175,7 @@ const EditScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.grouped },
   content: { padding: spacing.screen, paddingTop: spacing.sm },
   save: { flex: 1 },
@@ -184,6 +185,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: spacing.xxxl,
   },
-});
+}));
 
 export default EditScreen;

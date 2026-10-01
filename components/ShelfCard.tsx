@@ -1,10 +1,11 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { PianoPhoto } from "@/components/ui";
-import { colors, fonts, radii } from "@/constants/theme";
+import { fonts, radii } from "@/constants/theme";
 import { getPianoPhotos } from "@/utils/photos";
-import { STATUS_TONE_COLORS } from "@/utils/rentalStatus";
+import { statusToneColor } from "@/utils/rentalStatus";
 import type { ShelfEntry } from "@/utils/today";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 export const SHELF_CARD_WIDTH = 244;
 const PHOTO_HEIGHT = 152;
@@ -21,6 +22,8 @@ export type ShelfCardProps = {
  * has it, and the status.
  */
 const ShelfCard = ({ entry, onOpen }: ShelfCardProps) => {
+  const styles = useStyles();
+  const colors = useColors();
   const { piano, who, status, progress } = entry;
   const summary = [piano.title, who, status.text].filter(Boolean).join(", ");
 
@@ -51,14 +54,14 @@ const ShelfCard = ({ entry, onOpen }: ShelfCardProps) => {
           {who}
         </Text>
       )}
-      <Text style={[styles.status, { color: STATUS_TONE_COLORS[status.tone] }]} numberOfLines={1}>
+      <Text style={[styles.status, { color: statusToneColor(status.tone, colors) }]} numberOfLines={1}>
         {status.text}
       </Text>
     </Pressable>
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: { width: SHELF_CARD_WIDTH },
   pressed: { opacity: 0.9 },
   photo: { width: SHELF_CARD_WIDTH, height: PHOTO_HEIGHT, borderRadius: radii.card },
@@ -80,6 +83,6 @@ const styles = StyleSheet.create({
   },
   who: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, color: colors.ink2 },
   status: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20 },
-});
+}));
 
 export default React.memo(ShelfCard);

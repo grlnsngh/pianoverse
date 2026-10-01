@@ -2,13 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { Icon, Sheet } from "@/components/ui";
-import { colors, fonts, radii, spacing } from "@/constants/theme";
+import { fonts, radii, spacing } from "@/constants/theme";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const ROW = 52;
 const HEADER = 32;
@@ -63,6 +63,8 @@ const MakePickerSheet = ({
   onSelect,
   onClose,
 }: MakePickerSheetProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const [query, setQuery] = useState("");
   const list = useRef<ScrollView>(null);
   const sections = useMemo(() => makeSections(makes, query), [makes, query]);
@@ -174,7 +176,7 @@ const MakePickerSheet = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   searchWrap: { paddingHorizontal: spacing.screen, paddingBottom: spacing.sm },
   search: {
     height: 44,
@@ -235,6 +237,6 @@ const styles = StyleSheet.create({
     lineHeight: 13,
     color: colors.ink2,
   },
-});
+}));
 
 export default MakePickerSheet;

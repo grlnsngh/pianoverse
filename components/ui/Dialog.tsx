@@ -1,8 +1,9 @@
 import React from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
 import ToastHost from "@/components/ToastHost";
-import { colors, fonts, radii } from "@/constants/theme";
+import { fonts, radii } from "@/constants/theme";
 import { confirmTap } from "@/utils/haptics";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const WIDTH = 284;
 const ACTION_HEIGHT = 52;
@@ -46,6 +47,8 @@ const Dialog = ({
   onDismiss,
   testID,
 }: DialogProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   // Destructive first, keeping the order given otherwise
   const ordered = [
     ...actions.filter((action) => action.tone === "destructive"),
@@ -106,7 +109,7 @@ const Dialog = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   dim: {
     flex: 1,
     alignItems: "center",
@@ -117,7 +120,7 @@ const styles = StyleSheet.create({
     width: WIDTH,
     overflow: "hidden",
     borderRadius: radii.panel,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   text: {
     alignItems: "center",
@@ -150,6 +153,6 @@ const styles = StyleSheet.create({
   actionText: { fontFamily: fonts.medium, fontSize: 16, color: colors.ink },
   destructive: { fontFamily: fonts.bold, color: colors.late },
   emphasis: { fontFamily: fonts.semibold },
-});
+}));
 
 export default Dialog;

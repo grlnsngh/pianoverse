@@ -7,8 +7,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Spinner } from "@/components/ui";
-import { colors, motion } from "@/constants/theme";
+import { motion } from "@/constants/theme";
 import useReducedMotion from "@/lib/useReducedMotion";
+import { useColors } from "@/lib/ThemeContext";
 
 /** The board's band: 72 high, with a 28 px spinner in the middle */
 const BAND = 72;
@@ -45,6 +46,7 @@ type RefreshBandProps = {
  * in that room. With reduced motion it fades and does not move the list.
  */
 const RefreshBand = ({ refreshing }: RefreshBandProps) => {
+  const colors = useColors();
   const reduced = useReducedMotion();
   const progress = useSharedValue(refreshing ? 1 : 0);
   // The spinner stays until the band has faded away

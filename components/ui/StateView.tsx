@@ -1,9 +1,10 @@
 import React from "react";
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import { colors, fonts, spacing } from "@/constants/theme";
+import { StyleProp, Text, View, ViewStyle } from "react-native";
+import { fonts, spacing } from "@/constants/theme";
 import Button from "./Button";
 import Icon, { IconName } from "./Icon";
 import PianoPhoto from "./PianoPhoto";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const ART_SIZE = 200;
 const ICON_CIRCLE = 88;
@@ -41,39 +42,43 @@ const StateView = ({
   actionVariant = "primary",
   style,
   testID,
-}: StateViewProps) => (
-  <View
-    testID={testID}
-    style={[styles.container, { paddingTop: art ? 120 : 140 }, style]}
-  >
-    {art ? (
-      <PianoPhoto id={art} style={styles.art} />
-    ) : icon ? (
-      <View style={styles.circle}>
-        <Icon name={icon} size={40} color={colors.ink} strokeWidth={1.6} />
-      </View>
-    ) : null}
-
-    <Text
-      accessibilityRole="header"
-      style={[styles.title, { marginTop: art ? 28 : icon ? 24 : 0 }]}
+}: StateViewProps) => {
+  const colors = useColors();
+  const styles = useStyles();
+  return (
+    <View
+      testID={testID}
+      style={[styles.container, { paddingTop: art ? 120 : 140 }, style]}
     >
-      {title}
-    </Text>
-    {message ? <Text style={styles.message}>{message}</Text> : null}
+      {art ? (
+        <PianoPhoto id={art} style={styles.art} />
+      ) : icon ? (
+        <View style={styles.circle}>
+          <Icon name={icon} size={40} color={colors.ink} strokeWidth={1.6} />
+        </View>
+      ) : null}
 
-    {actionLabel && onAction ? (
-      <Button
-        title={actionLabel}
-        onPress={onAction}
-        variant={actionVariant}
-        style={styles.button}
-      />
-    ) : null}
-  </View>
-);
+      <Text
+        accessibilityRole="header"
+        style={[styles.title, { marginTop: art ? 28 : icon ? 24 : 0 }]}
+      >
+        {title}
+      </Text>
+      {message ? <Text style={styles.message}>{message}</Text> : null}
 
-const styles = StyleSheet.create({
+      {actionLabel && onAction ? (
+        <Button
+          title={actionLabel}
+          onPress={onAction}
+          variant={actionVariant}
+          style={styles.button}
+        />
+      ) : null}
+    </View>
+  );
+};
+
+const useStyles = makeStyles((colors) => ({
   container: {
     alignItems: "center",
     paddingHorizontal: 40,
@@ -104,6 +109,6 @@ const styles = StyleSheet.create({
     color: colors.ink2,
   },
   button: { marginTop: 28, paddingHorizontal: 28 },
-});
+}));
 
 export default StateView;

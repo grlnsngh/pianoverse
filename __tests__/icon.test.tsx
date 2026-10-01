@@ -2,7 +2,7 @@ import React from "react";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 import { act, create, ReactTestRenderer } from "react-test-renderer";
 import Icon, { ICONS, IconName } from "@/components/ui/Icon";
-import { colors } from "@/constants/theme";
+import { lightColors as colors } from "@/constants/theme";
 
 const render = (element: React.ReactElement) => {
   let renderer!: ReactTestRenderer;
@@ -19,7 +19,7 @@ const pathsOf = (renderer: ReactTestRenderer) =>
 const names = Object.keys(ICONS) as IconName[];
 
 describe("Icon set", () => {
-  it("has every icon in the spec, and the lock and chart that later features added", () => {
+  it("has every icon in the spec, and the lock, chart and moon that later features added", () => {
     expect(names.sort()).toEqual(
       [
         "search",
@@ -56,6 +56,7 @@ describe("Icon set", () => {
         "list",
         "pencil",
         "trash",
+        "moon",
       ].sort()
     );
   });

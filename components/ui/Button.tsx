@@ -8,7 +8,8 @@ import {
   TextStyle,
   ViewStyle,
 } from "react-native";
-import { colors, motion, radii, type } from "@/constants/theme";
+import { motion, Palette, radii, type } from "@/constants/theme";
+import { useColors } from "@/lib/ThemeContext";
 import Spinner from "./Spinner";
 
 export type ButtonVariant =
@@ -39,9 +40,14 @@ type Look = {
   spinner: { arc: string; track: string };
 };
 
-const DISABLED_SPINNER = { arc: colors.ink, track: "rgba(26, 24, 20, 0.2)" };
+/** The spinner on a button that is a quiet fill: the ink arc on a faint ring of ink */
+const quietSpinner = (colors: Palette) => ({ arc: colors.ink, track: `${colors.ink}33` });
 
-const lookOf = (variant: ButtonVariant, tone: "ink" | "brand"): Look => {
+const lookOf = (
+  variant: ButtonVariant,
+  tone: "ink" | "brand",
+  colors: Palette
+): Look => {
   switch (variant) {
     case "secondary":
       return {
@@ -50,7 +56,7 @@ const lookOf = (variant: ButtonVariant, tone: "ink" | "brand"): Look => {
         label: colors.ink,
         radius: radii.control,
         labelStyle: type.button,
-        spinner: DISABLED_SPINNER,
+        spinner: quietSpinner(colors),
       };
     case "outline":
       return {
@@ -60,11 +66,11 @@ const lookOf = (variant: ButtonVariant, tone: "ink" | "brand"): Look => {
         radius: radii.input,
         border: colors.ink,
         labelStyle: type.buttonQuiet,
-        spinner: DISABLED_SPINNER,
+        spinner: quietSpinner(colors),
       };
     case "destructive":
       return {
-        fill: colors.late,
+        fill: colors.lateFill,
         pressedFill: colors.latePressed,
         label: colors.white,
         radius: radii.control,
@@ -78,16 +84,16 @@ const lookOf = (variant: ButtonVariant, tone: "ink" | "brand"): Look => {
         label: tone === "brand" ? colors.brandText : colors.ink,
         radius: radii.control,
         labelStyle: type.buttonQuiet,
-        spinner: DISABLED_SPINNER,
+        spinner: quietSpinner(colors),
       };
     default:
       return {
         fill: colors.brand,
         pressedFill: colors.brandPressed,
-        label: colors.ink,
+        label: colors.onBrand,
         radius: radii.control,
         labelStyle: type.button,
-        spinner: DISABLED_SPINNER,
+        spinner: quietSpinner(colors),
       };
   }
 };
@@ -127,7 +133,8 @@ const Button = ({
   // The width the button had before it started loading, so "Saving" doesn't
   // make a button that sizes to its label jump narrower or wider
   const [restingWidth, setRestingWidth] = useState<number>();
-  const look = lookOf(variant, tone);
+  const colors = useColors();
+  const look = lookOf(variant, tone, colors);
   const blocked = loading || disabled;
   const label = loading && loadingTitle ? loadingTitle : title;
   const isText = variant === "text";

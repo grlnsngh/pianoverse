@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { FormRow, Group } from "@/components/ui";
 import { ICONS } from "@/components/ui/Icon";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import { ReactTestInstance } from "react-test-renderer";
 import { hostByTestId, mount, textContent } from "./helpers/ui";
 

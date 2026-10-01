@@ -1,15 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, Group, Icon, PickerSheet, Sheet, Switch } from "@/components/ui";
 import type { PickerOption } from "@/components/ui";
 import { SORT_BY_OPTIONS } from "@/constants/Piano";
-import { colors, fonts, spacing } from "@/constants/theme";
+import { fonts, spacing } from "@/constants/theme";
 import { setPianoFilters } from "@/redux/pianos/actions";
 import { FiltersType } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { applyPianoFilters } from "@/utils/filterPianos";
 import { clearFilters, sortLabelOf } from "@/utils/filters";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const SORT_OPTIONS: readonly PickerOption<string>[] = Object.values(
   SORT_BY_OPTIONS
@@ -27,15 +28,18 @@ type SwitchRowProps = {
   onValueChange: (value: boolean) => void;
 };
 
-const SwitchRow = ({ title, subtitle, value, onValueChange }: SwitchRowProps) => (
-  <View style={styles.switchRow}>
-    <View style={styles.switchTexts}>
-      <Text style={styles.rowTitle}>{title}</Text>
-      <Text style={styles.rowSubtitle}>{subtitle}</Text>
+const SwitchRow = ({ title, subtitle, value, onValueChange }: SwitchRowProps) => {
+  const styles = useStyles();
+  return (
+    <View style={styles.switchRow}>
+      <View style={styles.switchTexts}>
+        <Text style={styles.rowTitle}>{title}</Text>
+        <Text style={styles.rowSubtitle}>{subtitle}</Text>
+      </View>
+      <Switch value={value} onValueChange={onValueChange} accessibilityLabel={title} />
     </View>
-    <Switch value={value} onValueChange={onValueChange} accessibilityLabel={title} />
-  </View>
-);
+  );
+};
 
 /**
  * The choices that narrow the Pianos list beyond the category tabs: how to
@@ -44,6 +48,8 @@ const SwitchRow = ({ title, subtitle, value, onValueChange }: SwitchRowProps) =>
  * show. Closing the sheet drops them.
  */
 const FilterSheet = ({ visible, onClose }: FilterSheetProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const dispatch = useDispatch();
   const filters = useSelector((state: RootState) => state.pianos.filters);
   const pianos = useSelector((state: RootState) => state.pianos.items);
@@ -169,7 +175,7 @@ const FilterSheet = ({ visible, onClose }: FilterSheetProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   content: { paddingTop: spacing.sm },
   show: { marginTop: 24 },
   sortRow: {
@@ -207,6 +213,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: colors.ink2,
   },
-});
+}));
 
 export default FilterSheet;

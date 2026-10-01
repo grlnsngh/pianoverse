@@ -11,7 +11,8 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import useReducedMotion from "@/lib/useReducedMotion";
-import { colors, motion } from "@/constants/theme";
+import { motion } from "@/constants/theme";
+import { useColors } from "@/lib/ThemeContext";
 
 /** Bar height in px, with the width, gap and corner radius that go with it. */
 const SIZES = {
@@ -101,14 +102,17 @@ const Key = ({ index, height, width, radius, color, animate }: KeyProps) => {
  */
 const KeysLoader = ({
   size = 40,
-  color = colors.ink,
-  accent = colors.brand,
+  color,
+  accent,
   accessibilityLabel = "Loading",
   style,
   testID,
 }: KeysLoaderProps) => {
+  const colors = useColors();
   const reduced = useReducedMotion();
   const { width, gap, radius } = SIZES[size];
+  const barColor = color ?? colors.ink;
+  const accentColor = accent === undefined ? colors.brand : accent;
 
   return (
     <View
@@ -126,7 +130,7 @@ const KeysLoader = ({
           height={size}
           width={width}
           radius={radius}
-          color={index === CENTRE && accent ? accent : color}
+          color={index === CENTRE && accentColor ? accentColor : barColor}
           animate={!reduced}
         />
       ))}

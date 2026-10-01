@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Icon } from "@/components/ui";
-import { colors } from "@/constants/theme";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 export type SelectionMarkProps = {
   selected: boolean;
@@ -14,13 +14,15 @@ export type SelectionMarkProps = {
 
 /** Shows, while choosing pianos, whether this one is chosen. */
 const SelectionMark = ({ selected, variant = "photo" }: SelectionMarkProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   if (variant === "row") {
     return (
       <View
         testID="selection-mark"
         style={[styles.rowCircle, selected && styles.selectedCircle]}
       >
-        {selected && <Icon name="check" size={14} color={colors.white} strokeWidth={3} />}
+        {selected && <Icon name="check" size={14} color={colors.onInk} strokeWidth={3} />}
       </View>
     );
   }
@@ -32,7 +34,7 @@ const SelectionMark = ({ selected, variant = "photo" }: SelectionMarkProps) => {
       style={[StyleSheet.absoluteFill, styles.ring]}
     >
       <View style={[styles.photoCircle, styles.selectedCircle]}>
-        <Icon name="check" size={16} color={colors.white} strokeWidth={3} />
+        <Icon name="check" size={16} color={colors.onInk} strokeWidth={3} />
       </View>
     </View>
   ) : (
@@ -44,7 +46,7 @@ const SelectionMark = ({ selected, variant = "photo" }: SelectionMarkProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   ring: { borderRadius: 16, borderWidth: 3, borderColor: colors.ink },
   photoCircle: {
     position: "absolute",
@@ -71,6 +73,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.inputBorder,
   },
-});
+}));
 
 export default React.memo(SelectionMark);

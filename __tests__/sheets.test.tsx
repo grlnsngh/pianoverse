@@ -12,7 +12,7 @@ import MarkAsSoldSheet from "@/components/MarkAsSoldSheet";
 import RecordPaymentSheet from "@/components/RecordPaymentSheet";
 import { AmountInput, DatePickerSheet } from "@/components/ui";
 import type { NewPayment } from "@/lib/useRentPayments";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import { allTexts, captureAlerts, createTestStore, flushPromises, renderWithStore } from "./helpers/render";

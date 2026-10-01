@@ -19,7 +19,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import DetailScreen from "@/app/detail/[id]";
 import DetailSkeleton from "@/components/DetailSkeleton";
-import { colors } from "@/constants/theme";
+import { lightColors as colors } from "@/constants/theme";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import { createTestStore } from "./helpers/render";

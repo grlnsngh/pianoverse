@@ -14,7 +14,8 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 ## Features
 
 - **Three tabs:** Today (what is due, overdue and received), Pianos (grid or list, search, filters, select several) and Account (income, reminders, CSV export, sign out). The design is in `docs/redesign/`.
-- **Cross-platform:** Built for iOS and Android phones in light mode; the app also starts on the web.
+- **Cross-platform:** Built for iOS and Android phones, in a light or a dark theme; the app also starts on the web.
+- **Dark theme:** Account, Appearance, Theme: **Light**, **Dark** or **Match phone**. The choice is kept on the phone and shows at once, everywhere; light is how the app starts. Every colour comes from one of two palettes in `constants/theme.ts` (`lightColors`, `darkColors`, the same names in both), read in a screen with `useColors()` or `makeStyles` from `lib/ThemeContext.tsx`, never imported directly. Match phone follows the phone's own setting, which the app can only read if Android lets it (see Q34 in `docs/redesign/QUESTIONS.md`).
 - **Category Management:** Rentable, events, on sale and warehouse pianos, each with their own details.
 - **Rentals:** Due dates with reminders at 9:00 a week before, the day before, on the day, and when overdue. Extend a rental by 1, 3 or 6 months in one tap, and mark a piano as **returned** when it comes back: the rental is kept in its history and the piano goes back into stock.
 - **Overdue view:** Today lists rentals that have ended but not been extended, with the rent still to collect.
@@ -153,9 +154,9 @@ A person who signs in with Google and whose email is already an account is put o
 
 - `app/`: screens only. [Expo Router](https://docs.expo.dev/router/introduction/) turns every file here into a route.
 - `components/`: the screens' parts (piano cards and rows, sheets, dialogs); `components/ui/` holds the design system (buttons, fields, sheets, segmented control and so on).
-- `constants/`: the theme (colours, radii, spacing, type, motion), categories and companies.
+- `constants/`: the theme (the light and dark colour palettes, radii, spacing, type, motion), categories and companies.
 - `docs/redesign/`: the plan, the spec and the boards the screens follow.
-- `lib/`: Appwrite access and data hooks.
+- `lib/`: Appwrite access and data hooks, and `ThemeContext.tsx`, which holds the light, dark or match-the-phone choice and gives every screen the colours for it.
 - `redux/`: the store (pianos, filters, signed-in user, active tab).
 - `services/`: rental reminders.
 - `utils/`: dates, rental status, form handling, validation and other helpers.

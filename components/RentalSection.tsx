@@ -1,12 +1,13 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Button, Icon } from "@/components/ui";
-import { colors, fonts, spacing } from "@/constants/theme";
+import { fonts, spacing } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { callNumber, messageOnWhatsApp } from "@/utils/contact";
 import { initialsOf, rentalPeriod, rentalRows } from "@/utils/pianoDetail";
 import { balanceLine, type RentBalance } from "@/utils/rentDue";
 import { InfoRows, SectionTitle, toneColor } from "./DetailParts";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const AVATAR = 48;
 const BUTTON = 44;
@@ -30,6 +31,8 @@ const RentalSection = ({
   /** Given when the rental has ended or is about to, or rent is due: shows the Send reminder button */
   onRemind?: () => void;
 }) => {
+  const colors = useColors();
+  const styles = useStyles();
   const name = piano.rental_customer_name?.trim() || "";
   const mobile = piano.rental_customer_mobile?.trim() || "";
   const period = rentalPeriod(piano);
@@ -139,7 +142,7 @@ const RentalSection = ({
             <View style={[styles.date, bar ? { flexGrow: Math.max(bar.rest, 1) } : styles.evenDate]}>
               <Text style={styles.dateText}>{period.end}</Text>
               {period.endCaption && (
-                <Text style={[styles.caption, { color: toneColor(period.endCaption.tone) }]}>
+                <Text style={[styles.caption, { color: toneColor(period.endCaption.tone, colors) }]}>
                   {period.endCaption.text}
                 </Text>
               )}
@@ -157,7 +160,7 @@ const RentalSection = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   customer: {
     flexDirection: "row",
     alignItems: "center",
@@ -193,7 +196,7 @@ const styles = StyleSheet.create({
     borderColor: colors.controlBorder,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   pressed: { backgroundColor: colors.grouped },
   balance: {
@@ -216,6 +219,6 @@ const styles = StyleSheet.create({
   dateText: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, color: colors.ink },
   caption: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
   rows: { marginTop: spacing.md - spacing.sm },
-});
+}));
 
 export default RentalSection;

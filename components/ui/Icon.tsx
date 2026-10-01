@@ -1,7 +1,7 @@
 import React from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
-import { colors } from "@/constants/theme";
+import { useColors } from "@/lib/ThemeContext";
 
 /**
  * A stroked shape on the 24 x 24 grid: a path, a circle, a rounded rectangle,
@@ -74,6 +74,7 @@ export const ICONS = {
   download: [{ d: "M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14" }],
   logout: [{ d: "M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M15 8l4 4-4 4M19 12H9" }],
   chart: [{ d: "M5 20v-7M12 20V5M19 20v-10" }],
+  moon: [{ d: "M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" }],
   lock: [{ d: "M6 11h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1zM8 11V8a4 4 0 0 1 8 0v3M12 15v2" }],
   wifiOff: [
     { d: "M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 20h.01M3 3l18 18" },
@@ -124,48 +125,52 @@ export type IconProps = {
 const Icon = ({
   name,
   size = 24,
-  color = colors.ink,
+  color,
   active = false,
   strokeWidth,
   accessibilityLabel,
   style,
   testID,
-}: IconProps) => (
-  <Svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={color}
-    strokeWidth={strokeWidth ?? (active ? 2 : 1.75)}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={style}
-    testID={testID}
-    {...(accessibilityLabel
-      ? { accessible: true, accessibilityRole: "image", accessibilityLabel }
-      : {
-          accessibilityElementsHidden: true,
-          importantForAccessibility: "no-hide-descendants",
-        })}
-  >
-    {(ICONS[name] as readonly Shape[]).map((shape, i) => {
-      if (isPath(shape)) return <Path key={i} d={shape.d} />;
-      if (isRect(shape)) return <Rect key={i} {...shape} />;
-      return shape.filled ? (
-        <Circle
-          key={i}
-          cx={shape.cx}
-          cy={shape.cy}
-          r={shape.r}
-          fill={color}
-          stroke="none"
-        />
-      ) : (
-        <Circle key={i} cx={shape.cx} cy={shape.cy} r={shape.r} />
-      );
-    })}
-  </Svg>
-);
+}: IconProps) => {
+  const colors = useColors();
+  const stroke = color ?? colors.ink;
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth={strokeWidth ?? (active ? 2 : 1.75)}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={style}
+      testID={testID}
+      {...(accessibilityLabel
+        ? { accessible: true, accessibilityRole: "image", accessibilityLabel }
+        : {
+            accessibilityElementsHidden: true,
+            importantForAccessibility: "no-hide-descendants",
+          })}
+    >
+      {(ICONS[name] as readonly Shape[]).map((shape, i) => {
+        if (isPath(shape)) return <Path key={i} d={shape.d} />;
+        if (isRect(shape)) return <Rect key={i} {...shape} />;
+        return shape.filled ? (
+          <Circle
+            key={i}
+            cx={shape.cx}
+            cy={shape.cy}
+            r={shape.r}
+            fill={stroke}
+            stroke="none"
+          />
+        ) : (
+          <Circle key={i} cx={shape.cx} cy={shape.cy} r={shape.r} />
+        );
+      })}
+    </Svg>
+  );
+};
 
 export default React.memo(Icon);

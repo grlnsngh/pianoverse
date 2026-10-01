@@ -11,7 +11,7 @@ import { act } from "react-test-renderer";
 import { Provider } from "react-redux";
 import { router } from "expo-router";
 import Today from "@/app/(tabs)/today";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import { getRentPaymentsBetween } from "@/lib/appwrite";
 import { PianoDataContext, PianoLoadStatus, PianoRefresher } from "@/lib/PianoDataContext";
 import { makePiano, testUser } from "./helpers/fixtures";

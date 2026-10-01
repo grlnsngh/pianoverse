@@ -7,9 +7,10 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { colors, fonts, radii, type } from "@/constants/theme";
+import { fonts, radii, type } from "@/constants/theme";
 import Icon from "./Icon";
 import Spinner from "./Spinner";
+import { useColors } from "@/lib/ThemeContext";
 
 /**
  * `offline` says the list is a saved copy. `syncing` shows work in progress.
@@ -41,6 +42,7 @@ const Banner = ({
   style,
   testID,
 }: BannerProps) => {
+  const colors = useColors();
   const isError = variant === "error";
   const textColor = isError ? colors.lateTintText : colors.inkBody;
 

@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import { AppState, BackHandler, StyleSheet, View } from "react-native";
 import LockScreen from "@/components/LockScreen";
-import { colors } from "@/constants/theme";
 import { authenticate, isLockAvailable } from "@/lib/biometrics";
 import { loadAppLockEnabled, saveAppLockEnabled } from "@/lib/appLockStorage";
 import {
@@ -19,6 +18,7 @@ import {
   UnlockFailure,
 } from "@/utils/appLock";
 import { showToast } from "@/utils/toast";
+import { makeStyles } from "@/lib/ThemeContext";
 
 export type EnableResult = { ok: true } | { ok: false; reason: UnlockFailure };
 
@@ -61,6 +61,7 @@ export const AppLockProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  const styles = useStyles();
   const [ready, setReady] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -177,7 +178,7 @@ export const AppLockProvider = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   fill: { flex: 1 },
   cover: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.page },
-});
+}));

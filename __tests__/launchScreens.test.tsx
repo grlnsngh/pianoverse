@@ -18,7 +18,7 @@ import Index from "@/app/index";
 import Splash from "@/components/Splash";
 import WelcomeScreen from "@/components/WelcomeScreen";
 import { BrandMark, KeyboardMark } from "@/components/ui";
-import { colors } from "@/constants/theme";
+import { lightColors as colors } from "@/constants/theme";
 import {
   allTexts,
   createTestStore,

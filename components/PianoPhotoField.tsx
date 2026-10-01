@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import CameraDeniedSheet from "@/components/CameraDeniedSheet";
 import { Icon, PianoPhoto, Sheet } from "@/components/ui";
-import { colors, fonts, radii, spacing } from "@/constants/theme";
+import { fonts, radii, spacing } from "@/constants/theme";
 import { PhotoSource } from "@/utils/photo";
 import { MAX_PHOTOS } from "@/utils/photos";
 import { PianoFormPhoto, photoUri } from "@/utils/pianoForm";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 interface PianoPhotoFieldProps {
   // The piano's photos, saved or picked on this screen; the first is the cover
@@ -30,6 +31,8 @@ const PianoPhotoField: React.FC<PianoPhotoFieldProps> = ({
   onRemove,
   onMakeCover,
 }) => {
+  const colors = useColors();
+  const styles = useStyles();
   const [choosing, setChoosing] = useState(false);
   const [cameraDenied, setCameraDenied] = useState(false);
 
@@ -134,7 +137,7 @@ const PianoPhotoField: React.FC<PianoPhotoFieldProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   // Bleeds out of the screen's 20 px margins, then pads itself the same
   strip: { marginHorizontal: -spacing.screen, marginTop: -6 },
   stripContent: {
@@ -162,7 +165,7 @@ const styles = StyleSheet.create({
     bottom: 6,
     paddingHorizontal: 8,
     borderRadius: radii.full,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   coverLabel: { fontFamily: fonts.bold, fontSize: 11, lineHeight: 18, color: colors.ink },
   remove: {
@@ -191,6 +194,6 @@ const styles = StyleSheet.create({
   },
   optionPressed: { backgroundColor: colors.grouped },
   optionLabel: { fontFamily: fonts.medium, fontSize: 16, color: colors.ink },
-});
+}));
 
 export default PianoPhotoField;

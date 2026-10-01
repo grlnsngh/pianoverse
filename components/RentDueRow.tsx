@@ -1,10 +1,11 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Icon, PianoPhoto } from "@/components/ui";
-import { colors, fonts, radii } from "@/constants/theme";
+import { fonts, radii } from "@/constants/theme";
 import { getPianoPhotos } from "@/utils/photos";
 import { canRemind } from "@/utils/reminders";
 import { dueLine, dueShort, type RentDueEntry } from "@/utils/rentDue";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const THUMBNAIL = 64;
 const BUTTON = 44;
@@ -26,6 +27,8 @@ export type RentDueRowProps = {
  * message has a button to remind them on WhatsApp; the rest of the row opens the piano.
  */
 const RentDueRow = ({ entry, today, onOpen, onRemind }: RentDueRowProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const { piano, who, balance } = entry;
   // The row says it short, so it fits beside the button; a screen reader gets since when too
   const summary = [piano.title, who, dueLine(balance, today)]
@@ -79,7 +82,7 @@ const RentDueRow = ({ entry, today, onOpen, onRemind }: RentDueRowProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: { flexDirection: "row", alignItems: "center", paddingLeft: 20, paddingRight: 16 },
   main: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center" },
   pressed: { backgroundColor: colors.grouped },
@@ -103,7 +106,7 @@ const styles = StyleSheet.create({
     borderColor: colors.controlBorder,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   hairline: {
     position: "absolute",
@@ -113,6 +116,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.hairline,
   },
-});
+}));
 
 export default React.memo(RentDueRow);

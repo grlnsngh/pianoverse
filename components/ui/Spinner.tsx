@@ -10,7 +10,8 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Circle, Path } from "react-native-svg";
 import useReducedMotion from "@/lib/useReducedMotion";
-import { colors, motion } from "@/constants/theme";
+import { motion } from "@/constants/theme";
+import { useColors } from "@/lib/ThemeContext";
 
 export type SpinnerProps = {
   /** 16 in a small button, 18 in a button, 24 inline, 40 on a screen */
@@ -35,13 +36,14 @@ export type SpinnerProps = {
  */
 const Spinner = ({
   size = 24,
-  color = colors.ink,
-  trackColor = colors.hairline,
+  color,
+  trackColor,
   decorative = false,
   accessibilityLabel = "Loading",
   style,
   testID,
 }: SpinnerProps) => {
+  const colors = useColors();
   const reduced = useReducedMotion();
   const turn = useSharedValue(0);
 
@@ -88,12 +90,12 @@ const Spinner = ({
           cx={12}
           cy={12}
           r={9}
-          stroke={trackColor}
+          stroke={trackColor ?? colors.hairline}
           strokeWidth={strokeWidth}
         />
         <Path
           d="M21 12a9 9 0 0 0-9-9"
-          stroke={color}
+          stroke={color ?? colors.ink}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />

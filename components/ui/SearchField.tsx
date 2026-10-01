@@ -2,14 +2,14 @@ import React, { forwardRef } from "react";
 import {
   Pressable,
   StyleProp,
-  StyleSheet,
   TextInput,
   View,
   ViewStyle,
 } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import { colors, fonts, shadows } from "@/constants/theme";
+import { fonts, shadows } from "@/constants/theme";
 import Icon from "./Icon";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const HEIGHT = 52;
 
@@ -30,48 +30,52 @@ export type SearchFieldProps = {
  * once something is typed.
  */
 const SearchField = forwardRef<TextInput, SearchFieldProps>(
-  ({ value, onChangeText, onClear, autoFocus, style, testID }, ref) => (
-    <View style={[styles.pill, style]} testID={testID}>
-      <Icon name="search" size={20} color={colors.ink} strokeWidth={2} />
-      <TextInput
-        ref={ref}
-        value={value}
-        onChangeText={onChangeText}
-        autoFocus={autoFocus}
-        placeholder="Search pianos"
-        placeholderTextColor={colors.ink3}
-        accessibilityLabel="Search pianos"
-        returnKeyType="search"
-        autoCapitalize="none"
-        autoCorrect={false}
-        selectionColor={colors.ink}
-        underlineColorAndroid="transparent"
-        style={styles.input}
-      />
-      {value.length > 0 && (
-        <Pressable
-          onPress={onClear}
-          accessibilityRole="button"
-          accessibilityLabel="Clear search"
-          style={styles.clear}
-        >
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-            <Circle cx={12} cy={12} r={10} fill={colors.ink2} />
-            <Path
-              d="M8.5 8.5l7 7M15.5 8.5l-7 7"
-              stroke={colors.white}
-              strokeWidth={2}
-              strokeLinecap="round"
-            />
-          </Svg>
-        </Pressable>
-      )}
-    </View>
-  )
+  ({ value, onChangeText, onClear, autoFocus, style, testID }, ref) => {
+    const colors = useColors();
+    const styles = useStyles();
+    return (
+      <View style={[styles.pill, style]} testID={testID}>
+        <Icon name="search" size={20} color={colors.ink} strokeWidth={2} />
+        <TextInput
+          ref={ref}
+          value={value}
+          onChangeText={onChangeText}
+          autoFocus={autoFocus}
+          placeholder="Search pianos"
+          placeholderTextColor={colors.ink3}
+          accessibilityLabel="Search pianos"
+          returnKeyType="search"
+          autoCapitalize="none"
+          autoCorrect={false}
+          selectionColor={colors.ink}
+          underlineColorAndroid="transparent"
+          style={styles.input}
+        />
+        {value.length > 0 && (
+          <Pressable
+            onPress={onClear}
+            accessibilityRole="button"
+            accessibilityLabel="Clear search"
+            style={styles.clear}
+          >
+            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+              <Circle cx={12} cy={12} r={10} fill={colors.ink2} />
+              <Path
+                d="M8.5 8.5l7 7M15.5 8.5l-7 7"
+                stroke={colors.surface}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+          </Pressable>
+        )}
+      </View>
+    );
+  }
 );
 SearchField.displayName = "SearchField";
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   pill: {
     height: HEIGHT,
     flexDirection: "row",
@@ -82,7 +86,7 @@ const styles = StyleSheet.create({
     borderRadius: HEIGHT / 2,
     borderWidth: 1,
     borderColor: colors.hairline,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     ...shadows.searchPill,
   },
   input: {
@@ -100,6 +104,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
+}));
 
 export default SearchField;

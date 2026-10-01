@@ -25,7 +25,7 @@ import { act, ReactTestRenderer } from "react-test-renderer";
 import { Provider } from "react-redux";
 import { router } from "expo-router";
 import DetailScreen from "@/app/detail/[id]";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import { PianoDataContext, PianoLoadStatus } from "@/lib/PianoDataContext";
 import { setPianoListItems } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";

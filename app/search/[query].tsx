@@ -1,17 +1,18 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSelector } from "react-redux";
 import PianoCard from "@/components/PianoCard";
 import PianoRow from "@/components/PianoRow";
 import { SearchField, StateView } from "@/components/ui";
-import { colors, fonts, spacing } from "@/constants/theme";
+import { fonts, spacing } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { padToFullRows } from "@/utils/grid";
 import { layoutOf } from "@/utils/filters";
 import { searchPianoItems } from "@/utils/ObjectManipulation";
+import { makeStyles } from "@/lib/ThemeContext";
 
 // What the search really looks at (see searchPianoItems)
 const HINT =
@@ -28,6 +29,7 @@ const countText = (count: number, typed: boolean) =>
  * list as the Pianos tab. The letters that matched are bold.
  */
 const Search = () => {
+  const styles = useStyles();
   const { query } = useLocalSearchParams();
   const initialText = (Array.isArray(query) ? query[0] : query) ?? "";
   const [text, setText] = useState(initialText);
@@ -65,7 +67,7 @@ const Search = () => {
         <PianoRow item={piano} onOpen={openPiano} highlight={term} />
       );
     },
-    [isGrid, openPiano, term]
+    [isGrid, openPiano, term, styles.blankCell]
   );
 
   const renderEmpty = () =>
@@ -148,7 +150,7 @@ const Search = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.page },
   searchRow: {
     flexDirection: "row",
@@ -186,6 +188,6 @@ const styles = StyleSheet.create({
   gridContent: { rowGap: 20, paddingBottom: 32, flexGrow: 1 },
   listContent: { paddingBottom: 32, flexGrow: 1 },
   blankCell: { flex: 1 },
-});
+}));
 
 export default Search;

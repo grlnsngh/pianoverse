@@ -1,11 +1,12 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Badge, HighlightedText, Icon, PianoPhoto } from "@/components/ui";
-import { colors, fonts, radii } from "@/constants/theme";
+import { fonts, radii } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { getPianoDisplay } from "@/utils/pianoDisplay";
 import { getPianoPhotos } from "@/utils/photos";
 import SelectionMark from "./SelectionMark";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const PHOTO_HEIGHT = 169;
 const CATEGORY_CIRCLE = 30;
@@ -38,6 +39,8 @@ const PianoCard = ({
   onSelectStart,
   highlight,
 }: PianoCardProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const display = getPianoDisplay(item);
   const id = item.$id;
   const company = item.company_associated;
@@ -94,7 +97,7 @@ const PianoCard = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: { flex: 1, minWidth: 0 },
   pressed: { opacity: 0.9 },
   photo: { height: PHOTO_HEIGHT, borderRadius: radii.card },
@@ -107,7 +110,7 @@ const styles = StyleSheet.create({
     borderRadius: CATEGORY_CIRCLE / 2,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   title: {
     marginTop: 10,
@@ -129,6 +132,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontVariant: ["tabular-nums"],
   },
-});
+}));
 
 export default React.memo(PianoCard);

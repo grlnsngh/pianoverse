@@ -1,7 +1,8 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
+import { makeStyles } from "@/lib/ThemeContext";
 
 /** The steps of the Add flow, one per segment of the progress bar. */
 export const ADD_STEPS = 3;
@@ -14,21 +15,24 @@ type AddFlowTopBarProps = {
 };
 
 /** The row at the top of every step: Cancel at the left, "New piano" in the middle. */
-export const AddFlowTopBar = ({ onCancel, title = "New piano" }: AddFlowTopBarProps) => (
-  <View style={styles.topBar}>
-    <Pressable
-      onPress={onCancel}
-      accessibilityRole="button"
-      accessibilityLabel="Cancel"
-      style={styles.cancel}
-    >
-      <Text style={styles.cancelText}>Cancel</Text>
-    </Pressable>
-    <Text style={styles.topTitle} accessibilityRole="header">
-      {title}
-    </Text>
-  </View>
-);
+export const AddFlowTopBar = ({ onCancel, title = "New piano" }: AddFlowTopBarProps) => {
+  const styles = useStyles();
+  return (
+    <View style={styles.topBar}>
+      <Pressable
+        onPress={onCancel}
+        accessibilityRole="button"
+        accessibilityLabel="Cancel"
+        style={styles.cancel}
+      >
+        <Text style={styles.cancelText}>Cancel</Text>
+      </Pressable>
+      <Text style={styles.topTitle} accessibilityRole="header">
+        {title}
+      </Text>
+    </View>
+  );
+};
 
 type AddFlowHeadingProps = {
   step: 1 | 2 | 3;
@@ -40,31 +44,35 @@ type AddFlowHeadingProps = {
  * Where the person is in the flow: three segments of which the first `step`
  * are filled, "Step 2 of 3", then what this step is for.
  */
-export const AddFlowHeading = ({ step, title, subtitle }: AddFlowHeadingProps) => (
-  <View style={styles.heading}>
-    {/* The words under the segments say the same, so screen readers skip them */}
-    <View
-      style={styles.segments}
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-    >
-      {Array.from({ length: ADD_STEPS }, (_, index) => (
-        <View
-          key={index}
-          style={[styles.segment, index < step && styles.segmentDone]}
-        />
-      ))}
+export const AddFlowHeading = ({ step, title, subtitle }: AddFlowHeadingProps) => {
+  const styles = useStyles();
+  return (
+    <View style={styles.heading}>
+      {/* The words under the segments say the same, so screen readers skip them */}
+      <View
+        style={styles.segments}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        {Array.from({ length: ADD_STEPS }, (_, index) => (
+          <View
+            key={index}
+            style={[styles.segment, index < step && styles.segmentDone]}
+          />
+        ))}
+      </View>
+      <Text style={styles.stepText}>{`Step ${step} of ${ADD_STEPS}`}</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        {title}
+      </Text>
+      <Text style={styles.subtitle}>{subtitle}</Text>
     </View>
-    <Text style={styles.stepText}>{`Step ${step} of ${ADD_STEPS}`}</Text>
-    <Text style={styles.title} accessibilityRole="header">
-      {title}
-    </Text>
-    <Text style={styles.subtitle}>{subtitle}</Text>
-  </View>
-);
+  );
+};
 
 /** The bar of buttons at the bottom of a step, above the home indicator. */
 export const AddFlowFooter = ({ children }: { children: React.ReactNode }) => {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
 
   return (
@@ -80,7 +88,7 @@ export const AddFlowFooter = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   topBar: {
     height: 52,
     alignItems: "center",
@@ -129,4 +137,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screen,
     backgroundColor: colors.grouped,
   },
-});
+}));

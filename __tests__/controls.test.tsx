@@ -2,7 +2,7 @@ import React from "react";
 import { act } from "react-test-renderer";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Segmented, Switch } from "@/components/ui";
-import { colors, fonts } from "@/constants/theme";
+import { lightColors as colors, fonts } from "@/constants/theme";
 import {
   advance,
   animatedStyles,

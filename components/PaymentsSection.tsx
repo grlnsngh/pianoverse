@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import PaymentActionsSheet, { PaymentAction } from "@/components/PaymentActionsSheet";
 import { Button, Spinner } from "@/components/ui";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
 import type { RentPayment } from "@/lib/appwrite";
 import type { PaymentsStatus } from "@/lib/useRentPayments";
 import { formatRupees } from "@/utils/money";
 import { formatDay, PAYMENTS_SHOWN, paymentsSummary } from "@/utils/pianoDetail";
 import { SectionTitle } from "./DetailParts";
+import { makeStyles } from "@/lib/ThemeContext";
 
 export type PaymentsSectionProps = {
   payments: RentPayment[];
@@ -40,6 +41,7 @@ const PaymentsSection = ({
   onEdit,
   onReceipt,
 }: PaymentsSectionProps) => {
+  const styles = useStyles();
   const [showAll, setShowAll] = useState(false);
   // The payment that was pressed and held, while its choices are showing
   const [held, setHeld] = useState<RentPayment | null>(null);
@@ -145,7 +147,7 @@ const PaymentsSection = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   subtitle: { ...type.secondary, marginTop: 2, color: colors.ink2 },
   centered: { alignItems: "center", paddingVertical: spacing.lg, gap: spacing.sm },
   note: { ...type.bodyMedium, color: colors.ink2 },
@@ -172,6 +174,6 @@ const styles = StyleSheet.create({
   },
   showAll: { marginTop: spacing.lg },
   hint: { ...type.caption, marginTop: spacing.md, fontFamily: fonts.regular, color: colors.ink2 },
-});
+}));
 
 export default PaymentsSection;

@@ -2,12 +2,14 @@ import { Image, ImageContentFit } from "expo-image";
 import React, { useState } from "react";
 import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import Svg, { Ellipse, G, Path, Rect } from "react-native-svg";
-import { colors, fonts, PianoPalette, pianoPalettes } from "@/constants/theme";
+import { fonts, PianoPalette, pianoPalettes, pianoPalettesDark, Scheme } from "@/constants/theme";
 import Icon from "./Icon";
+import { makeStyles, useColors, useTheme } from "@/lib/ThemeContext";
 
 const KEYS = "#F7F3EA";
 const KEY_SEPARATOR = "#D2CABB";
 const BLACK_KEY = "#2B2320";
+const SHADOW = "#1A1814";
 
 // The nine gaps between the ten white keys, and the seven black keys
 const SEPARATORS =
@@ -18,13 +20,14 @@ const BLACK_KEYS = [17.2, 22.6, 33.4, 38.8, 44.2, 55, 60.4];
  * The drawing's colours for a piano. The same id always gives the same palette
  * (FNV-1a hash of the id), so a piano keeps its look between screens and visits.
  */
-export const paletteFor = (id: string): PianoPalette => {
+export const paletteFor = (id: string, scheme: Scheme = "light"): PianoPalette => {
   let hash = 0x811c9dc5;
   for (let i = 0; i < id.length; i++) {
     hash ^= id.charCodeAt(i);
     hash = Math.imul(hash, 0x01000193);
   }
-  return pianoPalettes[(hash >>> 0) % pianoPalettes.length];
+  const palettes = scheme === "dark" ? pianoPalettesDark : pianoPalettes;
+  return palettes[(hash >>> 0) % palettes.length];
 };
 
 /**
@@ -50,7 +53,7 @@ export const PianoIllustration = React.memo(function PianoIllustration({
         cy={115}
         rx={52}
         ry={4.5}
-        fill={colors.ink}
+        fill={SHADOW}
         fillOpacity={0.14}
       />
       <G transform="translate(28 40) scale(1.3)">
@@ -110,12 +113,15 @@ const PianoPhoto = ({
   children,
   testID,
 }: PianoPhotoProps) => {
+  const colors = useColors();
+  const styles = useStyles();
+  const { scheme } = useTheme();
   // Remember which address failed rather than a flag, so a new photo for the
   // same piano gets its own try without an effect to reset the state
   const [failedUri, setFailedUri] = useState<string | null>(null);
   // Bumped by Retry, so the photo is asked for again
   const [attempt, setAttempt] = useState(0);
-  const palette = paletteFor(id);
+  const palette = paletteFor(id, scheme);
   const showPhoto = !!uri && uri !== failedUri;
   const failed = !!uri && uri === failedUri;
 
@@ -161,7 +167,7 @@ const PianoPhoto = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   frame: { overflow: "hidden" },
   // The Feedback board's "Failed to load" tile
   retry: {
@@ -172,6 +178,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.fillInput,
   },
   retryText: { fontFamily: fonts.bold, fontSize: 12, lineHeight: 16, color: colors.ink },
-});
+}));
 
 export default React.memo(PianoPhoto);

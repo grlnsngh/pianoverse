@@ -5,7 +5,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -15,7 +14,7 @@ import RefreshBand, {
   HIDDEN_REFRESH_INDICATOR,
 } from "@/components/RefreshBand";
 import { Icon, Spinner, StateView } from "@/components/ui";
-import { colors, fonts, spacing, type } from "@/constants/theme";
+import { fonts, spacing, type } from "@/constants/theme";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useOwnerPayments from "@/lib/useOwnerPayments";
 import useOwnerRentalHistory from "@/lib/useOwnerRentalHistory";
@@ -32,6 +31,7 @@ import {
 import { parseStoredDate } from "@/utils/dates";
 import { formatRupees } from "@/utils/money";
 import { statusLine } from "@/utils/pianoDetail";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const BUTTON = 44;
 
@@ -46,11 +46,14 @@ const dayText = (paidOn: string) => {
   return date ? format(date, "d MMM yyyy") : "";
 };
 
-const SectionTitle = ({ children }: { children: string }) => (
-  <Text style={styles.sectionTitle} accessibilityRole="header">
-    {children}
-  </Text>
-);
+const SectionTitle = ({ children }: { children: string }) => {
+  const styles = useStyles();
+  return (
+    <Text style={styles.sectionTitle} accessibilityRole="header">
+      {children}
+    </Text>
+  );
+};
 
 /** One piano a customer paid for or has: its name, what they paid for it, and a way to open it. */
 const PianoRow = ({
@@ -60,6 +63,8 @@ const PianoRow = ({
   entry: CustomerPiano;
   onOpen: (id: string) => void;
 }) => {
+  const colors = useColors();
+  const styles = useStyles();
   const detail = entry.renting
     ? entry.paymentsCount > 0
       ? `Renting now · ${paymentsText(entry.paymentsCount)}`
@@ -104,6 +109,8 @@ const PianoRow = ({
  * payment, newest first.
  */
 const Customer = () => {
+  const colors = useColors();
+  const styles = useStyles();
   const { key: param } = useLocalSearchParams<{ key: string }>();
   const key = customerKey(decodeURIComponent(String(param ?? "")));
   const pianos = useSelector((state: RootState) => state.pianos.items);
@@ -380,7 +387,7 @@ const Customer = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.page },
   bar: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   back: {
@@ -414,7 +421,7 @@ const styles = StyleSheet.create({
     borderColor: colors.controlBorder,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   pressed: { backgroundColor: colors.grouped },
   label: {
@@ -476,6 +483,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
     color: colors.ink2,
   },
-});
+}));
 
 export default Customer;

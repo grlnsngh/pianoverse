@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { colors } from "@/constants/theme";
+import { lightColors as colors } from "@/constants/theme";
 
 /**
  * The "Reset password" email (email/password-recovery.html), which is pasted

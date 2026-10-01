@@ -1,8 +1,9 @@
 import React, { useRef } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { Icon } from "@/components/ui";
-import { colors, fonts } from "@/constants/theme";
+import { fonts } from "@/constants/theme";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 /** Width of each button behind a row; 80 is wider than the 44 px a thumb needs */
 const ACTION_WIDTH = 80;
@@ -26,6 +27,8 @@ type SwipeableRowProps = {
  * to it, since a swipe can't be done with one finger on a screen reader.
  */
 const SwipeableRow = ({ children, onEdit, onDelete, enabled = true }: SwipeableRowProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const row = useRef<Swipeable>(null);
 
   const choose = (action: () => void) => () => {
@@ -81,7 +84,7 @@ const SwipeableRow = ({ children, onEdit, onDelete, enabled = true }: SwipeableR
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   actions: { flexDirection: "row" },
   action: {
     width: ACTION_WIDTH,
@@ -89,9 +92,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 4,
   },
-  edit: { backgroundColor: colors.ink2 },
-  delete: { backgroundColor: colors.late },
+  edit: { backgroundColor: colors.neutralFill },
+  delete: { backgroundColor: colors.lateFill },
   label: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 18, color: colors.white },
-});
+}));
 
 export default SwipeableRow;

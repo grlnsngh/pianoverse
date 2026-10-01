@@ -1,8 +1,9 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { Button, Sheet } from "@/components/ui";
-import { colors, fonts, spacing } from "@/constants/theme";
+import { fonts, spacing } from "@/constants/theme";
 import { confirmTap } from "@/utils/haptics";
+import { makeStyles } from "@/lib/ThemeContext";
 
 type SignOutSheetProps = {
   visible: boolean;
@@ -16,41 +17,44 @@ type SignOutSheetProps = {
  * The question before signing out (SignOutConfirm board): what will be
  * cleared from this phone, and that everything stays in the account.
  */
-const SignOutSheet = ({ visible, signingOut, onConfirm, onClose }: SignOutSheetProps) => (
-  <Sheet
-    visible={visible}
-    onClose={onClose}
-    tone="white"
-    testID="sign-out-sheet"
-    footer={
-      <View style={styles.buttons}>
-        <Button
-          title="Sign out"
-          variant="destructive"
-          loading={signingOut}
-          loadingTitle="Signing out"
-          onPress={() => {
-            confirmTap();
-            onConfirm();
-          }}
-        />
-        <Button title="Cancel" variant="secondary" onPress={onClose} />
+const SignOutSheet = ({ visible, signingOut, onConfirm, onClose }: SignOutSheetProps) => {
+  const styles = useStyles();
+  return (
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      tone="white"
+      testID="sign-out-sheet"
+      footer={
+        <View style={styles.buttons}>
+          <Button
+            title="Sign out"
+            variant="destructive"
+            loading={signingOut}
+            loadingTitle="Signing out"
+            onPress={() => {
+              confirmTap();
+              onConfirm();
+            }}
+          />
+          <Button title="Cancel" variant="secondary" onPress={onClose} />
+        </View>
+      }
+    >
+      <View style={styles.body}>
+        <Text style={styles.title} accessibilityRole="header">
+          Sign out of Pianoverse?
+        </Text>
+        <Text style={styles.message}>
+          Pianos and reminders saved on this device will be cleared. Everything stays in your
+          account.
+        </Text>
       </View>
-    }
-  >
-    <View style={styles.body}>
-      <Text style={styles.title} accessibilityRole="header">
-        Sign out of Pianoverse?
-      </Text>
-      <Text style={styles.message}>
-        Pianos and reminders saved on this device will be cleared. Everything stays in your
-        account.
-      </Text>
-    </View>
-  </Sheet>
-);
+    </Sheet>
+  );
+};
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   body: { paddingTop: spacing.xl, paddingHorizontal: spacing.xs, paddingBottom: spacing.sm },
   title: {
     fontFamily: fonts.bold,
@@ -69,6 +73,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   buttons: { gap: 10 },
-});
+}));
 
 export default SignOutSheet;

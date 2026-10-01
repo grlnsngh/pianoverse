@@ -1,8 +1,9 @@
 import React from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, Text } from "react-native";
 import { Sheet } from "@/components/ui";
-import { colors, fonts } from "@/constants/theme";
+import { fonts } from "@/constants/theme";
 import type { ExportPeriod } from "@/utils/exportPeriods";
+import { makeStyles } from "@/lib/ThemeContext";
 
 export type ExportPaymentsSheetProps = {
   visible: boolean;
@@ -17,30 +18,33 @@ export type ExportPaymentsSheetProps = {
  * year, last financial year, or all of them. Each row says what it covers, so
  * "this financial year" is never a guess.
  */
-const ExportPaymentsSheet = ({ visible, onClose, periods, onChoose }: ExportPaymentsSheetProps) => (
-  <Sheet
-    visible={visible}
-    onClose={onClose}
-    tone="white"
-    title="Download payments"
-    testID="export-payments-sheet"
-  >
-    {periods.map((period) => (
-      <Pressable
-        key={period.key}
-        onPress={() => onChoose(period)}
-        accessibilityRole="button"
-        accessibilityLabel={`${period.label}, ${period.detail}`}
-        style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-      >
-        <Text style={styles.label}>{period.label}</Text>
-        <Text style={styles.detail}>{period.detail}</Text>
-      </Pressable>
-    ))}
-  </Sheet>
-);
+const ExportPaymentsSheet = ({ visible, onClose, periods, onChoose }: ExportPaymentsSheetProps) => {
+  const styles = useStyles();
+  return (
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      tone="white"
+      title="Download payments"
+      testID="export-payments-sheet"
+    >
+      {periods.map((period) => (
+        <Pressable
+          key={period.key}
+          onPress={() => onChoose(period)}
+          accessibilityRole="button"
+          accessibilityLabel={`${period.label}, ${period.detail}`}
+          style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+        >
+          <Text style={styles.label}>{period.label}</Text>
+          <Text style={styles.detail}>{period.detail}</Text>
+        </Pressable>
+      ))}
+    </Sheet>
+  );
+};
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     minHeight: 60,
     justifyContent: "center",
@@ -52,6 +56,6 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: colors.grouped },
   label: { fontFamily: fonts.medium, fontSize: 16, lineHeight: 22, color: colors.ink },
   detail: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, color: colors.ink2 },
-});
+}));
 
 export default ExportPaymentsSheet;

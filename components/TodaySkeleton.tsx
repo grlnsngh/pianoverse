@@ -1,8 +1,9 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { AddButton, Skeleton } from "@/components/ui";
-import { colors, radii } from "@/constants/theme";
+import { radii } from "@/constants/theme";
 import { SHELF_CARD_WIDTH } from "./ShelfCard";
+import { makeStyles } from "@/lib/ThemeContext";
 
 // Line widths from the LoadingToday board, so the rows don't all look alike
 const ROWS = [
@@ -21,77 +22,80 @@ export type TodaySkeletonProps = {
  * the size of the date, the money, the three counts, the list rows and the
  * shelf. The + button is real. Show it with useSkeletonDelay, not at once.
  */
-const TodaySkeleton = ({ onAdd }: TodaySkeletonProps) => (
-  <View>
-    <View style={styles.header}>
-      <View>
-        <Skeleton width={150} height={14} radius={7} style={styles.dateLine} />
-        <Skeleton width={112} height={30} radius={8} />
-      </View>
-      <AddButton onPress={onAdd} />
-    </View>
-
-    <View
-      accessible
-      accessibilityLabel="Loading Today"
-      accessibilityState={{ busy: true }}
-      testID="today-skeleton"
-    >
-      <View style={styles.income}>
-        <Skeleton width={150} height={14} radius={7} />
-        <Skeleton width={220} height={44} radius={10} style={styles.gap10} />
-        <Skeleton width={110} height={14} radius={7} style={styles.gap10} />
+const TodaySkeleton = ({ onAdd }: TodaySkeletonProps) => {
+  const styles = useStyles();
+  return (
+    <View>
+      <View style={styles.header}>
+        <View>
+          <Skeleton width={150} height={14} radius={7} style={styles.dateLine} />
+          <Skeleton width={112} height={30} radius={8} />
+        </View>
+        <AddButton onPress={onAdd} />
       </View>
 
-      <View style={styles.counts}>
-        <View style={styles.count}>
-          <Skeleton width={36} height={22} radius={6} />
-          <Skeleton width={60} height={12} radius={6} style={styles.gap8} />
+      <View
+        accessible
+        accessibilityLabel="Loading Today"
+        accessibilityState={{ busy: true }}
+        testID="today-skeleton"
+      >
+        <View style={styles.income}>
+          <Skeleton width={150} height={14} radius={7} />
+          <Skeleton width={220} height={44} radius={10} style={styles.gap10} />
+          <Skeleton width={110} height={14} radius={7} style={styles.gap10} />
         </View>
-        <View style={styles.count}>
-          <Skeleton width={28} height={22} radius={6} />
-          <Skeleton width={52} height={12} radius={6} style={styles.gap8} />
-        </View>
-        <View style={[styles.count, styles.wideCount]}>
-          <Skeleton width={90} height={22} radius={6} />
-          <Skeleton width={96} height={12} radius={6} style={styles.gap8} />
-        </View>
-      </View>
 
-      <View style={styles.attentionTitle}>
-        <Skeleton width={160} height={20} radius={8} />
-      </View>
-      {ROWS.map((lines, i) => (
-        <View key={i} style={styles.row}>
-          <View style={styles.thumb}>
-            <Skeleton width={64} height={64} radius={radii.input} />
+        <View style={styles.counts}>
+          <View style={styles.count}>
+            <Skeleton width={36} height={22} radius={6} />
+            <Skeleton width={60} height={12} radius={6} style={styles.gap8} />
           </View>
-          <View style={styles.rowText}>
-            <Skeleton width={lines[0]} height={16} radius={8} />
-            <Skeleton width={lines[1]} height={14} radius={7} style={styles.gap8} />
-            <Skeleton width={lines[2]} height={14} radius={7} style={styles.gap8} />
+          <View style={styles.count}>
+            <Skeleton width={28} height={22} radius={6} />
+            <Skeleton width={52} height={12} radius={6} style={styles.gap8} />
+          </View>
+          <View style={[styles.count, styles.wideCount]}>
+            <Skeleton width={90} height={22} radius={6} />
+            <Skeleton width={96} height={12} radius={6} style={styles.gap8} />
           </View>
         </View>
-      ))}
 
-      <View style={styles.shelfTitle}>
-        <Skeleton width={110} height={20} radius={8} />
-      </View>
-      <View style={styles.shelf}>
-        <View style={styles.shelfCard}>
-          <Skeleton width={SHELF_CARD_WIDTH} height={152} radius={radii.card} />
-          <Skeleton width={140} height={16} radius={8} style={styles.gap12} />
-          <Skeleton width={90} height={14} radius={7} style={styles.gap8} />
+        <View style={styles.attentionTitle}>
+          <Skeleton width={160} height={20} radius={8} />
         </View>
-        <View style={styles.shelfCard}>
-          <Skeleton width={SHELF_CARD_WIDTH} height={152} radius={radii.card} />
+        {ROWS.map((lines, i) => (
+          <View key={i} style={styles.row}>
+            <View style={styles.thumb}>
+              <Skeleton width={64} height={64} radius={radii.input} />
+            </View>
+            <View style={styles.rowText}>
+              <Skeleton width={lines[0]} height={16} radius={8} />
+              <Skeleton width={lines[1]} height={14} radius={7} style={styles.gap8} />
+              <Skeleton width={lines[2]} height={14} radius={7} style={styles.gap8} />
+            </View>
+          </View>
+        ))}
+
+        <View style={styles.shelfTitle}>
+          <Skeleton width={110} height={20} radius={8} />
+        </View>
+        <View style={styles.shelf}>
+          <View style={styles.shelfCard}>
+            <Skeleton width={SHELF_CARD_WIDTH} height={152} radius={radii.card} />
+            <Skeleton width={140} height={16} radius={8} style={styles.gap12} />
+            <Skeleton width={90} height={14} radius={7} style={styles.gap8} />
+          </View>
+          <View style={styles.shelfCard}>
+            <Skeleton width={SHELF_CARD_WIDTH} height={152} radius={radii.card} />
+          </View>
         </View>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   header: {
     flexDirection: "row",
     alignItems: "flex-end",
@@ -128,6 +132,6 @@ const styles = StyleSheet.create({
   gap8: { marginTop: 8 },
   gap10: { marginTop: 10 },
   gap12: { marginTop: 12 },
-});
+}));
 
 export default React.memo(TodaySkeleton);

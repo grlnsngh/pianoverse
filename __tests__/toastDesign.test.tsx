@@ -5,7 +5,7 @@ import Svg, { Path } from "react-native-svg";
 import { act } from "react-test-renderer";
 import ToastHost from "@/components/ToastHost";
 import { ICONS } from "@/components/ui/Icon";
-import { colors, fonts, radii } from "@/constants/theme";
+import { lightColors as colors, fonts, radii } from "@/constants/theme";
 import { setToastListener, showToast } from "@/utils/toast";
 import { advance, mount, setReduceMotion, textContent } from "./helpers/ui";
 

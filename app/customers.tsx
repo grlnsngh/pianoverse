@@ -4,7 +4,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -15,12 +14,13 @@ import RefreshBand, {
   HIDDEN_REFRESH_INDICATOR,
 } from "@/components/RefreshBand";
 import { Icon, Spinner, StateView } from "@/components/ui";
-import { colors, spacing, type } from "@/constants/theme";
+import { spacing, type } from "@/constants/theme";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useOwnerPayments from "@/lib/useOwnerPayments";
 import useOwnerRentalHistory from "@/lib/useOwnerRentalHistory";
 import { RootState } from "@/redux/store";
 import { buildCustomers } from "@/utils/customers";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const goBack = () => {
   if (router.canGoBack()) router.back();
@@ -35,6 +35,8 @@ const goBack = () => {
  * is recorded for them or a piano is rented to them.
  */
 const Customers = () => {
+  const colors = useColors();
+  const styles = useStyles();
   const pianos = useSelector((state: RootState) => state.pianos.items);
   const { loaded, failed, payments, reload } = useOwnerPayments(null);
   const history = useOwnerRentalHistory();
@@ -157,7 +159,7 @@ const Customers = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.page },
   bar: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   back: {
@@ -197,6 +199,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screen,
     color: colors.ink2,
   },
-});
+}));
 
 export default Customers;

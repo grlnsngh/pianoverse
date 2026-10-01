@@ -1,10 +1,11 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Icon, PianoPhoto } from "@/components/ui";
-import { colors, fonts, radii } from "@/constants/theme";
+import { fonts, radii } from "@/constants/theme";
 import { getPianoPhotos } from "@/utils/photos";
-import { STATUS_TONE_COLORS } from "@/utils/rentalStatus";
+import { statusToneColor } from "@/utils/rentalStatus";
 import type { RentalEntry } from "@/utils/today";
+import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const THUMBNAIL = 64;
 
@@ -19,6 +20,8 @@ export type AttentionRowProps = {
  * in red or orange. The hairline under it starts at the text.
  */
 const AttentionRow = ({ entry, onOpen }: AttentionRowProps) => {
+  const colors = useColors();
+  const styles = useStyles();
   const { piano, who, status } = entry;
   const summary = [piano.title, who, status.text].filter(Boolean).join(", ");
 
@@ -44,7 +47,7 @@ const AttentionRow = ({ entry, onOpen }: AttentionRowProps) => {
               {who}
             </Text>
           )}
-          <Text style={[styles.status, { color: STATUS_TONE_COLORS[status.tone] }]} numberOfLines={1}>
+          <Text style={[styles.status, { color: statusToneColor(status.tone, colors) }]} numberOfLines={1}>
             {status.text}
           </Text>
         </View>
@@ -54,7 +57,7 @@ const AttentionRow = ({ entry, onOpen }: AttentionRowProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: { flexDirection: "row", paddingLeft: 20 },
   pressed: { backgroundColor: colors.grouped },
   photoCell: { paddingTop: 12, paddingBottom: 12, paddingRight: 14 },
@@ -74,6 +77,6 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22, color: colors.ink },
   who: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, color: colors.ink2 },
   status: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20 },
-});
+}));
 
 export default React.memo(AttentionRow);
