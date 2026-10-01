@@ -13,11 +13,15 @@ import store from "@/redux/store";
 import DialogHost from "@/components/DialogHost";
 import ToastHost from "@/components/ToastHost";
 import { PianoDataProvider } from "@/lib/PianoDataContext";
+import useAppUpdates from "@/lib/useAppUpdates";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  // Fixes published with `eas update` reach the phone without a new build
+  useAppUpdates();
+
   const [fontsLoaded, error] = useFonts({
     // The redesign's font; names match `fonts` in constants/theme.ts
     Figtree_400Regular,
