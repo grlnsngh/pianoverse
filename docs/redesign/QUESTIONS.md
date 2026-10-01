@@ -33,15 +33,6 @@ Status key: **Open** = waiting for you.
   - **C. Remove the "Questions?" and "Need help?" lines** from the pages and the email until there is an address.
 - **Your answer:**
 
-### Q25. Should the app in a browser (`npm run web`) get a phone-width column?
-- **Status:** Open. Nothing is blocked on it.
-- **Raised:** Batch 14. I built the app for the web and opened it: it starts and the Welcome screen draws, but the phone layout is stretched across the whole window (the piano keys become huge). I have not checked any other screen in a browser.
-- **What the app does now (default):** nothing; the app in a browser is only for you while developing.
-- **Options:**
-  - **A. Leave it as it is** (now). Pianoverse is a phone app.
-  - **B. A phone-width column** (about 480 px) centred on the grey page colour, like the reset page's card. It looks right in a browser, but the app's sheets and dialogs are drawn across the whole window by the browser, so they need extra work, and every screen has to be checked in a browser. That would be its own batch.
-- **Your answer:**
-
 ---
 
 ## Not questions, but please look at these on your phone
@@ -154,3 +145,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q22. Should react-dom and react-native-web stay in the project?
 - **Answer:** Keep them (option A, the default) (2026-09-30).
 - **Why it stays:** `npm run web` still starts the app in a browser. Nothing to build for the packages themselves; the pages that open in a browser are listed and planned in `docs/redesign/WEB.md`.
+
+### Q25. Should the app in a browser (`npm run web`) get a phone-width column?
+- **Answer:** Leave it as it is (option A, the default) (2026-10-01).
+- **Why it stays:** Pianoverse is a phone app; the app in a browser is only for development. Nothing to build.
