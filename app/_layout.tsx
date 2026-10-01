@@ -66,6 +66,8 @@ export default function RootLayout() {
               {/* The customers, opened from Account or a piano's Previous renters, draw their own back button */}
               <Stack.Screen name="customers" options={{ headerShown: false }} />
               <Stack.Screen name="customer/[key]" options={{ headerShown: false }} />
+              {/* Edit profile, opened from Account, draws its own back button */}
+              <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
                 {/* Its third step, the review, and the Edit screen draw their own top bar */}
                 <Stack.Screen name="review" options={{ headerShown: false }} />
                 <Stack.Screen

@@ -188,7 +188,13 @@ const Profile = () => {
         </Text>
 
         <View style={styles.card}>
-          <View style={styles.who}>
+          <Pressable
+            onPress={() => router.push("/edit-profile")}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit profile, ${user?.username || "User"}`}
+            accessibilityHint="Change your photo or name"
+            style={({ pressed }) => [styles.who, pressed && styles.whoPressed]}
+          >
             <View style={styles.avatar}>
               {photo ? (
                 <Image
@@ -212,7 +218,8 @@ const Profile = () => {
               </Text>
               {since && <Text style={styles.since}>{since}</Text>}
             </View>
-          </View>
+            <Icon name="chevronRight" size={18} color={colors.chevron} strokeWidth={2} />
+          </Pressable>
           <View style={styles.counts}>
             <CountCell value={counts.inStock} label="In stock" />
             <CountCell value={counts.onRent} label="On rent" />
@@ -334,6 +341,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.lg,
   },
+  whoPressed: { backgroundColor: colors.grouped },
   avatar: {
     width: 64,
     height: 64,

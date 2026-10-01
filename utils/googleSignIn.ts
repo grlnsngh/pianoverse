@@ -1,3 +1,5 @@
+import { isRemovedAvatar } from "@/utils/profile";
+
 /**
  * The pieces of "Continue with Google" that need no phone: the address Google
  * sends the person back to, reading what comes back, the username for a new
@@ -123,9 +125,12 @@ export const largerGooglePhoto = (url: string, size = 192) =>
 const isGooglePhoto = (url: string) =>
   /^https:\/\/[a-z0-9-]+\.googleusercontent\.com\//i.test(url);
 
-/** An avatar the app made for itself (the letters Appwrite draws), or none: nobody chose it. */
+/**
+ * An avatar the app made for itself (the letters Appwrite draws), or none:
+ * nobody chose it. The letters marked as removed are the person's choice.
+ */
 export const isGeneratedAvatar = (avatar: string | null | undefined) =>
-  !avatar || /\/avatars\/initials/i.test(avatar);
+  !avatar || (/\/avatars\/initials/i.test(avatar) && !isRemovedAvatar(avatar));
 
 /**
  * What to save as the person's avatar after a sign-in with Google, or null to

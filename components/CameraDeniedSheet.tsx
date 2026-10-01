@@ -8,6 +8,8 @@ type CameraDeniedSheetProps = {
   onClose: () => void;
   /** The other way to add a photo: the sheet closes and the gallery opens */
   onChooseFromGallery: () => void;
+  /** What it says about why the camera is wanted; by default it is about piano photos */
+  message?: string;
 };
 
 /**
@@ -18,6 +20,7 @@ const CameraDeniedSheet = ({
   visible,
   onClose,
   onChooseFromGallery,
+  message = "Allow camera access in Settings to take photos of your pianos. You can also choose photos from your gallery.",
 }: CameraDeniedSheetProps) => (
   <Sheet
     visible={visible}
@@ -48,10 +51,7 @@ const CameraDeniedSheet = ({
       <Text style={styles.title} accessibilityRole="header">
         Camera access is off
       </Text>
-      <Text style={styles.message}>
-        Allow camera access in Settings to take photos of your pianos. You can
-        also choose photos from your gallery.
-      </Text>
+      <Text style={styles.message}>{message}</Text>
     </View>
   </Sheet>
 );
