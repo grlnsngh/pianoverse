@@ -19,6 +19,26 @@ const hadRental = (piano: PianoItem) =>
   (customerKey(piano.rental_customer_name) !== "" ||
     dayOf(piano.rental_period_start) !== null);
 
+/** What is kept of the rental that was on `piano`. */
+const entryOf = (
+  piano: PianoItem,
+  closedOn: Date,
+  reason: NewRentalHistory["reason"],
+  periodEnd: string | null
+): NewRentalHistory => ({
+  pianoId: piano.$id,
+  pianoTitle: piano.title,
+  creator: piano.creator,
+  customerName: piano.rental_customer_name,
+  customerMobile: piano.rental_customer_mobile,
+  customerAddress: piano.rental_customer_address,
+  periodStart: dayOf(piano.rental_period_start),
+  periodEnd,
+  price: typeof piano.rental_price === "number" ? piano.rental_price : null,
+  closedOn,
+  reason,
+});
+
 /**
  * The rental to keep when a piano is saved, or null when nothing was over. The
  * rental that was on `before` is over when, in `after`:
@@ -47,17 +67,18 @@ export const rentalToArchive = (
   const newRenter = stillRental && !startBefore && nameBefore !== nameAfter;
   if (!ended && !newPeriod && !newRenter) return null;
 
-  return {
-    pianoId: before.$id,
-    pianoTitle: before.title,
-    creator: before.creator,
-    customerName: before.rental_customer_name,
-    customerMobile: before.rental_customer_mobile,
-    customerAddress: before.rental_customer_address,
-    periodStart: startBefore,
-    periodEnd: dayOf(before.rental_period_end),
-    price: typeof before.rental_price === "number" ? before.rental_price : null,
-    closedOn: today,
-    reason: ended ? "ended" : "replaced",
-  };
+  return entryOf(before, today, ended ? "ended" : "replaced", dayOf(before.rental_period_end));
+};
+
+/**
+ * The rental to keep when a piano is marked as returned, or null when it had
+ * none. It ends on the day the piano came back when that is before the end that
+ * was agreed (it came back early); a piano that came back on or after the agreed
+ * end keeps that end, and one with no agreed end ends the day it came back.
+ */
+export const rentalReturned = (piano: PianoItem, returnedOn: Date): NewRentalHistory | null => {
+  if (!hadRental(piano)) return null;
+  const agreed = dayOf(piano.rental_period_end);
+  const back = toStoredDate(returnedOn);
+  return entryOf(piano, returnedOn, "returned", agreed && agreed <= back ? agreed : back);
 };

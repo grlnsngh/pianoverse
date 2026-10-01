@@ -137,13 +137,14 @@ describe("when a reminder can be sent", () => {
     expect(listActions(rental(stored(9, 4)))).toEqual([
       "remind",
       "extend",
+      "returned",
       "edit",
       "markSold",
       "delete",
     ]);
     expect(
       listActions(rental(stored(9, 4), { rental_customer_mobile: "" }))
-    ).toEqual(["extend", "edit", "markSold", "delete"]);
+    ).toEqual(["extend", "returned", "edit", "markSold", "delete"]);
   });
 });
 

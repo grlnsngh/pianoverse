@@ -1003,7 +1003,8 @@ export interface NewRentalHistory {
   periodEnd?: string | null;
   price?: number | null;
   closedOn: Date;
-  reason: "replaced" | "ended";
+  /** Replaced by another rental, ended by taking the customer off, or the piano came back */
+  reason: "replaced" | "ended" | "returned";
 }
 
 /**
@@ -1067,6 +1068,15 @@ export async function getRentalHistory(creator: string): Promise<RentalHistoryEn
     throw error;
   }
   return entries;
+}
+
+/** Deletes one kept rental, e.g. because marking the piano as returned was undone. */
+export async function deleteRentalHistoryEntry(entryId: string) {
+  return databases.deleteDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.rentalHistoryCollectionId,
+    entryId
+  );
 }
 
 /** Deletes every kept rental of a piano, e.g. because the piano is deleted. */

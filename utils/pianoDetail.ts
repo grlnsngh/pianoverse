@@ -7,6 +7,7 @@ import { formatRupees } from "@/utils/money";
 import { getPianoDisplay } from "@/utils/pianoDisplay";
 import { getPianoRentalState, isSold } from "@/utils/pianoStatus";
 import { canRemind } from "@/utils/reminders";
+import { hasRentalToReturn } from "@/utils/returnPiano";
 import { getRentalStatusAgo, StatusTone } from "@/utils/rentalStatus";
 
 // What a piano's page says, worked out from the piano: which sections it has,
@@ -74,6 +75,7 @@ export type ActionKey =
   | "recordPayment"
   | "remind"
   | "extend"
+  | "returned"
   | "edit"
   | "markSold"
   | "undoSale"
@@ -83,6 +85,7 @@ export const ACTION_LABELS: Record<ActionKey, string> = {
   recordPayment: "Record payment",
   remind: "Remind customer",
   extend: "Extend rental",
+  returned: "Mark as returned",
   edit: "Edit piano",
   markSold: "Mark as sold",
   undoSale: "Undo sale",
@@ -105,6 +108,8 @@ export const listActions = (piano: PianoItem): ActionKey[] => {
     return [
       ...(canRemind(piano) ? (["remind"] as const) : []),
       "extend",
+      // Only a piano with a rental on it has one to mark as returned
+      ...(hasRentalToReturn(piano) ? (["returned"] as const) : []),
       "edit",
       "markSold",
       "delete",

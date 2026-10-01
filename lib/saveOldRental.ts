@@ -2,6 +2,7 @@ import {
   createRentalHistory,
   isMissingTable,
   NewRentalHistory,
+  RentalHistoryEntry,
 } from "@/lib/appwrite";
 import { showToast } from "@/utils/toast";
 
@@ -9,15 +10,16 @@ import { showToast } from "@/utils/toast";
  * Keeps a rental that was just written over, in its piano's history. The
  * piano has been saved already, so a failure doesn't undo that: the person is
  * told, with Retry (the details are still in hand) unless the table isn't
- * there at all. Resolves to whether it was kept; `onSaved` runs then.
+ * there at all. Resolves to whether it was kept; `onSaved` runs then, with the
+ * kept rental (which Undo needs to take it back).
  */
 const saveOldRental = async (
   entry: NewRentalHistory,
-  onSaved: () => void
+  onSaved: (kept: RentalHistoryEntry) => void
 ): Promise<boolean> => {
   try {
-    await createRentalHistory(entry);
-    onSaved();
+    const kept = await createRentalHistory(entry);
+    onSaved(kept);
     return true;
   } catch (error) {
     if (isMissingTable(error)) {

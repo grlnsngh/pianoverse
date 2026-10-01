@@ -13,6 +13,7 @@ import {
 import EditPaymentSheet from "@/components/EditPaymentSheet";
 import ExtendRentalSheet from "@/components/ExtendRentalSheet";
 import MarkAsSoldSheet from "@/components/MarkAsSoldSheet";
+import MarkReturnedSheet from "@/components/MarkReturnedSheet";
 import PastRentersSection from "@/components/PastRentersSection";
 import PaymentsSection from "@/components/PaymentsSection";
 import PhotoHero from "@/components/PhotoHero";
@@ -84,6 +85,7 @@ const DetailScreen = () => {
   const [isDeleted, setIsDeleted] = useState(false);
   const [showSoldSheet, setShowSoldSheet] = useState(false);
   const [showExtendSheet, setShowExtendSheet] = useState(false);
+  const [showReturnedSheet, setShowReturnedSheet] = useState(false);
   const [showPaymentSheet, setShowPaymentSheet] = useState(false);
   // The recorded payment being changed, while its sheet shows
   const [editingPayment, setEditingPayment] = useState<RentPayment | null>(null);
@@ -231,6 +233,8 @@ const DetailScreen = () => {
         return remindCustomer();
       case "extend":
         return setShowExtendSheet(true);
+      case "returned":
+        return setShowReturnedSheet(true);
       case "edit":
         return router.push(`/edit/${id}`);
       case "markSold":
@@ -421,6 +425,12 @@ const DetailScreen = () => {
         piano={piano}
         visible={showExtendSheet}
         onClose={() => setShowExtendSheet(false)}
+      />
+      <MarkReturnedSheet
+        piano={piano}
+        visible={showReturnedSheet}
+        onClose={() => setShowReturnedSheet(false)}
+        owing={balance}
       />
       {rentable && (
         <EditPaymentSheet
