@@ -18,6 +18,7 @@ import { Icon, Spinner, StateView } from "@/components/ui";
 import { colors, spacing, type } from "@/constants/theme";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useOwnerPayments from "@/lib/useOwnerPayments";
+import useOwnerRentalHistory from "@/lib/useOwnerRentalHistory";
 import { RootState } from "@/redux/store";
 import { buildCustomers } from "@/utils/customers";
 
@@ -36,6 +37,8 @@ const goBack = () => {
 const Customers = () => {
   const pianos = useSelector((state: RootState) => state.pianos.items);
   const { loaded, failed, payments, reload } = useOwnerPayments(null);
+  const history = useOwnerRentalHistory();
+  const reloadHistory = history.reload;
   // A new day can change who still has a piano
   useCurrentDay();
 
@@ -50,18 +53,22 @@ const Customers = () => {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await reload();
+      await Promise.all([reload(), reloadHistory()]);
     } finally {
       if (mounted.current) setRefreshing(false);
     }
-  }, [reload]);
+  }, [reload, reloadHistory]);
 
   const openCustomer = useCallback(
     (key: string) => router.push(`/customer/${encodeURIComponent(key)}`),
     []
   );
 
-  const { customers, unnamed } = buildCustomers(payments, pianos);
+  const { customers, unnamed } = buildCustomers(
+    payments,
+    pianos,
+    history.entries
+  );
 
   return (
     <SafeAreaView edges={["top"]} style={styles.page}>

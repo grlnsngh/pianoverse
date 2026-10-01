@@ -1,7 +1,8 @@
-import { format } from "date-fns";
-import type { RentPayment } from "@/lib/appwrite";
+import { addDays, format } from "date-fns";
+import type { RentalHistoryEntry, RentPayment } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate } from "@/utils/dates";
+import { formatRupees } from "@/utils/money";
 import { getPianoRentalState } from "@/utils/pianoStatus";
 
 // Who has rented what, worked out from what is already recorded: the name saved
@@ -40,6 +41,8 @@ export interface Customer {
   /** The mobile number on a piano they have now, if there is one */
   mobile: string | null;
   renting: boolean;
+  /** Their past rentals that were kept, the one that ended last first */
+  rentals: RentalHistoryEntry[];
 }
 
 const dayOf = (value: string) => parseStoredDate(value);
@@ -55,12 +58,14 @@ const newestFirst = (payments: RentPayment[]) =>
 /**
  * Every customer: each name saved with a payment, and the name of whoever has a
  * piano rented out now. Customers who have a piano now come first, then the
- * rest by the day they last paid. `unnamed` counts the payments recorded before
- * names were saved, which can't be put with anyone.
+ * rest by the day they last paid. A person who only appears in a kept rental
+ * is a customer too. `unnamed` counts the payments recorded before names were
+ * saved, which can't be put with anyone.
  */
 export const buildCustomers = (
   payments: RentPayment[],
-  pianos: PianoItem[]
+  pianos: PianoItem[],
+  history: RentalHistoryEntry[] = []
 ): { customers: Customer[]; unnamed: number } => {
   const titleOf = new Map(
     pianos.map((piano) => [piano.$id, piano.title || "Untitled piano"])
@@ -80,20 +85,25 @@ export const buildCustomers = (
         lastPaidOn: null,
         mobile: null,
         renting: false,
+        rentals: [],
       };
       byKey.set(key, customer);
     }
     return customer;
   };
 
-  const pianoFor = (customer: Customer, pianoId: string) => {
+  const pianoFor = (
+    customer: Customer,
+    pianoId: string,
+    fallbackTitle?: string | null
+  ) => {
     let entry = customer.pianos.find(
       (candidate) => candidate.pianoId === pianoId
     );
     if (!entry) {
       entry = {
         pianoId,
-        title: titleOf.get(pianoId) ?? "A piano",
+        title: titleOf.get(pianoId) ?? (fallbackTitle?.trim() || "A piano"),
         paymentsCount: 0,
         total: 0,
         lastPaidOn: null,
@@ -132,6 +142,17 @@ export const buildCustomers = (
     customer.renting = true;
     const mobile = piano.rental_customer_mobile?.trim();
     if (mobile && !customer.mobile) customer.mobile = mobile;
+  }
+
+  for (const entry of history) {
+    const key = customerKey(entry.customer_name);
+    if (!key) continue;
+    const customer = customerFor(key, nameOf(entry.customer_name));
+    customer.rentals.push(entry);
+    pianoFor(customer, entry.piano_id, entry.piano_title);
+  }
+  for (const customer of byKey.values()) {
+    customer.rentals.sort((a, b) => b.closed_on.localeCompare(a.closed_on));
   }
 
   const customers = [...byKey.values()].sort(
@@ -223,6 +244,32 @@ export const periodText = (first: Date | null, last: Date | null) => {
   return from === to ? from : `${from} to ${to}`;
 };
 
+/** "12 Jan 2026 to 12 Apr 2026", "From 12 Jan 2026" or "Until 12 Apr 2026"; empty when there are no dates. */
+export const rangeText = (start: Date | null, end: Date | null) => {
+  const from = start ? format(start, "d MMM yyyy") : "";
+  const to = end ? format(end, "d MMM yyyy") : "";
+  if (from && to) return `${from} to ${to}`;
+  if (from) return `From ${from}`;
+  if (to) return `Until ${to}`;
+  return "";
+};
+
+/** The line under a past rental: its dates and rent, and what was paid; or just the payments for someone known only from them. */
+export const pastRentalDetail = (rental: PastRental): string => {
+  if (!rental.fromHistory) {
+    return [paymentsText(rental.paymentsCount), periodText(rental.firstPaidOn, rental.lastPaidOn)]
+      .filter(Boolean)
+      .join(" · ");
+  }
+  return [
+    rangeText(rental.startOn, rental.endOn),
+    rental.price !== null ? `${formatRupees(rental.price)} rent` : "",
+    rental.paymentsCount > 0 ? paymentsText(rental.paymentsCount) : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+};
+
 /** The line under a customer in the list: "Kawai K-300 · 3 payments", or the pianos when there are several. */
 export const customerLine = (customer: Customer): string => {
   const pianos = customer.pianos.map((entry) => entry.title);
@@ -245,3 +292,109 @@ export const paymentsOfCustomer = (
   newestFirst(payments).filter(
     (payment) => customerKey(payment.customer_name) === key
   );
+
+/** A rental that is over, for a piano's page: a kept rental, or someone who only appears in its payments. */
+export interface PastRental {
+  /** The kept rental's ID, or "payments-" and the customer's key */
+  id: string;
+  key: string;
+  name: string;
+  /** Whether it is a kept rental, with its own dates; otherwise it is known only from payments */
+  fromHistory: boolean;
+  startOn: Date | null;
+  endOn: Date | null;
+  /** The rent that was asked, per payment, when it ended */
+  price: number | null;
+  paymentsCount: number;
+  total: number;
+  firstPaidOn: Date | null;
+  lastPaidOn: Date | null;
+}
+
+/** How long after a rental closed a payment for it is still counted as its payment. */
+const LATE_PAYMENT_DAYS = 31;
+
+/**
+ * The rentals a piano has had, other than the one it has now: the ones that
+ * were kept, the one that ended last first, then the people who paid rent for
+ * it but have no kept rental (the history only starts when it is switched on).
+ * A kept rental shows the payments made by that person from its start to a
+ * month after it closed. A payment belongs to one rental only.
+ */
+export const pastRentals = (
+  payments: RentPayment[],
+  history: RentalHistoryEntry[],
+  piano: PianoItem
+): PastRental[] => {
+  const rows = history
+    .filter((entry) => entry.piano_id === piano.$id)
+    .sort(
+      (a, b) =>
+        (dayOf(a.period_start ?? a.closed_on)?.getTime() ?? 0) -
+        (dayOf(b.period_start ?? b.closed_on)?.getTime() ?? 0)
+    );
+  const mine = newestFirst(payments).filter(
+    (payment) =>
+      payment.piano_id === piano.$id &&
+      customerKey(payment.customer_name) !== ""
+  );
+  const claimed = new Set<string>();
+
+  const kept = rows.map((entry): PastRental => {
+    const key = customerKey(entry.customer_name);
+    const start = entry.period_start ? dayOf(entry.period_start) : null;
+    const closed = dayOf(entry.closed_on);
+    const until = closed ? addDays(closed, LATE_PAYMENT_DAYS) : null;
+    const theirs = key
+      ? mine.filter((payment) => {
+          if (
+            claimed.has(payment.$id) ||
+            customerKey(payment.customer_name) !== key
+          )
+            return false;
+          const paidOn = dayOf(payment.paid_on);
+          if (!paidOn) return false;
+          return (!start || paidOn >= start) && (!until || paidOn <= until);
+        })
+      : [];
+    theirs.forEach((payment) => claimed.add(payment.$id));
+    const days = theirs.map((payment) => dayOf(payment.paid_on) as Date);
+    return {
+      id: entry.$id,
+      key,
+      name: nameOf(entry.customer_name) || "Someone",
+      fromHistory: true,
+      startOn: start,
+      endOn: entry.period_end ? dayOf(entry.period_end) : closed,
+      price: typeof entry.price === "number" ? entry.price : null,
+      paymentsCount: theirs.length,
+      total: theirs.reduce((sum, payment) => sum + payment.amount, 0),
+      firstPaidOn: days.length
+        ? new Date(Math.min(...days.map((day) => day.getTime())))
+        : null,
+      lastPaidOn: days.length
+        ? new Date(Math.max(...days.map((day) => day.getTime())))
+        : null,
+    };
+  });
+  kept.reverse();
+
+  const paymentsOnly = pastRenters(
+    mine.filter((payment) => !claimed.has(payment.$id)),
+    piano
+  ).map((renter): PastRental => ({
+    id: `payments-${renter.key}`,
+    key: renter.key,
+    name: renter.name,
+    fromHistory: false,
+    startOn: null,
+    endOn: null,
+    price: null,
+    paymentsCount: renter.paymentsCount,
+    total: renter.total,
+    firstPaidOn: renter.firstPaidOn,
+    lastPaidOn: renter.lastPaidOn,
+  }));
+
+  return [...kept, ...paymentsOnly];
+};

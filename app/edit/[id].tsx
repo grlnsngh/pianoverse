@@ -1,4 +1,6 @@
 import { toPianoItem, updatePianoEntry } from "@/lib/appwrite";
+import saveOldRental from "@/lib/saveOldRental";
+import { paymentsChanged } from "@/redux/payments/actions";
 import { updatePianoItem } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
@@ -10,6 +12,7 @@ import {
   toPianoEntryInput,
 } from "@/utils/pianoForm";
 import { getPianoPhotos } from "@/utils/photos";
+import { rentalToArchive } from "@/utils/rentalHistory";
 import { showDialog } from "@/utils/dialog";
 import { showToast } from "@/utils/toast";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
@@ -109,11 +112,19 @@ const EditScreen = () => {
       );
       // The end date or category may have changed
       await scheduleRentalDueNotification(updatedPiano);
-      dispatch(updatePianoItem(toPianoItem(updatedPiano)) as any);
+      const updatedItem = toPianoItem(updatedPiano);
+      dispatch(updatePianoItem(updatedItem) as any);
       saved.current = true;
       if (router.canGoBack()) router.back();
       else router.replace("/home");
       showToast("Piano entry updated successfully", { variant: "success" });
+
+      // A new renter or a new period writes the old rental over: keep it first.
+      // The piano is saved either way; this only tells the person if it failed.
+      const oldRental = rentalToArchive(filteredPiano, updatedItem);
+      if (oldRental) {
+        await saveOldRental(oldRental, () => dispatch(paymentsChanged() as any));
+      }
     } catch (error) {
       const errorMessage = (error as Error).message;
       Alert.alert("Error while uploading", errorMessage);

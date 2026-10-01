@@ -21,7 +21,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Rent payments:** Record each payment for a rented piano (amount, date, note) and see what has been received.
 - **Sales:** Mark a piano as sold with the buyer, price and date; sold pianos leave the stock and can be shown with a filter.
 - **Search and filters:** Search by title, make, customer, mobile, model or B-number; filter by category, active or overdue rentals, and sold pianos.
-- **Customers:** A Customers screen (Account, Reports) lists everyone who has rented a piano, what they paid and which pianos, and a rented piano's page shows its previous renters. It is worked out from the names saved with the rent payments.
+- **Customers:** A Customers screen (Account, Reports) lists everyone who has rented a piano, what they paid and which pianos, and a rented piano's page shows its previous renters. It is worked out from the names saved with the rent payments and, from when it was switched on, the rentals kept in `rental_history`.
 - **Income:** Today shows the rent received this month (from the payments you record), and Account the piano counts and this month's sales.
 - **Adding a piano:** Three steps with a progress bar (the basics, the category details, a review), a Make list with a letter strip, a calendar for every date, and the camera or library for photos.
 - **Quick actions:** Swipe a piano in the list for Edit and Delete, pull down to refresh, and feel a light tap when something is saved. Everything only fades if the phone asks for Reduce Motion.
@@ -114,6 +114,23 @@ Permissions: **Create** for All users only, with **Row level security** on. Each
 
 `customer_name` holds who was renting the piano when the payment was recorded, so the name on the Today tab stays right after the piano is rented to someone else. Create it (size 255, not required). Until it exists, payments are still saved, just without the name, and payments recorded before it existed show the piano's title.
 
+Rentals that are over are kept in a `rental_history` table (use `rental_history` as its ID when creating it), so a piano's page and a customer's page can show who rented it and when:
+
+| Column             | Type                        |
+| ------------------ | --------------------------- |
+| `piano_id`         | string (255), required      |
+| `creator`          | string (255), required      |
+| `closed_on`        | datetime, required          |
+| `piano_title`      | string (255), optional      |
+| `customer_name`    | string (255), optional      |
+| `customer_mobile`  | string (50), optional       |
+| `customer_address` | string (1000), optional     |
+| `period_start`     | datetime, optional          |
+| `period_end`       | datetime, optional          |
+| `price`            | float, optional             |
+| `reason`           | string (50), optional       |
+
+Permissions: **Create** for All users only, with **Row level security** on, like `rent_payments`. A row is added when the Edit screen saves a piano whose rental is over: it is rented to someone else, or from a new start date, or taken off the piano, or the piano stops being a rental. Extending a rental, correcting a name or changing the rent or number is the same rental and adds nothing. **Create the table before using this version.** Without it the app still works: the piano is saved and a message says the old rental wasn't kept, and a piano's previous renters come from its payments only. A piano's rentals are deleted with it.
 The `pianos` table also needs an `image_urls` column: an array of varchar (size 1000), not required. It holds the link of every photo in the order shown, and `image_url` stays the cover (the first photo). Pianos saved before this column existed simply have one photo. **Create the column before using this version**: creating or editing a piano writes to it, and fails while it is missing.
 
 ## Project Structure
