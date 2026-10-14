@@ -68,7 +68,8 @@ Follow these steps to get started with Pianoverse:
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 20.19.4 or later (22 or 24 are fine). The same goes for the Node in WSL if you build there.
+- [Node.js](https://nodejs.org/) 22, the version in `.nvmrc` (Expo SDK 57 needs 20.19.4 or later). In WSL, `nvm install` and then `nvm use` in the project pick it; `nvm alias default 22` makes it the one every new terminal starts with.
+- [EAS CLI](https://docs.expo.dev/build/setup/) 24 or later, for builds and updates: `npm i -g eas-cli@latest` (in WSL too, where the builds run). `eas.json` refuses older ones.
 - The Expo CLI comes with the project; run it with `npx expo`.
 
 ### Installation
