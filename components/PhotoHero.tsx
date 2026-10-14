@@ -171,7 +171,7 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.surface,
   },
   pressed: { opacity: 0.9 },
-  wash: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.soldWash },
+  wash: { ...StyleSheet.absoluteFill, backgroundColor: colors.soldWash },
   pill: { position: "absolute", bottom: 40, borderRadius: 999 },
   count: { right: 16, paddingVertical: 3, paddingHorizontal: 10, backgroundColor: colors.photoScrim },
   countText: { fontFamily: fonts.semibold, fontSize: 12, lineHeight: 18, color: colors.white },

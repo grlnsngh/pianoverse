@@ -52,6 +52,7 @@ const subscribe = (listeners: Set<Listener>) => (listener: Listener) => {
 export const createFakeNotificationsModule = () => ({
   __esModule: true,
   AndroidImportance: { HIGH: 4 },
+  SchedulableTriggerInputTypes: { DATE: "date" },
   setNotificationHandler: jest.fn(),
   getPermissionsAsync: jest.fn(async () => ({ status: "granted" })),
   requestPermissionsAsync: jest.fn(async () => ({ status: "granted" })),
@@ -77,9 +78,6 @@ export const createFakeNotificationsModule = () => ({
   ),
   addNotificationResponseReceivedListener: jest.fn(
     subscribe(fakeNotifications.responseListeners)
-  ),
-  removeNotificationSubscription: jest.fn((subscription: any) =>
-    subscription.remove()
   ),
   getLastNotificationResponseAsync: jest.fn(
     async () => fakeNotifications.lastResponse

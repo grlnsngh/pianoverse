@@ -43,7 +43,8 @@ describe("where the theme is wired in", () => {
     const config = JSON.parse(source("app.json")).expo;
 
     expect(config.userInterfaceStyle).toBe("light");
-    expect(config.runtimeVersion).toBe("3");
+    // 4 since the move to Expo SDK 57; the theme itself changed nothing native
+    expect(config.runtimeVersion).toBe("4");
   });
 });
 

@@ -1,12 +1,10 @@
 import React, { forwardRef, useRef, useState } from "react";
 import {
-  NativeSyntheticEvent,
   Pressable,
   StyleProp,
   StyleSheet,
   Text,
   TextInput,
-  TextInputFocusEventData,
   TextInputProps,
   View,
   ViewStyle,
@@ -65,11 +63,11 @@ const Field = forwardRef<TextInput, FieldProps>(function Field(
     else if (forwardedRef) forwardedRef.current = node;
   };
 
-  const handleFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+  const handleFocus: TextInputProps["onFocus"] = (event) => {
     setFocused(true);
     onFocus?.(event);
   };
-  const handleBlur = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+  const handleBlur: TextInputProps["onBlur"] = (event) => {
     setFocused(false);
     onBlur?.(event);
   };

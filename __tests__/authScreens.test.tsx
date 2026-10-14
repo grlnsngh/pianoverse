@@ -39,6 +39,7 @@ import {
   captureAlerts,
   captureToasts,
   createTestStore,
+  findButton,
   flushPromises,
   inputLabelled,
   inputValue,
@@ -142,8 +143,9 @@ describe("Sign in", () => {
     typeInto(renderer.root, "Email", "grlnsngh@gmail.com");
     typeInto(renderer.root, "Password", "pianoverse1");
 
+    // The press only finishes with the sign-in, so it isn't waited for
     await act(async () => {
-      pressButton(renderer.root, "Sign in");
+      void findButton(renderer.root, "Sign in").props.onPress();
     });
     await flushPromises(2);
 

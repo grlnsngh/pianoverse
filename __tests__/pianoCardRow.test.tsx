@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { ReactTestInstance } from "react-test-renderer";
 import Svg, { Path } from "react-native-svg";
 import PianoCard from "@/components/PianoCard";
@@ -11,6 +11,7 @@ import { ICONS } from "@/components/ui/Icon";
 import { lightColors as colors, fonts } from "@/constants/theme";
 import { findAllMemo, hostByTestId, mount, textContent } from "./helpers/ui";
 import { makePiano } from "./helpers/fixtures";
+import { findPressable } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 const flat = (style: unknown) => StyleSheet.flatten(style as any);
@@ -73,7 +74,7 @@ describe("PianoCard", () => {
       mounted: mount(<PianoCard item={item} {...handlers} {...props} />),
     };
   };
-  const card = (renderer: Mounted) => renderer.root.findByType(Pressable);
+  const card = (renderer: Mounted) => findPressable(renderer.root);
   // The card's own lines: not the badge's label (that is inside the photo), nor
   // the bold price inside the price line
   const lines = (renderer: Mounted) =>
@@ -285,7 +286,7 @@ describe("PianoRow", () => {
       mounted: mount(<PianoRow item={item} {...handlers} {...props} />),
     };
   };
-  const row = (renderer: Mounted) => renderer.root.findByType(Pressable);
+  const row = (renderer: Mounted) => findPressable(renderer.root);
   const texts = (renderer: Mounted) => renderer.root.findAllByType(Text);
   const styleOf = (renderer: Mounted, content: string) =>
     flat(texts(renderer).find((text) => textContent(text) === content)!.props.style);

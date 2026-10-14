@@ -59,9 +59,20 @@ describe("the Home list", () => {
   it("filters once per load", async () => {
     const { store, renderer } = await renderHome();
     const dispatch = jest.spyOn(store, "dispatch");
+    // The reload answers after the list has shown it is loading, as over a
+    // network (an answer at once would let React run both as one update)
+    let answer!: (entries: unknown) => void;
+    jest
+      .mocked(getUserPianoEntries)
+      .mockImplementationOnce(() => new Promise<any>((resolve) => (answer = resolve)));
 
+    let refreshed!: Promise<void>;
     await act(async () => {
-      await renderer.root.findByType(FlatList).props.refreshControl.props.onRefresh();
+      refreshed = renderer.root.findByType(FlatList).props.refreshControl.props.onRefresh();
+    });
+    await act(async () => {
+      answer(pianos);
+      await refreshed;
     });
     await flushPromises();
 

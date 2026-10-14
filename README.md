@@ -5,7 +5,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 ## Technologies Used
 
 - **Front-end Framework:** [React Native](https://reactnative.dev/)
-- **Front-end Framework:** [Expo](https://docs.expo.dev/) (SDK 51, Expo Router)
+- **Front-end Framework:** [Expo](https://docs.expo.dev/) (SDK 57, Expo Router, React Native 0.86, React 19)
 - **Back-end:** [Appwrite](https://appwrite.io/)
 - **State:** [Redux](https://redux.js.org/)
 - **UI:** our own components and design tokens (`components/ui/`, `constants/theme.ts`), drawn with React Native styles, in the [Figtree](https://fonts.google.com/specimen/Figtree) font
@@ -68,7 +68,7 @@ Follow these steps to get started with Pianoverse:
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18 or 20.
+- [Node.js](https://nodejs.org/) 20.19.4 or later (22 or 24 are fine). The same goes for the Node in WSL if you build there.
 - The Expo CLI comes with the project; run it with `npx expo`.
 
 ### Installation
@@ -102,6 +102,8 @@ You will see options to open the app in:
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
 ## Backend (Appwrite)
+
+Photos are uploaded through the Appwrite SDK, which only works with React Native's own `fetch`. Since Expo SDK 56 the default is Expo's `fetch`, so `.env` sets `EXPO_PUBLIC_USE_RN_FETCH=1` to keep React Native's. Keep that line; `__tests__/fetchSetting.test.ts` fails without it.
 
 Besides the `users` and `pianos` tables, the app needs a `rent_payments` table (use `rent_payments` as its ID when creating it):
 
@@ -198,6 +200,8 @@ It raises the version first if the current one was already built (see above), ru
 Options go after `--`: `npm run build:android -- --bump` raises the version even when it isn't needed, `-- --no-bump` builds with the version as it is, and anything else (for example `--clear-cache` or `--profile production`) is passed to `eas`. Plain `eas build -p android --profile preview --local` still works, but then the version is yours to raise (`npm run plus`).
 
 The build runs on your machine, not on Expo's servers, so it needs no paid plan; you only have to be logged in to Expo once (`eas login`). Without `--local` the same command builds in Expo's cloud, where the free plan allows a limited number of builds a month. (Expo officially supports local builds on macOS and Linux; on Windows they have worked here, but Expo doesn't test that.) Changes to native settings (`app.json` plugins, splash screen, permissions) and new native modules only reach users through a new build.
+
+The app targets Android 16 (API level 36), which Google Play asks of new apps and updates. A build needs the Android SDK platform 36, build-tools 36 and NDK 27.1; Gradle downloads what is missing the first time.
 
 If the build stops with `A problem occurred starting process 'command 'node''` (Gradle can't start `node`), a Gradle daemon left over from your previous build is being reused. Stop it and build again: `pkill -f GradleDaemon` (in WSL). A build started from a terminal that has `ANDROID_HOME` set (the interactive shell, not a bare `wsl -e bash script`) is needed too, or Gradle says `SDK location not found`.
 

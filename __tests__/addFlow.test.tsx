@@ -71,6 +71,10 @@ import {
   typeInto,
 } from "./helpers/render";
 
+/** A press of Android's back button, as BackHandler hands it to each listener. */
+type BackPressHandler = Parameters<typeof BackHandler.addEventListener>[1];
+const BACK_PRESS = { type: "hardwareBackPress", timeStamp: 0 };
+
 const photoAsset = (name: string) => ({
   canceled: false,
   assets: [
@@ -404,7 +408,7 @@ describe("step 2 of the Add flow", () => {
   });
 
   it("goes back a step with Android's back button before it leaves", async () => {
-    const handlers: (() => boolean | null | undefined)[] = [];
+    const handlers: BackPressHandler[] = [];
     jest.spyOn(BackHandler, "addEventListener").mockImplementation((_event, handler) => {
       handlers.push(handler);
       return { remove: () => handlers.splice(handlers.indexOf(handler), 1) };
@@ -413,7 +417,7 @@ describe("step 2 of the Add flow", () => {
 
     let handled = false;
     act(() => {
-      handled = [...handlers].reverse().some((handler) => handler());
+      handled = [...handlers].reverse().some((handler) => handler(BACK_PRESS));
     });
 
     expect(handled).toBe(true);
@@ -657,7 +661,7 @@ describe("the review, publishing and published screens", () => {
     });
 
     it("keeps Android's back button from leaving while it saves", async () => {
-      const handlers: (() => boolean | null | undefined)[] = [];
+      const handlers: BackPressHandler[] = [];
       jest.spyOn(BackHandler, "addEventListener").mockImplementation((_event, handler) => {
         handlers.push(handler);
         return { remove: () => handlers.splice(handlers.indexOf(handler), 1) };
@@ -666,7 +670,7 @@ describe("the review, publishing and published screens", () => {
 
       let handled = false;
       act(() => {
-        handled = [...handlers].reverse().some((handler) => handler());
+        handled = [...handlers].reverse().some((handler) => handler(BACK_PRESS));
       });
 
       expect(handled).toBe(true);
@@ -747,7 +751,7 @@ describe("the review, publishing and published screens", () => {
     });
 
     it("treats Android's back button as Done", async () => {
-      const handlers: (() => boolean | null | undefined)[] = [];
+      const handlers: BackPressHandler[] = [];
       jest.spyOn(BackHandler, "addEventListener").mockImplementation((_event, handler) => {
         handlers.push(handler);
         return { remove: () => handlers.splice(handlers.indexOf(handler), 1) };
@@ -755,7 +759,7 @@ describe("the review, publishing and published screens", () => {
       await publish();
 
       act(() => {
-        [...handlers].reverse().some((handler) => handler());
+        [...handlers].reverse().some((handler) => handler(BACK_PRESS));
       });
 
       expect(router.dismissAll).toHaveBeenCalledTimes(1);

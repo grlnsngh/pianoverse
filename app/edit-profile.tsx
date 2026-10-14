@@ -289,7 +289,7 @@ const useStyles = makeStyles((colors) => ({
   photo: { width: AVATAR, height: AVATAR },
   initial: { fontFamily: fonts.bold, fontSize: 44, color: colors.onBrand },
   busy: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.veil,

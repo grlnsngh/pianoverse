@@ -81,7 +81,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (setting !== "system") return;
     try {
-      PhoneAppearance.setColorScheme(null);
+      PhoneAppearance.setColorScheme("unspecified");
     } catch (error) {
       console.warn("Could not follow the phone's theme:", error);
     }

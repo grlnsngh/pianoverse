@@ -7,7 +7,8 @@ import { parseStoredDate } from "@/utils/dates";
 // Configure notification handler
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -128,6 +129,7 @@ const scheduleRentalReminders = async (pianoItem: any) => {
           sound: "default",
         },
         trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
           date,
           channelId: Platform.OS === "android" ? "rental-reminders" : undefined,
         },

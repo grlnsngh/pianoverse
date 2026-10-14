@@ -2,6 +2,9 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // TypeScript 6 only loads the global types listed here: Jest's for the
+    // tests, Node's for the tests and scripts that read files
+    "types": ["jest", "node"],
     "paths": {
       "@/*": ["./*"]
     }

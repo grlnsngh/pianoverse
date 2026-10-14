@@ -51,7 +51,7 @@ const pickPhoto = async (
   }
 
   const options: ImagePicker.ImagePickerOptions = {
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    mediaTypes: ["images"],
     allowsEditing: true,
     aspect: kind.aspect,
     quality: 1,

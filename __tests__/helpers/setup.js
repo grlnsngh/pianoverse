@@ -1,5 +1,18 @@
+// React Native's Jest preset stands in for its native Animated module, so an
+// animation with useNativeDriver would only jump to its end. Here every
+// animation runs in JavaScript, frame by frame, which is what the motion tests
+// look at.
+jest.mock("react-native/src/private/animated/NativeAnimatedHelper", () => {
+  const actual = jest.requireActual("react-native/src/private/animated/NativeAnimatedHelper");
+  actual.default.shouldUseNativeDriver = () => false;
+  return actual;
+});
+
 // Native modules the app uses that Jest can't load
 require("react-native-gesture-handler/jestSetup");
+// Reanimated 4 runs its worklets through react-native-worklets, which is
+// native; Jest gets its stand-in, and Reanimated itself runs as in the app
+jest.mock("react-native-worklets", () => require("react-native-worklets/src/mock"));
 jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock")
 );

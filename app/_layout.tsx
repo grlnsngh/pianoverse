@@ -1,5 +1,4 @@
-import { ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
-import { SplashScreen, Stack } from "expo-router";
+import { ThemeProvider as NavigationThemeProvider, SplashScreen, Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useFonts } from "expo-font";
 import { useEffect, useMemo } from "react";
