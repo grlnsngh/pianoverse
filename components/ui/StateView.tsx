@@ -23,6 +23,9 @@ export type StateViewProps = {
   onAction?: () => void;
   /** Filled orange (default) or the quieter grey */
   actionVariant?: "primary" | "secondary";
+  /** A quiet orange link under the button, for another way out ("Prefer paper? Print forms") */
+  linkLabel?: string;
+  onLink?: () => void;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 };
@@ -40,6 +43,8 @@ const StateView = ({
   actionLabel,
   onAction,
   actionVariant = "primary",
+  linkLabel,
+  onLink,
   style,
   testID,
 }: StateViewProps) => {
@@ -73,6 +78,10 @@ const StateView = ({
           variant={actionVariant}
           style={styles.button}
         />
+      ) : null}
+
+      {linkLabel && onLink ? (
+        <Button title={linkLabel} onPress={onLink} variant="text" tone="brand" style={styles.link} />
       ) : null}
     </View>
   );
@@ -109,6 +118,7 @@ const useStyles = makeStyles((colors) => ({
     color: colors.ink2,
   },
   button: { marginTop: 28, paddingHorizontal: 28 },
+  link: { marginTop: spacing.sm, height: spacing.minTarget },
 }));
 
 export default StateView;

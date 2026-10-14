@@ -64,3 +64,5 @@ export { default as StepTransition } from "./StepTransition";
 export type { StepTransitionProps } from "./StepTransition";
 export { default as ScreenEntrance } from "./ScreenEntrance";
 export type { ScreenEntranceProps } from "./ScreenEntrance";
+export { default as Stepper } from "./Stepper";
+export type { StepperProps } from "./Stepper";

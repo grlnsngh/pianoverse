@@ -155,7 +155,7 @@ People who asked about a piano but haven't rented or bought yet.
 Fill in a piano's rental terms (names, address, rent, dates, deposit, your terms) as a message to send, or a PDF.
 
 - **You write the terms** (and in which language); Claude doesn't draft legal terms, and you may want them checked.
-- The WhatsApp-message version is JS only. **A PDF needs a native package** (`expo-print`), so a new build. Default: the message version first.
+- The WhatsApp-message version is JS only. **A PDF needs a native package** (`expo-print`), so a new build. Default: the message version first. (Since Batch 30, paper forms, `expo-print` is in the runtime 5 build, so a PDF version is JavaScript only on that build; `lib/paperPdf.ts` already makes, keeps, opens, prints and shares PDFs.)
 
 ### C3. Customer documents (M)
 

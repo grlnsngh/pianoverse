@@ -43,8 +43,9 @@ describe("where the theme is wired in", () => {
     const config = JSON.parse(source("app.json")).expo;
 
     expect(config.userInterfaceStyle).toBe("light");
-    // 4 since the move to Expo SDK 57; the theme itself changed nothing native
-    expect(config.runtimeVersion).toBe("4");
+    // 4 since the move to Expo SDK 57, 5 since paper forms added expo-print;
+    // the theme itself changed nothing native
+    expect(config.runtimeVersion).toBe("5");
   });
 });
 
@@ -62,18 +63,22 @@ describe("how screens get their colours", () => {
     expect(direct).toEqual([]);
   });
 
-  it("has no hex or rgba colour of its own outside the artwork (logos, keys, a Google button)", () => {
+  it("has no hex or rgba colour of its own outside the artwork (logos, keys, a Google button, paper)", () => {
     const withLiteral = appFiles
       .filter((file) => file !== "services/notifications.ts")
       .filter((file) => /#[0-9A-Fa-f]{6}\b|#[0-9A-Fa-f]{3}\b|\brgba?\(/.test(source(file)));
 
     expect(withLiteral.sort()).toEqual([
+      // Paper is black on white whatever the theme: the drawings of the forms and the printed forms
+      "components/FormThumbnail.tsx",
       "components/GoogleButton.tsx",
       "components/SelectionMark.tsx",
       "components/WelcomeScreen.tsx",
       "components/ui/Button.tsx",
       "components/ui/KeyboardMark.tsx",
       "components/ui/PianoPhoto.tsx",
+      "utils/paperForms/forms.ts",
+      "utils/paperForms/html.ts",
     ]);
   });
 });

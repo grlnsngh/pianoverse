@@ -98,6 +98,12 @@ export const ICONS = {
   pencil: [{ d: "M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z" }],
   trash: [{ d: "M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13" }],
   shield: [{ d: "M12 3l7 3v5.5c0 4.3-2.9 8-7 9.5-4.1-1.5-7-5.2-7-9.5V6l7-3zM9 12l2 2 4-4" }],
+  // From the Paper forms boards
+  printer: [
+    { d: "M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2M6 14h12v7H6z" },
+  ],
+  document: [{ d: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5M9 13h6M9 17h6" }],
+  minus: [{ d: "M5 12h14" }],
 } as const satisfies Record<string, readonly Shape[]>;
 
 export type IconName = keyof typeof ICONS;

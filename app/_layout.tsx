@@ -72,6 +72,9 @@ function RootContent() {
                   {/* The customers, opened from Account or a piano's Previous renters, draw their own back button */}
                   <Stack.Screen name="customers" options={{ headerShown: false }} />
                   <Stack.Screen name="customer/[key]" options={{ headerShown: false }} />
+                  {/* Paper forms and each form's screen, opened from Account, draw their own back button */}
+                  <Stack.Screen name="paper-forms" options={{ headerShown: false }} />
+                  <Stack.Screen name="paper-form/[id]" options={{ headerShown: false }} />
                   {/* Edit profile, opened from Account, draws its own back button */}
                   <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
                   {/* Its third step, the review, and the Edit screen draw their own top bar */}

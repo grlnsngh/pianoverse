@@ -86,3 +86,29 @@ describe("the Reports group on Account", () => {
     expect(router.push).toHaveBeenCalledWith("/customers");
   });
 });
+
+describe("the Paper group on Account", () => {
+  it("comes between Reports and Your data, with Paper forms marked New", async () => {
+    const renderer = await openAccount();
+    const texts = allTexts(renderer.root);
+
+    expect(texts).toContain("Paper");
+    expect(texts).toContain("Paper forms");
+    expect(texts).toContain("New");
+    expect(texts).toContain("Rent cards, receipts and registers to print");
+    expect(texts.indexOf("Reports")).toBeLessThan(texts.indexOf("Paper"));
+    expect(texts.indexOf("Paper")).toBeLessThan(texts.indexOf("Your data"));
+  });
+
+  it("opens the paper forms, and reads the badge out", async () => {
+    const renderer = await openAccount();
+    const paper = row(renderer, "Paper forms, New.");
+
+    expect(paper.props.accessibilityLabel).toBe(
+      "Paper forms, New. Rent cards, receipts and registers to print"
+    );
+    await act(async () => paper.props.onPress());
+
+    expect(router.push).toHaveBeenCalledWith("/paper-forms");
+  });
+});
