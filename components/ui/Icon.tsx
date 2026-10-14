@@ -97,6 +97,7 @@ export const ICONS = {
   list: [{ d: "M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" }],
   pencil: [{ d: "M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z" }],
   trash: [{ d: "M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13" }],
+  shield: [{ d: "M12 3l7 3v5.5c0 4.3-2.9 8-7 9.5-4.1-1.5-7-5.2-7-9.5V6l7-3zM9 12l2 2 4-4" }],
 } as const satisfies Record<string, readonly Shape[]>;
 
 export type IconName = keyof typeof ICONS;

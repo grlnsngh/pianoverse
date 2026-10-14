@@ -1,5 +1,6 @@
 /*
- * The Pianoverse web pages (index.html, reset-password.html): the same colours,
+ * The Pianoverse web pages (index.html, reset-password.html, privacy.html,
+ * delete-account.html): the same colours,
  * type, radii and motion as the app. The values below are copied from
  * constants/theme.ts and __tests__/webPages.test.ts keeps them in step.
  * No inline styles anywhere: the pages' Content-Security-Policy forbids them.
@@ -590,6 +591,89 @@ a {
   }
 }
 
+/* ---- Text pages: the privacy policy and deleting an account ---- */
+.doc {
+  flex: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 24px 40px;
+  animation: view-in 240ms var(--ease) both;
+}
+
+.doc .title {
+  margin-top: 8px;
+}
+
+.updated {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-2);
+}
+
+.doc h2 {
+  margin: 36px 0 0;
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.doc h3 {
+  margin: 20px 0 0;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.doc p,
+.doc ul {
+  margin: 8px 0 0;
+}
+
+.doc ul {
+  padding-left: 22px;
+}
+
+.doc li + li {
+  margin-top: 6px;
+}
+
+.doc a {
+  color: var(--brand-text);
+  font-weight: 600;
+}
+
+.doc .help {
+  margin-top: 28px;
+  animation: none;
+}
+
+.doc .help h2 {
+  margin-top: 0;
+}
+
+.doc .steps {
+  grid-template-columns: none;
+}
+
+.callout {
+  margin-top: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--grouped);
+}
+
+.callout p:first-child {
+  margin-top: 0;
+}
+
+.foot-links {
+  display: block;
+  margin-top: 4px;
+}
+
 /* ---- Footer ---- */
 .foot {
   padding: 24px;
@@ -609,7 +693,8 @@ a {
   .view,
   .hero-copy,
   .hero-art,
-  .help {
+  .help,
+  .doc {
     animation: fade-in 120ms linear both;
   }
 

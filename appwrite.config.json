@@ -1,0 +1,21 @@
+{
+  "projectId": "66b2693000154e2fa3c8",
+  "endpoint": "https://cloud.appwrite.io/v1",
+  "functions": [
+    {
+      "$id": "delete-account",
+      "name": "Delete account",
+      "runtime": "node-22",
+      "execute": ["users"],
+      "events": [],
+      "schedule": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "scopes": ["users.read", "users.write", "rows.read", "rows.write", "files.read", "files.write"],
+      "path": "functions/delete-account"
+    }
+  ]
+}

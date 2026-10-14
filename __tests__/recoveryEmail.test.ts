@@ -22,7 +22,7 @@ describe("the password recovery email", () => {
     expect(links).toEqual([
       "{{redirect}}",
       "{{redirect}}",
-      "mailto:support@pianoverse.com",
+      "mailto:pianoverse.app.dev@gmail.com",
     ]);
   });
 

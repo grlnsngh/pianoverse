@@ -1,3 +1,4 @@
+import { RESET_PASSWORD_URL } from "@/constants/links";
 import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
 import {
@@ -13,6 +14,8 @@ import {
   ID,
   Avatars,
   Databases,
+  ExecutionMethod,
+  Functions,
   OAuthProvider,
   Query,
   Storage,
@@ -29,6 +32,8 @@ export const appwriteConfig = {
   rentPaymentsCollectionId: "rent_payments",
   rentalHistoryCollectionId: "rental_history",
   storageId: "66b26b77003445e612b4",
+  // The Appwrite Function in functions/delete-account
+  deleteAccountFunctionId: "delete-account",
 };
 
 // Init your React Native SDK
@@ -43,6 +48,7 @@ const account = new Account(client);
 const storage = new Storage(client);
 const avatars = new Avatars(client);
 const databases = new Databases(client);
+const functions = new Functions(client);
 
 /**
  * Creates a new user account and user document in the database.
@@ -377,6 +383,44 @@ export async function signOut() {
     if ((error as { code?: number })?.code === 401) return null;
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(errorMessage);
+  }
+}
+
+const DELETE_FAILED = "Your account couldn't be deleted. Check your connection and try again.";
+
+/**
+ * Deletes the signed-in person's account and everything saved with it: their
+ * pianos and photos, rent payments, kept rentals and profile. An app can't
+ * delete an Appwrite account itself, so the delete-account Appwrite Function
+ * (functions/delete-account) does it, and waits until it is done.
+ *
+ * @throws {Error} With a message to show the person, when anything was left;
+ *   asking again finishes the job.
+ */
+export async function deleteAccount(): Promise<void> {
+  let execution: Models.Execution;
+  try {
+    execution = await functions.createExecution(
+      appwriteConfig.deleteAccountFunctionId,
+      JSON.stringify({ confirm: "DELETE" }),
+      false,
+      "/",
+      ExecutionMethod.POST
+    );
+  } catch (error) {
+    console.warn("Could not run delete-account:", error);
+    throw new Error(DELETE_FAILED);
+  }
+
+  let reply: { ok?: boolean; message?: string } = {};
+  try {
+    reply = JSON.parse(execution.responseBody || "{}");
+  } catch {
+    // Not the function's own answer, e.g. Appwrite's when it timed out
+  }
+  if (execution.status !== "completed" || execution.responseStatusCode !== 200 || !reply.ok) {
+    console.warn("delete-account did not finish:", execution.status, execution.responseStatusCode);
+    throw new Error(reply.message || DELETE_FAILED);
   }
 }
 
@@ -1108,10 +1152,7 @@ export async function sendPasswordRecovery(email: string): Promise<any> {
   try {
     // For FREE plan: Use a simple web URL that redirects to your app
     // Appwrite will send the default email with this URL
-    const resetUrl =
-      "https://grlnsngh.github.io/pianoverse/reset-password.html";
-
-    const recovery = await account.createRecovery(email, resetUrl);
+    const recovery = await account.createRecovery(email, RESET_PASSWORD_URL);
 
     return recovery;
   } catch (error) {

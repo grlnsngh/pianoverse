@@ -1,0 +1,16 @@
+{
+  "name": "pianoverse-delete-account",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Appwrite Function that deletes a Pianoverse account and everything saved with it",
+  "main": "src/main.js",
+  "scripts": {
+    "delete-by-email": "node delete-by-email.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "node-appwrite": "^29.3.1"
+  }
+}

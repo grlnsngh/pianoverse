@@ -54,6 +54,7 @@ export const fakeBackend = {
     fakeAccount.createOAuth2Token.mockReset().mockImplementation(googleLoginUrl);
     fakeAccount.createSession.mockReset();
     fakeAccount.listIdentities.mockReset().mockResolvedValue({ total: 0, identities: [] });
+    fakeFunctions.createExecution.mockReset().mockImplementation(accountDeleted);
   },
 };
 
@@ -261,6 +262,28 @@ class Account {
   updateRecovery = jest.fn();
 }
 
+/**
+ * What the delete-account Appwrite Function answers: by default, that the
+ * account was deleted. Tests can make it answer otherwise. Reset with the backend.
+ */
+export const accountDeleted = () =>
+  Promise.resolve({
+    status: "completed",
+    responseStatusCode: 200,
+    responseBody: JSON.stringify({
+      ok: true,
+      deleted: { pianos: 1, payments: 0, rentals: 0, photos: 1, profiles: 1 },
+    }),
+  });
+
+export const fakeFunctions = {
+  createExecution: jest.fn(accountDeleted) as jest.Mock,
+};
+
+class Functions {
+  createExecution = (...args: unknown[]) => (fakeFunctions.createExecution as jest.Mock)(...args);
+}
+
 class Avatars {
   getInitials(name: string) {
     return new URL(`${ENDPOINT}/avatars/initials?name=${encodeURIComponent(name)}`);
@@ -274,6 +297,8 @@ export const createFakeAppwriteModule = () => ({
   Storage,
   Account,
   Avatars,
+  Functions,
+  ExecutionMethod: sdk.ExecutionMethod,
   Query: sdk.Query,
   ID: sdk.ID,
   OAuthProvider: sdk.OAuthProvider,

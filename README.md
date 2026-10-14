@@ -37,6 +37,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 - **Sharing and export:** Share a piano's details, or export the whole list as CSV. Account, Your data also downloads **payments** as a CSV for a period you choose (this month, last month, this or last financial year, April to March, or all of them) and **customers** as a CSV, for a spreadsheet or your accountant. Amounts are plain numbers and days are yyyy-MM-dd, so a spreadsheet can add and sort them.
 - **Offline list:** The piano list is kept on the device and shown when there is no connection.
 - **Password Reset:** Secure password recovery with a web page that looks like the app (see below).
+- **Privacy policy and deleting the account:** Account, Privacy has the privacy policy (a web page) and **Delete account**, which deletes the account and everything in it (pianos, photos, payments, kept rentals, the profile) after asking first, through an Appwrite Function (see "Deleting an account" below). Google Play asks for both.
 
 ## 🌐 GitHub Pages Deployment
 
@@ -46,6 +47,10 @@ This project includes a **password reset system** that utilizes GitHub Pages for
 
 - **Main Site:** https://grlnsngh.github.io/pianoverse/
 - **Password Reset:** https://grlnsngh.github.io/pianoverse/reset-password.html
+- **Privacy policy:** https://grlnsngh.github.io/pianoverse/privacy.html (Google Play Console, App content, Privacy policy)
+- **Delete your account:** https://grlnsngh.github.io/pianoverse/delete-account.html (Google Play Console, Data safety, the "delete account" link)
+
+They are published from `main`, so a change to them shows once it is merged. The addresses the app uses are in `constants/links.ts`, with the contact address, pianoverse.app.dev@gmail.com.
 
 ### How It Works:
 
@@ -58,7 +63,7 @@ This project includes a **password reset system** that utilizes GitHub Pages for
 
 - **Hosting:** GitHub Pages (Free)
 - **Backend:** Appwrite Cloud
-- **Framework:** Plain HTML, CSS and JavaScript, no build step; the look (colours, type, motion) is the app's, in `web/site.css`. The pages are `index.html` and `reset-password.html`; the scripts and the mark are in `web/`.
+- **Framework:** Plain HTML, CSS and JavaScript, no build step; the look (colours, type, motion) is the app's, in `web/site.css`. The pages are `index.html`, `reset-password.html`, `privacy.html` and `delete-account.html`; the scripts and the mark are in `web/`.
 - **Security:** Appwrite handles all authentication and token validation. The reset page allows only its own files, Google Fonts and Appwrite (Content-Security-Policy) and never passes its link on to another site.
 - **The reset email:** `email/password-recovery.html` is the template for Appwrite's "Reset password" email. Appwrite only lets you save it when the project uses your own SMTP server; how to set it up is in [docs/redesign/WEB.md](docs/redesign/WEB.md).
 
@@ -153,6 +158,33 @@ The buttons are in the app, but Google and Appwrite have to be told about each o
 
 A person who signs in with Google and whose email is already an account is put on that account (Appwrite matches the email), so their pianos are all there. Someone new gets a new account and an empty piano list.
 
+### Deleting an account (one-time setup)
+
+An app can't delete an Appwrite account, so **Account, Delete account** runs an Appwrite Function, `delete-account` (`functions/delete-account`). It deletes the person's rent payments, kept rentals, pianos, their photos and profile photo, their `users` row and then the account, and only for whoever runs it, signed in. Until it is set up, Delete account says the account couldn't be deleted, and nothing else changes. Its settings are in `appwrite.config.json`: Node 22, runnable by signed-in users only, and a key for each run with only the users, rows and files scopes.
+
+With the Appwrite CLI, from the project folder:
+
+```sh
+npm i -g appwrite-cli
+appwrite login
+appwrite push functions
+```
+
+`appwrite login` asks for your Appwrite account (choose `https://cloud.appwrite.io/v1`). `push` makes the function, or updates it, and uploads `functions/delete-account`; Appwrite builds it with `npm install`. Push again after changing the function.
+
+Or by hand in the Appwrite Console: **Functions, Create function**, Node.js 22, ID **`delete-account`** (exactly), upload `functions/delete-account` as a `.tar.gz`, entrypoint `src/main.js`, build command `npm install`. Then in its **Settings**: **Execute access** "Users", **Scopes** `users.read`, `users.write`, `rows.read`, `rows.write`, `files.read`, `files.write`, and timeout 30 seconds.
+
+**A request by email** (from `delete-account.html`, for someone without the app): check it came from the account's own address, then run the same deletion with an API key. Make one in the Appwrite Console (Overview, API keys) with the same six scopes, and don't save it in the repository:
+
+```sh
+cd functions/delete-account
+npm install
+APPWRITE_API_KEY=<the key> node delete-by-email.js someone@example.com
+APPWRITE_API_KEY=<the key> node delete-by-email.js someone@example.com --yes
+```
+
+The first shows the account it found; `--yes` deletes it. Reply to say it's done; the page promises it within 30 days.
+
 ## Project Structure
 
 - `app/`: screens only. [Expo Router](https://docs.expo.dev/router/introduction/) turns every file here into a route.
@@ -163,8 +195,9 @@ A person who signs in with Google and whose email is already an account is put o
 - `redux/`: the store (pianos, filters, signed-in user, active tab).
 - `services/`: rental reminders.
 - `utils/`: dates, rental status, form handling, validation and other helpers.
-- `web/` and the two pages at the top level (`index.html`, `reset-password.html`): what opens in a browser, served by GitHub Pages from `main`.
+- `web/` and the pages at the top level (`index.html`, `reset-password.html`, `privacy.html`, `delete-account.html`): what opens in a browser, served by GitHub Pages from `main`.
 - `email/`: the reset email's template.
+- `functions/delete-account/`: the Appwrite Function behind Delete account, and `delete-by-email.js` for deletion requests by email. `appwrite.config.json` holds its settings for the Appwrite CLI.
 - `__tests__/`: Jest tests, with in-memory fakes for Appwrite and notifications.
 
 ## Testing

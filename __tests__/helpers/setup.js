@@ -31,6 +31,8 @@ jest.mock("expo-updates", () => ({
 // closes it without signing in; a test that needs otherwise changes the answer
 jest.mock("expo-web-browser", () => ({
   openAuthSessionAsync: jest.fn(() => Promise.resolve({ type: "cancel" })),
+  // A page such as the privacy policy, which the person closes again
+  openBrowserAsync: jest.fn(() => Promise.resolve({ type: "dismiss" })),
 }));
 
 // The phone's fingerprint and screen lock. Every test sees a phone that has one
