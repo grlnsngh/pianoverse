@@ -30,6 +30,8 @@ Status key: **Open** = waiting for you.
 
 These are things I could only check in tests. If any looks wrong, tell me and I will fix it.
 
+- **Batch 30 (paper forms): needs the new build first** (`npm run build:android`, 1.1.20, runtime 5). Account, Paper, Paper forms: get the full kit, then open a form, type your business name and phone, set 2 copies and Save PDF. The PDF should open with every form on one A4 page each, nothing cut off, your name and phone at the top (on every receipt too). Try Print (any Wi-Fi printer, or "Save as PDF") and Share to WhatsApp. Go back into the form: your name and phone should still be there. Sign out and in again: they should be gone. On a new account with no pianos, Pianos should show **Prefer paper? Print forms**. If a form spills onto a second page or looks cramped, send me a photo or the PDF.
+
 - **Batch 0:** the piano drawing (no-photo) and the icons look like the boards.
 - **Batch 1:** the toast on iOS; spinner, keys loader, skeleton shimmer; the Reduce Motion setting stopping them.
 - **Batch 2:** the sheet and dialog (drag down a sheet, keyboard against a sheet with a text field). They are not used by any screen yet.

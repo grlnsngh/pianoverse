@@ -255,6 +255,8 @@ const Home = () => {
           message="Add your first piano to start tracking rentals, payments and sales."
           actionLabel="Add your first piano"
           onAction={openAdd}
+          linkLabel="Prefer paper? Print forms"
+          onLink={() => router.push("/paper-forms")}
         />
       );
     }

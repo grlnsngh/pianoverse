@@ -19,6 +19,7 @@ import { useGlobalContext } from "@/context/GlobalProvider";
 import { useAppLock } from "@/lib/AppLockContext";
 import { deleteAccount, signOut } from "@/lib/appwrite";
 import { exportCustomers, exportPayments } from "@/lib/exportData";
+import { clearLetterhead } from "@/lib/letterheadStorage";
 import { clearPianoCache } from "@/lib/pianoCache";
 import useSavedAt from "@/lib/useSavedAt";
 import { setActiveTab } from "@/redux/navigation/actions";
@@ -72,6 +73,7 @@ const DataRow = ({
   busy,
   locked,
   danger,
+  badge,
 }: {
   icon: IconName;
   title: string;
@@ -84,6 +86,8 @@ const DataRow = ({
   locked?: boolean;
   /** Something that can't be undone: its icon and title are red */
   danger?: boolean;
+  /** An orange pill after the title, such as "New" */
+  badge?: string;
 }) => {
   const colors = useColors();
   const styles = useStyles();
@@ -91,7 +95,14 @@ const DataRow = ({
     <>
       <Icon name={icon} size={24} color={danger ? colors.late : colors.ink} />
       <View style={styles.rowText}>
-        <Text style={[styles.rowTitle, danger && styles.dangerTitle]}>{title}</Text>
+        <View style={styles.rowTitleLine}>
+          <Text style={[styles.rowTitle, danger && styles.dangerTitle]}>{title}</Text>
+          {badge ? (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{badge}</Text>
+            </View>
+          ) : null}
+        </View>
         <Text style={styles.rowHint}>{hint}</Text>
       </View>
       {busy ? (
@@ -110,7 +121,7 @@ const DataRow = ({
       onPress={onPress}
       disabled={busy || locked}
       accessibilityRole="button"
-      accessibilityLabel={`${title}. ${hint}`}
+      accessibilityLabel={badge ? `${title}, ${badge}. ${hint}` : `${title}. ${hint}`}
       style={({ pressed }) => [styles.dataRow, pressed && styles.pressed]}
     >
       {body}
@@ -218,6 +229,7 @@ const Profile = () => {
   const forgetAccountOnThisPhone = async () => {
     await scheduleAllRentalNotifications([]);
     await clearPianoCache();
+    await clearLetterhead();
     dispatch(resetPianoState() as any);
     dispatch(setActiveTab("pianos") as any);
     setUser(null);
@@ -334,6 +346,16 @@ const Profile = () => {
             title="Customers"
             hint="Who has rented your pianos, and what they paid"
             onPress={() => router.push("/customers")}
+          />
+        </Group>
+
+        <Group title="Paper" radius="panel" style={styles.section}>
+          <DataRow
+            icon="printer"
+            title="Paper forms"
+            badge="New"
+            hint="Rent cards, receipts and registers to print"
+            onPress={() => router.push("/paper-forms")}
           />
         </Group>
 
@@ -555,7 +577,14 @@ const useStyles = makeStyles((colors) => ({
   themeRow: { gap: spacing.md, padding: spacing.lg },
   themeHead: { flexDirection: "row", alignItems: "center", gap: 14 },
   rowText: { flex: 1 },
+  rowTitleLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   rowTitle: { ...type.rowTitle, color: colors.ink },
+  badge: {
+    paddingHorizontal: spacing.sm,
+    borderRadius: radii.full,
+    backgroundColor: colors.brand,
+  },
+  badgeText: { ...type.badge, color: colors.onBrand },
   dangerTitle: { color: colors.late },
   rowHint: { ...type.caption, fontFamily: fonts.regular, color: colors.ink2 },
   rowValue: { fontFamily: fonts.medium, fontSize: 14, color: colors.ink2 },

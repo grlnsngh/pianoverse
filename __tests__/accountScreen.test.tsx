@@ -44,7 +44,9 @@ import Profile from "@/app/(tabs)/profile";
 import SignOutSheet from "@/components/SignOutSheet";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import * as appwrite from "@/lib/appwrite";
+import { loadLetterhead, saveLetterhead } from "@/lib/letterheadStorage";
 import { savePianosToCache } from "@/lib/pianoCache";
+import { EMPTY_LETTERHEAD } from "@/utils/letterhead";
 import { setActiveTab } from "@/redux/navigation/actions";
 import { getRentalReminderTimes, scheduleAllRentalNotifications } from "@/services/notifications";
 import { formatLastUpdated } from "@/utils/account";
@@ -542,6 +544,19 @@ describe("signing out", () => {
     expect(router.replace).toHaveBeenCalledWith("/");
     expect(sheet(renderer).props.signingOut).toBe(false);
     expect(sheet(renderer).props.visible).toBe(false);
+  });
+
+  it("forgets the business details typed for the paper forms, so the next person doesn't print them", async () => {
+    await saveLetterhead({ ...EMPTY_LETTERHEAD, business: "Tune and Play" });
+    const { renderer } = await openSheet();
+
+    await act(async () => {
+      sheet(renderer).props.onConfirm();
+    });
+    await flushPromises();
+
+    expect(router.replace).toHaveBeenCalledWith("/");
+    expect(await loadLetterhead()).toEqual(EMPTY_LETTERHEAD);
   });
 
   it("closes the sheet and says why when signing out fails", async () => {

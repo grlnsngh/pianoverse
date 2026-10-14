@@ -312,6 +312,82 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
       experiments: { typedRoutes: true },
     },
   },
+  // Paper forms: expo-print turns the forms into PDFs, and expo-asset (which
+  // expo already had inside it) reads the font files the PDFs are set in
+  "5": {
+    packages: [
+      "@react-native-async-storage/async-storage@2.2.0",
+      "expo@57.0.28",
+      "expo-asset@57.0.20",
+      "expo-constants@57.0.22",
+      "expo-dev-client@57.0.20",
+      "expo-file-system@57.0.7",
+      "expo-font@57.0.4",
+      "expo-haptics@57.0.3",
+      "expo-image@57.0.5",
+      "expo-image-manipulator@57.0.21",
+      "expo-image-picker@57.0.20",
+      "expo-intent-launcher@57.0.1",
+      "expo-linking@57.0.12",
+      "expo-local-authentication@57.0.3",
+      "expo-notifications@57.0.22",
+      "expo-print@57.0.2",
+      "expo-router@57.0.26",
+      "expo-sharing@57.0.23",
+      "expo-splash-screen@57.0.10",
+      "expo-status-bar@57.0.1",
+      "expo-system-ui@57.0.4",
+      "expo-updates@57.0.26",
+      "expo-web-browser@57.0.3",
+      "react-native@0.86.3",
+      "react-native-gesture-handler@2.32.0",
+      "react-native-reanimated@4.5.1",
+      "react-native-safe-area-context@5.7.0",
+      "react-native-screens@4.26.2",
+      "react-native-svg@15.15.4",
+      "react-native-worklets@0.10.1",
+    ],
+    config: {
+      name: "pianoverse",
+      slug: "pianoverse",
+      orientation: "portrait",
+      icon: "./assets/images/icon.png",
+      scheme: ["pianoverse", "appwrite-callback-66b2693000154e2fa3c8"],
+      userInterfaceStyle: "light",
+      backgroundColor: "#FFFFFF",
+      ios: { supportsTablet: true },
+      android: {
+        adaptiveIcon: {
+          foregroundImage: "./assets/images/adaptive-icon.png",
+          backgroundColor: "#ffffff",
+        },
+        package: "com.grlnsngh.pianoverse",
+        blockedPermissions: ["android.permission.SYSTEM_ALERT_WINDOW"],
+      },
+      plugins: [
+        "expo-router",
+        [
+          "expo-splash-screen",
+          { backgroundColor: "#FF9C01", image: "./assets/images/splash-blank.png" },
+        ],
+        [
+          "expo-image-picker",
+          {
+            photosPermission:
+              "Pianoverse uses your photos so you can add pictures of your pianos.",
+            cameraPermission:
+              "Pianoverse uses the camera so you can take pictures of your pianos.",
+            microphonePermission: false,
+          },
+        ],
+        [
+          "expo-local-authentication",
+          { faceIDPermission: "Pianoverse uses Face ID to unlock the app." },
+        ],
+      ],
+      experiments: { typedRoutes: true },
+    },
+  },
 };
 
 describe("the runtime version for over-the-air updates", () => {

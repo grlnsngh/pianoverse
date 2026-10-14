@@ -25,7 +25,7 @@
         "android.permission.SYSTEM_ALERT_WINDOW"
       ]
     },
-    "runtimeVersion": "4",
+    "runtimeVersion": "5",
     "updates": {
       "url": "https://u.expo.dev/9002c527-c408-455a-925b-2d4c09ae3118",
       "checkAutomatically": "ON_LOAD",
