@@ -2,19 +2,22 @@ import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import * as Updates from "expo-updates";
+import * as WebBrowser from "expo-web-browser";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
+import DeleteAccountSheet from "@/components/DeleteAccountSheet";
 import ExportPaymentsSheet from "@/components/ExportPaymentsSheet";
 import ReminderPreview, { SAMPLE_REMINDER } from "@/components/ReminderPreview";
 import SignOutSheet from "@/components/SignOutSheet";
 import { Group, Icon, Segmented, Spinner, Switch } from "@/components/ui";
 import type { IconName } from "@/components/ui";
+import { PRIVACY_POLICY_URL } from "@/constants/links";
 import { fonts, radii, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { useAppLock } from "@/lib/AppLockContext";
-import { signOut } from "@/lib/appwrite";
+import { deleteAccount, signOut } from "@/lib/appwrite";
 import { exportCustomers, exportPayments } from "@/lib/exportData";
 import { clearPianoCache } from "@/lib/pianoCache";
 import useSavedAt from "@/lib/useSavedAt";
@@ -68,6 +71,7 @@ const DataRow = ({
   onPress,
   busy,
   locked,
+  danger,
 }: {
   icon: IconName;
   title: string;
@@ -78,14 +82,16 @@ const DataRow = ({
   busy?: boolean;
   /** Something else is working: it can't be pressed, with nothing to show for it */
   locked?: boolean;
+  /** Something that can't be undone: its icon and title are red */
+  danger?: boolean;
 }) => {
   const colors = useColors();
   const styles = useStyles();
   const body = (
     <>
-      <Icon name={icon} size={24} color={colors.ink} />
+      <Icon name={icon} size={24} color={danger ? colors.late : colors.ink} />
       <View style={styles.rowText}>
-        <Text style={styles.rowTitle}>{title}</Text>
+        <Text style={[styles.rowTitle, danger && styles.dangerTitle]}>{title}</Text>
         <Text style={styles.rowHint}>{hint}</Text>
       </View>
       {busy ? (
@@ -115,7 +121,8 @@ const DataRow = ({
 /**
  * The Account tab (Account and SignOutConfirm boards): who is signed in and
  * how many pianos they have, their data (the piano list as a CSV file, and
- * when this phone's copy was last updated), what the reminders are, and Sign out.
+ * when this phone's copy was last updated), what the reminders are, the
+ * privacy policy and deleting the account, and Sign out.
  */
 const Profile = () => {
   const colors = useColors();
@@ -126,6 +133,8 @@ const Profile = () => {
   const activeTab = useSelector((state: RootState) => state.navigation.activeTab);
   const [signOutOpen, setSignOutOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const version = versionLabel(
     Constants.expoConfig?.version,
     Updates.updateId,
@@ -205,6 +214,17 @@ const Profile = () => {
     }
   };
 
+  // Don't leave this account's pianos or reminders behind for the next user
+  const forgetAccountOnThisPhone = async () => {
+    await scheduleAllRentalNotifications([]);
+    await clearPianoCache();
+    dispatch(resetPianoState() as any);
+    dispatch(setActiveTab("pianos") as any);
+    setUser(null);
+    setIsLogged(false);
+    router.replace("/");
+  };
+
   const handleConfirmSignOut = async () => {
     setSigningOut(true);
     try {
@@ -218,16 +238,41 @@ const Profile = () => {
       );
       return;
     }
-    // Don't leave this account's pianos or reminders behind for the next user
-    await scheduleAllRentalNotifications([]);
-    await clearPianoCache();
-    dispatch(resetPianoState() as any);
-    dispatch(setActiveTab("pianos") as any);
-    setUser(null);
-    setIsLogged(false);
+    await forgetAccountOnThisPhone();
     setSigningOut(false);
     setSignOutOpen(false);
-    router.replace("/");
+  };
+
+  // The sheet stays open after a failure, so the person can try again or cancel
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
+    try {
+      await deleteAccount();
+    } catch (error) {
+      setDeleting(false);
+      showToast(
+        error instanceof Error ? error.message : "Your account couldn't be deleted. Try again.",
+        { variant: "error" }
+      );
+      return;
+    }
+    // The account and its sessions are gone; this only clears what the phone remembers of it
+    await signOut().catch(() => null);
+    await forgetAccountOnThisPhone();
+    setDeleting(false);
+    setDeleteOpen(false);
+    showToast("Your account and everything in it have been deleted.", { variant: "success" });
+  };
+
+  const handleOpenPrivacyPolicy = async () => {
+    try {
+      await WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL);
+    } catch (error) {
+      console.warn("Could not open the privacy policy:", error);
+      showToast(`Couldn't open the privacy policy. It's at ${PRIVACY_POLICY_URL}`, {
+        variant: "error",
+      });
+    }
   };
 
   return (
@@ -383,6 +428,22 @@ const Profile = () => {
           </View>
         </View>
 
+        <Group title="Privacy" radius="panel" style={styles.section}>
+          <DataRow
+            icon="shield"
+            title="Privacy policy"
+            hint="What Pianoverse keeps about you, and why"
+            onPress={handleOpenPrivacyPolicy}
+          />
+          <DataRow
+            icon="trash"
+            title="Delete account"
+            hint="Your account, pianos, photos and payments, for good"
+            onPress={() => setDeleteOpen(true)}
+            danger
+          />
+        </Group>
+
         <View style={[styles.signOutCard, styles.section]}>
           <Pressable
             onPress={() => setSignOutOpen(true)}
@@ -409,6 +470,13 @@ const Profile = () => {
         signingOut={signingOut}
         onConfirm={handleConfirmSignOut}
         onClose={() => setSignOutOpen(false)}
+      />
+      <DeleteAccountSheet
+        visible={deleteOpen}
+        deleting={deleting}
+        pianoCount={items.length}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeleteOpen(false)}
       />
     </SafeAreaView>
   );
@@ -488,6 +556,7 @@ const useStyles = makeStyles((colors) => ({
   themeHead: { flexDirection: "row", alignItems: "center", gap: 14 },
   rowText: { flex: 1 },
   rowTitle: { ...type.rowTitle, color: colors.ink },
+  dangerTitle: { color: colors.late },
   rowHint: { ...type.caption, fontFamily: fonts.regular, color: colors.ink2 },
   rowValue: { fontFamily: fonts.medium, fontSize: 14, color: colors.ink2 },
   reminders: {

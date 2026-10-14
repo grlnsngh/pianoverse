@@ -13,8 +13,8 @@ module.exports = {
   },
   overrides: [
     {
-      // Config files and scripts run in Node
-      files: ["*.config.js", ".eslintrc.js", "scripts/**/*.js"],
+      // Config files, scripts and the Appwrite Functions run in Node
+      files: ["*.config.js", ".eslintrc.js", "scripts/**/*.js", "functions/**/*.js"],
       env: { node: true },
     },
     {

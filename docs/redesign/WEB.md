@@ -10,7 +10,11 @@ The redesign is for the phone app, but people also meet Pianoverse in a browser 
 | 2 | **Reset password page** (`reset-password.html`) | https://grlnsngh.github.io/pianoverse/reset-password.html?userId=…&secret=… | A person who tapped the link in the reset email, on a phone or a computer |
 | 3 | **The reset email** ("Reset password") | Sent by Appwrite when someone taps **Forgot password?** in the app | The person's inbox |
 | 4 | **The app itself in a browser** | `npm run web` (Expo web, static output); not deployed anywhere | Only you, while developing |
-| 5 | Links those pages open | `pianoverse://sign-in`, `pianoverse://forget-password` (the app), `mailto:support@pianoverse.com` | Whoever taps them |
+| 5 | Links those pages open | `pianoverse://sign-in`, `pianoverse://forget-password` (the app), `mailto:pianoverse.app.dev@gmail.com` | Whoever taps them |
+| 6 | **Privacy policy** (`privacy.html`) | https://grlnsngh.github.io/pianoverse/privacy.html | Google Play's listing, Account, Privacy policy in the app, and the landing page |
+| 7 | **Delete your account** (`delete-account.html`) | https://grlnsngh.github.io/pianoverse/delete-account.html | Google Play's data safety section (its "delete account" link), and the privacy policy |
+
+The addresses the app uses are in `constants/links.ts`.
 
 Not ours, but part of the path: Google Fonts (Figtree), and `cloud.appwrite.io`, which the reset page calls to save the new password.
 

@@ -1,17 +1,24 @@
 import fs from "fs";
 import path from "path";
+import {
+  CONTACT_EMAIL,
+  DELETE_ACCOUNT_URL,
+  PRIVACY_POLICY_URL,
+  RESET_PASSWORD_URL,
+  SITE_URL,
+} from "@/constants/links";
 import { lightColors as colors, motion } from "@/constants/theme";
 
 /**
- * The pages that open in a browser (the landing page and the reset page,
- * served by GitHub Pages) look like the app: same colours, same motion, and
+ * The pages that open in a browser (the landing page, the reset page, the
+ * privacy policy and the delete-account page, served by GitHub Pages) look like the app: same colours, same motion, and
  * only files that exist. docs/redesign/WEB.md lists them.
  */
 
 const root = path.join(__dirname, "..");
 const read = (file: string) => fs.readFileSync(path.join(root, file), "utf8");
 
-const PAGES = ["index.html", "reset-password.html"];
+const PAGES = ["index.html", "reset-password.html", "privacy.html", "delete-account.html"];
 const css = read("web/site.css");
 
 const cssVariables = () => {
@@ -151,12 +158,51 @@ describe("the web pages", () => {
   });
 
   it("the link the app puts in the reset email opens the reset page", () => {
-    const appwrite = read("lib/appwrite.ts");
-    const url = appwrite.match(/"(https:\/\/[^"]*reset-password\.html)"/)?.[1];
-
-    expect(url).toBeDefined();
-    const file = path.basename(new URL(url as string).pathname);
+    expect(read("lib/appwrite.ts")).toContain("createRecovery(email, RESET_PASSWORD_URL)");
+    const file = path.basename(new URL(RESET_PASSWORD_URL).pathname);
+    expect(file).toBe("reset-password.html");
     expect(fs.existsSync(path.join(root, file))).toBe(true);
+  });
+
+  it("the privacy policy and delete-account addresses the app and Google Play give are pages here", () => {
+    for (const [url, file] of [
+      [PRIVACY_POLICY_URL, "privacy.html"],
+      [DELETE_ACCOUNT_URL, "delete-account.html"],
+    ]) {
+      expect(url.startsWith(SITE_URL)).toBe(true);
+      expect(path.basename(new URL(url).pathname)).toBe(file);
+      expect(fs.existsSync(path.join(root, file))).toBe(true);
+    }
+  });
+
+  it.each(PAGES)("%s gives the contact address the app uses, and no other", (page) => {
+    const html = read(page);
+    expect(html).toContain(`mailto:${CONTACT_EMAIL}`);
+    const addresses = [...html.matchAll(/mailto:([^"?]+)/g)].map((m) => m[1]);
+    expect(new Set(addresses)).toEqual(new Set([CONTACT_EMAIL]));
+  });
+
+  it("the privacy policy names who runs the app, and says how to delete the account", () => {
+    const html = read("privacy.html");
+    expect(html).toContain("Gurleen Singh");
+    expect(html).toContain('href="delete-account.html"');
+    expect(html).toContain("Account, Delete account");
+    expect(html).toMatch(/Updated \d{1,2} [A-Z][a-z]+ \d{4}/);
+  });
+
+  it("the delete-account page gives the steps in the app, and asks by email from the account's address", () => {
+    const html = read("delete-account.html");
+    expect(html).toContain("Choose Delete account");
+    expect(html).toContain("It is under Privacy");
+    expect(html).toContain(`mailto:${CONTACT_EMAIL}?subject=Delete%20my%20Pianoverse%20account`);
+    expect(html).toContain("from the email address of your account");
+    expect(html).toContain('href="privacy.html"');
+  });
+
+  it("the home page leads to the privacy policy and to deleting an account", () => {
+    const html = read("index.html");
+    expect(html).toContain('href="privacy.html"');
+    expect(html).toContain('href="delete-account.html"');
   });
 
   it("the buttons that open the app lead to screens that exist", () => {

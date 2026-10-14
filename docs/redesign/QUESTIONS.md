@@ -162,6 +162,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q24. Is support@pianoverse.com a real address?
 - **Answer:** Keep it as it is (option A) (2026-10-01), although it is **not a real mailbox**.
 - **Why it stays:** you chose not to worry about it. The two pages and the email still say "Questions? support@pianoverse.com", so anyone who writes there gets no answer. If you want that changed later, option B (another address) or C (remove the lines) is a small change.
+- **Changed to option B (2026-10-14):** Google Play needs a contact that answers, for the privacy policy and deletion requests, so the pages, the email and the app now give **pianoverse.app.dev@gmail.com** (`constants/links.ts`).
 
 ### Q26. What should the reminder and the receipt say, and in which language?
 - **Answer:** Keep English (option A, the default) (2026-10-01).

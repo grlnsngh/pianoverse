@@ -33,6 +33,7 @@ describe("Icon set", () => {
         "close",
         "more",
         "share",
+        "shield",
         "phone",
         "message",
         "tabToday",
