@@ -650,6 +650,10 @@ a {
   animation: none;
 }
 
+.doc .help h2 {
+  margin-top: 0;
+}
+
 .doc .steps {
   grid-template-columns: none;
 }
