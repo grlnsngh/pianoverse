@@ -174,7 +174,7 @@ describe("matching the phone", () => {
     await act(async () => theme.setSetting("system"));
 
     expect(setColorScheme).toHaveBeenCalledTimes(1);
-    expect(setColorScheme).toHaveBeenCalledWith(null);
+    expect(setColorScheme).toHaveBeenCalledWith("unspecified");
   });
 
   it("carries on, and says why, when the phone won't let it ask", async () => {

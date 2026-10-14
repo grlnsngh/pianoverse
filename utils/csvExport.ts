@@ -1,6 +1,6 @@
 import { PianoItem } from "@/redux/pianos/types";
 import { formatDate } from "./ObjectManipulation";
-import * as FileSystem from "expo-file-system";
+import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as IntentLauncher from "expo-intent-launcher";
 import { Alert, Platform } from "react-native";
@@ -287,22 +287,20 @@ export const reportExportFailure = (error: unknown) => {
  * @throws {Error} If the file can't be written or shared; the caller tells the person.
  */
 export const saveAndOpenCSV = async (fileName: string, content: string): Promise<void> => {
-  const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+  const file = new File(Paths.document, fileName);
+  const fileUri = file.uri;
 
-  // Write to file
-  await FileSystem.writeAsStringAsync(fileUri, content, {
-    encoding: FileSystem.EncodingType.UTF8,
-  });
+  // Write to file (as UTF-8), replacing an earlier export with the same name
+  file.create({ overwrite: true });
+  file.write(content);
 
   // Try to open directly in spreadsheet apps
   if (Platform.OS === "android") {
     try {
-      // Get file info to get content URI
-      const contentUri = await FileSystem.getContentUriAsync(fileUri);
-
-      // Try to open with intent launcher for spreadsheet apps
+      // Try to open with intent launcher for spreadsheet apps, through the
+      // content:// address other apps may read
       await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
-        data: contentUri,
+        data: file.contentUri,
         flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
         type: "text/csv",
       });

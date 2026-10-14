@@ -2,7 +2,7 @@
   "expo": {
     "name": "pianoverse",
     "slug": "pianoverse",
-    "version": "1.1.18",
+    "version": "1.1.19",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": [
@@ -11,9 +11,6 @@
     ],
     "userInterfaceStyle": "light",
     "backgroundColor": "#FFFFFF",
-    "splash": {
-      "backgroundColor": "#FF9C01"
-    },
     "ios": {
       "supportsTablet": true
     },
@@ -23,9 +20,12 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.grlnsngh.pianoverse",
-      "versionCode": 29
+      "versionCode": 30,
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
-    "runtimeVersion": "3",
+    "runtimeVersion": "4",
     "updates": {
       "url": "https://u.expo.dev/9002c527-c408-455a-925b-2d4c09ae3118",
       "checkAutomatically": "ON_LOAD",
@@ -39,10 +39,18 @@
     "plugins": [
       "expo-router",
       [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FF9C01",
+          "image": "./assets/images/splash-blank.png"
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Pianoverse uses your photos so you can add pictures of your pianos.",
-          "cameraPermission": "Pianoverse uses the camera so you can take pictures of your pianos."
+          "cameraPermission": "Pianoverse uses the camera so you can take pictures of your pianos.",
+          "microphonePermission": false
         }
       ],
       [

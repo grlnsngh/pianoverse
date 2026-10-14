@@ -1,16 +1,12 @@
-jest.mock("expo-file-system", () => ({
-  documentDirectory: "file:///docs/",
-  EncodingType: { UTF8: "utf8" },
-  writeAsStringAsync: jest.fn(() => Promise.resolve()),
-  getContentUriAsync: jest.fn((uri: string) => Promise.resolve(`content://${uri}`)),
-}));
+jest.mock("expo-file-system", () =>
+  require("./helpers/fakeFileSystem").createFakeFileSystemModule()
+);
 jest.mock("expo-sharing", () => ({ shareAsync: jest.fn(() => Promise.resolve()) }));
 jest.mock("expo-intent-launcher", () => ({
   startActivityAsync: jest.fn(() => Promise.resolve()),
 }));
 
 import { Alert, Platform } from "react-native";
-import * as FileSystem from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
 import * as Sharing from "expo-sharing";
 import {
@@ -22,16 +18,17 @@ import {
   toCSVText,
 } from "@/utils/csvExport";
 import { makePiano } from "./helpers/fixtures";
+import { fakeWriteFile } from "./helpers/fakeFileSystem";
 
 /** Making a CSV file and getting it in front of the person, which every download shares. */
 
-const write = jest.mocked(FileSystem.writeAsStringAsync);
+const write = fakeWriteFile();
 const launch = jest.mocked(IntentLauncher.startActivityAsync);
 const share = jest.mocked(Sharing.shareAsync);
 
 beforeEach(() => {
   jest.clearAllMocks();
-  write.mockResolvedValue(undefined);
+  write.mockImplementation(() => {});
   launch.mockResolvedValue({ resultCode: 0 } as any);
   share.mockResolvedValue(undefined);
   jest.spyOn(Alert, "alert").mockImplementation(() => {});
@@ -83,13 +80,13 @@ describe("saving and opening a file", () => {
   it("writes it where the app keeps its files, as UTF-8", async () => {
     await saveAndOpenCSV("a.csv", "x,y\n1,2");
 
-    expect(write).toHaveBeenCalledWith("file:///docs/a.csv", "x,y\n1,2", { encoding: "utf8" });
+    // A string is written as UTF-8
+    expect(write).toHaveBeenCalledWith("file:///docs/a.csv", "x,y\n1,2");
   });
 
   it("opens it straight in a spreadsheet app on Android", async () => {
     await saveAndOpenCSV("a.csv", "x");
 
-    expect(FileSystem.getContentUriAsync).toHaveBeenCalledWith("file:///docs/a.csv");
     expect(launch).toHaveBeenCalledWith("android.intent.action.VIEW", {
       data: "content://file:///docs/a.csv",
       flags: 1,
@@ -127,7 +124,9 @@ describe("saving and opening a file", () => {
   });
 
   it("fails, for the caller to tell the person, when the file can't be written", async () => {
-    write.mockRejectedValue(new Error("No space left"));
+    write.mockImplementation(() => {
+      throw new Error("No space left");
+    });
 
     await expect(saveAndOpenCSV("a.csv", "x")).rejects.toThrow("No space left");
     expect(launch).not.toHaveBeenCalled();
@@ -174,7 +173,9 @@ describe("the piano list download, as before", () => {
   });
 
   it("says why when it fails", async () => {
-    write.mockRejectedValue(new Error("No space left"));
+    write.mockImplementation(() => {
+      throw new Error("No space left");
+    });
 
     await exportPianosToCSV([makePiano()]);
 

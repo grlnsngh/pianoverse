@@ -1,8 +1,9 @@
 import React from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, StyleSheet, Text, View } from "react-native";
 import { Dialog } from "@/components/ui";
 import { lightColors as colors, fonts } from "@/constants/theme";
 import { hostByTestId, mount, textContent } from "./helpers/ui";
+import { findAllPressables } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 type Props = Partial<React.ComponentProps<typeof Dialog>>;
@@ -28,7 +29,7 @@ const open = (props: Props = {}) =>
     />
   );
 
-const rows = (renderer: Mounted) => renderer.root.findAllByType(Pressable);
+const rows = (renderer: Mounted) => findAllPressables(renderer.root);
 const labels = (renderer: Mounted) => rows(renderer).map((row) => textContent(row));
 const card = (renderer: Mounted) =>
   hostByTestId(renderer.root, "dialog").findAllByType(View)[0];
@@ -39,7 +40,7 @@ describe("Dialog look", () => {
 
     expect(renderer.root.findByType(Modal).props.visible).toBe(false);
     expect(renderer.root.findAllByType(Text)).toHaveLength(0);
-    expect(renderer.root.findAllByType(Pressable)).toHaveLength(0);
+    expect(findAllPressables(renderer.root)).toHaveLength(0);
   });
 
   it("is a transparent, fading modal", async () => {

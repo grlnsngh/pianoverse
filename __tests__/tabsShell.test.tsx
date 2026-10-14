@@ -17,7 +17,7 @@ jest.mock("@/app/(tabs)/today", () => {
 import fs from "fs";
 import path from "path";
 import React from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { act } from "react-test-renderer";
 import TabsLayout from "@/app/(tabs)/_layout";
@@ -26,6 +26,7 @@ import { setActiveTab } from "@/redux/navigation/actions";
 import { setBulkSelectionMode } from "@/redux/pianos/actions";
 import { advance, hostByTestId, mount, textContent, update } from "./helpers/ui";
 import { allTexts, createTestStore, renderWithStore } from "./helpers/render";
+import { findAllPressables } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 
@@ -244,14 +245,12 @@ describe("the tabs layout", () => {
     renderer: renderWithStore(withSafeArea(<TabsLayout />), store),
   });
   const tab = (renderer: any, label: string) =>
-    renderer.root
-      .findAllByType(Pressable)
-      .find((node: any) => node.props.accessibilityLabel === label);
+    findAllPressables(renderer.root)
+      .find((node: any) => node.props.accessibilityLabel === label)!;
   const opacityOfScene = (renderer: any, key: string) =>
     StyleSheet.flatten(hostByTestId(renderer.root, `scene-${key}`).props.style).opacity as number;
   const selected = (renderer: any) =>
-    renderer.root
-      .findAllByType(Pressable)
+    findAllPressables(renderer.root)
       .filter((node: any) => node.props.accessibilityRole === "tab")
       .filter((node: any) => node.props.accessibilityState.selected)
       .map((node: any) => node.props.accessibilityLabel);
@@ -259,8 +258,7 @@ describe("the tabs layout", () => {
   it("has the bar with Today, Pianos and Account", () => {
     const { renderer } = open();
 
-    const labels = renderer.root
-      .findAllByType(Pressable)
+    const labels = findAllPressables(renderer.root)
       .filter((node: any) => node.props.accessibilityRole === "tab")
       .map((node: any) => node.props.accessibilityLabel);
     expect(labels).toEqual(["Today", "Pianos", "Account"]);

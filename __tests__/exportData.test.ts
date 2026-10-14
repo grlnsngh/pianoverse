@@ -1,31 +1,28 @@
 jest.mock("react-native-appwrite", () =>
   require("./helpers/fakeAppwrite").createFakeAppwriteModule()
 );
-jest.mock("expo-file-system", () => ({
-  documentDirectory: "file:///docs/",
-  EncodingType: { UTF8: "utf8" },
-  writeAsStringAsync: jest.fn(() => Promise.resolve()),
-  getContentUriAsync: jest.fn((uri: string) => Promise.resolve(`content://${uri}`)),
-}));
+jest.mock("expo-file-system", () =>
+  require("./helpers/fakeFileSystem").createFakeFileSystemModule()
+);
 jest.mock("expo-sharing", () => ({ shareAsync: jest.fn(() => Promise.resolve()) }));
 jest.mock("expo-intent-launcher", () => ({
   startActivityAsync: jest.fn(() => Promise.resolve()),
 }));
 
 import { Alert, Platform } from "react-native";
-import * as FileSystem from "expo-file-system";
 import * as appwrite from "@/lib/appwrite";
 import { exportCustomers, exportPayments } from "@/lib/exportData";
 import { ExportPeriod, exportPeriods } from "@/utils/exportPeriods";
 import { fakeBackend } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
+import { fakeWriteFile } from "./helpers/fakeFileSystem";
 
 /**
  * Downloading the payments of a period and the customers, against a fake
  * Appwrite and a fake phone. Today is 29 September 2026.
  */
 
-const write = jest.mocked(FileSystem.writeAsStringAsync);
+const write = fakeWriteFile();
 const BOM = "﻿";
 const ACCOUNT = testUser.accountId;
 
@@ -73,7 +70,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   fakeBackend.reset();
   counter = 0;
-  write.mockResolvedValue(undefined);
+  write.mockImplementation(() => {});
   jest.spyOn(Alert, "alert").mockImplementation(() => {});
   jest.spyOn(console, "warn").mockImplementation(() => {});
   jest.spyOn(console, "error").mockImplementation(() => {});
@@ -227,7 +224,9 @@ describe("downloading payments", () => {
 
   it("says why when the file can't be written", async () => {
     seed("2026-09-02", 4000);
-    write.mockRejectedValue(new Error("No space left"));
+    write.mockImplementation(() => {
+      throw new Error("No space left");
+    });
 
     await exportPayments(ACCOUNT, pianos, period("this-month"));
 
@@ -352,7 +351,9 @@ describe("downloading customers", () => {
 
   it("says why when the file can't be written", async () => {
     seed("2026-09-03", 4000);
-    write.mockRejectedValue(new Error("No space left"));
+    write.mockImplementation(() => {
+      throw new Error("No space left");
+    });
 
     await exportCustomers(ACCOUNT, pianos);
 

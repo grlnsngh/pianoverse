@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { IconTabs, PickerSheet, SearchPill, Skeleton, StateView } from "@/components/ui";
@@ -8,6 +8,7 @@ import { ICONS } from "@/components/ui/Icon";
 import PianosSkeleton from "@/components/PianosSkeleton";
 import { lightColors as colors, fonts } from "@/constants/theme";
 import { findAllMemo, hostByTestId, mount, textContent } from "./helpers/ui";
+import { findAllPressables, findPressable } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 const flat = (style: unknown) => StyleSheet.flatten(style as any);
@@ -33,7 +34,7 @@ describe("IconTabs", () => {
       ),
     };
   };
-  const tabs = (renderer: Mounted) => renderer.root.findAllByType(Pressable);
+  const tabs = (renderer: Mounted) => findAllPressables(renderer.root);
 
   it("is a row of equal tabs over a hairline", async () => {
     const renderer = await setup().mounted;
@@ -150,7 +151,7 @@ describe("SearchPill", () => {
     };
   };
   const pill = (renderer: Mounted) => flat(hostByTestId(renderer.root, "pill").props.style);
-  const buttons = (renderer: Mounted) => renderer.root.findAllByType(Pressable);
+  const buttons = (renderer: Mounted) => findAllPressables(renderer.root);
 
   it("is a white 52 px pill with a hairline and the search shadow", async () => {
     const renderer = await setup().mounted;
@@ -309,7 +310,7 @@ describe("StateView", () => {
   it("has one button that gets the person out of it, orange by default", async () => {
     const onAction = jest.fn();
     const renderer = await setup({ actionLabel: "Add your first piano", onAction });
-    const button = renderer.root.findByType(Pressable);
+    const button = findPressable(renderer.root);
 
     expect(textContent(button)).toBe("Add your first piano");
     expect(flat(button.props.style({ pressed: false }))).toMatchObject({
@@ -331,7 +332,7 @@ describe("StateView", () => {
     });
 
     expect(
-      flat(renderer.root.findByType(Pressable).props.style({ pressed: false })).backgroundColor
+      flat(findPressable(renderer.root).props.style({ pressed: false })).backgroundColor
     ).toBe(colors.fill);
   });
 
@@ -339,8 +340,8 @@ describe("StateView", () => {
     const noHandler = await setup({ actionLabel: "Try again" });
     const noLabel = await setup({ onAction: () => {} });
 
-    expect(noHandler.root.findAllByType(Pressable)).toHaveLength(0);
-    expect(noLabel.root.findAllByType(Pressable)).toHaveLength(0);
+    expect(findAllPressables(noHandler.root)).toHaveLength(0);
+    expect(findAllPressables(noLabel.root)).toHaveLength(0);
   });
 
   it("has no picture at all when it has neither art nor an icon", async () => {
@@ -405,7 +406,7 @@ describe("PianosSkeleton", () => {
   it("uses no real chrome: only grey shapes", async () => {
     const renderer = await mount(<PianosSkeleton layout="grid" />);
 
-    expect(renderer.root.findAllByType(Pressable)).toHaveLength(0);
+    expect(findAllPressables(renderer.root)).toHaveLength(0);
     expect(renderer.root.findAllByType(Text)).toHaveLength(0);
     expect(renderer.root.findAllByType(View).length).toBeGreaterThan(0);
   });
@@ -443,7 +444,7 @@ describe("PickerSheet", () => {
     };
   };
   const rows = (renderer: Mounted) =>
-    renderer.root.findAllByType(Pressable).filter((node) => node.props.accessibilityRole === "radio");
+    findAllPressables(renderer.root).filter((node) => node.props.accessibilityRole === "radio");
 
   it("is a white sheet with the title, a Cancel button and a row per option", async () => {
     const renderer = await setup().mounted;

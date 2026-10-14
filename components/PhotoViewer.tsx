@@ -272,7 +272,7 @@ const useStyles = makeStyles((colors) => ({
   thumb: { width: THUMB, height: THUMB, borderRadius: 10, overflow: "hidden" },
   thumbDim: { opacity: 0.6 },
   thumbSelected: { borderWidth: 2, borderColor: colors.brand },
-  retryWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center" },
+  retryWrap: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
   retry: { alignItems: "center", gap: 6, padding: 24 },
   retryText: { fontFamily: fonts.bold, fontSize: 12, lineHeight: 16, color: colors.white },
 }));

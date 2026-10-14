@@ -1,11 +1,12 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Path } from "react-native-svg";
 import { Badge, Banner } from "@/components/ui";
 import { ICONS } from "@/components/ui/Icon";
 import Spinner from "@/components/ui/Spinner";
 import { lightColors as colors, fonts, radii } from "@/constants/theme";
 import { findAllMemo, hostByTestId, mount, textContent } from "./helpers/ui";
+import { findAllPressables, findPressable } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 
@@ -154,7 +155,7 @@ describe("Banner", () => {
     const renderer = await mount(
       <Banner testID="banner" variant="error" message="Some changes didn’t sync." onRetry={onRetry} />
     );
-    const retry = renderer.root.findByType(Pressable);
+    const retry = findPressable(renderer.root);
 
     expect(textContent(retry)).toBe("Retry");
     expect(retry.props.accessibilityRole).toBe("button");
@@ -170,7 +171,7 @@ describe("Banner", () => {
       <Banner variant="error" message="Couldn’t update." onRetry={() => {}} retryLabel="Try again" />
     );
 
-    expect(textContent(renderer.root.findByType(Pressable))).toBe("Try again");
+    expect(textContent(findPressable(renderer.root))).toBe("Try again");
   });
 
   it("has no Retry link without something to retry, or on other banners", async () => {
@@ -179,8 +180,8 @@ describe("Banner", () => {
       <Banner variant="offline" message="Saved copy." onRetry={() => {}} />
     );
 
-    expect(noHandler.root.findAllByType(Pressable)).toHaveLength(0);
-    expect(offline.root.findAllByType(Pressable)).toHaveLength(0);
+    expect(findAllPressables(noHandler.root)).toHaveLength(0);
+    expect(findAllPressables(offline.root)).toHaveLength(0);
   });
 
   it("is announced: at once for an error, politely otherwise", async () => {

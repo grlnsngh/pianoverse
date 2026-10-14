@@ -1,11 +1,12 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, TextInput } from "react-native";
+import { StyleSheet, Text, TextInput } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { act } from "react-test-renderer";
 import { Field } from "@/components/ui";
 import { ICONS } from "@/components/ui/Icon";
 import { lightColors as colors, fonts, radii } from "@/constants/theme";
 import { hostByTestId, mount, textContent } from "./helpers/ui";
+import { findAllPressables } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 type Props = Partial<React.ComponentProps<typeof Field>>;
@@ -17,7 +18,7 @@ const input = (renderer: Mounted) => renderer.root.findByType(TextInput);
 const ring = (renderer: Mounted) =>
   StyleSheet.flatten(hostByTestId(renderer.root, "field-ring").props.style);
 const box = (renderer: Mounted) =>
-  StyleSheet.flatten(renderer.root.findAllByType(Pressable)[0].props.style);
+  StyleSheet.flatten(findAllPressables(renderer.root)[0].props.style);
 const focus = (renderer: Mounted) => act(() => input(renderer).props.onFocus({}));
 const blur = (renderer: Mounted) => act(() => input(renderer).props.onBlur({}));
 
@@ -111,9 +112,9 @@ describe("Field focus", () => {
 
   it("draws the ring over the field, so the text doesn't move when it thickens", async () => {
     const renderer = await setup();
-    const before = StyleSheet.flatten(renderer.root.findAllByType(Pressable)[0].props.style);
+    const before = StyleSheet.flatten(findAllPressables(renderer.root)[0].props.style);
     focus(renderer);
-    const after = StyleSheet.flatten(renderer.root.findAllByType(Pressable)[0].props.style);
+    const after = StyleSheet.flatten(findAllPressables(renderer.root)[0].props.style);
 
     // Padding and border of the field itself are the same focused or not
     expect(after).toEqual(before);
@@ -126,7 +127,7 @@ describe("Field focus", () => {
     // The test renderer has no native input, so give the ref something to call
     (input(renderer).instance as any).focus = focusSpy;
 
-    renderer.root.findAllByType(Pressable)[0].props.onPress();
+    findAllPressables(renderer.root)[0].props.onPress();
 
     expect(focusSpy).toHaveBeenCalled();
   });
@@ -203,7 +204,7 @@ describe("Field disabled", () => {
 
     expect(box(renderer).backgroundColor).toBe(colors.grouped);
     expect(input(renderer).props.editable).toBe(false);
-    expect(renderer.root.findAllByType(Pressable)[0].props.disabled).toBe(true);
+    expect(findAllPressables(renderer.root)[0].props.disabled).toBe(true);
   });
 
   it("is editable otherwise", async () => {
@@ -215,7 +216,7 @@ describe("Field disabled", () => {
 
 describe("Field with a password", () => {
   const passwordField = () => setup({ label: "Password", secureTextEntry: true });
-  const toggle = (renderer: Mounted) => renderer.root.findAllByType(Pressable)[1];
+  const toggle = (renderer: Mounted) => findAllPressables(renderer.root)[1];
 
   it("hides what is typed, and offers to Show it", async () => {
     const renderer = await passwordField();
@@ -259,7 +260,7 @@ describe("Field with a password", () => {
   it("has no toggle on an ordinary field", async () => {
     const renderer = await setup();
 
-    expect(renderer.root.findAllByType(Pressable)).toHaveLength(1);
+    expect(findAllPressables(renderer.root)).toHaveLength(1);
     expect(box(renderer).paddingRight).toBe(16);
   });
 });
@@ -277,7 +278,7 @@ describe("Field ref", () => {
   it("works with a callback ref too", async () => {
     const received: unknown[] = [];
     await mount(
-      <Field ref={(node) => received.push(node)} label="Email" value="" onChangeText={() => {}} />
+      <Field ref={(node) => void received.push(node)} label="Email" value="" onChangeText={() => {}} />
     );
 
     expect(received.filter(Boolean)).toHaveLength(1);

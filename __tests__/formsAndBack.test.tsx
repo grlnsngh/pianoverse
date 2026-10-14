@@ -62,6 +62,10 @@ import {
   typeInto,
 } from "./helpers/render";
 
+/** A press of Android's back button, as BackHandler hands it to each listener. */
+type BackPressHandler = Parameters<typeof BackHandler.addEventListener>[1];
+const BACK_PRESS = { type: "hardwareBackPress", timeStamp: 0 };
+
 let alerts: ReturnType<typeof captureAlerts>;
 
 beforeEach(() => {
@@ -79,7 +83,7 @@ describe("Android back button", () => {
   const pianos = [makePiano({ $id: "a" }), makePiano({ $id: "b" })];
 
   const renderHome = async () => {
-    const handlers: (() => boolean | null | undefined)[] = [];
+    const handlers: BackPressHandler[] = [];
     jest
       .spyOn(BackHandler, "addEventListener")
       .mockImplementation((_event, handler) => {
@@ -99,7 +103,7 @@ describe("Android back button", () => {
     const pressBack = () => {
       let handled = false;
       act(() => {
-        handled = [...handlers].reverse().some((handler) => handler());
+        handled = [...handlers].reverse().some((handler) => handler(BACK_PRESS));
       });
       return handled;
     };

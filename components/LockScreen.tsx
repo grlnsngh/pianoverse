@@ -55,7 +55,7 @@ const LockScreen = ({
 };
 
 const useStyles = makeStyles((colors) => ({
-  page: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.page },
+  page: { ...StyleSheet.absoluteFill, backgroundColor: colors.page },
   center: {
     flex: 1,
     alignItems: "center",

@@ -9,17 +9,21 @@ import type { Palette, Scheme } from "@/constants/theme";
  * window behind everything, which shows when the keyboard opens or a screen
  * is pulled past its end.
  *
- * The app has always looked light, so in light this does nothing until the
- * person has been in dark and comes back.
+ * Android draws the app behind a see-through status bar (edge to edge, since
+ * Expo SDK 54), so its icons always follow the theme: left alone they are
+ * white, and can't be seen on a light page. The rest has always been light,
+ * so in light it is left alone until the person has been in dark and comes
+ * back.
  */
 export default function useSystemChrome(scheme: Scheme, colors: Palette) {
   const changed = useRef(false);
 
   useEffect(() => {
+    StatusBar.setBarStyle(scheme === "dark" ? "light-content" : "dark-content", true);
+
     if (scheme === "light" && !changed.current) return;
     changed.current = true;
 
-    StatusBar.setBarStyle(scheme === "dark" ? "light-content" : "dark-content", true);
     // Only Android has a coloured bar to set; on a translucent one it is not seen
     if (Platform.OS === "android") StatusBar.setBackgroundColor(colors.page, true);
 

@@ -43,10 +43,11 @@ afterEach(() => {
 });
 
 describe("the status bar and the window behind the app", () => {
-  it("are left exactly as they have always been while the app is light", async () => {
+  it("give the see-through status bar dark icons while the app is light, and leave the rest as it has always been", async () => {
     await show("light");
 
-    expect(setBarStyle).not.toHaveBeenCalled();
+    // Left alone, Android's icons are white, which can't be seen on a light page
+    expect(setBarStyle).toHaveBeenCalledWith("dark-content", true);
     expect(setBackgroundColor).not.toHaveBeenCalled();
     expect(setBackgroundColorAsync).not.toHaveBeenCalled();
   });

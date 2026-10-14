@@ -1,11 +1,12 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, TextInput } from "react-native";
+import { StyleSheet, Text, TextInput } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { FormRow, Group } from "@/components/ui";
 import { ICONS } from "@/components/ui/Icon";
 import { lightColors as colors, fonts } from "@/constants/theme";
 import { ReactTestInstance } from "react-test-renderer";
 import { hostByTestId, mount, textContent } from "./helpers/ui";
+import { findAllPressables, findPressable } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 
@@ -227,7 +228,7 @@ describe("FormRow on a page", () => {
       </Group>
     );
 
-    expect(renderer.root.findAllByType(Pressable)).toHaveLength(0);
+    expect(findAllPressables(renderer.root)).toHaveLength(0);
     expect(renderer.root.findAllByType(Svg)).toHaveLength(0);
   });
 });
@@ -271,7 +272,7 @@ describe("FormRow that opens a picker", () => {
   it("is a button that reads its label and value", async () => {
     const { mounted } = picker();
     const renderer = await mounted;
-    const button = renderer.root.findByType(Pressable);
+    const button = findPressable(renderer.root);
 
     expect(button.props.accessibilityRole).toBe("button");
     expect(button.props.accessibilityLabel).toBe("Make, Schumann");
@@ -281,14 +282,14 @@ describe("FormRow that opens a picker", () => {
     const { mounted } = picker({ value: undefined, placeholder: "Choose" });
     const renderer = await mounted;
 
-    expect(renderer.root.findByType(Pressable).props.accessibilityLabel).toBe("Make, Choose");
+    expect(findPressable(renderer.root).props.accessibilityLabel).toBe("Make, Choose");
   });
 
   it("can be given a different spoken label", async () => {
     const { mounted } = picker({ accessibilityLabel: "Change make" });
     const renderer = await mounted;
 
-    expect(renderer.root.findByType(Pressable).props.accessibilityLabel).toBe("Change make");
+    expect(findPressable(renderer.root).props.accessibilityLabel).toBe("Change make");
   });
 
   it("shows a grey chevron, 18 px", async () => {
@@ -315,7 +316,7 @@ describe("FormRow that opens a picker", () => {
     const { mounted, onPress } = picker();
     const renderer = await mounted;
 
-    renderer.root.findByType(Pressable).props.onPress();
+    findPressable(renderer.root).props.onPress();
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
@@ -323,7 +324,7 @@ describe("FormRow that opens a picker", () => {
   it("goes light grey while it is pressed", async () => {
     const { mounted } = picker();
     const renderer = await mounted;
-    const style = renderer.root.findByType(Pressable).props.style;
+    const style = findPressable(renderer.root).props.style;
 
     expect(flat(style({ pressed: false })).backgroundColor).toBeUndefined();
     expect(flat(style({ pressed: true })).backgroundColor).toBe(colors.grouped);
@@ -408,7 +409,7 @@ describe("FormRow with a text field", () => {
     const focus = jest.fn();
     (input(renderer).instance as any).focus = focus;
 
-    renderer.root.findAllByType(Pressable)[0].props.onPress();
+    findAllPressables(renderer.root)[0].props.onPress();
 
     expect(focus).toHaveBeenCalled();
   });
@@ -428,7 +429,7 @@ describe("FormRow with a text field", () => {
   it("is not one big accessible block, which would hide the input from a screen reader", async () => {
     const renderer = await field();
 
-    expect(renderer.root.findAllByType(Pressable)[0].props.accessible).toBe(false);
+    expect(findAllPressables(renderer.root)[0].props.accessible).toBe(false);
   });
 });
 

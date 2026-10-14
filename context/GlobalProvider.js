@@ -104,12 +104,17 @@ const GlobalProvider = ({ children }) => {
       );
 
     // The app may have been opened by tapping a notification
-    Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response) openFromNotification(response);
-    });
+    // (not on the web, where there is no such thing)
+    Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (response) openFromNotification(response);
+      })
+      .catch((error) =>
+        console.warn("Could not check what opened the app:", error)
+      );
 
     return () => {
-      Notifications.removeNotificationSubscription(responseListener);
+      responseListener.remove();
     };
   }, [openFromNotification]);
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { AddButton, TabBar } from "@/components/ui";
@@ -7,6 +7,7 @@ import type { TabBarItem } from "@/components/ui";
 import { ICONS } from "@/components/ui/Icon";
 import { lightColors as colors, fonts } from "@/constants/theme";
 import { hostByTestId, mount, textContent } from "./helpers/ui";
+import { findAllPressables, findPressable } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 const flat = (style: unknown) => StyleSheet.flatten(style as any);
@@ -39,7 +40,7 @@ const bar = (
   ),
 });
 
-const tabs = (renderer: Mounted) => renderer.root.findAllByType(Pressable);
+const tabs = (renderer: Mounted) => findAllPressables(renderer.root);
 const barStyle = (renderer: Mounted) => flat(hostByTestId(renderer.root, "bar").props.style);
 
 describe("TabBar", () => {
@@ -166,7 +167,7 @@ describe("AddButton", () => {
     const onPress = jest.fn();
     return { onPress, mounted: mount(<AddButton onPress={onPress} {...props} />) };
   };
-  const button = (renderer: Mounted) => renderer.root.findByType(Pressable);
+  const button = (renderer: Mounted) => findPressable(renderer.root);
 
   it("is a 44 px orange circle", async () => {
     const renderer = await setup().mounted;

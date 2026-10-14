@@ -1,5 +1,4 @@
 import React from "react";
-import { Pressable } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { act, ReactTestRenderer } from "react-test-renderer";
 import FilterSheet from "@/components/FilterSheet";
@@ -8,6 +7,7 @@ import { setPianoFilters } from "@/redux/pianos/actions";
 import { makePiano } from "./helpers/fixtures";
 import { allTexts, createTestStore, renderWithStore } from "./helpers/render";
 import { advance } from "./helpers/ui";
+import { findAllPressables } from "./helpers/pressables";
 
 const withSafeArea = (children: React.ReactNode) => (
   <SafeAreaProvider
@@ -83,8 +83,7 @@ const isOn = (renderer: ReactTestRenderer, label: string) =>
   byLabel(renderer, label).props.accessibilityState.checked;
 const flip = (renderer: ReactTestRenderer, label: string) => press(renderer, label);
 const showButton = (renderer: ReactTestRenderer) =>
-  renderer.root
-    .findAllByType(Pressable)
+  findAllPressables(renderer.root)
     .find((node) => /^Show \d+ pianos?$/.test(node.props.accessibilityLabel ?? ""))!;
 
 beforeEach(() => {
@@ -218,11 +217,11 @@ describe("applying and closing", () => {
     expect(store.getState().pianos.filters).toEqual(DEFAULT_FILTERS);
   });
 
-  it("starts again from the filters in use when it is opened again", () => {
+  it("starts again from the filters in use when it is opened again", async () => {
     const { renderer } = render();
     flip(renderer, "Sold pianos");
     press(renderer, "Close");
-    advance(400);
+    await advance(400);
 
     act(() => setOpen(true));
 
@@ -341,12 +340,12 @@ describe("Sort by", () => {
     expect(byLabel(renderer, "Due date").props.accessibilityState.selected).toBe(false);
   });
 
-  it("changes the sort, closes the list and shows the new name", () => {
+  it("changes the sort, closes the list and shows the new name", async () => {
     const { store, renderer } = render();
     press(renderer, "Sort by, Latest added");
 
     press(renderer, "Title A to Z");
-    advance(400);
+    await advance(400);
 
     expect(optionLabels(renderer)).toEqual([]);
     expect(has(renderer, "Sort by, Title A to Z")).toBe(true);
@@ -379,7 +378,7 @@ describe("Sort by", () => {
     expect(store.getState().pianos.filters.category).toBe("Events");
   });
 
-  it("can be left with Cancel, changing nothing", () => {
+  it("can be left with Cancel, changing nothing", async () => {
     const { renderer } = render();
     press(renderer, "Sort by, Latest added");
 
@@ -388,7 +387,7 @@ describe("Sort by", () => {
       (node) => node.props.accessibilityLabel === "Cancel" && typeof node.props.onPress === "function"
     );
     act(() => cancels[0].props.onPress());
-    advance(400);
+    await advance(400);
 
     expect(optionLabels(renderer)).toEqual([]);
     expect(has(renderer, "Sort by, Latest added")).toBe(true);

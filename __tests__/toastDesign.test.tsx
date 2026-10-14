@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform, Pressable, StyleSheet, Text, ToastAndroid, View } from "react-native";
+import { Platform, StyleSheet, Text, ToastAndroid, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { act } from "react-test-renderer";
@@ -8,6 +8,7 @@ import { ICONS } from "@/components/ui/Icon";
 import { lightColors as colors, fonts, radii } from "@/constants/theme";
 import { setToastListener, showToast } from "@/utils/toast";
 import { advance, mount, setReduceMotion, textContent } from "./helpers/ui";
+import { findAllPressables, findPressable } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 
@@ -152,7 +153,7 @@ describe("a toast with a button", () => {
   it("shows an orange bold action on the right", async () => {
     const renderer = await host();
     await act(async () => showToast("Couldn’t save.", withAction()));
-    const action = renderer.root.findByType(Pressable);
+    const action = findPressable(renderer.root);
     const label = action.findByType(Text);
 
     expect(textContent(label)).toBe("Retry");
@@ -168,7 +169,7 @@ describe("a toast with a button", () => {
     const renderer = await host();
     await act(async () => showToast("Piano deleted", { action: { label: "Undo", onPress: () => {} } }));
 
-    expect(StyleSheet.flatten(renderer.root.findByType(Pressable).props.style).minHeight).toBe(44);
+    expect(StyleSheet.flatten(findPressable(renderer.root).props.style).minHeight).toBe(44);
   });
 
   it("runs the action and takes the toast away when it is pressed", async () => {
@@ -176,7 +177,7 @@ describe("a toast with a button", () => {
     const renderer = await host();
     await act(async () => showToast("Piano deleted", { action: { label: "Undo", onPress } }));
 
-    await act(async () => renderer.root.findByType(Pressable).props.onPress());
+    await act(async () => findPressable(renderer.root).props.onPress());
     expect(onPress).toHaveBeenCalledTimes(1);
 
     await advance(250);
@@ -197,7 +198,7 @@ describe("a toast with a button", () => {
     const renderer = await host();
     await act(async () => showToast("Saved", { variant: "success" }));
 
-    expect(renderer.root.findAllByType(Pressable)).toHaveLength(0);
+    expect(findAllPressables(renderer.root)).toHaveLength(0);
   });
 });
 

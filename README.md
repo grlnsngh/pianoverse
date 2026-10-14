@@ -5,7 +5,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 ## Technologies Used
 
 - **Front-end Framework:** [React Native](https://reactnative.dev/)
-- **Front-end Framework:** [Expo](https://docs.expo.dev/) (SDK 51, Expo Router)
+- **Front-end Framework:** [Expo](https://docs.expo.dev/) (SDK 57, Expo Router, React Native 0.86, React 19)
 - **Back-end:** [Appwrite](https://appwrite.io/)
 - **State:** [Redux](https://redux.js.org/)
 - **UI:** our own components and design tokens (`components/ui/`, `constants/theme.ts`), drawn with React Native styles, in the [Figtree](https://fonts.google.com/specimen/Figtree) font
@@ -68,7 +68,8 @@ Follow these steps to get started with Pianoverse:
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18 or 20.
+- [Node.js](https://nodejs.org/) 22, the version in `.nvmrc` (Expo SDK 57 needs 20.19.4 or later). In WSL, `nvm install` and then `nvm use` in the project pick it; `nvm alias default 22` makes it the one every new terminal starts with.
+- [EAS CLI](https://docs.expo.dev/build/setup/) 24 or later, for builds and updates: `npm i -g eas-cli@latest` (in WSL too, where the builds run). `eas.json` refuses older ones.
 - The Expo CLI comes with the project; run it with `npx expo`.
 
 ### Installation
@@ -102,6 +103,8 @@ You will see options to open the app in:
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
 ## Backend (Appwrite)
+
+Photos are uploaded through the Appwrite SDK, which only works with React Native's own `fetch`. Since Expo SDK 56 the default is Expo's `fetch`, so `.env` sets `EXPO_PUBLIC_USE_RN_FETCH=1` to keep React Native's. Keep that line; `__tests__/fetchSetting.test.ts` fails without it.
 
 Besides the `users` and `pianos` tables, the app needs a `rent_payments` table (use `rent_payments` as its ID when creating it):
 
@@ -199,7 +202,17 @@ Options go after `--`: `npm run build:android -- --bump` raises the version even
 
 The build runs on your machine, not on Expo's servers, so it needs no paid plan; you only have to be logged in to Expo once (`eas login`). Without `--local` the same command builds in Expo's cloud, where the free plan allows a limited number of builds a month. (Expo officially supports local builds on macOS and Linux; on Windows they have worked here, but Expo doesn't test that.) Changes to native settings (`app.json` plugins, splash screen, permissions) and new native modules only reach users through a new build.
 
+The app targets Android 16 (API level 36), which Google Play asks of new apps and updates. A build needs the Android SDK platform 36, build-tools 35 and 36, CMake 3.22.1 and NDK 27.1 and 27.0; Gradle downloads the NDKs when they are missing.
+
+**In WSL the builds use a Linux Android SDK of their own**, `~/Android/Sdk`: `~/.bashrc` sets `ANDROID_HOME=$HOME/Android/Sdk`. Don't point it at the Windows SDK (`/mnt/c/.../Android/Sdk`): the tools Android Studio puts there are Windows programs, which Gradle in WSL can't run (`Installed Build Tools revision 35.0.0 is corrupted`), and it is slow to build through `/mnt/c`. To set it up again, put Google's Linux [command-line tools](https://developer.android.com/studio#command-line-tools-only) in `~/Android/Sdk/cmdline-tools/latest`, then:
+
+```sh
+sdkmanager --sdk_root=$HOME/Android/Sdk "platform-tools" "platforms;android-36" "build-tools;36.0.0" "build-tools;35.0.0" "cmake;3.22.1" "ndk;27.1.12297006"
+```
+
 If the build stops with `A problem occurred starting process 'command 'node''` (Gradle can't start `node`), a Gradle daemon left over from your previous build is being reused. Stop it and build again: `pkill -f GradleDaemon` (in WSL). A build started from a terminal that has `ANDROID_HOME` set (the interactive shell, not a bare `wsl -e bash script`) is needed too, or Gradle says `SDK location not found`.
+
+If it stops with `OutOfMemoryError: Metaspace`, Gradle needs more memory than the project's `gradle.properties` gives it (many cores run many workers at once). In WSL, `~/.gradle/gradle.properties` raises it for every build on the machine: `org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8`.
 
 ## Fixing the App Without a New Build (Over-the-Air Updates)
 

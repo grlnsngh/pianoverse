@@ -1,5 +1,5 @@
 import React from "react";
-import { Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { Dimensions, Modal, ScrollView, StyleSheet, Text } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { act } from "react-test-renderer";
 import { Sheet } from "@/components/ui";
@@ -13,6 +13,7 @@ import {
   textContent,
   update,
 } from "./helpers/ui";
+import { findAllPressables } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 
@@ -129,7 +130,7 @@ describe("Sheet look", () => {
   it("has a title row: a left button and a centred 17 px bold title", async () => {
     const renderer = await open();
     const title = renderer.root.findAllByType(Text).find((t) => textContent(t) === "Record payment")!;
-    const left = renderer.root.findAllByType(Pressable).find(
+    const left = findAllPressables(renderer.root).find(
       (p) => p.props.accessibilityLabel === "Cancel"
     )!;
 
@@ -176,7 +177,7 @@ describe("Sheet look", () => {
 
   it("dims what is behind it", async () => {
     const renderer = await open();
-    const close = renderer.root.findAllByType(Pressable).find(
+    const close = findAllPressables(renderer.root).find(
       (p) => p.props.accessibilityLabel === "Close"
     )!;
     const dimView = close.parent!.parent!;
@@ -213,7 +214,7 @@ describe("Sheet leaving", () => {
     const onClose = jest.fn();
     const renderer = await open({ onClose });
     const byLabel = (label: string) =>
-      renderer.root.findAllByType(Pressable).find((p) => p.props.accessibilityLabel === label)!;
+      findAllPressables(renderer.root).find((p) => p.props.accessibilityLabel === label)!;
 
     byLabel("Close").props.onPress();
     byLabel("Cancel").props.onPress();
@@ -226,7 +227,7 @@ describe("Sheet leaving", () => {
     const onClose = jest.fn();
     const onLeftPress = jest.fn();
     const renderer = await open({ onClose, onLeftPress, leftLabel: "Reset", title: "Filters" });
-    const reset = renderer.root.findAllByType(Pressable).find(
+    const reset = findAllPressables(renderer.root).find(
       (p) => p.props.accessibilityLabel === "Reset"
     )!;
 

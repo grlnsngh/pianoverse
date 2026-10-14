@@ -180,5 +180,5 @@ export const AppLockProvider = ({
 
 const useStyles = makeStyles((colors) => ({
   fill: { flex: 1 },
-  cover: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.page },
+  cover: { ...StyleSheet.absoluteFill, backgroundColor: colors.page },
 }));

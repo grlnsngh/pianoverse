@@ -28,6 +28,8 @@ const nativePackages = () =>
       const dir = path.join(root, "node_modules", name);
       return (
         fs.existsSync(path.join(dir, "android")) ||
+        // React Native itself keeps its Android code here
+        fs.existsSync(path.join(dir, "ReactAndroid")) ||
         fs.existsSync(path.join(dir, "ios")) ||
         fs.existsSync(path.join(dir, "expo-module.config.json"))
       );
@@ -235,6 +237,81 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
       experiments: { typedRoutes: true },
     },
   },
+  // Expo SDK 57 (React Native 0.86): every native package changed, the
+  // splash screen moved from "splash" to the expo-splash-screen plugin, and
+  // the microphone and draw-over-other-apps permissions were dropped
+  "4": {
+    packages: [
+      "@react-native-async-storage/async-storage@2.2.0",
+      "expo@57.0.28",
+      "expo-constants@57.0.21",
+      "expo-dev-client@57.0.20",
+      "expo-file-system@57.0.7",
+      "expo-font@57.0.4",
+      "expo-haptics@57.0.3",
+      "expo-image@57.0.5",
+      "expo-image-manipulator@57.0.21",
+      "expo-image-picker@57.0.20",
+      "expo-intent-launcher@57.0.1",
+      "expo-linking@57.0.12",
+      "expo-local-authentication@57.0.3",
+      "expo-notifications@57.0.22",
+      "expo-router@57.0.26",
+      "expo-sharing@57.0.23",
+      "expo-splash-screen@57.0.10",
+      "expo-status-bar@57.0.1",
+      "expo-system-ui@57.0.4",
+      "expo-updates@57.0.26",
+      "expo-web-browser@57.0.3",
+      "react-native@0.86.3",
+      "react-native-gesture-handler@2.32.0",
+      "react-native-reanimated@4.5.1",
+      "react-native-safe-area-context@5.7.0",
+      "react-native-screens@4.26.2",
+      "react-native-svg@15.15.4",
+      "react-native-worklets@0.10.1",
+    ],
+    config: {
+      name: "pianoverse",
+      slug: "pianoverse",
+      orientation: "portrait",
+      icon: "./assets/images/icon.png",
+      scheme: ["pianoverse", "appwrite-callback-66b2693000154e2fa3c8"],
+      userInterfaceStyle: "light",
+      backgroundColor: "#FFFFFF",
+      ios: { supportsTablet: true },
+      android: {
+        adaptiveIcon: {
+          foregroundImage: "./assets/images/adaptive-icon.png",
+          backgroundColor: "#ffffff",
+        },
+        package: "com.grlnsngh.pianoverse",
+        blockedPermissions: ["android.permission.SYSTEM_ALERT_WINDOW"],
+      },
+      plugins: [
+        "expo-router",
+        [
+          "expo-splash-screen",
+          { backgroundColor: "#FF9C01", image: "./assets/images/splash-blank.png" },
+        ],
+        [
+          "expo-image-picker",
+          {
+            photosPermission:
+              "Pianoverse uses your photos so you can add pictures of your pianos.",
+            cameraPermission:
+              "Pianoverse uses the camera so you can take pictures of your pianos.",
+            microphonePermission: false,
+          },
+        ],
+        [
+          "expo-local-authentication",
+          { faceIDPermission: "Pianoverse uses Face ID to unlock the app." },
+        ],
+      ],
+      experiments: { typedRoutes: true },
+    },
+  },
 };
 
 describe("the runtime version for over-the-air updates", () => {
@@ -267,9 +344,10 @@ describe("the update setup", () => {
   });
 
   it("has a command to publish a fix to the builds you install, and one for the store", () => {
-    expect(pkg.scripts.update).toBe("eas update --channel preview");
+    // EAS CLI asks which environment's variables an update is made with
+    expect(pkg.scripts.update).toBe("eas update --channel preview --environment preview");
     expect(pkg.scripts["update:production"]).toBe(
-      "eas update --channel production"
+      "eas update --channel production --environment production"
     );
   });
 

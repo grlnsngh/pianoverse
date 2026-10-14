@@ -1,10 +1,11 @@
 import React from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
-import { ReactTestRenderer } from "react-test-renderer";
+import { StyleSheet, Text } from "react-native";
+import { act, ReactTestRenderer } from "react-test-renderer";
 import { Button } from "@/components/ui";
 import Spinner from "@/components/ui/Spinner";
 import { lightColors as colors, fonts } from "@/constants/theme";
 import { findAllMemo, mount } from "./helpers/ui";
+import { findPressable } from "./helpers/pressables";
 
 type Props = Partial<React.ComponentProps<typeof Button>>;
 
@@ -17,7 +18,7 @@ const setup = async (props: Props = {}) => {
 };
 
 const pressableOf = (renderer: ReactTestRenderer) =>
-  renderer.root.findByType(Pressable);
+  findPressable(renderer.root);
 const styleOf = (renderer: ReactTestRenderer, pressed = false) =>
   StyleSheet.flatten(pressableOf(renderer).props.style({ pressed }));
 const spinnersOf = (renderer: ReactTestRenderer) =>
@@ -201,14 +202,14 @@ describe("Button loading", () => {
     const { renderer } = await setup();
     const layout = (width: number) => ({ nativeEvent: { layout: { width, height: 52, x: 0, y: 0 } } });
 
-    pressableOf(renderer).props.onLayout(layout(148));
+    act(() => pressableOf(renderer).props.onLayout(layout(148)));
     expect(styleOf(renderer).minWidth).toBeUndefined();
 
-    renderer.update(<Button title="Save payment" loadingTitle="Saving" loading onPress={() => {}} />);
+    act(() => renderer.update(<Button title="Save payment" loadingTitle="Saving" loading onPress={() => {}} />));
     expect(styleOf(renderer).minWidth).toBe(148);
 
     // Its width changing while it loads doesn't move the floor
-    pressableOf(renderer).props.onLayout(layout(120));
+    act(() => pressableOf(renderer).props.onLayout(layout(120)));
     expect(styleOf(renderer).minWidth).toBe(148);
   });
 

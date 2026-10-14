@@ -1,6 +1,6 @@
 import React from "react";
 import { act } from "react-test-renderer";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { Segmented, Switch } from "@/components/ui";
 import { lightColors as colors, fonts } from "@/constants/theme";
 import {
@@ -12,6 +12,7 @@ import {
   textContent,
   update,
 } from "./helpers/ui";
+import { findAllPressables, findPressable } from "./helpers/pressables";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 
@@ -51,7 +52,7 @@ describe("Switch", () => {
   };
   const track = (renderer: Mounted) => animatedStyles(renderer.root)[0];
   const thumb = (renderer: Mounted) => animatedStyles(renderer.root)[1];
-  const pressable = (renderer: Mounted) => renderer.root.findByType(Pressable);
+  const pressable = (renderer: Mounted) => findPressable(renderer.root);
 
   it("is a 51 x 31 track with a 27 px white thumb", async () => {
     const renderer = await setup().mounted;
@@ -196,7 +197,7 @@ describe("Segmented", () => {
       ),
     };
   };
-  const tabs = (renderer: Mounted) => renderer.root.findAllByType(Pressable);
+  const tabs = (renderer: Mounted) => findAllPressables(renderer.root);
   // The track is 340 wide on the tests' phone: each of the four options is 84
   const layout = async (renderer: Mounted) => {
     await act(async () => {

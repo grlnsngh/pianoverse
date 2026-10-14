@@ -13,7 +13,7 @@ jest.mock("expo-router", () => ({
 }));
 
 import React from "react";
-import { FlatList, Pressable, RefreshControl } from "react-native";
+import { FlatList, RefreshControl } from "react-native";
 import { act } from "react-test-renderer";
 import { router } from "expo-router";
 import Home from "@/app/(tabs)/home";
@@ -30,6 +30,7 @@ import {
   pressText,
   renderWithStore,
 } from "./helpers/render";
+import { findAllPressables } from "./helpers/pressables";
 
 type Renderer = ReturnType<typeof renderWithStore>;
 
@@ -88,8 +89,7 @@ const press = (renderer: Renderer, label: string) => {
 };
 const has = (renderer: Renderer, label: string) => !!byLabel(renderer, label);
 const tabs = (renderer: Renderer) =>
-  renderer.root
-    .findAllByType(Pressable)
+  findAllPressables(renderer.root)
     .filter((node: any) => node.props.accessibilityRole === "tab");
 const selectedTabs = (renderer: Renderer) =>
   tabs(renderer)

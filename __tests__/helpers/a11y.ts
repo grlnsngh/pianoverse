@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 import { ReactTestInstance } from "react-test-renderer";
+import { findAllPressables } from "./pressables";
 
 /** The least a finger needs, in px (SPEC: 44 x 44). */
 export const MIN_TARGET = 44;
@@ -19,7 +20,7 @@ const isHidden = (node: ReactTestInstance) => {
 
 /** Every Pressable and TouchableOpacity a person could meet, which is what a finger actually lands on. */
 const touchables = (root: ReactTestInstance) =>
-  [...root.findAllByType(Pressable), ...root.findAllByType(TouchableOpacity)].filter(
+  [...findAllPressables(root), ...root.findAllByType(TouchableOpacity)].filter(
     (node) => !isHidden(node)
   );
 
