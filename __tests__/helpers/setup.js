@@ -42,3 +42,12 @@ jest.mock("expo-local-authentication", () => ({
   getEnrolledLevelAsync: jest.fn(() => Promise.resolve(2)),
   authenticateAsync: jest.fn(() => Promise.resolve({ success: true })),
 }));
+
+// The web view that draws the real-page previews of the paper forms. In tests
+// it draws nothing; a test reads the page it was given from its source prop
+jest.mock("react-native-webview", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  const WebView = (props) => React.createElement(View, { testID: props.testID ?? "webview", source: props.source });
+  return { __esModule: true, WebView, default: WebView };
+});

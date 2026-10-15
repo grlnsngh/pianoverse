@@ -66,3 +66,5 @@ export { default as ScreenEntrance } from "./ScreenEntrance";
 export type { ScreenEntranceProps } from "./ScreenEntrance";
 export { default as Stepper } from "./Stepper";
 export type { StepperProps } from "./Stepper";
+export { default as Slider } from "./Slider";
+export type { SliderProps } from "./Slider";

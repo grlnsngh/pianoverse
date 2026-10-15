@@ -7,8 +7,9 @@ import PaperSavedSheet from "@/components/PaperSavedSheet";
 import { Button, Icon } from "@/components/ui";
 import type { IconName } from "@/components/ui";
 import { fonts, radii, spacing, type } from "@/constants/theme";
-import { loadLetterhead } from "@/lib/letterheadStorage";
+import LetterheadRow from "@/components/LetterheadRow";
 import { savePaperKit } from "@/lib/paperPdf";
+import useLetterhead from "@/lib/useLetterhead";
 import usePaperPdf from "@/lib/usePaperPdf";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 import {
@@ -65,7 +66,8 @@ const Tip = ({ icon, title, text }: { icon: IconName; title: string; text: strin
 const PaperForms = () => {
   const colors = useColors();
   const styles = useStyles();
-  const kit = usePaperPdf(async () => savePaperKit(await loadLetterhead()));
+  const { details, design } = useLetterhead();
+  const kit = usePaperPdf(() => savePaperKit(details, design));
 
   return (
     <SafeAreaView edges={["top"]} style={styles.page}>
@@ -101,6 +103,15 @@ const PaperForms = () => {
             style={styles.kitButton}
           />
         </View>
+
+        <Text style={styles.groupTitle} accessibilityRole="header">
+          Your letterhead
+        </Text>
+        <LetterheadRow
+          design={design}
+          details={details}
+          hint="On agreements, rent cards, receipts and handover forms"
+        />
 
         <Text style={styles.groupTitle} accessibilityRole="header">
           One form at a time

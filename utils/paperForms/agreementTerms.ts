@@ -9,11 +9,10 @@
  * - **Title:** at the start of a paragraph is printed in bold.
  * - {business} prints the business name, or a line to write it on.
  * - {blank} prints a line to write on; {blank 90} makes it 90 wide (120 is the usual).
- * - A line that is only "--- page 2 ---" moves what follows to the second page.
  *
- * After a change, save the PDF once and check that nothing is cut off at the
- * bottom of either page (the test in __tests__/agreements.test.ts warns when a
- * page gets much longer than it was). An over-the-air update carries it.
+ * The pages fill themselves (agreements.ts): add or lengthen a clause and the
+ * rest moves on, to a third page if it has to; nothing is cut off. Save the PDF
+ * once after a change to see how it reads. An over-the-air update carries it.
  */
 
 export const HOTEL_TERMS = `
@@ -24,8 +23,6 @@ export const HOTEL_TERMS = `
 **Ownership:** The piano shall remain the sole property of {business}. This agreement does not transfer ownership to the client.
 
 **Care and maintenance:** The client shall take reasonable care of the piano and keep it in a suitable environment, away from moisture, direct sunlight, excessive heat and other conditions that may cause damage.
-
---- page 2 ---
 
 **Damage:** Any damage caused by negligence, misuse, unauthorized shifting or improper handling shall be the client’s responsibility, excluding normal wear and tear.
 
@@ -48,8 +45,6 @@ export const PRIVATE_TERMS = `
 **Ownership:** The piano shall remain the sole property of {business}. This agreement does not transfer ownership to the renter.
 
 **Care and maintenance:** The renter shall take reasonable care of the piano and keep it in a suitable environment, away from moisture, direct sunlight, excessive heat and other conditions that may cause damage.
-
---- page 2 ---
 
 **Damage:** Any damage caused by negligence, misuse, unauthorized shifting or improper handling shall be the renter’s responsibility, excluding normal wear and tear.
 

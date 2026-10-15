@@ -1,17 +1,24 @@
 const mockMoves: { from: string; to: string; options: unknown }[] = [];
 const mockBase64 = jest.fn(async (uri: string) => `B64(${uri})`);
+/** The files on the "phone": letterhead images a test has put there */
+const mockExisting = new Set<string>();
 
 jest.mock("expo-file-system", () => {
+  const join = (parts: (string | { uri: string })[]) =>
+    parts.map((part) => (typeof part === "string" ? part : part.uri)).join("");
   class Directory {
     uri: string;
-    constructor(uri: string) {
-      this.uri = uri;
+    constructor(...parts: (string | { uri: string })[]) {
+      this.uri = join(parts).replace(/([^/])$/, "$1/");
     }
   }
   class File {
     uri: string;
     constructor(...parts: (string | { uri: string })[]) {
-      this.uri = parts.map((part) => (typeof part === "string" ? part : part.uri)).join("");
+      this.uri = join(parts);
+    }
+    get exists() {
+      return mockExisting.has(this.uri);
     }
     get contentUri() {
       return this.uri.replace("file:///docs/", "content://pianoverse/docs/");
@@ -52,22 +59,26 @@ import {
   loadFontCss,
   openPdf,
   printPdf,
+  loadLetterheadAssets,
   resetFontCssForTests,
   saveAgreement,
   savePaperForm,
   savePaperKit,
+  saveTestPage,
   sharePdf,
 } from "@/lib/paperPdf";
-import { EMPTY_LETTERHEAD } from "@/utils/letterhead";
+import { DEFAULT_DESIGN, EMPTY_LETTERHEAD, type LetterheadDesign } from "@/utils/letterhead";
 
 /** Making a paper form's PDF on the phone, keeping it, and opening, printing or sharing it. */
 
 const printToFile = Print.printToFileAsync as jest.Mock;
 const letterhead = { ...EMPTY_LETTERHEAD, business: "Tune and Play" };
+const none: LetterheadDesign = { ...DEFAULT_DESIGN, style: "none" };
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockMoves.length = 0;
+  mockExisting.clear();
   resetFontCssForTests();
   jest.replaceProperty(Platform, "OS", "android");
   jest.spyOn(console, "warn").mockImplementation(() => {});
@@ -75,7 +86,7 @@ beforeEach(() => {
 
 describe("making a form's PDF", () => {
   it("draws the form's HTML on A4 with no margins", async () => {
-    await savePaperForm("rent_card", letterhead, 3);
+    await savePaperForm("rent_card", letterhead, 3, none);
 
     const options = printToFile.mock.calls[0][0];
     expect(options).toMatchObject({
@@ -85,7 +96,7 @@ describe("making a form's PDF", () => {
     });
     expect(options.html).toContain("<title>Rent card</title>");
     expect(options.html).toContain("Tune and Play");
-    expect(options.html.match(/<section class="page/g)).toHaveLength(3);
+    expect(options.html.match(/<section /g)).toHaveLength(3);
   });
 
   it("keeps it in the app's documents as the form's name, replacing the last one", async () => {
@@ -110,7 +121,7 @@ describe("making a form's PDF", () => {
   it("makes no more than 20 copies", async () => {
     await savePaperForm("rent_card", letterhead, 500);
 
-    expect(printToFile.mock.calls[0][0].html.match(/<section class="page/g)).toHaveLength(20);
+    expect(printToFile.mock.calls[0][0].html.match(/<section /g)).toHaveLength(20);
   });
 
   it("refuses a form that doesn't exist, without drawing anything", async () => {
@@ -132,7 +143,7 @@ describe("making a form's PDF", () => {
 
     const pdf = await savePaperKit(letterhead);
 
-    expect(printToFile.mock.calls[0][0].html.match(/<section class="page/g)).toHaveLength(9);
+    expect(printToFile.mock.calls[0][0].html.match(/<section /g)).toHaveLength(9);
     expect(pdf).toEqual({ uri: "file:///docs/Paper forms kit.pdf", fileName: "Paper forms kit.pdf", pages: 9 });
   });
 
@@ -143,7 +154,7 @@ describe("making a form's PDF", () => {
 
     const html = printToFile.mock.calls[0][0].html;
     expect(html).toContain("<title>Private rental agreement</title>");
-    expect(html.match(/<section class="page/g)).toHaveLength(4);
+    expect(html.match(/<section /g)).toHaveLength(4);
     expect(mockMoves[0]).toMatchObject({ to: "file:///docs/Rental agreement (private).pdf" });
     expect(pdf).toEqual({
       uri: "file:///docs/Rental agreement (private).pdf",
@@ -153,32 +164,89 @@ describe("making a form's PDF", () => {
   });
 });
 
-describe("the font in the PDF", () => {
+describe("the fonts in the PDF", () => {
   it("embeds Figtree's regular, semibold and bold from the app's own font files", async () => {
-    const css = await loadFontCss();
+    const css = await loadFontCss(none);
 
     expect(Asset.fromModule).toHaveBeenCalledTimes(3);
     expect(css.match(/@font-face/g)).toHaveLength(3);
+    expect(css.match(/font-family:'Figtree'/g)).toHaveLength(3);
     for (const weight of [400, 600, 700]) expect(css).toContain(`font-weight:${weight}`);
     expect(css).toContain("src:url(data:font/ttf;base64,B64(file:///cache/font-");
   });
 
-  it("reads the font files once, not for every PDF", async () => {
+  it("adds the letterhead's own fonts when its design uses them: Monogram's initials and Elegant lettering", async () => {
+    const css = await loadFontCss(DEFAULT_DESIGN);
+
+    expect(css.match(/@font-face/g)).toHaveLength(5);
+    expect(css).toContain("font-family:'Playfair Display'");
+    expect(css).toContain("font-family:'Lora'");
+  });
+
+  it("reads each font file once, not for every PDF", async () => {
     await savePaperForm("rent_card", letterhead, 1);
     await savePaperForm("receipts", letterhead, 1);
 
-    expect(mockBase64).toHaveBeenCalledTimes(3);
-    expect(printToFile.mock.calls[1][0].html).toContain("@font-face");
+    expect(mockBase64).toHaveBeenCalledTimes(5);
+    expect(printToFile.mock.calls[1][0].html.match(/@font-face/g)).toHaveLength(5);
   });
 
-  it("makes the PDF in the phone's own font when the files can't be read, and tries again next time", async () => {
+  it("still makes the PDF when a font file can't be read, and tries that one again next time", async () => {
     mockBase64.mockRejectedValueOnce(new Error("no file"));
 
-    await savePaperForm("rent_card", letterhead, 1);
-    expect(printToFile.mock.calls[0][0].html).not.toContain("@font-face");
+    await savePaperForm("rent_card", letterhead, 1, none);
+    expect(printToFile.mock.calls[0][0].html.match(/@font-face/g)).toHaveLength(2);
 
+    await savePaperForm("rent_card", letterhead, 1, none);
+    expect(printToFile.mock.calls[1][0].html.match(/@font-face/g)).toHaveLength(3);
+  });
+});
+
+describe("the letterhead in the PDF", () => {
+  const logo = { file: "logo-1.png", width: 600, height: 400 };
+  const page = { file: "letterhead-1.jpg", width: 1240, height: 1754 };
+
+  it("puts the small letterhead on a form and the full one on an agreement", async () => {
     await savePaperForm("rent_card", letterhead, 1);
-    expect(printToFile.mock.calls[1][0].html).toContain("@font-face");
+    await saveAgreement("hotel", letterhead, 1);
+
+    expect(printToFile.mock.calls[0][0].html).toContain("TUNE AND PLAY");
+    expect(printToFile.mock.calls[1][0].html).toContain("font-size:300px");
+  });
+
+  it("reads the logo of a made letterhead from the phone, and puts it in the PDF once", async () => {
+    mockExisting.add("file:///docs/letterhead/logo-1.png");
+
+    await saveAgreement("hotel", letterhead, 2, { ...DEFAULT_DESIGN, logo });
+
+    const html = printToFile.mock.calls[0][0].html;
+    expect(html).toContain(".lh-logo{background:url(data:image/png;base64,B64(file:///docs/letterhead/logo-1.png))");
+    expect(html.match(/logo-1\.png/g)).toHaveLength(1);
+    expect(html).toContain('class="lh-logo"');
+  });
+
+  it("reads only the image the chosen style uses, and goes without one that has gone missing", async () => {
+    mockExisting.add("file:///docs/letterhead/letterhead-1.jpg");
+    const upload: LetterheadDesign = { ...DEFAULT_DESIGN, style: "upload", logo, upload: { ...DEFAULT_DESIGN.upload, image: page } };
+
+    expect(await loadLetterheadAssets(upload)).toEqual({
+      logo: null,
+      image: "data:image/jpeg;base64,B64(file:///docs/letterhead/letterhead-1.jpg)",
+    });
+    // The logo file isn't there
+    expect(await loadLetterheadAssets({ ...DEFAULT_DESIGN, logo })).toEqual({ logo: null, image: null });
+  });
+
+  it("makes a test page for a printed pad: the agreement's first page alone", async () => {
+    printToFile.mockResolvedValueOnce({ uri: "file:///cache/Print/t.pdf", numberOfPages: 1 });
+
+    const pdf = await saveTestPage(letterhead, { ...DEFAULT_DESIGN, style: "printed" });
+
+    const html = printToFile.mock.calls[0][0].html;
+    expect(html.match(/<section /g)).toHaveLength(1);
+    expect(html).toContain("PIANO RENTAL AGREEMENT");
+    expect(html).toContain('style="padding-top:170px"');
+    expect(pdf).toEqual({ uri: "file:///docs/Letterhead test page.pdf", fileName: "Letterhead test page.pdf", pages: 1 });
   });
 });
 

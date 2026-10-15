@@ -313,7 +313,9 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
     },
   },
   // Paper forms: expo-print turns the forms into PDFs, and expo-asset (which
-  // expo already had inside it) reads the font files the PDFs are set in
+  // expo already had inside it) reads the font files the PDFs are set in.
+  // The letterhead added react-native-webview (the real-page preview) before
+  // any build of runtime 5 was made, so it joined runtime 5 rather than 6
   "5": {
     packages: [
       "@react-native-async-storage/async-storage@2.2.0",
@@ -345,6 +347,7 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
       "react-native-safe-area-context@5.7.0",
       "react-native-screens@4.26.2",
       "react-native-svg@15.15.4",
+      "react-native-webview@13.16.1",
       "react-native-worklets@0.10.1",
     ],
     config: {

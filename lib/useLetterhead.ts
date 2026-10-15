@@ -1,43 +1,27 @@
-import { useEffect, useRef, useState } from "react";
-import { loadLetterhead, saveLetterhead } from "@/lib/letterheadStorage";
-import { EMPTY_LETTERHEAD, type Letterhead, type LetterheadKey } from "@/utils/letterhead";
+import { useEffect, useSyncExternalStore } from "react";
+import {
+  getLetterheadState,
+  loadLetterheadState,
+  subscribeLetterhead,
+  updateLetterheadDesign,
+  updateLetterheadDetails,
+} from "@/lib/letterheadStore";
 
 /**
- * The business details on a paper form's screen: read from the phone when the
- * screen opens, changed as they are typed, and remembered when a field is left
- * or a PDF is made. A detail typed before the saved ones were read is kept,
- * not overwritten by them.
+ * The letterhead (business details and design) for a screen, read from the
+ * phone the first time and the same on every screen; changes are saved at
+ * once (lib/letterheadStore.ts).
  */
 const useLetterhead = () => {
-  const [letterhead, setLetterhead] = useState<Letterhead>(EMPTY_LETTERHEAD);
-  const typed = useRef(new Set<LetterheadKey>());
-
+  const state = useSyncExternalStore(subscribeLetterhead, getLetterheadState, getLetterheadState);
   useEffect(() => {
-    let active = true;
-    loadLetterhead().then((saved) => {
-      if (!active) return;
-      setLetterhead((current) => {
-        const merged = { ...saved };
-        typed.current.forEach((key) => {
-          merged[key] = current[key];
-        });
-        return merged;
-      });
-    });
-    return () => {
-      active = false;
-    };
+    void loadLetterheadState();
   }, []);
-
-  const change = (key: LetterheadKey) => (text: string) => {
-    typed.current.add(key);
-    setLetterhead((current) => ({ ...current, [key]: text }));
+  return {
+    ...state,
+    updateDetails: updateLetterheadDetails,
+    updateDesign: updateLetterheadDesign,
   };
-
-  /** Keeps what is on screen now. */
-  const remember = () => saveLetterhead(letterhead);
-
-  return { letterhead, change, remember };
 };
 
 export default useLetterhead;
