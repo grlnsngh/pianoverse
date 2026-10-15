@@ -15,7 +15,7 @@ import { Platform } from "react-native";
 
 /** Where reports go: the "pianoverse" project of the owner's Sentry. Safe to keep in the app; it can only send. */
 export const SENTRY_DSN =
-  "https://e94d634458a6017250d1d29c332e899b@o4512261246550016.ingest.us.sentry.io/4512261409472512";
+  "https://9aa0686ba7bddb1298923115160c7435@o4512261246550016.ingest.us.sentry.io/4512261501550592";
 
 /** Whether this copy of the app sends reports. */
 export const crashReportsOn = (dev: boolean = __DEV__, os: string = Platform.OS) => !dev && os !== "web";
