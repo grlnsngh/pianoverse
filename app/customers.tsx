@@ -14,7 +14,7 @@ import RefreshBand, {
   HIDDEN_REFRESH_INDICATOR,
 } from "@/components/RefreshBand";
 import { Icon, Spinner, StateView } from "@/components/ui";
-import { spacing, type } from "@/constants/theme";
+import { maxScale, spacing, type } from "@/constants/theme";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useOwnerPayments from "@/lib/useOwnerPayments";
 import useOwnerRentalHistory from "@/lib/useOwnerRentalHistory";
@@ -101,7 +101,11 @@ const Customers = () => {
         }
       >
         <RefreshBand refreshing={refreshing} />
-        <Text style={styles.title} accessibilityRole="header">
+        <Text
+          style={styles.title}
+          accessibilityRole="header"
+          maxFontSizeMultiplier={maxScale.title}
+        >
           Customers
         </Text>
 

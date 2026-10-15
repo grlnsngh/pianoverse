@@ -14,7 +14,7 @@ import SignOutSheet from "@/components/SignOutSheet";
 import { Group, Icon, Segmented, Spinner, Switch } from "@/components/ui";
 import type { IconName } from "@/components/ui";
 import { PRIVACY_POLICY_URL } from "@/constants/links";
-import { fonts, radii, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, radii, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { useAppLock } from "@/lib/AppLockContext";
 import { deleteAccount, signOut } from "@/lib/appwrite";
@@ -296,7 +296,11 @@ const Profile = () => {
   return (
     <SafeAreaView edges={["top"]} style={styles.page}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title} accessibilityRole="header">
+        <Text
+          style={styles.title}
+          accessibilityRole="header"
+          maxFontSizeMultiplier={maxScale.title}
+        >
           Account
         </Text>
 

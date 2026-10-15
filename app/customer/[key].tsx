@@ -14,7 +14,7 @@ import RefreshBand, {
   HIDDEN_REFRESH_INDICATOR,
 } from "@/components/RefreshBand";
 import { Icon, Spinner, StateView } from "@/components/ui";
-import { fonts, spacing, type } from "@/constants/theme";
+import { amountTextProps, fonts, maxScale, spacing, type } from "@/constants/theme";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useOwnerPayments from "@/lib/useOwnerPayments";
 import useOwnerRentalHistory from "@/lib/useOwnerRentalHistory";
@@ -220,6 +220,7 @@ const Customer = () => {
               style={styles.title}
               accessibilityRole="header"
               numberOfLines={2}
+              maxFontSizeMultiplier={maxScale.title}
             >
               {customer.name}
             </Text>
@@ -265,7 +266,9 @@ const Customer = () => {
             )}
 
             <Text style={styles.label}>Paid in all</Text>
-            <Text style={styles.amount}>{formatRupees(customer.total)}</Text>
+            <Text style={styles.amount} {...amountTextProps}>
+              {formatRupees(customer.total)}
+            </Text>
             <Text style={styles.summary}>
               {customer.paymentsCount > 0
                 ? `${paymentsText(customer.paymentsCount)}${

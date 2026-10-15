@@ -283,6 +283,44 @@ export const type = {
   sheetTitle: { fontFamily: fonts.bold, fontSize: 17, lineHeight: 22 },
 } as const satisfies Record<string, TextStyle>;
 
+/**
+ * How much bigger than drawn a text may grow when the person turns up their
+ * Font size, as the `maxFontSizeMultiplier` of a `Text` (docs/large-text/PLAN.md,
+ * D1). Only text that is already big or that sits in fixed chrome is limited;
+ * ordinary text has no limit, since large text is why the setting is on, so a
+ * body or secondary line never takes a value from here.
+ *
+ * A type style can't carry this (it is a prop, not a style), so every `Text`
+ * that uses `type.amount`, `type.largeTitle` or `type.pianoTitle` passes
+ * `maxScale.amount` or `maxScale.title`.
+ */
+export const maxScale = {
+  /** Amounts: 44 px at 100% */
+  amount: 1.3,
+  /** Tab titles, headlines and the piano title: 28 to 32 px at 100% */
+  title: 1.3,
+  /** Section titles and sheet titles: 17 to 20 px at 100% */
+  section: 1.5,
+  /** Tab bar labels, which have a fixed bar to fit in */
+  tabLabel: 1.5,
+  /** The pill on a photo, which has the photo to fit on */
+  badge: 1.3,
+  /** The small number on the filter button, and the A to Z index of the make picker */
+  count: 1.2,
+} as const;
+
+/**
+ * For the `Text` of an amount that must never break across two lines: it
+ * keeps one line and shrinks to fit, down to 60%, after the limit above has
+ * stopped it growing. At 100% an amount already fits, so nothing changes.
+ */
+export const amountTextProps = {
+  maxFontSizeMultiplier: maxScale.amount,
+  numberOfLines: 1,
+  adjustsFontSizeToFit: true,
+  minimumFontScale: 0.6,
+} as const;
+
 /** The only shadow in the design, on the search pill. Dark in both themes: on a dark surface it simply isn't seen. */
 export const shadows = {
   searchPill: {

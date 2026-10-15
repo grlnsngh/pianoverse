@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import CameraDeniedSheet from "@/components/CameraDeniedSheet";
 import { Button, Field, Icon, Sheet, Spinner } from "@/components/ui";
-import { fonts, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { changeProfilePhoto, removeProfilePhoto, renameProfile } from "@/lib/profileEdits";
 import { initialOf, profilePhoto } from "@/utils/account";
@@ -158,7 +158,11 @@ const EditProfile = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.title} accessibilityRole="header">
+          <Text
+            style={styles.title}
+            accessibilityRole="header"
+            maxFontSizeMultiplier={maxScale.title}
+          >
             Edit profile
           </Text>
 

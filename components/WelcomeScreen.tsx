@@ -4,7 +4,7 @@ import { Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Rect } from "react-native-svg";
 import { BrandMark, Button } from "@/components/ui";
-import { fonts, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 // The board's 390 x 468 orange top: a keyboard running off the left, right and bottom
@@ -94,7 +94,11 @@ const WelcomeScreen = () => {
       </View>
 
       <View style={styles.text}>
-        <Text style={styles.headline} accessibilityRole="header">
+        <Text
+          style={styles.headline}
+          accessibilityRole="header"
+          maxFontSizeMultiplier={maxScale.title}
+        >
           Every piano, every rental, in one place.
         </Text>
         <Text style={styles.subtitle}>

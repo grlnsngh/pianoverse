@@ -1,6 +1,6 @@
 import { differenceInCalendarMonths, format, parse } from "date-fns";
 import React from "react";
-import { Alert, AlertButton } from "react-native";
+import { Alert, AlertButton, Dimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import {
@@ -55,6 +55,26 @@ const mountedRenderers = new Set<ReactTestRenderer>();
 const TEST_METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
+};
+
+/**
+ * Sets the phone's Font size for what is rendered next and re-renders what is
+ * already on screen, like the person changing it while the app is open. 1 is
+ * 100%; the app's big-text layouts start at 1.25. Tests start at 1 (see
+ * helpers/setup.js), and one that changes it must put it back: use
+ * atFontScale for a whole describe block.
+ */
+export const setFontScale = (fontScale: number) => {
+  const window = Dimensions.get("window");
+  act(() => {
+    Dimensions.set({ window: { ...window, fontScale }, screen: { ...window, fontScale } });
+  });
+};
+
+/** For a describe block: every test in it runs with the Font size at `fontScale`, then goes back to 1. */
+export const atFontScale = (fontScale: number) => {
+  beforeEach(() => setFontScale(fontScale));
+  afterEach(() => setFontScale(1));
 };
 
 export const renderWithStore = (ui: React.ReactElement, store: TestStore) => {

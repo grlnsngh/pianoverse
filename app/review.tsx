@@ -25,7 +25,7 @@ import {
   SuccessMark,
 } from "@/components/ui";
 import { PIANO_CATEGORY } from "@/constants/Piano";
-import { fonts, radii, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, radii, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { createPianoEntry, toPianoItem } from "@/lib/appwrite";
 import { resetCreateForm, setActiveTab } from "@/redux/navigation/actions";
@@ -304,7 +304,11 @@ const Review = () => {
       <SafeAreaView edges={["top"]} style={styles.whiteScreen}>
         <View style={styles.centre}>
           <SuccessMark />
-          <Text style={styles.doneTitle} accessibilityRole="header">
+          <Text
+            style={styles.doneTitle}
+            accessibilityRole="header"
+            maxFontSizeMultiplier={maxScale.title}
+          >
             Piano added
           </Text>
           <Text style={styles.doneMessage}>

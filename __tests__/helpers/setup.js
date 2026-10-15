@@ -67,3 +67,12 @@ jest.mock("@sentry/react-native", () => ({
   captureException: jest.fn(),
   wrap: (component) => component,
 }));
+
+// React Native's Jest preset says the phone's Font size is 200%. The app
+// follows it (lib/useTextScale.ts), so tests start at 100% like a normal phone;
+// a test that wants more uses setFontScale or atFontScale from helpers/render
+{
+  const { Dimensions } = require("react-native");
+  const window = Dimensions.get("window");
+  Dimensions.set({ window: { ...window, fontScale: 1 }, screen: { ...window, fontScale: 1 } });
+}
