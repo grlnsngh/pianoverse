@@ -127,11 +127,11 @@ Tick `[x]` when done. Rules: work on a branch `feature/large-text` off `main`; k
   - [x] L0.2 `textZoom={100}` on the `WebView` in `components/PaperPreview.tsx` (F29)
   - [x] L0.3 Tests that both pass 100; typecheck, tests, lint, commit [`paperPdf.test.ts` has the PDF case and the new `paperPreview.test.tsx` the preview; the web view mock in `__tests__/helpers/setup.js` now passes `textZoom` through. Both tests fail without the fix. 164 suites, 2597 tests green]
   - [ ] L0.4 On the emulator at Font size 150%, save a form and an agreement and compare them with the same PDFs made at 100%: same text size, same page count. Ship over the air to the runtime 5 build
-- [ ] **Batch L1. Foundations** (S)
-  - [ ] L1.1 `lib/useTextScale.ts` (`fontScale`, `large` at 1.25 and up) and a test helper in `__tests__/helpers/render.tsx` that renders at a chosen `fontScale`
-  - [ ] L1.2 `maxScale` table in `constants/theme.ts` (D1) and a short "Large text" section in `docs/redesign/SPEC.md`
-  - [ ] L1.3 Apply the limits to big text: Today and Income amounts (also one line that shrinks to fit, so a number never breaks), tab titles, piano title, Welcome and Lock headlines (F18, F23)
-  - [ ] L1.4 Tests, typecheck, lint, commit
+- [x] **Batch L1. Foundations** (S) [done 2026-10-15]
+  - [x] L1.1 `lib/useTextScale.ts` (`fontScale`, `large` at 1.25 and up) and a test helper in `__tests__/helpers/render.tsx` that renders at a chosen `fontScale` [`useTextScale()` returns `{ fontScale, large }`; `isLargeText` and `LARGE_TEXT_FROM` are exported. React Native's Jest preset says the phone's Font size is 200%, so `helpers/setup.js` now starts every test at 100%; `setFontScale(n)` and `atFontScale(n)` (a describe block's `beforeEach`/`afterEach`) in `helpers/render.tsx` change it]
+  - [x] L1.2 `maxScale` table in `constants/theme.ts` (D1) and a short "Large text" section in `docs/redesign/SPEC.md` [section 9 of SPEC; the table has `amount` and `title` 1.3, `section` and `tabLabel` 1.5, `badge` 1.3, `count` 1.2; also `amountTextProps` for an amount's one-line fit]
+  - [x] L1.3 Apply the limits to big text: Today and Income amounts (also one line that shrinks to fit, so a number never breaks), tab titles, piano title, Welcome and Lock headlines (F18, F23) [every `Text` that uses `type.largeTitle`, `type.pianoTitle` or `type.amount`: the titles of Today, Account, Customers, Income, Edit profile, Paper forms, Service history, the Add flow, the Sign in family, a customer's page, the piano page (and its price), the Welcome and Lock headlines and the "Published" title; the amounts on Today, Income and a customer's page. Section and sheet titles, tab labels and badges have their limits in the table and get them in Batch L3]
+  - [x] L1.4 Tests, typecheck, lint, commit [`largeText.test.tsx`: the hook, the table, Today's title and amount, and two guards that fail when a screen uses a big title or amount style without its limit. 165 suites, 2609 tests]
 - [ ] **Batch L2. Controls** (M)
   - [ ] L2.1 `Button`: `minHeight`, label may take two lines in big-text mode (F7)
   - [ ] L2.2 `Field`: `minHeight`, typed text sized by its line height, not 28 (F1)
@@ -218,6 +218,10 @@ Continue the large-text work. Read docs/large-text/PLAN.md (Progress, Decisions,
 
 - 2026-10-15, second audit. Batches 30 to 35 (paper forms, letterhead, usage counts, Appwrite check, crash reporting, service log) were checked the same way: F28 to F40. The PDFs (F28) are the worst problem in the app for the owner, since they are wrong on paper and not only on screen, so they get their own small Batch L0, done first. The owner asked that every future screen be built for large text from the start: the rules are in `CLAUDE.md` (section "Large text") and in rule 15 of `docs/redesign/PLAN.md`.
 
+- 2026-10-15, batch L1, **A style can't carry a limit, so a guard test does.** `maxFontSizeMultiplier` is a `Text` prop, not a style, so `type.largeTitle` can't include it. `largeText.test.tsx` reads every file under `app/` and `components/` and fails when one spreads `type.largeTitle` or `type.pianoTitle` without `maxScale.title`, or `type.amount` without `amountTextProps`, so a new screen can't forget.
+- 2026-10-15, batch L1, **Tests start at 100%.** React Native's Jest preset reports a Font size of 200%. Left alone, every screen that switches layout at 125% would be in big-text mode in every existing test, so `helpers/setup.js` sets 1 and a test that wants more asks for it.
+- 2026-10-15, batch L1, **Nothing changes at 100%.** The limits don't act below their value, and an amount that already fits on one line doesn't shrink. Not yet looked at on a phone at 150%: that is Batch L5.
+
 (more added as batches go)
 
 ## Session log
@@ -233,3 +237,7 @@ Second audit, of everything added since (Batches 30 to 35): F28 to F40 and Batch
 ### Session 2, 2026-10-15
 
 Batch L0: `textZoom: 100` on the PDF (`lib/paperPdf.ts`) and on the page preview's web view (`components/PaperPreview.tsx`), with tests. Not yet checked on a phone (L0.4): at font scale 1.5, save a form and an agreement and compare them with PDFs made at 1.0.
+
+### Session 3, 2026-10-15
+
+Batch L1 (foundations): `lib/useTextScale.ts`, `maxScale` and `amountTextProps` in `constants/theme.ts`, the limits on every big title and amount, test helpers, SPEC section 9 and `largeText.test.tsx`. Batch L0 (the PDFs) was merged first as PR #50. Next: Batch L2 (controls).

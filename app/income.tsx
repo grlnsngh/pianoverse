@@ -16,7 +16,7 @@ import RefreshBand, {
   HIDDEN_REFRESH_INDICATOR,
 } from "@/components/RefreshBand";
 import { Icon, Spinner, StateView } from "@/components/ui";
-import { fonts, spacing, type } from "@/constants/theme";
+import { amountTextProps, fonts, maxScale, spacing, type } from "@/constants/theme";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useIncome from "@/lib/useIncome";
 import { RootState } from "@/redux/store";
@@ -124,7 +124,11 @@ const Income = () => {
         }
       >
         <RefreshBand refreshing={refreshing} />
-        <Text style={styles.title} accessibilityRole="header">
+        <Text
+          style={styles.title}
+          accessibilityRole="header"
+          maxFontSizeMultiplier={maxScale.title}
+        >
           Income
         </Text>
 
@@ -155,7 +159,9 @@ const Income = () => {
         {loaded && !failed && !empty && (
           <>
             <Text style={styles.label}>Last {INCOME_MONTHS} months</Text>
-            <Text style={styles.amount}>{formatRupees(totals.total)}</Text>
+            <Text style={styles.amount} {...amountTextProps}>
+                {formatRupees(totals.total)}
+              </Text>
             <Text style={styles.split}>
               {`Rent ${formatRupees(totals.rent)} · Sales ${formatRupees(totals.sales)}`}
             </Text>

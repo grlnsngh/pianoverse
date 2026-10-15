@@ -6,7 +6,7 @@ import FormThumbnail, { KitThumbnail } from "@/components/FormThumbnail";
 import PaperSavedSheet from "@/components/PaperSavedSheet";
 import { Button, Icon } from "@/components/ui";
 import type { IconName } from "@/components/ui";
-import { fonts, radii, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, radii, spacing, type } from "@/constants/theme";
 import LetterheadRow from "@/components/LetterheadRow";
 import { savePaperKit } from "@/lib/paperPdf";
 import useLetterhead from "@/lib/useLetterhead";
@@ -78,7 +78,11 @@ const PaperForms = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title} accessibilityRole="header">
+        <Text
+          style={styles.title}
+          accessibilityRole="header"
+          maxFontSizeMultiplier={maxScale.title}
+        >
           Paper forms
         </Text>
         <Text style={styles.lead}>

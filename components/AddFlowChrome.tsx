@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { fonts, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import { makeStyles } from "@/lib/ThemeContext";
 
 /** The steps of the Add flow, one per segment of the progress bar. */
@@ -62,7 +62,11 @@ export const AddFlowHeading = ({ step, title, subtitle }: AddFlowHeadingProps) =
         ))}
       </View>
       <Text style={styles.stepText}>{`Step ${step} of ${ADD_STEPS}`}</Text>
-      <Text style={styles.title} accessibilityRole="header">
+      <Text
+        style={styles.title}
+        accessibilityRole="header"
+        maxFontSizeMultiplier={maxScale.title}
+      >
         {title}
       </Text>
       <Text style={styles.subtitle}>{subtitle}</Text>

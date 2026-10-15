@@ -8,7 +8,7 @@ import BackBar from "@/components/BackBar";
 import ServiceEntryRow from "@/components/ServiceEntryRow";
 import useServiceSheets from "@/components/useServiceSheets";
 import { Button, StateView } from "@/components/ui";
-import { fonts, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import type { PianoItem } from "@/redux/pianos/types";
 import type { RootState } from "@/redux/store";
 import { formatRupees } from "@/utils/money";
@@ -26,7 +26,11 @@ const ServiceList = ({ piano }: { piano: PianoItem }) => {
   return (
     <>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title} accessibilityRole="header">
+        <Text
+          style={styles.title}
+          accessibilityRole="header"
+          maxFontSizeMultiplier={maxScale.title}
+        >
           Service
         </Text>
         <Text style={styles.sub}>

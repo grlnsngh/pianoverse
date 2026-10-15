@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BrandMark, Button } from "@/components/ui";
-import { spacing, type } from "@/constants/theme";
+import { maxScale, spacing, type } from "@/constants/theme";
 import { makeStyles } from "@/lib/ThemeContext";
 
 /**
@@ -31,7 +31,11 @@ const LockScreen = ({
     <SafeAreaView style={styles.page} testID="lock-screen">
       <View style={styles.center}>
         <BrandMark size={88} />
-        <Text style={styles.title} accessibilityRole="header">
+        <Text
+          style={styles.title}
+          accessibilityRole="header"
+          maxFontSizeMultiplier={maxScale.title}
+        >
           Pianoverse is locked
         </Text>
         <Text style={styles.text}>

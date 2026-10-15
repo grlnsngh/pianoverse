@@ -13,7 +13,7 @@ import ServiceDueRow from "@/components/ServiceDueRow";
 import ShelfCard from "@/components/ShelfCard";
 import TodaySkeleton from "@/components/TodaySkeleton";
 import { AddButton, useSkeletonDelay } from "@/components/ui";
-import { fonts, spacing, type } from "@/constants/theme";
+import { amountTextProps, fonts, maxScale, spacing, type } from "@/constants/theme";
 import { usePianoData } from "@/lib/PianoDataContext";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useIncome from "@/lib/useIncome";
@@ -181,14 +181,20 @@ const Today = () => {
         <View style={styles.header}>
           <View>
             <Text style={styles.date}>{format(now, "EEEE, d MMMM")}</Text>
-            <Text style={styles.title}>Today</Text>
+            <Text style={styles.title} maxFontSizeMultiplier={maxScale.title}>
+              Today
+            </Text>
           </View>
           <AddButton onPress={openAdd} />
         </View>
 
         <View style={styles.income}>
           <Text style={styles.incomeLabel}>{`Received in ${format(now, "MMMM")}`}</Text>
-          <Text style={styles.amount} accessibilityLabel={failed ? "Not loaded" : undefined}>
+          <Text
+            style={styles.amount}
+            accessibilityLabel={failed ? "Not loaded" : undefined}
+            {...amountTextProps}
+          >
             {failed ? "—" : formatRupees(received.total)}
           </Text>
           <Text style={styles.incomeNote}>

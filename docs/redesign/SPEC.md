@@ -199,3 +199,13 @@ The photo card to hero shared-element transition may not be practical on expo-ro
 5. **New screens with no current equivalent:** Today, Welcome (redesign), NotifyPrimer, the Publishing progress and Published screens, the select-mode top bar. Build them from existing data.
 6. **Sample content:** anything on a board that looks like a real name, amount or date is placeholder.
 7. **Haptics:** `expo-haptics` is not installed. Optional in the polish batch.
+
+## 9. Large text
+
+The boards are drawn at 100% text on a 390 wide phone. People who turn up Font size (or Screen zoom) in their phone's settings must still get a screen that works, and nothing about it changes at 100%. The rules a new screen follows are in [CLAUDE.md](../../CLAUDE.md); the problems in older screens and the batches that fix them are in [docs/large-text/PLAN.md](../large-text/PLAN.md).
+
+- **Sizes grow, boxes follow.** A fixed `height` or `width` on anything that holds text becomes `minHeight`, `minWidth` or flexible. A board's number (a 56 px row, a 52 px button, an 84 px label column) is its size at 100%.
+- **Big-text mode** starts at a Font size of 125% (`lib/useTextScale.ts`: `{ fontScale, large }`, `LARGE_TEXT_FROM = 1.25`). Crowded rows stack in it: a form row's label sits above its value, a sticky bar's button goes under the amount, counts become a list, segmented choices one per row.
+- **Limits on big text** (`maxScale` in `constants/theme.ts`, passed as `maxFontSizeMultiplier`): amounts and the large and piano titles grow at most 30%, section and sheet titles and tab labels 50%, badges 30%, small counts 20%. Ordinary text has no limit. An amount also stays on one line and shrinks to fit (`amountTextProps`), so a number never breaks in the middle.
+- **Paper keeps its size.** PDFs and the page previews ignore Font size (`textZoom` 100), since a page is laid out for the size it is drawn at.
+- **In tests** the Font size starts at 100%; `setFontScale` and `atFontScale` in `__tests__/helpers/render.tsx` change it.

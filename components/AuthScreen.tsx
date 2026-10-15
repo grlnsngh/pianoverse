@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Icon } from "@/components/ui";
-import { fonts, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 type AuthScreenProps = {
@@ -73,7 +73,11 @@ const AuthScreen = ({
           </View>
 
           <View style={styles.body}>
-            <Text style={styles.title} accessibilityRole="header">
+            <Text
+              style={styles.title}
+              accessibilityRole="header"
+              maxFontSizeMultiplier={maxScale.title}
+            >
               {title}
             </Text>
             <Text style={styles.subtitle}>{subtitle}</Text>

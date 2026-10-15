@@ -23,7 +23,7 @@ import RentalSection from "@/components/RentalSection";
 import ServiceSection from "@/components/ServiceSection";
 import StickyActionBar from "@/components/StickyActionBar";
 import { Button, ScreenEntrance, useSkeletonDelay } from "@/components/ui";
-import { fonts, type } from "@/constants/theme";
+import { fonts, maxScale, type } from "@/constants/theme";
 import { PIANO_CATEGORY } from "@/constants/Piano";
 import type { RentPayment } from "@/lib/appwrite";
 import { usePianoData } from "@/lib/PianoDataContext";
@@ -316,7 +316,11 @@ const DetailScreen = () => {
           />
 
           <View style={styles.sheet}>
-            <Text style={styles.title} accessibilityRole="header">
+            <Text
+              style={styles.title}
+              accessibilityRole="header"
+              maxFontSizeMultiplier={maxScale.title}
+            >
               {piano.title || "Untitled Piano"}
             </Text>
             <Text style={styles.meta}>{metaLine(piano)}</Text>
@@ -338,7 +342,11 @@ const DetailScreen = () => {
                 </Text>
               </View>
             )}
-            {!!price && <Text style={styles.price}>{price}</Text>}
+            {!!price && (
+              <Text style={styles.price} maxFontSizeMultiplier={maxScale.amount}>
+                {price}
+              </Text>
+            )}
 
             {showRental && (
               <>
