@@ -11,10 +11,18 @@
  *    server rejects anything else, e.g. the text "185000"
  *  - pianos, rent payments and kept rentals live in separate collections, and a collection
  *    that does not exist yet (`missingCollections`) rejects every request
+ *  - every write is checked against the live project's tables (appwrite/project.json,
+ *    kept in step by `npm run check:appwrite`): a table ID that isn't there, a column
+ *    it doesn't have, a missing required value, the wrong type or text that is too
+ *    long is refused with Appwrite's message, as the real project would
  *
  * `Query` and `ID` are the real SDK implementations, so query strings are genuine.
  */
 const sdk = jest.requireActual("react-native-appwrite");
+const { loadProject, rowProblem } = jest.requireActual("../../scripts/appwriteSchema");
+
+/** The live project's tables, as appwrite/project.json records them. */
+const PROJECT = loadProject();
 
 export const ENDPOINT = "https://cloud.appwrite.io/v1";
 export const PROJECT_ID = "66b2693000154e2fa3c8";
@@ -59,34 +67,34 @@ export const fakeBackend = {
   },
 };
 
-// Columns the collections store as `double`
-const NUMBER_COLUMNS = [
-  "rental_price",
-  "event_purchase_price",
-  "on_sale_price",
-  "sold_price",
-  "amount",
-  "price",
-];
-
-const storeFor = (collectionId: string) => {
-  if (fakeBackend.missingCollections.has(collectionId)) {
+/** The table in the live project, or Appwrite's error when there is none with that ID. */
+const tableFor = (collectionId: string) => {
+  const table = PROJECT.tables.find((candidate: { $id: string }) => candidate.$id === collectionId);
+  if (!table || fakeBackend.missingCollections.has(collectionId)) {
     throw new Error("Collection with the requested ID could not be found.");
   }
+  return table;
+};
+
+const storeFor = (collectionId: string) => {
+  tableFor(collectionId);
   if (collectionId === PAYMENTS_COLLECTION_ID) return fakeBackend.payments;
   if (collectionId === RENTAL_HISTORY_COLLECTION_ID) return fakeBackend.history;
   return fakeBackend.documents;
 };
 
-const rejectNonNumbers = (data: Record<string, unknown>) => {
-  for (const column of NUMBER_COLUMNS) {
-    const value = data[column];
-    if (value !== undefined && value !== null && typeof value !== "number") {
-      throw new Error(
-        `Invalid document structure: Attribute "${column}" has invalid type. Value must be a valid float`
-      );
+/** What the SDK sends: the data as JSON (a URL becomes its text, a Date its ISO time). */
+const asSent = (data: object): Record<string, unknown> => JSON.parse(JSON.stringify(data));
+
+/** Refuses what the live table would refuse, with Appwrite's message. */
+const checkRow = (collectionId: string, data: Record<string, unknown>, creating: boolean) => {
+  for (const column of Object.keys(data)) {
+    if (fakeBackend.unknownColumns.has(column)) {
+      throw new Error(`Invalid document structure: Unknown attribute: "${column}"`);
     }
   }
+  const problem = rowProblem(tableFor(collectionId), data, { creating });
+  if (problem) throw new Error(problem);
 };
 
 export const fileViewUrl = (fileId: string) =>
@@ -154,12 +162,7 @@ class Databases {
 
   async createDocument(_databaseId: string, collectionId: string, id: string, data: object) {
     const store = storeFor(collectionId);
-    for (const column of Object.keys(data)) {
-      if (fakeBackend.unknownColumns.has(column)) {
-        throw new Error(`Invalid document structure: Unknown attribute: "${column}"`);
-      }
-    }
-    rejectNonNumbers(data as Record<string, unknown>);
+    checkRow(collectionId, asSent(data), true);
     const doc = { ...data, $id: id, $createdAt: new Date().toISOString() };
     store.set(id, doc);
     return doc;
@@ -173,7 +176,7 @@ class Databases {
     const store = storeFor(collectionId);
     const existing = store.get(id);
     if (!existing) throw new Error("Document with the requested ID could not be found.");
-    rejectNonNumbers(data as Record<string, unknown>);
+    checkRow(collectionId, asSent(data), false);
     const updated = { ...existing, ...JSON.parse(JSON.stringify(data)) };
     store.set(id, updated);
     return updated;

@@ -28,12 +28,13 @@ const fileIdFromUrl = (url, bucketId) => {
 };
 
 /**
- * What every photo of this account is named after: uploadFile() in the app
- * names files `userId_<account ID>_itemTitle_<title>_<time>.<ext>`, with the
- * ID cleaned the same way.
+ * What a photo is named after: uploadFile() in the app names files
+ * `userId_<owner>_itemTitle_<title>_<time>.<ext>`, with the ID cleaned the
+ * same way. The owner is the person's user row for a piano photo and their
+ * account for a profile photo.
  */
-const photoNamePrefix = (accountId) =>
-  `userId_${String(accountId).replace(/[^a-zA-Z0-9-_]/g, "_")}_`;
+const photoNamePrefix = (ownerId) =>
+  `userId_${String(ownerId).replace(/[^a-zA-Z0-9-_]/g, "_")}_`;
 
 const inBatches = async (items, work) => {
   for (let start = 0; start < items.length; start += AT_ONCE) {
@@ -75,13 +76,13 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
       }
     });
 
-  /** Uploads named after the account, including any left behind by a failed save. */
-  const filesNamedForAccount = async () => {
+  /** Uploads named after `ownerId`, including any left behind by a failed save. */
+  const filesNamedFor = async (ownerId) => {
     const ids = [];
     let cursor;
     try {
       for (;;) {
-        const queries = [Query.startsWith("name", photoNamePrefix(accountId)), Query.limit(PAGE_SIZE)];
+        const queries = [Query.startsWith("name", photoNamePrefix(ownerId)), Query.limit(PAGE_SIZE)];
         if (cursor) queries.push(Query.cursorAfter(cursor));
         const { files } = await storage.listFiles({ bucketId: storageId, queries });
         ids.push(...files.map((file) => file.$id));
@@ -103,7 +104,9 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
     rowsWhere(config.formEventsTableId, "creator", accountId),
   ]);
 
-  const photoIds = new Set(await filesNamedForAccount());
+  // Piano photos are named after the person's user row, profile photos after the account
+  const owners = [accountId, ...profiles.map((profile) => profile.$id)];
+  const photoIds = new Set((await Promise.all(owners.map(filesNamedFor))).flat());
   for (const piano of pianos) {
     for (const url of [piano.image_url, ...(piano.image_urls ?? [])]) {
       const id = fileIdFromUrl(url, storageId);

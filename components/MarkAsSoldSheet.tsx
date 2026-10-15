@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Alert, Text, View } from "react-native";
 import { format, isToday } from "date-fns";
 import { AmountInput, Button, DatePickerSheet, FormRow, Group, Sheet } from "@/components/ui";
+import { COLUMN_LIMITS } from "@/constants/columnLimits";
 import { type } from "@/constants/theme";
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { PianoItem } from "@/redux/pianos/types";
@@ -105,6 +106,7 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
             value: buyerName,
             onChangeText: setBuyerName,
             autoCapitalize: "words",
+            maxLength: COLUMN_LIMITS.pianos.sold_to_name,
             returnKeyType: "next",
           }}
         />
@@ -115,6 +117,7 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
             value: buyerAddress,
             onChangeText: setBuyerAddress,
             autoCapitalize: "sentences",
+            maxLength: COLUMN_LIMITS.pianos.sold_to_address,
             returnKeyType: "done",
           }}
         />

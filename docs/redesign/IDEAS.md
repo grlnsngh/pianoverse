@@ -8,7 +8,7 @@ How to read the tags:
 
 - **Size:** S is under a day of work, M a few batches' worth of one screen plus its data, L needs a design discussion first.
 - **JS only:** goes to the phone with `npm run update` (over the air), no new build.
-- **Appwrite:** you create a table or column in the Appwrite console first (the exact columns are listed). The app is written to keep working until you do, the way the earlier tables were.
+- **Appwrite:** a table or column in Appwrite. Since Batch 32 Claude makes it through the Appwrite connection when you say yes, and `appwrite/project.json` and `npm run check:appwrite` (Batch 33) keep the app and Appwrite in step.
 - **New build:** adds or changes a native package or a native setting, so `runtimeVersion` goes up and you build a new APK with `npm run build:android`.
 
 The sizes are estimates, not promises. Prices and store rules below come from general knowledge, not from checking in 2026: **look them up before you decide.**
@@ -25,25 +25,27 @@ The sizes are estimates, not promises. Prices and store rules below come from ge
 | M6 | Keep what was owed on a return | S | Appwrite column |
 | M7 | Income per piano | S | JS only |
 | M8 | Online payments (a payment gateway) | L | Gateway account, server code, Appwrite |
-| P1 | Tuning and service log | M | Appwrite table |
+| P1 | Tuning and service log | M | Appwrite table; **next, as Batch 35** |
 | P2 | Condition photos at handover and return | M | Appwrite table |
 | P3 | Availability calendar | M | JS only |
 | P4 | QR labels, scan to open a piano | M | New build |
 | C1 | Enquiries and follow-ups | M | Appwrite table |
-| C2 | Rental agreement | M | JS only (message), new build (PDF) |
+| C2 | Rental agreement | M | **Built as Batches 31 and 31A** (PDF, with letterhead) |
 | C3 | Customer documents (ID, signed agreement) | M | Appwrite, a private bucket |
 | C4 | Fix a wrong history entry | S | JS only |
 | D1 | Morning summary notification | S | JS only |
 | D2 | Import pianos from a spreadsheet | M | New build |
-| D3 | Dark mode | M | **Being built as Batch 29** |
+| D3 | Dark mode | M | **Built as Batch 29**; starts matching the phone since Batch 32 |
 | D4 | Another language | L | JS only |
-| R1 | A real-data test pass | S | A test Appwrite project |
-| R2 | Crash reporting | S | New build, an account |
+| R1 | A real-data test pass | S | **Built as Batch 33**, against the live project |
+| R2 | Crash reporting | S | New build (free while runtime 5 is unbuilt), a Sentry account; **Batch 34** |
 | R3 | Play Store release | M | $25 developer account, a production build |
 | R4 | Staff accounts | L | Design first |
 | R5 | iPhone build | M | Apple developer account |
 
 **Suggested order:** M1, then P1, then M2 with M3, then R1, which protects everything above. D3 is first because you asked for it.
+
+**Chosen on 2026-10-15:** R1 (Batch 33, done), R2 (Batch 34), then P1 (Batch 35). Native packages (R2, and P4 or D2 if wanted) are free to add until the 1.1.20 build, the first of runtime 5, is made.
 
 ---
 
@@ -196,8 +198,7 @@ Hindi or Punjabi, if your staff would prefer one. Every message in the app is wr
 
 All 28 batches were tested against in-memory fakes, never against the real Appwrite. A second Appwrite project (or database) with the same tables, and a short checklist to run on it, would catch what the fakes can't (permissions, column types, size limits).
 
-- A script (`scripts/setup-appwrite.js`, run by you with an API key you create and keep) could create every table and column, which also shortens the README's setup steps.
-- Claude can't use your Appwrite console or keys; you run the script.
+- **Done as Batch 33**, differently: no second project. The live project was read through the Appwrite connection and compared with what the app sends; `appwrite/project.json` records it, `npm run check:appwrite` compares them, and the tests refuse anything the live tables wouldn't take. It found `customer_name` missing, the photo bucket open to deletes, and no indexes, all fixed.
 
 ### R2. Crash reporting (S)
 

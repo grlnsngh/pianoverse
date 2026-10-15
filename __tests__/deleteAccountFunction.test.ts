@@ -51,6 +51,8 @@ const seed = () => {
   for (const id of ["f1", "f2", "f_avatar"]) server.addFile({ $id: id, name: `${photoNamePrefix(ME)}itemTitle_x.jpg` });
   // A photo whose piano never got saved: only its name says whose it is
   server.addFile({ $id: "f_orphan", name: `${photoNamePrefix(ME)}itemTitle_lost.jpg` });
+  // A piano photo left by a failed save: the app names those after the person's user row
+  server.addFile({ $id: "f_orphan_row", name: `${photoNamePrefix("u_me")}itemTitle_lost.jpg` });
   server.addFile({ $id: "f_theirs", name: `${photoNamePrefix(SOMEONE_ELSE)}itemTitle_profile.jpg` });
   server.addFile({ $id: "f_theirs2", name: `${photoNamePrefix(SOMEONE_ELSE)}itemTitle_y.jpg` });
 };
@@ -80,7 +82,7 @@ describe("deleting an account", () => {
     expect(ids(config.userTableId)).toEqual(["u_other"]);
     expect(server.files.map((file) => file.$id).sort()).toEqual(["f_theirs", "f_theirs2"]);
     expect(server.accounts.map((user) => user.$id)).toEqual([SOMEONE_ELSE]);
-    expect(deleted).toEqual({ pianos: 2, payments: 1, rentals: 1, photos: 4, profiles: 1, formEvents: 2 });
+    expect(deleted).toEqual({ pianos: 2, payments: 1, rentals: 1, photos: 5, profiles: 1, formEvents: 2 });
   });
 
   it("deletes the account last, so a deletion that stops leaves the person able to ask again", async () => {
@@ -136,12 +138,24 @@ describe("deleting an account", () => {
   });
 
   it("still deletes the photos its pianos point to when the files can't be looked up by name", async () => {
-    server.storage.listFiles.mockRejectedValueOnce(new Error("Invalid query: startsWith"));
+    server.storage.listFiles.mockRejectedValue(new Error("Invalid query: startsWith"));
 
     const deleted = await run();
 
     expect(deleted.photos).toBe(3);
-    expect(server.files.map((file) => file.$id).sort()).toEqual(["f_orphan", "f_theirs", "f_theirs2"]);
+    expect(server.files.map((file) => file.$id).sort()).toEqual([
+      "f_orphan",
+      "f_orphan_row",
+      "f_theirs",
+      "f_theirs2",
+    ]);
+  });
+
+  it("finds photos left behind under the account and under the person's user row", async () => {
+    await run();
+
+    expect(server.files.map((file) => file.$id)).not.toContain("f_orphan");
+    expect(server.files.map((file) => file.$id)).not.toContain("f_orphan_row");
   });
 
   it("stops, keeping the account, when Appwrite refuses a deletion", async () => {
@@ -244,7 +258,7 @@ describe("the function itself", () => {
     expect(reply.status).toBe(200);
     expect(reply.body).toEqual({
       ok: true,
-      deleted: { pianos: 2, payments: 1, rentals: 1, photos: 4, profiles: 1, formEvents: 2 },
+      deleted: { pianos: 2, payments: 1, rentals: 1, photos: 5, profiles: 1, formEvents: 2 },
     });
     expect(server.accounts.map((user) => user.$id)).toEqual([SOMEONE_ELSE]);
   });
@@ -342,7 +356,7 @@ describe("deleting an account asked for by email", () => {
     const { code, lines } = await script([" Me@Example.com ", "--yes"]);
 
     expect(code).toBe(0);
-    expect(lines[lines.length - 1]).toContain("Deleted 2 pianos, 4 photos, 1 payment, 1 kept rental, 2 form usage counts and the account.");
+    expect(lines[lines.length - 1]).toContain("Deleted 2 pianos, 5 photos, 1 payment, 1 kept rental, 2 form usage counts and the account.");
     expect(server.accounts.map((user) => user.$id)).toEqual([SOMEONE_ELSE]);
   });
 
