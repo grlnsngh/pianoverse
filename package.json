@@ -40,6 +40,7 @@
     "@expo-google-fonts/lora": "^0.4.2",
     "@expo-google-fonts/playfair-display": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@sentry/react-native": "~7.11.0",
     "date-fns": "^3.6.0",
     "expo": "^57.0.28",
     "expo-asset": "~57.0.20",

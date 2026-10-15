@@ -315,10 +315,12 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
   // Paper forms: expo-print turns the forms into PDFs, and expo-asset (which
   // expo already had inside it) reads the font files the PDFs are set in.
   // The letterhead added react-native-webview (the real-page preview) before
-  // any build of runtime 5 was made, so it joined runtime 5 rather than 6
+  // any build of runtime 5 was made, so it joined runtime 5 rather than 6, and
+  // so did Sentry's crash reports (Batch 34) and its plugin
   "5": {
     packages: [
       "@react-native-async-storage/async-storage@2.2.0",
+      "@sentry/react-native@7.11.0",
       "expo@57.0.28",
       "expo-asset@57.0.20",
       "expo-constants@57.0.22",
@@ -388,6 +390,10 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
         [
           "expo-local-authentication",
           { faceIDPermission: "Pianoverse uses Face ID to unlock the app." },
+        ],
+        [
+          "@sentry/react-native",
+          { organization: "grow-by-pixel", project: "pianoverse", url: "https://sentry.io/" },
         ],
       ],
       experiments: { typedRoutes: true },

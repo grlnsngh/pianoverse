@@ -38,7 +38,7 @@ The sizes are estimates, not promises. Prices and store rules below come from ge
 | D3 | Dark mode | M | **Built as Batch 29**; starts matching the phone since Batch 32 |
 | D4 | Another language | L | JS only |
 | R1 | A real-data test pass | S | **Built as Batch 33**, against the live project |
-| R2 | Crash reporting | S | New build (free while runtime 5 is unbuilt), a Sentry account; **Batch 34** |
+| R2 | Crash reporting | S | **Built as Batch 34** (Sentry, in the 1.1.20 build) |
 | R3 | Play Store release | M | $25 developer account, a production build |
 | R4 | Staff accounts | L | Design first |
 | R5 | iPhone build | M | Apple developer account |

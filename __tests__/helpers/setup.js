@@ -51,3 +51,13 @@ jest.mock("react-native-webview", () => {
   const WebView = (props) => React.createElement(View, { testID: props.testID ?? "webview", source: props.source });
   return { __esModule: true, WebView, default: WebView };
 });
+
+// Sentry's crash reports (lib/crashReports.ts). Tests never send anything; a
+// test can read what the app asked of it from these
+jest.mock("@sentry/react-native", () => ({
+  init: jest.fn(),
+  setUser: jest.fn(),
+  setTag: jest.fn(),
+  captureException: jest.fn(),
+  wrap: (component) => component,
+}));
