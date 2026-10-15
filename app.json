@@ -58,6 +58,14 @@
         {
           "faceIDPermission": "Pianoverse uses Face ID to unlock the app."
         }
+      ],
+      [
+        "@sentry/react-native",
+        {
+          "organization": "grow-by-pixel",
+          "project": "pianoverse",
+          "url": "https://sentry.io/"
+        }
       ]
     ],
     "experiments": {

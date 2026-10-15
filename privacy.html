@@ -25,7 +25,7 @@
 
   <main class="doc">
     <h1 class="title">Privacy policy</h1>
-    <p class="updated">Updated 15 October 2026</p>
+    <p class="updated">Updated 15 October 2026 (crash reports added)</p>
 
     <p class="lead">Pianoverse is an app for keeping track of the pianos you sell and rent out. It is made by Gurleen Singh. This page says what the app keeps about you and the people you rent to, why, where it is stored, and how to have it deleted.</p>
     <p>Questions about it: <a href="mailto:pianoverse.app.dev@gmail.com">pianoverse.app.dev@gmail.com</a>.</p>
@@ -54,6 +54,9 @@
     <h3>Which paper forms you use</h3>
     <p>When you open a paper form, or save, print or share its PDF, the app notes which form it was (for example the rent card), what you did, how many pages the PDF had, when, the app’s version and whether your phone is Android or an iPhone, with your account. This shows which forms are used, so the useful ones get better. It never includes what is on the forms: they are blank, and your letterhead and business details stay on your phone. A count made without a connection waits on your phone and is sent later.</p>
 
+    <h3>When the app breaks</h3>
+    <p>If the app crashes or hits an error, it sends a crash report so the problem can be fixed: what went wrong and where in the app’s code, the screen you were on, your phone’s model and system version, the app’s version, and your account’s ID (not your name or email). Phone numbers and email addresses are masked before a report leaves your phone, and it never includes a screenshot, what was on the screen or what you typed. Reports are only sent by the app installed on a phone, and go to Sentry (below).</p>
+
     <h3>Only on your phone</h3>
     <p>These never leave your phone:</p>
     <ul>
@@ -65,7 +68,7 @@
     </ul>
 
     <h3>What Pianoverse doesn’t collect</h3>
-    <p>Your location, contacts, calls, microphone or advertising ID. There are no ads, no advertising or analytics services, and no tracking across other apps or websites. The only use of the app that is counted is which paper forms you use, as described above.</p>
+    <p>Your location, contacts, calls, microphone or advertising ID. There are no ads, no advertising services, and no tracking across other apps or websites. The only use of the app that is counted is which paper forms you use, and the only reports are crash reports, both described above.</p>
 
     <h2>How it is used</h2>
     <p>Only to run the app for you: to show your pianos, rentals and payments, to remind you when a rental ends, and to make the files you download. The paper form counts are used only to decide which forms to improve. None of it is sold, rented out or shared for advertising, and it isn’t used for anything else.</p>
@@ -74,6 +77,7 @@
     <ul>
       <li><strong>Appwrite</strong> (appwrite.io) stores your account, pianos, payments, photos and paper form counts, and runs signing in.</li>
       <li><strong>Google</strong> signs you in, if you choose Sign in with Google.</li>
+      <li><strong>Sentry</strong> (sentry.io) receives the crash reports, keeps them in the United States, and deletes them after its retention period (at most 90 days).</li>
       <li><strong>Expo</strong> (expo.dev) delivers updates to the app. When the app checks for one, Expo receives the app’s version and basic details of your phone, not your account or what you entered.</li>
     </ul>
     <p>They handle the data only to provide these services. Everything travels over encrypted connections (HTTPS).</p>

@@ -10,9 +10,11 @@ import { Figtree_700Bold } from "@expo-google-fonts/figtree/700Bold";
 import GlobalProvider from "@/context/GlobalProvider";
 import { Provider } from "react-redux";
 import store from "@/redux/store";
+import CrashReportAccount from "@/components/CrashReportAccount";
 import DialogHost from "@/components/DialogHost";
 import ToastHost from "@/components/ToastHost";
 import { AppLockProvider } from "@/lib/AppLockContext";
+import { startCrashReports } from "@/lib/crashReports";
 import { PianoDataProvider } from "@/lib/PianoDataContext";
 import { ThemeProvider, useTheme } from "@/lib/ThemeContext";
 import useAppUpdates from "@/lib/useAppUpdates";
@@ -22,6 +24,9 @@ import { navigationThemeFor } from "@/utils/navigationTheme";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+// Crash reports from an installed build, before anything is drawn (lib/crashReports.ts)
+startCrashReports();
 
 function RootContent() {
   // Fixes published with `eas update` reach the phone without a new build
@@ -60,6 +65,7 @@ function RootContent() {
       {/* Swipeable rows need this around everything */}
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Provider store={store}>
+          <CrashReportAccount />
           <GlobalProvider>
             {/* Asks for a fingerprint or screen lock first, when the person turned that on */}
             <AppLockProvider>
