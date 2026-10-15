@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { Href, router } from "expo-router";
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,12 +11,36 @@ import { loadLetterhead } from "@/lib/letterheadStorage";
 import { savePaperKit } from "@/lib/paperPdf";
 import usePaperPdf from "@/lib/usePaperPdf";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
-import { FULL_KIT, PAPER_FORMS, pagesText } from "@/utils/paperForms/catalog";
+import {
+  AGREEMENT_ROW,
+  FULL_KIT,
+  PAPER_FORMS,
+  pagesText,
+  type FormThumbnailKind,
+} from "@/utils/paperForms/catalog";
 
 const goBack = () => {
   if (router.canGoBack()) router.back();
   else router.replace("/profile");
 };
+
+/** "One form at a time": the five forms, then the rental agreement, each to its own screen. */
+const LIST: { key: string; title: string; summary: string; thumbnail: FormThumbnailKind; href: Href }[] = [
+  ...PAPER_FORMS.map((form) => ({
+    key: form.id,
+    title: form.title,
+    summary: form.summary,
+    thumbnail: form.thumbnail,
+    href: `/paper-form/${form.id}` as Href,
+  })),
+  {
+    key: "agreement",
+    title: AGREEMENT_ROW.title,
+    summary: AGREEMENT_ROW.summary,
+    thumbnail: AGREEMENT_ROW.thumbnail,
+    href: "/paper-agreement",
+  },
+];
 
 const Tip = ({ icon, title, text }: { icon: IconName; title: string; text: string }) => {
   const colors = useColors();
@@ -65,7 +89,7 @@ const PaperForms = () => {
             <View style={styles.kitText}>
               <Text style={styles.kitName}>The full kit</Text>
               <Text style={styles.kitMeta}>
-                All {PAPER_FORMS.length} forms in one PDF, {pagesText(FULL_KIT.pages)}
+                All {FULL_KIT.forms} forms in one PDF, {pagesText(FULL_KIT.pages)}
               </Text>
             </View>
           </View>
@@ -82,22 +106,22 @@ const PaperForms = () => {
           One form at a time
         </Text>
         <View style={styles.panel}>
-          {PAPER_FORMS.map((form, index) => (
+          {LIST.map((row, index) => (
             <Pressable
-              key={form.id}
-              onPress={() => router.push(`/paper-form/${form.id}`)}
+              key={row.key}
+              onPress={() => router.push(row.href)}
               accessibilityRole="button"
-              accessibilityLabel={`${form.title}. ${form.summary}`}
+              accessibilityLabel={`${row.title}. ${row.summary}`}
               style={({ pressed }) => [
                 styles.formRow,
                 index > 0 && styles.divided,
                 pressed && styles.pressed,
               ]}
             >
-              <FormThumbnail kind={form.thumbnail} />
+              <FormThumbnail kind={row.thumbnail} />
               <View style={styles.formText}>
-                <Text style={styles.formTitle}>{form.title}</Text>
-                <Text style={styles.formSummary}>{form.summary}</Text>
+                <Text style={styles.formTitle}>{row.title}</Text>
+                <Text style={styles.formSummary}>{row.summary}</Text>
               </View>
               <Icon name="chevronRight" size={18} color={colors.chevron} strokeWidth={2} />
             </Pressable>

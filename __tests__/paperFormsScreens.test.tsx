@@ -10,6 +10,7 @@ jest.mock("expo-router", () => ({
 jest.mock("@/lib/paperPdf", () => ({
   savePaperForm: jest.fn(),
   savePaperKit: jest.fn(),
+  saveAgreement: jest.fn(),
   openPdf: jest.fn(async () => undefined),
   printPdf: jest.fn(async () => undefined),
   sharePdf: jest.fn(async () => undefined),
@@ -20,11 +21,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React from "react";
 import { act } from "react-test-renderer";
 import { router, useLocalSearchParams } from "expo-router";
+import PaperAgreement from "@/app/paper-agreement";
 import PaperFormDetail from "@/app/paper-form/[id]";
 import PaperForms from "@/app/paper-forms";
+import { AgreementPreview } from "@/components/FormThumbnail";
 import PaperSavedSheet from "@/components/PaperSavedSheet";
 import { loadLetterhead, saveLetterhead } from "@/lib/letterheadStorage";
-import { openPdf, printPdf, savePaperForm, savePaperKit, sharePdf } from "@/lib/paperPdf";
+import { openPdf, printPdf, saveAgreement, savePaperForm, savePaperKit, sharePdf } from "@/lib/paperPdf";
 import { EMPTY_LETTERHEAD } from "@/utils/letterhead";
 import {
   allTexts,
@@ -40,7 +43,12 @@ import {
 /** The Paper forms screen and a form's screen (PaperForms, PaperFormDetail and PaperSaved boards). */
 
 const madeCard = { uri: "file:///docs/Rent card.pdf", fileName: "Rent card.pdf", pages: 2 };
-const madeKit = { uri: "file:///docs/Paper forms kit.pdf", fileName: "Paper forms kit.pdf", pages: 5 };
+const madeKit = { uri: "file:///docs/Paper forms kit.pdf", fileName: "Paper forms kit.pdf", pages: 9 };
+const madeAgreement = {
+  uri: "file:///docs/Rental agreement (hotel).pdf",
+  fileName: "Rental agreement (hotel).pdf",
+  pages: 4,
+};
 
 beforeEach(async () => {
   jest.clearAllMocks();
@@ -48,6 +56,7 @@ beforeEach(async () => {
   (useLocalSearchParams as jest.Mock).mockReturnValue({ id: "rent_card" });
   (savePaperForm as jest.Mock).mockResolvedValue(madeCard);
   (savePaperKit as jest.Mock).mockResolvedValue(madeKit);
+  (saveAgreement as jest.Mock).mockResolvedValue(madeAgreement);
   jest.spyOn(console, "warn").mockImplementation(() => {});
 });
 
@@ -81,11 +90,20 @@ describe("the Paper forms screen", () => {
       "Prefer pen and paper? Print these and fill them in by hand. The columns match the app."
     );
     expect(texts).toContain("The full kit");
-    expect(texts).toContain("All 5 forms in one PDF, 5 pages");
+    expect(texts).toContain("All 6 forms in one PDF, 9 pages");
     expect(texts).toContain("Get the full kit");
-    for (const title of ["Rent card", "Rent receipts", "Piano register", "Rental register", "Handover and return"]) {
+    for (const title of [
+      "Rent card",
+      "Rent receipts",
+      "Piano register",
+      "Rental register",
+      "Handover and return",
+      "Rental agreement",
+    ]) {
       expect(texts).toContain(title);
     }
+    expect(texts).toContain("Hotel or private person, your terms printed");
+    expect(texts.indexOf("Handover and return")).toBeLessThan(texts.indexOf("Rental agreement"));
     expect(texts).toContain("One per rental, 12 months of payments");
     expect(texts).toContain("Print at home or at a shop");
     expect(texts).toContain("Private by design");
@@ -99,6 +117,14 @@ describe("the Paper forms screen", () => {
     await pressLabel(renderer.root, "Rent receipts. Three to a page, each with an office copy");
 
     expect(router.push).toHaveBeenCalledWith("/paper-form/receipts");
+  });
+
+  it("opens the rental agreement's screen", async () => {
+    const renderer = await render(<PaperForms />);
+
+    await pressLabel(renderer.root, "Rental agreement. Hotel or private person, your terms printed");
+
+    expect(router.push).toHaveBeenCalledWith("/paper-agreement");
   });
 
   it("goes back to Account", async () => {
@@ -123,7 +149,7 @@ describe("the Paper forms screen", () => {
     const texts = allTexts(renderer.root);
     expect(texts).toContain("Paper forms kit is ready");
     expect(texts).toContain("Paper forms kit.pdf");
-    expect(texts).toContain("5 pages · A4 · on this phone");
+    expect(texts).toContain("9 pages · A4 · on this phone");
 
     await pressLabel(renderer.root, "Open");
     expect(openPdf).toHaveBeenCalledWith(madeKit);
@@ -289,6 +315,137 @@ describe("a form's screen", () => {
 
     expect(allTexts(renderer.root)).toContain("This form isn’t here");
     await pressLabel(renderer.root, "See all forms");
+    expect(router.replace).toHaveBeenCalledWith("/paper-forms");
+  });
+});
+
+describe("the rental agreement's screen", () => {
+  beforeEach(() => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({});
+  });
+
+  const choice = (renderer: any, label: string) =>
+    renderer.root.find(
+      (node: any) => node.props.accessibilityRole === "tab" && node.props.accessibilityLabel === label
+    );
+
+  it("starts with the hotel agreement, its two pages, the letterhead and two copies", async () => {
+    const renderer = await render(<PaperAgreement />);
+    const texts = allTexts(renderer.root);
+
+    expect(texts).toContain("Rental agreement");
+    expect(choice(renderer, "Hotel").props.accessibilityState).toEqual({ selected: true });
+    expect(texts).toContain("Your hotel agreement, with GST, designation and a hotel stamp");
+    expect(texts).toContain("A4 · 2 pages · your terms are printed");
+    expect(texts).toContain("Your letterhead");
+    for (const label of ["Business", "What you do", "Address", "Phone", "Email", "GST No.", "PAN"]) {
+      expect(inputValue(renderer.root, label)).toBe("");
+    }
+    expect(texts).toContain("Copies");
+    expect(texts).toContain("One for each side to keep");
+    expect(texts).toContain("2");
+    expect(renderer.root.findByType(AgreementPreview).props.kind).toBe("hotel");
+  });
+
+  it("switches to the private person's agreement", async () => {
+    const renderer = await render(<PaperAgreement />);
+
+    await act(async () => choice(renderer, "Private person").props.onPress());
+
+    expect(allTexts(renderer.root)).toContain(
+      "The same terms for one person: ID seen, a refundable deposit, no stamp"
+    );
+    expect(renderer.root.findByType(AgreementPreview).props.kind).toBe("private");
+  });
+
+  it("opens on the private person's agreement when asked to", async () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({ kind: "private" });
+    const renderer = await render(<PaperAgreement />);
+
+    expect(choice(renderer, "Private person").props.accessibilityState).toEqual({ selected: true });
+  });
+
+  it("fills in the whole letterhead saved on this phone, shared with the forms", async () => {
+    await saveLetterhead({
+      ...EMPTY_LETTERHEAD,
+      business: "Tune and Play",
+      phone: "98140 12345",
+      gst: "03ABCDE1234F1Z5",
+    });
+    const renderer = await render(<PaperAgreement />);
+
+    expect(inputValue(renderer.root, "Business")).toBe("Tune and Play");
+    expect(inputValue(renderer.root, "Phone")).toBe("98140 12345");
+    expect(inputValue(renderer.root, "GST No.")).toBe("03ABCDE1234F1Z5");
+  });
+
+  it("saves the agreement chosen with the letterhead and the copies, remembers the letterhead, and says it is ready", async () => {
+    const renderer = await render(<PaperAgreement />);
+    await act(async () => choice(renderer, "Private person").props.onPress());
+    typeInto(renderer.root, "Business", "Tune and Play");
+    typeInto(renderer.root, "What you do", "Tuning and rentals");
+    typeInto(renderer.root, "Address", "Sector 17, Chandigarh");
+    typeInto(renderer.root, "Email", "hello@tuneandplay.in");
+    typeInto(renderer.root, "PAN", "ABCDE1234F");
+    await pressLabel(renderer.root, "Fewer copies");
+    (saveAgreement as jest.Mock).mockResolvedValueOnce({
+      uri: "file:///docs/Rental agreement (private).pdf",
+      fileName: "Rental agreement (private).pdf",
+      pages: 2,
+    });
+
+    await pressLabel(renderer.root, "Save PDF");
+
+    const expected = {
+      ...EMPTY_LETTERHEAD,
+      business: "Tune and Play",
+      tagline: "Tuning and rentals",
+      address: "Sector 17, Chandigarh",
+      email: "hello@tuneandplay.in",
+      pan: "ABCDE1234F",
+    };
+    expect(saveAgreement).toHaveBeenCalledWith("private", expected, 1);
+    expect(await loadLetterhead()).toEqual(expected);
+    const texts = allTexts(renderer.root);
+    expect(texts).toContain("Private rental agreement is ready");
+    expect(texts).toContain("Rental agreement (private).pdf");
+    expect(texts).toContain("2 pages · A4 · on this phone");
+  });
+
+  it("prints and shares straight away, and opens the PDF from the ready sheet", async () => {
+    const renderer = await render(<PaperAgreement />);
+
+    await pressLabel(renderer.root, "Print");
+    expect(saveAgreement).toHaveBeenLastCalledWith("hotel", EMPTY_LETTERHEAD, 2);
+    expect(printPdf).toHaveBeenCalledWith(madeAgreement);
+
+    await pressLabel(renderer.root, "Share");
+    expect(sharePdf).toHaveBeenCalledWith(madeAgreement);
+
+    await pressLabel(renderer.root, "Save PDF");
+    expect(allTexts(renderer.root)).toContain("Hotel rental agreement is ready");
+    await act(async () => savedSheet(renderer).props.onOpen());
+    expect(openPdf).toHaveBeenCalledWith(madeAgreement);
+  });
+
+  it("says so when the agreement can't be made", async () => {
+    const toasts = captureToastCalls();
+    (saveAgreement as jest.Mock).mockRejectedValueOnce(new Error("WebView gone"));
+    const renderer = await render(<PaperAgreement />);
+
+    await pressLabel(renderer.root, "Save PDF");
+
+    expect(toasts).toEqual([
+      expect.objectContaining({ message: "Couldn’t make the PDF. Try again.", variant: "error" }),
+    ]);
+  });
+
+  it("goes back to the list of forms", async () => {
+    const renderer = await render(<PaperAgreement />);
+
+    (router.canGoBack as jest.Mock).mockReturnValueOnce(false);
+    await pressLabel(renderer.root, "Back");
+
     expect(router.replace).toHaveBeenCalledWith("/paper-forms");
   });
 });

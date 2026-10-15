@@ -354,7 +354,7 @@ const Profile = () => {
             icon="printer"
             title="Paper forms"
             badge="New"
-            hint="Rent cards, receipts and registers to print"
+            hint="Rent cards, receipts, registers and agreements to print"
             onPress={() => router.push("/paper-forms")}
           />
         </Group>

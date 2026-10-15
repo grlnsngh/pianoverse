@@ -68,8 +68,8 @@ describe("the list of paper forms", () => {
     expect(pageCountText(card, 4)).toBe("4 pages");
   });
 
-  it("makes the full kit every form once", () => {
-    expect(FULL_KIT).toEqual({ title: "Paper forms kit", fileName: "Paper forms kit.pdf", pages: 5 });
+  it("makes the full kit every form once and both agreements", () => {
+    expect(FULL_KIT).toEqual({ title: "Paper forms kit", fileName: "Paper forms kit.pdf", forms: 6, pages: 9 });
   });
 });
 
@@ -170,7 +170,7 @@ describe("the HTML the PDFs are made from", () => {
     expect(html).not.toMatch(/<td>[^<\d]+<\/td>/);
   });
 
-  it("makes the full kit as every form once, in the order of the list", () => {
+  it("makes the full kit as every form once, in the order of the list (then the agreements)", () => {
     const html = kitHtml(named, "@font-face{x}");
     const footers = [...html.matchAll(/<span>([^<]+) · A4<\/span>/g)].map((match) => match[1]);
 

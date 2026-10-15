@@ -53,6 +53,7 @@ import {
   openPdf,
   printPdf,
   resetFontCssForTests,
+  saveAgreement,
   savePaperForm,
   savePaperKit,
   sharePdf,
@@ -126,13 +127,29 @@ describe("making a form's PDF", () => {
     expect(mockMoves).toEqual([]);
   });
 
-  it("makes the full kit as one PDF of every form", async () => {
-    printToFile.mockResolvedValueOnce({ uri: "file:///cache/Print/kit.pdf", numberOfPages: 5 });
+  it("makes the full kit as one PDF of every form and both agreements", async () => {
+    printToFile.mockResolvedValueOnce({ uri: "file:///cache/Print/kit.pdf", numberOfPages: 0 });
 
     const pdf = await savePaperKit(letterhead);
 
-    expect(printToFile.mock.calls[0][0].html.match(/<section class="page/g)).toHaveLength(5);
-    expect(pdf).toEqual({ uri: "file:///docs/Paper forms kit.pdf", fileName: "Paper forms kit.pdf", pages: 5 });
+    expect(printToFile.mock.calls[0][0].html.match(/<section class="page/g)).toHaveLength(9);
+    expect(pdf).toEqual({ uri: "file:///docs/Paper forms kit.pdf", fileName: "Paper forms kit.pdf", pages: 9 });
+  });
+
+  it("makes an agreement's copies, two pages each, kept under its own name", async () => {
+    printToFile.mockResolvedValueOnce({ uri: "file:///cache/Print/ag.pdf", numberOfPages: 0 });
+
+    const pdf = await saveAgreement("private", letterhead, 2);
+
+    const html = printToFile.mock.calls[0][0].html;
+    expect(html).toContain("<title>Private rental agreement</title>");
+    expect(html.match(/<section class="page/g)).toHaveLength(4);
+    expect(mockMoves[0]).toMatchObject({ to: "file:///docs/Rental agreement (private).pdf" });
+    expect(pdf).toEqual({
+      uri: "file:///docs/Rental agreement (private).pdf",
+      fileName: "Rental agreement (private).pdf",
+      pages: 4,
+    });
   });
 });
 

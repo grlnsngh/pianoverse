@@ -1,101 +1,34 @@
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FormPreview } from "@/components/FormThumbnail";
+import PaperActions, { CopiesRow } from "@/components/PaperActions";
 import PaperSavedSheet from "@/components/PaperSavedSheet";
-import { Button, FormRow, Group, Icon, Spinner, StateView, Stepper } from "@/components/ui";
-import type { IconName } from "@/components/ui";
-import { fonts, radii, spacing, type } from "@/constants/theme";
-import { loadLetterhead, saveLetterhead } from "@/lib/letterheadStorage";
+import { FormRow, Group, Icon, StateView } from "@/components/ui";
+import { fonts, spacing, type } from "@/constants/theme";
 import { savePaperForm } from "@/lib/paperPdf";
+import useLetterhead from "@/lib/useLetterhead";
 import usePaperPdf from "@/lib/usePaperPdf";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
-import {
-  EMPTY_LETTERHEAD,
-  LETTERHEAD_LIMITS,
-  type Letterhead,
-} from "@/utils/letterhead";
-import { MAX_COPIES, paperFormById, type PaperForm } from "@/utils/paperForms/catalog";
+import { LETTERHEAD_LIMITS } from "@/utils/letterhead";
+import { paperFormById, type PaperForm } from "@/utils/paperForms/catalog";
 
 const goBack = () => {
   if (router.canGoBack()) router.back();
   else router.replace("/paper-forms");
 };
 
-/** A grey button with an icon, for Print and Share under Save PDF. */
-const QuietButton = ({
-  icon,
-  title,
-  busy,
-  disabled,
-  onPress,
-}: {
-  icon: IconName;
-  title: string;
-  busy: boolean;
-  disabled: boolean;
-  onPress: () => void;
-}) => {
-  const colors = useColors();
-  const styles = useStyles();
-  const blocked = busy || disabled;
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={blocked}
-      accessibilityRole="button"
-      accessibilityLabel={title}
-      accessibilityState={{ disabled: blocked, busy }}
-      style={({ pressed }) => [styles.quiet, pressed && !blocked && styles.quietPressed]}
-    >
-      {busy ? (
-        <Spinner size={18} decorative />
-      ) : (
-        <Icon name={icon} size={18} strokeWidth={1.9} color={disabled ? colors.disabledText : colors.ink} />
-      )}
-      <Text style={[styles.quietLabel, disabled && !busy && { color: colors.disabledText }]}>{title}</Text>
-    </Pressable>
-  );
-};
-
 /** A form's screen, once the form is known. */
 const PaperFormScreen = ({ form }: { form: PaperForm }) => {
-  const colors = useColors();
   const styles = useStyles();
-  const [letterhead, setLetterhead] = useState<Letterhead>(EMPTY_LETTERHEAD);
+  const { letterhead, change, remember } = useLetterhead();
   const [count, setCount] = useState(form.defaultCount);
-  // A detail typed before the saved ones were read is kept, not overwritten by them
-  const typed = useRef(new Set<keyof Letterhead>());
-
-  useEffect(() => {
-    let active = true;
-    loadLetterhead().then((saved) => {
-      if (!active) return;
-      setLetterhead((current) => {
-        const merged = { ...saved };
-        typed.current.forEach((key) => {
-          merged[key] = current[key];
-        });
-        return merged;
-      });
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const change = (key: "business" | "phone") => (text: string) => {
-    typed.current.add(key);
-    setLetterhead((current) => ({ ...current, [key]: text }));
-  };
-  const remember = () => saveLetterhead(letterhead);
 
   const pdf = usePaperPdf(async () => {
     await remember();
     return savePaperForm(form.id, letterhead, count);
   });
-  const busy = pdf.busy !== null;
 
   return (
     <>
@@ -141,50 +74,9 @@ const PaperFormScreen = ({ form }: { form: PaperForm }) => {
           />
         </Group>
 
-        <View style={[styles.countRow, styles.sectionSmall]}>
-          <View style={styles.countText}>
-            <Text style={styles.countLabel}>{form.countLabel}</Text>
-            <Text style={styles.countHint}>{form.countHint}</Text>
-          </View>
-          <Stepper
-            value={count}
-            onChange={setCount}
-            min={1}
-            max={MAX_COPIES}
-            unit={form.countLabel.toLowerCase()}
-          />
-        </View>
+        <CopiesRow label={form.countLabel} hint={form.countHint} value={count} onChange={setCount} />
 
-        <View style={styles.actions}>
-          <Button
-            title="Save PDF"
-            loading={pdf.busy === "save"}
-            loadingTitle="Making PDF"
-            disabled={busy && pdf.busy !== "save"}
-            onPress={pdf.save}
-          />
-          <View style={styles.actionRow}>
-            <QuietButton
-              icon="printer"
-              title="Print"
-              busy={pdf.busy === "print"}
-              disabled={busy && pdf.busy !== "print"}
-              onPress={pdf.print}
-            />
-            <QuietButton
-              icon="share"
-              title="Share"
-              busy={pdf.busy === "share"}
-              disabled={busy && pdf.busy !== "share"}
-              onPress={pdf.share}
-            />
-          </View>
-        </View>
-
-        <View style={styles.privacy}>
-          <Icon name="lock" size={16} color={colors.ink2} strokeWidth={2} />
-          <Text style={styles.privacyText}>Made on this phone. What you write stays with you.</Text>
-        </View>
+        <PaperActions busy={pdf.busy} onSave={pdf.save} onPrint={pdf.print} onShare={pdf.share} />
       </ScrollView>
 
       <PaperSavedSheet
@@ -267,42 +159,6 @@ const useStyles = makeStyles((colors) => ({
     color: colors.ink2,
   },
   section: { marginTop: spacing.xxl },
-  sectionSmall: { marginTop: spacing.xl },
-  countRow: {
-    height: 60,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingLeft: spacing.lg,
-    paddingRight: spacing.sm,
-    borderRadius: radii.card,
-    backgroundColor: colors.surface,
-  },
-  countText: { flex: 1 },
-  countLabel: { ...type.rowTitle, color: colors.ink },
-  countHint: { ...type.caption, fontFamily: fonts.regular, color: colors.ink2 },
-  actions: { marginTop: spacing.xxl, gap: 10 },
-  actionRow: { flexDirection: "row", gap: 10 },
-  quiet: {
-    flex: 1,
-    height: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    borderRadius: radii.control,
-    backgroundColor: colors.fill,
-  },
-  quietPressed: { backgroundColor: colors.fillPressed },
-  quietLabel: { fontFamily: fonts.bold, fontSize: 15, lineHeight: 20, color: colors.ink },
-  privacy: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    marginTop: 18,
-  },
-  privacyText: { ...type.caption, fontFamily: fonts.regular, color: colors.ink2 },
 }));
 
 export default PaperFormDetail;

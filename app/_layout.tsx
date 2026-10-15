@@ -75,6 +75,7 @@ function RootContent() {
                   {/* Paper forms and each form's screen, opened from Account, draw their own back button */}
                   <Stack.Screen name="paper-forms" options={{ headerShown: false }} />
                   <Stack.Screen name="paper-form/[id]" options={{ headerShown: false }} />
+                  <Stack.Screen name="paper-agreement" options={{ headerShown: false }} />
                   {/* Edit profile, opened from Account, draws its own back button */}
                   <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
                   {/* Its third step, the review, and the Edit screen draw their own top bar */}

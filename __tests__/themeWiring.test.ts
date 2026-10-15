@@ -77,6 +77,7 @@ describe("how screens get their colours", () => {
       "components/ui/Button.tsx",
       "components/ui/KeyboardMark.tsx",
       "components/ui/PianoPhoto.tsx",
+      "utils/paperForms/agreements.ts",
       "utils/paperForms/forms.ts",
       "utils/paperForms/html.ts",
     ]);
