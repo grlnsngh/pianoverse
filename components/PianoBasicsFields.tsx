@@ -3,6 +3,7 @@ import { TextInput, View } from "react-native";
 import DateRow from "@/components/DateRow";
 import MakePickerSheet from "@/components/MakePickerSheet";
 import { FormRow, Group, PickerSheet } from "@/components/ui";
+import { COLUMN_LIMITS } from "@/constants/columnLimits";
 import { COMPANY_ASSOCIATED, pianoCompaniesMakeList } from "@/constants/Piano";
 import { fonts, radii, spacing } from "@/constants/theme";
 import { PianoFormState } from "@/utils/pianoForm";
@@ -47,6 +48,7 @@ const PianoBasicsFields: React.FC<PianoBasicsFieldsProps> = ({
             value: form.title,
             onChangeText: (title) => onChange({ title }),
             autoCapitalize: "words",
+            maxLength: COLUMN_LIMITS.pianos.title,
             returnKeyType: "next",
           }}
         />
@@ -76,6 +78,7 @@ const PianoBasicsFields: React.FC<PianoBasicsFieldsProps> = ({
           placeholder="Notes: condition, finish, service history"
           placeholderTextColor={colors.ink3}
           accessibilityLabel="Notes"
+          maxLength={COLUMN_LIMITS.pianos.description}
           multiline
           textAlignVertical="top"
           selectionColor={colors.ink}

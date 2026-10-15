@@ -112,7 +112,15 @@ You will see options to open the app in:
 
 Photos are uploaded through the Appwrite SDK, which only works with React Native's own `fetch`. Since Expo SDK 56 the default is Expo's `fetch`, so `.env` sets `EXPO_PUBLIC_USE_RN_FETCH=1` to keep React Native's. Keep that line; `__tests__/fetchSetting.test.ts` fails without it.
 
-Besides the `users` and `pianos` tables, the app needs a `rent_payments` table (use `rent_payments` as its ID when creating it):
+**What the app expects of Appwrite is in `appwrite/project.json`**: every table with its ID, columns, indexes and permissions, and the photo bucket, pulled from the live project. Check the live project against it with:
+
+```sh
+npm run check:appwrite
+```
+
+It needs the Appwrite CLI signed in (`appwrite login`) and only reads. It lists anything missing or different in plain words (a table under another ID, a column that was never added, permissions opened up) and fails if there is any. The tests use the same file: their stand-in for Appwrite refuses a table, a column, a type or a length the live project doesn't have, so a mismatch shows up in `npm test` too. After changing a table on purpose, change the app with it and refresh the file with `appwrite pull tables --config-file appwrite/project.json --force` (and `pull buckets` for the bucket).
+
+The tables below are explained for people; the file is the exact truth. Besides the `users` and `pianos` tables, the app needs a `rent_payments` table (ID `rent_payments`):
 
 | Column     | Type              |
 | ---------- | ----------------- |
@@ -125,7 +133,11 @@ Besides the `users` and `pianos` tables, the app needs a `rent_payments` table (
 
 Permissions: **Create** for All users only, with **Row level security** on. (The `string` columns of this table and of `pianos` are **Varchar** in newer consoles, with the same size.) Each payment then belongs to the account that recorded it. Without the table, a rented piano's page shows "Couldn't load payments" and deleting a piano still works.
 
-`customer_name` holds who was renting the piano when the payment was recorded, so the name on the Today tab stays right after the piano is rented to someone else. Create it (size 255, not required). Until it exists, payments are still saved, just without the name, and payments recorded before it existed show the piano's title.
+`customer_name` holds who was renting the piano when the payment was recorded, so the name on the Today tab stays right after the piano is rented to someone else. It was only added on 2026-10-15 (it had been missing, so a payment would have been saved without its name; there were no payments yet). The app still saves a payment without the name if the column is ever missing.
+
+Indexes: `pianos.by_creator`, `rent_payments.by_creator_paid_on` and `by_piano_paid_on`, `rental_history.by_creator` and `by_piano`, `form_events.by_creator`, one for each way the app looks rows up.
+
+**The photo bucket** (`files`) can be read by anyone with a photo's address (the app shows photos without signing in to the image loader), and only signed-in people can upload. **File security is on** and there is no bucket-wide delete, so only a photo's owner can change or delete it (each file carries its uploader's permissions). Until 2026-10-15 any signed-in account could delete any photo. The list of files is still readable by anyone, and file names carry the piano's title; changing that means private photos or other names (a later change).
 
 Rentals that are over are kept in a `rental_history` table, so a piano's page and a customer's page can show who rented it and when. It was created with an ID of its own, `6abdffe40034432a5cde`, which is what the app and the delete-account function use (`rentalHistoryCollectionId` in `lib/appwrite.ts`, `rentalHistoryTableId` in `functions/delete-account/src/config.js`); if it is ever made again, use that ID or change both. Newer Appwrite consoles call the text type **Varchar**, since the old **String** type is deprecated:
 

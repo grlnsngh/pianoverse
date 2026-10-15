@@ -320,6 +320,10 @@ describe("createPianoEntry", () => {
   it("uploads every photo and saves the first as the cover", async () => {
     const created = await createPianoEntry({
       title: "Grand",
+      category: "warehouse",
+      make: "Yamaha",
+      company_associated: "TPS",
+      date_of_purchase: "2026-01-05",
       users: "user-doc-1" as any,
       creator: "account-1",
       photos: [pickedImage, secondPickedImage],

@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native";
 import DateRow from "@/components/DateRow";
 import PriceRow from "@/components/PriceRow";
 import { FormRow, Group, Segmented } from "@/components/ui";
+import { COLUMN_LIMITS } from "@/constants/columnLimits";
 import { categoryOptions, PIANO_CATEGORY } from "@/constants/Piano";
 import { spacing } from "@/constants/theme";
 import { rentalLengthPhrase } from "@/utils/dates";
@@ -61,6 +62,7 @@ const PianoCategoryFields: React.FC<PianoCategoryFieldsProps> = ({
               onChangeText: (rentalCustomerName) => onChange({ rentalCustomerName }),
               autoCapitalize: "words",
               textContentType: "name",
+              maxLength: COLUMN_LIMITS.pianos.rental_customer_name,
               autoComplete: "name",
             }}
           />
@@ -87,6 +89,7 @@ const PianoCategoryFields: React.FC<PianoCategoryFieldsProps> = ({
               onChangeText: (rentalCustomerAddress) => onChange({ rentalCustomerAddress }),
               autoCapitalize: "words",
               textContentType: "fullStreetAddress",
+              maxLength: COLUMN_LIMITS.pianos.rental_customer_address,
             }}
           />
           <DateRow
@@ -125,6 +128,7 @@ const PianoCategoryFields: React.FC<PianoCategoryFieldsProps> = ({
               value: form.eventPurchaseFrom,
               onChangeText: (eventPurchaseFrom) => onChange({ eventPurchaseFrom }),
               autoCapitalize: "words",
+              maxLength: COLUMN_LIMITS.pianos.event_purchase_from,
             }}
           />
           <FormRow
@@ -134,6 +138,7 @@ const PianoCategoryFields: React.FC<PianoCategoryFieldsProps> = ({
               value: form.eventModelNumber,
               onChangeText: (eventModelNumber) => onChange({ eventModelNumber }),
               autoCapitalize: "characters",
+              maxLength: COLUMN_LIMITS.pianos.event_model_number,
             }}
           />
           <FormRow
@@ -143,6 +148,7 @@ const PianoCategoryFields: React.FC<PianoCategoryFieldsProps> = ({
               value: form.eventBNumber,
               onChangeText: (eventBNumber) => onChange({ eventBNumber }),
               autoCapitalize: "characters",
+              maxLength: COLUMN_LIMITS.pianos.event_b_number,
             }}
           />
         </Group>
@@ -162,6 +168,7 @@ const PianoCategoryFields: React.FC<PianoCategoryFieldsProps> = ({
               value: form.onSalePurchaseFrom,
               onChangeText: (onSalePurchaseFrom) => onChange({ onSalePurchaseFrom }),
               autoCapitalize: "words",
+              maxLength: COLUMN_LIMITS.pianos.on_sale_purchase_from,
             }}
           />
           <DateRow

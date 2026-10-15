@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Alert, Text, View } from "react-native";
 import { format, isToday } from "date-fns";
 import { AmountInput, Button, DatePickerSheet, FormRow, Group, Sheet } from "@/components/ui";
+import { COLUMN_LIMITS } from "@/constants/columnLimits";
 import { type } from "@/constants/theme";
 import type { RentPayment, RentPaymentChanges } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
@@ -107,6 +108,7 @@ const EditPaymentSheet: React.FC<EditPaymentSheetProps> = ({ payment, piano, onC
                 onChangeText: (name) => change({ name }),
                 returnKeyType: "next",
                 autoCapitalize: "words",
+                maxLength: COLUMN_LIMITS.rent_payments.customer_name,
                 autoCorrect: false,
               }}
             />
