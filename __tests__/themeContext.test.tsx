@@ -65,12 +65,22 @@ describe("the theme outside a provider", () => {
 });
 
 describe("the theme provider", () => {
-  it("is light, and ready, when nothing was saved", async () => {
+  it("matches the phone, and is ready, when nothing was saved", async () => {
     await mountProvider();
 
+    expect(theme.setting).toBe("system");
     expect(theme.scheme).toBe("light");
     expect(theme.colors).toBe(lightColors);
     expect(theme.ready).toBe(true);
+  });
+
+  it("starts dark on a phone set to dark when nothing was saved", async () => {
+    mockPhoneScheme = "dark";
+
+    await mountProvider();
+
+    expect(theme.scheme).toBe("dark");
+    expect(theme.colors).toBe(darkColors);
   });
 
   it("isn't ready until the saved choice has been read, so the first frame isn't the wrong colour", async () => {
@@ -107,7 +117,21 @@ describe("the theme provider", () => {
 
     await act(async () => theme.setSetting("light"));
     expect(theme.scheme).toBe("light");
+    expect(await AsyncStorage.getItem("appearance:setting")).toBe("light");
+
+    // Matching the phone is where it starts, so nothing needs keeping
+    await act(async () => theme.setSetting("system"));
     expect(await AsyncStorage.getItem("appearance:setting")).toBeNull();
+  });
+
+  it("stays light on a dark phone for someone who chose Light", async () => {
+    mockPhoneScheme = "dark";
+    await AsyncStorage.setItem("appearance:setting", "light");
+
+    await mountProvider();
+
+    expect(theme.setting).toBe("light");
+    expect(theme.scheme).toBe("light");
   });
 
   it("keeps a choice made while the saved one was still being read", async () => {
@@ -136,6 +160,7 @@ describe("the theme provider", () => {
 describe("matching the phone", () => {
   it("follows what the phone says, and changes when the phone does", async () => {
     mockPhoneScheme = "dark";
+    await AsyncStorage.setItem("appearance:setting", "light");
     const renderer = await mountProvider();
     expect(theme.scheme).toBe("light");
 
@@ -162,19 +187,18 @@ describe("matching the phone", () => {
     expect(theme.scheme).toBe("light");
   });
 
-  it("asks Android to stop hiding its setting only when asked to match it (the app is fixed to light in app.json)", async () => {
+  it("tells the phone the theme chosen, so its keyboards and dialogs match, and lets its own through for Match phone", async () => {
     const setColorScheme = jest
       .spyOn(Appearance, "setColorScheme")
       .mockImplementation(() => {});
     await mountProvider();
+    expect(setColorScheme.mock.calls).toEqual([["unspecified"]]);
+
     await act(async () => theme.setSetting("dark"));
     await act(async () => theme.setSetting("light"));
-    expect(setColorScheme).not.toHaveBeenCalled();
-
     await act(async () => theme.setSetting("system"));
 
-    expect(setColorScheme).toHaveBeenCalledTimes(1);
-    expect(setColorScheme).toHaveBeenCalledWith("unspecified");
+    expect(setColorScheme.mock.calls).toEqual([["unspecified"], ["dark"], ["light"], ["unspecified"]]);
   });
 
   it("carries on, and says why, when the phone won't let it ask", async () => {

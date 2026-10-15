@@ -39,12 +39,12 @@ describe("where the theme is wired in", () => {
     expect(source("app/_layout.tsx")).toMatch(/useSystemChrome\(scheme, colors\)/);
   });
 
-  it("keeps the app fixed to light in app.json, so nothing about the native build changes (the phone's own setting is asked for in JavaScript)", () => {
+  it("lets the phone's own setting reach the app (app.json is automatic), in runtime 5", () => {
     const config = JSON.parse(source("app.json")).expo;
 
-    expect(config.userInterfaceStyle).toBe("light");
+    expect(config.userInterfaceStyle).toBe("automatic");
     // 4 since the move to Expo SDK 57, 5 since paper forms added expo-print;
-    // the theme itself changed nothing native
+    // "automatic" joined runtime 5 before any build of it was made
     expect(config.runtimeVersion).toBe("5");
   });
 });

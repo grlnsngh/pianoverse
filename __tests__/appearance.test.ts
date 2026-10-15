@@ -7,8 +7,8 @@ import {
 } from "@/utils/appearance";
 
 describe("the appearance setting", () => {
-  it("is light until the person picks something else, so nobody's phone changes by itself", () => {
-    expect(DEFAULT_APPEARANCE).toBe("light");
+  it("matches the phone until the person picks something else (the owner's choice, Q34)", () => {
+    expect(DEFAULT_APPEARANCE).toBe("system");
   });
 
   it("offers light, dark and the phone's own, in that order, each with its words", () => {

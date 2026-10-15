@@ -1,7 +1,8 @@
 const mockMoves: { from: string; to: string; options: unknown }[] = [];
 const mockBase64 = jest.fn(async (uri: string) => `B64(${uri})`);
-/** The files on the "phone": letterhead images a test has put there */
+/** The files on the "phone": letterhead images and PDFs a test has put there */
 const mockExisting = new Set<string>();
+const mockDeleted: string[] = [];
 
 jest.mock("expo-file-system", () => {
   const join = (parts: (string | { uri: string })[]) =>
@@ -30,6 +31,10 @@ jest.mock("expo-file-system", () => {
       mockMoves.push({ from: this.uri, to: target.uri, options });
       this.uri = target.uri;
     }
+    delete() {
+      mockDeleted.push(this.uri);
+      mockExisting.delete(this.uri);
+    }
   }
   return { File, Directory, Paths: { document: new Directory("file:///docs/") } };
 });
@@ -55,6 +60,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Platform } from "react-native";
 import {
+  forgetPaperPdfs,
   isPrintCancelled,
   loadFontCss,
   openPdf,
@@ -78,6 +84,7 @@ const none: LetterheadDesign = { ...DEFAULT_DESIGN, style: "none" };
 beforeEach(() => {
   jest.clearAllMocks();
   mockMoves.length = 0;
+  mockDeleted.length = 0;
   mockExisting.clear();
   resetFontCssForTests();
   jest.replaceProperty(Platform, "OS", "android");
@@ -247,6 +254,47 @@ describe("the letterhead in the PDF", () => {
     expect(html).toContain("PIANO RENTAL AGREEMENT");
     expect(html).toContain('style="padding-top:170px"');
     expect(pdf).toEqual({ uri: "file:///docs/Letterhead test page.pdf", fileName: "Letterhead test page.pdf", pages: 1 });
+  });
+});
+
+describe("forgetting the PDFs", () => {
+  it("deletes every PDF the app kept, which carry the letterhead, and nothing else", () => {
+    for (const name of ["Rent card.pdf", "Rental agreement (private).pdf", "Paper forms kit.pdf", "Letterhead test page.pdf", "Someone else.pdf"]) {
+      mockExisting.add(`file:///docs/${name}`);
+    }
+
+    forgetPaperPdfs();
+
+    expect(mockDeleted.sort()).toEqual([
+      "file:///docs/Letterhead test page.pdf",
+      "file:///docs/Paper forms kit.pdf",
+      "file:///docs/Rent card.pdf",
+      "file:///docs/Rental agreement (private).pdf",
+    ]);
+    expect([...mockExisting]).toEqual(["file:///docs/Someone else.pdf"]);
+  });
+
+  it("carries on past a file it can't delete", () => {
+    mockExisting.add("file:///docs/Rent card.pdf");
+    mockExisting.add("file:///docs/Rent receipts.pdf");
+    const deleteOnce = jest.fn(() => {
+      throw new Error("in use");
+    });
+    const { File } = jest.requireMock("expo-file-system");
+    const original = File.prototype.delete;
+    File.prototype.delete = function (this: { uri: string }) {
+      if (this.uri.endsWith("Rent card.pdf")) return deleteOnce();
+      return original.call(this);
+    };
+
+    try {
+      expect(() => forgetPaperPdfs()).not.toThrow();
+    } finally {
+      File.prototype.delete = original;
+    }
+
+    expect(mockDeleted).toEqual(["file:///docs/Rent receipts.pdf"]);
+    expect(console.warn).toHaveBeenCalledWith("Could not delete Rent card.pdf:", expect.any(Error));
   });
 });
 

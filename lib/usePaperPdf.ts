@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import { recordFormEvent } from "@/lib/formEvents";
 import {
   isPrintCancelled,
   openPdf,
@@ -6,6 +8,8 @@ import {
   sharePdf,
   type SavedPdf,
 } from "@/lib/paperPdf";
+import type { RootState } from "@/redux/store";
+import type { FormEventForm } from "@/utils/formEvents";
 import { savedTap } from "@/utils/haptics";
 import { showToast } from "@/utils/toast";
 
@@ -25,9 +29,12 @@ const FAILED: Record<"make" | "open" | "print" | "share", string> = {
  * ready; Print and Share make it and go straight to the phone's print screen
  * or share sheet. One thing at a time: while one runs, `busy` says which.
  *
- * `make` makes the PDF from what the screen shows now.
+ * `make` makes the PDF from what the screen shows now. `form` is what the
+ * usage counts call it: each PDF saved, printed or shared is counted
+ * (lib/formEvents.ts), quietly and after the fact.
  */
-const usePaperPdf = (make: () => Promise<SavedPdf>) => {
+const usePaperPdf = (make: () => Promise<SavedPdf>, form: FormEventForm) => {
+  const creator = useSelector((state: RootState) => state.users.user?.accountId);
   const [busy, setBusy] = useState<PaperAction | null>(null);
   const [pdf, setPdf] = useState<SavedPdf | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -46,6 +53,9 @@ const usePaperPdf = (make: () => Promise<SavedPdf>) => {
     showToast(FAILED[what], { variant: "error" });
   };
 
+  const count = (action: "saved" | "printed" | "shared", made: SavedPdf) =>
+    recordFormEvent(creator, form, action, made.pages);
+
   const run = async (action: PaperAction) => {
     if (busy) return;
     setBusy(action);
@@ -63,10 +73,13 @@ const usePaperPdf = (make: () => Promise<SavedPdf>) => {
       if (action === "save") {
         savedTap();
         setSheetOpen(true);
+        count("saved", made);
       } else if (action === "print") {
         await printPdf(made);
+        count("printed", made);
       } else {
         await sharePdf(made);
+        count("shared", made);
       }
     } catch (error) {
       fail(action === "save" ? "make" : action, error);
@@ -79,7 +92,15 @@ const usePaperPdf = (make: () => Promise<SavedPdf>) => {
   const withSaved = (what: "open" | "print" | "share") => async () => {
     if (!pdf) return;
     try {
-      await (what === "open" ? openPdf : what === "print" ? printPdf : sharePdf)(pdf);
+      if (what === "open") {
+        await openPdf(pdf);
+      } else if (what === "print") {
+        await printPdf(pdf);
+        count("printed", pdf);
+      } else {
+        await sharePdf(pdf);
+        count("shared", pdf);
+      }
     } catch (error) {
       fail(what, error);
     }

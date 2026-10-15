@@ -90,17 +90,17 @@ describe("the Theme row on Account", () => {
     expect(texts).toContain("Light, dark, or the same as your phone");
   });
 
-  it("offers Light, Dark and Match phone, with Light chosen until the person picks", async () => {
+  it("offers Light, Dark and Match phone, with Match phone chosen until the person picks", async () => {
     const renderer = await openAccount();
 
     expect(options(renderer).map(({ label, selected }) => [label, selected])).toEqual([
-      ["Light", true],
+      ["Light", false],
       ["Dark", false],
-      ["Match phone", false],
+      ["Match phone", true],
     ]);
   });
 
-  it("draws Account in the light theme to begin with", async () => {
+  it("draws Account in the light theme to begin with on a light phone", async () => {
     const renderer = await openAccount();
 
     expect(colorsDrawn(renderer)).toContain(lightColors.grouped);
@@ -136,7 +136,7 @@ describe("the Theme row on Account", () => {
     expect(lightLeaks(renderer)).toEqual([]);
   });
 
-  it("goes back to light, and forgets the choice, when Light is pressed again", async () => {
+  it("goes back to light, and remembers Light, when Light is pressed", async () => {
     await AsyncStorage.setItem("appearance:setting", "dark");
     const renderer = await openAccount();
 
@@ -144,15 +144,16 @@ describe("the Theme row on Account", () => {
 
     expect(options(renderer).map(({ selected }) => selected)).toEqual([true, false, false]);
     expect(colorsDrawn(renderer)).toContain(lightColors.grouped);
-    expect(await AsyncStorage.getItem("appearance:setting")).toBeNull();
+    expect(await AsyncStorage.getItem("appearance:setting")).toBe("light");
   });
 
-  it("chooses Match phone, and remembers that", async () => {
+  it("goes back to matching the phone, and forgets the choice, when Match phone is pressed again", async () => {
+    await AsyncStorage.setItem("appearance:setting", "dark");
     const renderer = await openAccount();
 
     await pressText(renderer.root, "Match phone");
 
     expect(options(renderer).map(({ selected }) => selected)).toEqual([false, false, true]);
-    expect(await AsyncStorage.getItem("appearance:setting")).toBe("system");
+    expect(await AsyncStorage.getItem("appearance:setting")).toBeNull();
   });
 });

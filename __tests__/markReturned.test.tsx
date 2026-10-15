@@ -28,7 +28,7 @@ import * as appwrite from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { scheduleRentalDueNotification } from "@/services/notifications";
 import { a11yProblems, describeProblems } from "./helpers/a11y";
-import { fakeBackend } from "./helpers/fakeAppwrite";
+import { fakeBackend, RENTAL_HISTORY_COLLECTION_ID } from "./helpers/fakeAppwrite";
 import { fakeNotifications } from "./helpers/fakeNotifications";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
@@ -435,7 +435,7 @@ describe("Undo", () => {
 
   it("puts the rental back even though it wasn't kept in the history", async () => {
     const toasts = captureToastCalls();
-    fakeBackend.missingCollections.add("rental_history");
+    fakeBackend.missingCollections.add(RENTAL_HISTORY_COLLECTION_ID);
     const { renderer } = await openDetail();
     await openSheet(renderer);
     await confirm(renderer);
@@ -519,7 +519,7 @@ describe("when it doesn't work", () => {
 
   it("is still returned, and says the rental wasn't kept, when rental_history isn't set up", async () => {
     const toasts = captureToastCalls();
-    fakeBackend.missingCollections.add("rental_history");
+    fakeBackend.missingCollections.add(RENTAL_HISTORY_COLLECTION_ID);
     const { renderer } = await openDetail();
     await openSheet(renderer);
 

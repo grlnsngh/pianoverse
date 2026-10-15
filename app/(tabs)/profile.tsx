@@ -19,7 +19,9 @@ import { useGlobalContext } from "@/context/GlobalProvider";
 import { useAppLock } from "@/lib/AppLockContext";
 import { deleteAccount, signOut } from "@/lib/appwrite";
 import { exportCustomers, exportPayments } from "@/lib/exportData";
+import { forgetFormEvents } from "@/lib/formEvents";
 import { forgetLetterhead } from "@/lib/letterheadStore";
+import { forgetPaperPdfs } from "@/lib/paperPdf";
 import { clearPianoCache } from "@/lib/pianoCache";
 import useSavedAt from "@/lib/useSavedAt";
 import { setActiveTab } from "@/redux/navigation/actions";
@@ -230,6 +232,8 @@ const Profile = () => {
     await scheduleAllRentalNotifications([]);
     await clearPianoCache();
     await forgetLetterhead();
+    await forgetFormEvents();
+    forgetPaperPdfs();
     dispatch(resetPianoState() as any);
     dispatch(setActiveTab("pianos") as any);
     setUser(null);

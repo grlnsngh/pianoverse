@@ -40,7 +40,7 @@ export type ThemeValue = {
 const LIGHT_THEME: ThemeValue = {
   scheme: "light",
   colors: lightColors,
-  setting: DEFAULT_APPEARANCE,
+  setting: "light",
   setSetting: () => {},
   ready: true,
 };
@@ -75,13 +75,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // The app is fixed to light in app.json, which also hides the phone's own
-  // setting from it. Following the phone asks Android to stop hiding it, and
-  // the phone's scheme then arrives through useColorScheme.
+  // The phone's own parts (keyboards, pickers, dialogs) follow the theme
+  // chosen: Light or Dark asks the phone for that one, and Match phone lets
+  // the phone's setting through (app.json is "automatic"), which then arrives
+  // through useColorScheme.
   useEffect(() => {
-    if (setting !== "system") return;
     try {
-      PhoneAppearance.setColorScheme("unspecified");
+      PhoneAppearance.setColorScheme(setting === "system" ? "unspecified" : setting);
     } catch (error) {
       console.warn("Could not follow the phone's theme:", error);
     }

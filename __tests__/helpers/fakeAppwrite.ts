@@ -20,7 +20,8 @@ export const ENDPOINT = "https://cloud.appwrite.io/v1";
 export const PROJECT_ID = "66b2693000154e2fa3c8";
 export const BUCKET_ID = "66b26b77003445e612b4";
 export const PAYMENTS_COLLECTION_ID = "rent_payments";
-export const RENTAL_HISTORY_COLLECTION_ID = "rental_history";
+// Named rental_history in the console; it was made with an ID of its own
+export const RENTAL_HISTORY_COLLECTION_ID = "6abdffe40034432a5cde";
 
 type StoredFile = { name: string; type: string; size: number; uri: string };
 type Doc = Record<string, any> & { $id: string; $createdAt: string };

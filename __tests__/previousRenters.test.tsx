@@ -27,7 +27,7 @@ import { router } from "expo-router";
 import DetailScreen from "@/app/detail/[id]";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
-import { fakeBackend } from "./helpers/fakeAppwrite";
+import { fakeBackend, RENTAL_HISTORY_COLLECTION_ID } from "./helpers/fakeAppwrite";
 import { fakeNotifications } from "./helpers/fakeNotifications";
 import { makePiano, testUser } from "./helpers/fixtures";
 import { a11yProblems, describeProblems } from "./helpers/a11y";
@@ -333,7 +333,7 @@ describe("Previous renters with the rentals that were kept", () => {
   });
 
   it("still shows the people from the payments when the table isn't there yet", async () => {
-    fakeBackend.missingCollections.add("rental_history");
+    fakeBackend.missingCollections.add(RENTAL_HISTORY_COLLECTION_ID);
     seed("r1", "2026-05-02", 3500, "Ravi Kumar");
 
     const renderer = await openDetail();

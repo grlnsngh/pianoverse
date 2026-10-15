@@ -11,6 +11,7 @@ import { StateView } from "@/components/ui";
 import { fonts, spacing, type } from "@/constants/theme";
 import { savePaperForm } from "@/lib/paperPdf";
 import useLetterhead from "@/lib/useLetterhead";
+import useCountFormOpened from "@/lib/useCountFormOpened";
 import usePaperPdf from "@/lib/usePaperPdf";
 import usePreviewHtml, { type PageMaker } from "@/lib/usePreviewHtml";
 import { makeStyles } from "@/lib/ThemeContext";
@@ -46,7 +47,8 @@ const PaperFormScreen = ({ form }: { form: PaperForm }) => {
   const [count, setCount] = useState(form.defaultCount);
   const html = usePreviewHtml(design, details, PREVIEW_WIDTH, pageMakerFor(form.id));
 
-  const pdf = usePaperPdf(() => savePaperForm(form.id, details, count, design));
+  const pdf = usePaperPdf(() => savePaperForm(form.id, details, count, design), form.id);
+  useCountFormOpened(form.id);
 
   return (
     <>

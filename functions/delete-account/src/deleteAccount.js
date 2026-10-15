@@ -1,8 +1,8 @@
 /**
  * Deletes everything Pianoverse keeps for one account, then the account: its
  * rent payments, kept rentals and pianos, the photos of those pianos and of
- * the person, their user row, and the Appwrite account itself, which also
- * ends every session.
+ * the person, the paper forms' usage counts, their user row, and the Appwrite
+ * account itself, which also ends every session.
  *
  * The account goes last, so a deletion that stops half way (a timeout, a lost
  * connection) leaves the person signed in to ask again, and every step is safe
@@ -56,7 +56,7 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
       try {
         page = await tablesDB.listRows({ databaseId, tableId, queries });
       } catch (error) {
-        // rental_history is only there once the owner has made it
+        // rental_history and form_events are only there once the owner has made them
         if (isNotFound(error)) return rows;
         throw error;
       }
@@ -95,11 +95,12 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
     }
   };
 
-  const [payments, rentals, pianos, profiles] = await Promise.all([
+  const [payments, rentals, pianos, profiles, formEvents] = await Promise.all([
     rowsWhere(config.rentPaymentsTableId, "creator", accountId),
     rowsWhere(config.rentalHistoryTableId, "creator", accountId),
     rowsWhere(config.pianoTableId, "creator", accountId),
     rowsWhere(config.userTableId, "accountId", accountId),
+    rowsWhere(config.formEventsTableId, "creator", accountId),
   ]);
 
   const photoIds = new Set(await filesNamedForAccount());
@@ -117,6 +118,7 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
 
   await deleteRows(config.rentPaymentsTableId, payments);
   await deleteRows(config.rentalHistoryTableId, rentals);
+  await deleteRows(config.formEventsTableId, formEvents);
   await deleteRows(config.pianoTableId, pianos);
   await inBatches([...photoIds], async (fileId) => {
     try {
@@ -139,6 +141,7 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
     rentals: rentals.length,
     photos: photoIds.size,
     profiles: profiles.length,
+    formEvents: formEvents.length,
   };
   log(`Deleted account ${accountId}: ${JSON.stringify(deleted)}`);
   return deleted;

@@ -11,6 +11,7 @@ import { Segmented } from "@/components/ui";
 import { fonts, spacing, type } from "@/constants/theme";
 import { saveAgreement } from "@/lib/paperPdf";
 import useLetterhead from "@/lib/useLetterhead";
+import useCountFormOpened from "@/lib/useCountFormOpened";
 import usePaperPdf from "@/lib/usePaperPdf";
 import usePreviewHtml, { type PageMaker } from "@/lib/usePreviewHtml";
 import { makeStyles } from "@/lib/ThemeContext";
@@ -56,7 +57,8 @@ const PaperAgreement = () => {
   const first = usePreviewHtml(design, details, PREVIEW_WIDTH, PAGE_MAKERS[kind][0]);
   const second = usePreviewHtml(design, details, PREVIEW_WIDTH, PAGE_MAKERS[kind][1]);
 
-  const pdf = usePaperPdf(() => saveAgreement(kind, details, count, design));
+  const pdf = usePaperPdf(() => saveAgreement(kind, details, count, design), agreement.id);
+  useCountFormOpened(agreement.id);
 
   return (
     <SafeAreaView edges={["top"]} style={styles.page}>

@@ -14,9 +14,11 @@ import { letterheadImageData } from "@/lib/letterheadImages";
 import { DEFAULT_DESIGN, type Letterhead, type LetterheadDesign } from "@/utils/letterhead";
 import { agreementHtml, agreementPages } from "@/utils/paperForms/agreements";
 import {
+  AGREEMENT_KINDS,
   AGREEMENTS,
   clampCount,
   FULL_KIT,
+  PAPER_FORMS,
   paperFormById,
   pdfFileName,
   type AgreementKind,
@@ -175,6 +177,8 @@ export const savePaperKit = async (
   return savePdf(kitHtml(letterhead, fontCss, design, assets), FULL_KIT.fileName, FULL_KIT.pages);
 };
 
+const TEST_PAGE_FILE = "Letterhead test page.pdf";
+
 /**
  * A test page for "My printed paper": the first page of the hotel agreement,
  * to print on plain paper and hold against the pad.
@@ -184,7 +188,29 @@ export const savePaperKit = async (
 export const saveTestPage = async (letterhead: Letterhead, design: LetterheadDesign): Promise<SavedPdf> => {
   const { fontCss, assets } = await loadPaperParts(design);
   const [first] = agreementPages("hotel", letterhead, design, assets);
-  return savePdf(paperDocument("Test page", [first], fontCss + letterheadCss(assets)), "Letterhead test page.pdf", 1);
+  return savePdf(paperDocument("Test page", [first], fontCss + letterheadCss(assets)), TEST_PAGE_FILE, 1);
+};
+
+/**
+ * Deletes the PDFs kept in the app's documents, which carry the business's
+ * letterhead and details: at sign out and on deleting the account. Ones that
+ * were shared or saved elsewhere stay where they went.
+ */
+export const forgetPaperPdfs = () => {
+  const names = [
+    ...PAPER_FORMS.map(pdfFileName),
+    ...AGREEMENT_KINDS.map((kind) => AGREEMENTS[kind].fileName),
+    FULL_KIT.fileName,
+    TEST_PAGE_FILE,
+  ];
+  for (const name of names) {
+    try {
+      const file = new File(Paths.document, name);
+      if (file.exists) file.delete();
+    } catch (error) {
+      console.warn(`Could not delete ${name}:`, error);
+    }
+  }
 };
 
 const shareOptions = (fileName: string) => ({
