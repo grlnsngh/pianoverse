@@ -309,8 +309,9 @@ const useStyles = makeStyles((colors) => ({
   hint: { ...type.caption, marginTop: spacing.sm, fontFamily: fonts.regular, color: colors.ink2 },
   save: { marginTop: spacing.xxl },
   option: {
-    height: 52,
+    minHeight: 52,
     justifyContent: "center",
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.hairline,
   },

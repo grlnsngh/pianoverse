@@ -11,6 +11,7 @@ import { fonts, spacing, type } from "@/constants/theme";
 import { useGroup } from "./Group";
 import Icon from "./Icon";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const CHEVRON_SIZE = 18;
 const KEYBOARDS_WITH_DIGITS = ["numeric", "number-pad", "decimal-pad", "phone-pad"];
@@ -40,6 +41,11 @@ export type FormRowProps = {
  * A label with what belongs to it: a value that opens a picker, or a text
  * field. Lives in a Group, which sets its height and the width of the label
  * column, and draws the line between rows.
+ *
+ * Both heights are the least a row is. With a big Font size a row on a page
+ * puts its label above its value instead of beside it (the column would cut
+ * the label), and a row in a sheet lets the label and the value wrap. Short of
+ * that the label column grows with the text, so a label that fit still does.
  */
 const FormRow = ({
   label,
@@ -56,63 +62,93 @@ const FormRow = ({
   const colors = useColors();
   const styles = useStyles();
   const group = useGroup();
+  const { fontScale, large } = useTextScale();
   const inputRef = useRef<TextInput>(null);
   const showChevron = chevron ?? !!onPress;
   const columnWidth = labelWidth ?? group.labelWidth;
+  const stacked = large && !group.inSheet;
   const digits =
     !!input?.keyboardType && KEYBOARDS_WITH_DIGITS.includes(input.keyboardType);
 
-  const labelStyle: TextStyle[] = [styles.label];
-  // On a page the labels line up in a column. In a sheet the value is pushed right.
-  if (!group.inSheet) labelStyle.push({ width: columnWidth });
+  const labelStyle: TextStyle[] = [stacked ? styles.labelStacked : styles.label];
+  if (stacked) {
+    // The label sits above the value, so it needs no column
+  } else if (group.inSheet) {
+    // The value is pushed right; with big text the label may wrap instead of crowding it
+    if (large) labelStyle.push(styles.labelShrinks);
+  } else {
+    // On a page the labels line up in a column that grows with the text
+    labelStyle.push({ width: Math.round(columnWidth * Math.max(1, fontScale)) });
+  }
 
   const valueAlign: TextStyle = { textAlign: group.inSheet ? "right" : "left" };
+  // One line, unless the text is big: then it wraps rather than being cut
+  const lines = large ? undefined : 1;
 
-  const body = (
+  const labelNode = (
+    <Text style={labelStyle} numberOfLines={lines}>
+      {label}
+    </Text>
+  );
+
+  const prefixNode = prefix ? <Text style={styles.prefix}>{prefix}</Text> : null;
+
+  const valueNode = input ? (
+    <TextInput
+      ref={inputRef}
+      {...input}
+      placeholder={placeholder}
+      placeholderTextColor={colors.ink3}
+      accessibilityLabel={input.accessibilityLabel ?? label}
+      style={[
+        styles.input,
+        valueAlign,
+        input.strong && { fontFamily: fonts.semibold },
+        digits && { fontVariant: ["tabular-nums"] },
+      ]}
+    />
+  ) : (
+    <Text
+      numberOfLines={lines}
+      style={[styles.value, valueAlign, !value && { color: colors.ink3 }]}
+    >
+      {value || placeholder}
+    </Text>
+  );
+
+  const chevronNode = showChevron ? (
+    <Icon
+      name="chevronRight"
+      size={CHEVRON_SIZE}
+      color={colors.chevron}
+      strokeWidth={2}
+    />
+  ) : null;
+
+  const body = stacked ? (
     <>
-      <Text style={labelStyle} numberOfLines={1}>
-        {label}
-      </Text>
-
-      {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
-
-      {input ? (
-        <TextInput
-          ref={inputRef}
-          {...input}
-          placeholder={placeholder}
-          placeholderTextColor={colors.ink3}
-          accessibilityLabel={input.accessibilityLabel ?? label}
-          style={[
-            styles.input,
-            valueAlign,
-            input.strong && { fontFamily: fonts.semibold },
-            digits && { fontVariant: ["tabular-nums"] },
-          ]}
-        />
-      ) : (
-        <Text
-          numberOfLines={1}
-          style={[styles.value, valueAlign, !value && { color: colors.ink3 }]}
-        >
-          {value || placeholder}
-        </Text>
-      )}
-
-      {showChevron && (
-        <Icon
-          name="chevronRight"
-          size={CHEVRON_SIZE}
-          color={colors.chevron}
-          strokeWidth={2}
-        />
-      )}
+      <View style={styles.stack}>
+        {labelNode}
+        <View style={styles.valueLine}>
+          {prefixNode}
+          {valueNode}
+        </View>
+      </View>
+      {chevronNode}
+    </>
+  ) : (
+    <>
+      {labelNode}
+      {prefixNode}
+      {valueNode}
+      {chevronNode}
     </>
   );
 
   const rowStyle = [
     styles.row,
-    { height: group.inSheet ? 52 : 56 },
+    { minHeight: group.inSheet ? 52 : 56 },
+    stacked && styles.rowStacked,
   ];
 
   if (onPress) {
@@ -161,15 +197,24 @@ const useStyles = makeStyles((colors) => ({
     alignItems: "center",
     gap: spacing.lg,
     paddingHorizontal: spacing.lg,
+    // Nothing at 100%, where a line of 22 sits in a row of 52 or 56; room above
+    // and below the text once it wraps and the row grows
+    paddingVertical: spacing.sm,
   },
+  rowStacked: { paddingVertical: spacing.md },
   label: { ...type.body, flexShrink: 0, color: colors.ink2 },
+  labelStacked: { ...type.secondary, color: colors.ink2 },
+  labelShrinks: { flexShrink: 1 },
+  stack: { flex: 1, minWidth: 0, gap: 2 },
+  valueLine: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   prefix: { ...type.bodyMedium, color: colors.ink2 },
   value: { ...type.bodyMedium, flexGrow: 1, flexShrink: 1, color: colors.ink },
   input: {
     ...type.bodyMedium,
     flex: 1,
     minWidth: 0,
-    height: "100%",
+    // As tall as the row, so a tap anywhere on it lands in the field
+    alignSelf: "stretch",
     padding: 0,
     color: colors.ink,
     includeFontPadding: false,

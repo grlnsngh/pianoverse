@@ -536,7 +536,7 @@ describe("the bar at the bottom", () => {
     const [record] = labelled(renderer, "Record payment");
 
     expect(flat(record.props.style({ pressed: false })).backgroundColor).toBe(colors.brand);
-    expect(flat(record.props.style({ pressed: false })).height).toBe(48);
+    expect(flat(record.props.style({ pressed: false })).minHeight).toBe(48);
   });
 
   it("is as tall as the tab bar: 50 above the home indicator, at least 8 below it", async () => {

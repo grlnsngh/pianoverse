@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Text, TextInput, View } from "react-native";
-import { fonts } from "@/constants/theme";
+import { fonts, maxScale } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 export type AmountInputProps = {
@@ -9,7 +9,10 @@ export type AmountInputProps = {
   onChangeValue: (value: number) => void;
   /** Read out for the field, such as "Amount" or "Sale price" */
   label: string;
-  /** Room for the digits: 180 for a payment, 210 for a sale (the boards' widths) */
+  /**
+   * The least room for the digits: 180 for a payment, 210 for a sale (the
+   * boards' widths). A bigger amount, or bigger text, takes more.
+   */
   width?: number;
   autoFocus?: boolean;
   testID?: string;
@@ -71,7 +74,12 @@ const AmountInput = ({
 
   return (
     <View style={styles.row} testID={testID}>
-      <Text style={styles.rupee} accessibilityElementsHidden importantForAccessibility="no">
+      <Text
+        style={styles.rupee}
+        maxFontSizeMultiplier={maxScale.amount}
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+      >
         ₹
       </Text>
       <TextInput
@@ -83,7 +91,8 @@ const AmountInput = ({
         accessibilityLabel={label}
         autoFocus={autoFocus}
         selectionColor={colors.ink}
-        style={[styles.input, { width }]}
+        maxFontSizeMultiplier={maxScale.amount}
+        style={[styles.input, { minWidth: width }]}
       />
     </View>
   );
@@ -99,7 +108,9 @@ const useStyles = makeStyles((colors) => ({
     color: colors.ink2,
   },
   input: {
-    height: 56,
+    // Grows with the digits and the text; never narrower than the board's box
+    flexShrink: 1,
+    minHeight: 56,
     padding: 0,
     fontFamily: fonts.bold,
     fontSize: 44,

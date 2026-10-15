@@ -187,8 +187,9 @@ const useStyles = makeStyles((colors) => ({
     color: colors.ink2,
   },
   option: {
-    height: 52,
+    minHeight: 52,
     justifyContent: "center",
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.hairline,
   },

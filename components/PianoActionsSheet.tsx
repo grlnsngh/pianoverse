@@ -40,8 +40,9 @@ const PianoActionsSheet = ({ visible, onClose, actions, onSelect }: PianoActions
 
 const useStyles = makeStyles((colors) => ({
   row: {
-    height: 52,
+    minHeight: 52,
     justifyContent: "center",
+    paddingVertical: 8,
     paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: colors.hairline,

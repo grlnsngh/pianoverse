@@ -176,7 +176,7 @@ describe("the Filters sheet", () => {
     const style = showButton(renderer).props.style({ pressed: false });
 
     expect(style).toEqual(
-      expect.arrayContaining([expect.objectContaining({ height: 52, backgroundColor: "#FF9C01" })])
+      expect.arrayContaining([expect.objectContaining({ minHeight: 52, backgroundColor: "#FF9C01" })])
     );
   });
 });

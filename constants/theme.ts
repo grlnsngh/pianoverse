@@ -305,7 +305,7 @@ export const maxScale = {
   tabLabel: 1.5,
   /** The pill on a photo, which has the photo to fit on */
   badge: 1.3,
-  /** The small number on the filter button, and the A to Z index of the make picker */
+  /** The small number on the filter button, the A to Z index of the make picker and the weekdays of the date picker */
   count: 1.2,
 } as const;
 

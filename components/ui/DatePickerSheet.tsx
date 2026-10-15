@@ -12,7 +12,7 @@ import {
   startOfDay,
   startOfMonth,
 } from "date-fns";
-import { fonts, spacing } from "@/constants/theme";
+import { fonts, maxScale, spacing } from "@/constants/theme";
 import Button from "./Button";
 import Icon from "./Icon";
 import Sheet from "./Sheet";
@@ -130,7 +130,9 @@ const DatePickerSheet = ({
         <View style={styles.week}>
           {WEEKDAYS.map((name) => (
             <View key={name} style={styles.weekCell}>
-              <Text style={styles.weekday}>{name}</Text>
+              <Text style={styles.weekday} maxFontSizeMultiplier={maxScale.count}>
+                {name}
+              </Text>
             </View>
           ))}
         </View>
@@ -179,12 +181,15 @@ const DatePickerSheet = ({
 
 const useStyles = makeStyles((colors) => ({
   monthRow: {
-    height: 48,
+    minHeight: 48,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: spacing.sm,
   },
   month: {
+    // Wraps rather than push the arrows off the sheet
+    flexShrink: 1,
     fontFamily: fonts.bold,
     fontSize: 18,
     lineHeight: 24,
@@ -195,10 +200,10 @@ const useStyles = makeStyles((colors) => ({
   navButton: { width: DAY, height: DAY, alignItems: "center", justifyContent: "center" },
   dim: { opacity: 0.3 },
   week: { flexDirection: "row", marginTop: spacing.xs },
-  weekCell: { flex: 1, height: 32, alignItems: "center", justifyContent: "center" },
+  weekCell: { flex: 1, minHeight: 32, alignItems: "center", justifyContent: "center" },
   weekday: { fontFamily: fonts.semibold, fontSize: 12, color: colors.ink2 },
   row: { flexDirection: "row", marginTop: spacing.xs },
-  cell: { flex: 1, height: ROW, alignItems: "center", justifyContent: "center" },
+  cell: { flex: 1, minHeight: ROW, alignItems: "center", justifyContent: "center" },
   day: {
     width: DAY,
     height: DAY,

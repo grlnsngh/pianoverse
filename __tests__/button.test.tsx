@@ -27,12 +27,12 @@ const labelStyle = (renderer: ReactTestRenderer) =>
   StyleSheet.flatten(renderer.root.findByType(Text).props.style);
 
 describe("Button looks", () => {
-  it("is a primary button by default: orange, ink label, 52 high, radius 14", async () => {
+  it("is a primary button by default: orange, ink label, at least 52 high, radius 14", async () => {
     const { renderer } = await setup();
 
     expect(styleOf(renderer)).toMatchObject({
       backgroundColor: colors.brand,
-      height: 52,
+      minHeight: 52,
       borderRadius: 14,
     });
     expect(labelStyle(renderer)).toMatchObject({
@@ -43,10 +43,10 @@ describe("Button looks", () => {
     expect(renderer.root.findByType(Text).props.children).toBe("Save payment");
   });
 
-  it("is 48 high when compact, for a sticky bar", async () => {
+  it("is at least 48 high when compact, for a sticky bar", async () => {
     const { renderer } = await setup({ size: "compact" });
 
-    expect(styleOf(renderer).height).toBe(48);
+    expect(styleOf(renderer).minHeight).toBe(48);
   });
 
   it("has a grey secondary button", async () => {

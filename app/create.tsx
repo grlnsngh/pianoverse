@@ -214,7 +214,7 @@ const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.grouped },
   content: { paddingBottom: spacing.xxl },
   fields: { paddingHorizontal: spacing.screen, marginTop: spacing.xl },
-  back: { width: 104 },
+  back: { minWidth: 104 },
   primary: { flex: 1 },
 }));
 

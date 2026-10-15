@@ -132,16 +132,16 @@ Tick `[x]` when done. Rules: work on a branch `feature/large-text` off `main`; k
   - [x] L1.2 `maxScale` table in `constants/theme.ts` (D1) and a short "Large text" section in `docs/redesign/SPEC.md` [section 9 of SPEC; the table has `amount` and `title` 1.3, `section` and `tabLabel` 1.5, `badge` 1.3, `count` 1.2; also `amountTextProps` for an amount's one-line fit]
   - [x] L1.3 Apply the limits to big text: Today and Income amounts (also one line that shrinks to fit, so a number never breaks), tab titles, piano title, Welcome and Lock headlines (F18, F23) [every `Text` that uses `type.largeTitle`, `type.pianoTitle` or `type.amount`: the titles of Today, Account, Customers, Income, Edit profile, Paper forms, Service history, the Add flow, the Sign in family, a customer's page, the piano page (and its price), the Welcome and Lock headlines and the "Published" title; the amounts on Today, Income and a customer's page. Section and sheet titles, tab labels and badges have their limits in the table and get them in Batch L3]
   - [x] L1.4 Tests, typecheck, lint, commit [`largeText.test.tsx`: the hook, the table, Today's title and amount, and two guards that fail when a screen uses a big title or amount style without its limit. 165 suites, 2609 tests]
-- [ ] **Batch L2. Controls** (M)
-  - [ ] L2.1 `Button`: `minHeight`, label may take two lines in big-text mode (F7)
-  - [ ] L2.2 `Field`: `minHeight`, typed text sized by its line height, not 28 (F1)
-  - [ ] L2.3 `FormRow` and `Group`: `minHeight`; in big-text mode on a page the label sits above the value; in sheets label and value may wrap (F2, and Letterhead details F32)
-  - [ ] L2.4 `Segmented`: one choice per row in big-text mode, whatever the number of choices (F3, F33)
-  - [ ] L2.5 `AmountInput`: takes the width it has, limit 1.3, height from the text (F6)
-  - [ ] L2.6 Rows in `PickerSheet`, the action sheets, Edit profile and photo options, Extend rental options: `minHeight` (F11, F17)
-  - [ ] L2.7 `DatePickerSheet`: `minHeight` on the month and weekday rows (F13)
-  - [ ] L2.7a The copies row: `minHeight`, and in big-text mode the stepper goes under the label; `Stepper`'s number gets a `minWidth` instead of a width (F30, F38)
-  - [ ] L2.8 Tests at 1.0 and 1.5 for each, typecheck, lint, commit
+- [x] **Batch L2. Controls** (M) [done 2026-10-15; not yet looked at on a phone]
+  - [x] L2.1 `Button`: `minHeight`, label may take two lines in big-text mode (F7) [`minHeight` 52 or 48 plus 10 above and below the label; `numberOfLines` 2 from 125%; the label shrinks so a spinner and a long label share the row. The Back button of the Add flow is `minWidth: 104`, and Empty Pianos' link `minHeight: 44`, since both used to override the button's size]
+  - [x] L2.2 `Field`: `minHeight`, typed text sized by its line height, not 28 (F1) [box `minHeight` 60 with 10 above and 6 below the label and value, so it is 60 at 100% and grows after; the value `minHeight` 28; the Show/Hide target `minHeight` 44]
+  - [x] L2.3 `FormRow` and `Group`: `minHeight`; in big-text mode on a page the label sits above the value; in sheets label and value may wrap (F2, and Letterhead details F32) [`Group` has no sizes of its own, so only `FormRow` changed. Below 125% the label column grows with the text (84 at 100%, 97 at 115%); from 125% a page row stacks, and a sheet row lets its label and value wrap. A text field's row is as tall as the row (`alignSelf: stretch`) instead of `height: 100%`]
+  - [x] L2.4 `Segmented`: one choice per row in big-text mode, whatever the number of choices (F3, F33) [from 125% the track is a column, the chosen row is the white one and the chip is not drawn; below it nothing changed, and its options keep their fixed 40 because their label is one line]
+  - [x] L2.5 `AmountInput`: takes the width it has, limit 1.3, height from the text (F6) [`minWidth` 180 or 210 and `flexShrink` 1 instead of a width, `minHeight` 56, limit `maxScale.amount` on the digits and the rupee sign. To look at on a phone: the digits' box now follows the text's own width once it is wider than the board's]
+  - [x] L2.6 Rows in `PickerSheet`, the action sheets, Edit profile and photo options, Extend rental options: `minHeight` (F11, F17) [each `minHeight` 52 or 56 with 8 above and below; the picker's label and the Extend rental texts shrink to leave room for the check]
+  - [x] L2.7 `DatePickerSheet`: `minHeight` on the month and weekday rows (F13) [the month's name may wrap before it pushes the arrows off; the weekday heads take the `count` limit (1.2) since seven of them share the width]
+  - [x] L2.7a The copies row: `minHeight`, and in big-text mode the stepper goes under the label; `Stepper`'s number gets a `minWidth` instead of a width (F30, F38) [also Print and Share `minHeight` 48]
+  - [x] L2.8 Tests at 1.0 and 1.5 for each, typecheck, lint, commit [`largeTextControls.test.tsx`, 21 tests, 12 of which fail without the change. Eleven older assertions changed from `height` to `minHeight` on purpose (button, field, form row, picker, amount input, state view, filters and detail tests). 166 suites, 2630 tests]
 - [ ] **Batch L3. Headers, bars and badges** (M)
   - [ ] L3.1 `Sheet` title row, the Add and Edit top bar and the select-mode header: three slots (left button, title, right button or spacer of the same width), as `BackBar` already does, so the title never runs into a button and may take two lines; `BackBar` gets `minHeight` and a two-line title too (F4, F40)
   - [ ] L3.2 `TabBar`: `minHeight`, label limit 1.5, reports its height (F8)
@@ -222,6 +222,10 @@ Continue the large-text work. Read docs/large-text/PLAN.md (Progress, Decisions,
 - 2026-10-15, batch L1, **Tests start at 100%.** React Native's Jest preset reports a Font size of 200%. Left alone, every screen that switches layout at 125% would be in big-text mode in every existing test, so `helpers/setup.js` sets 1 and a test that wants more asks for it.
 - 2026-10-15, batch L1, **Nothing changes at 100%.** The limits don't act below their value, and an amount that already fits on one line doesn't shrink. Not yet looked at on a phone at 150%: that is Batch L5.
 
+- 2026-10-15, batch L2, **A fixed height stays where the text can't grow into it.** The options of `Segmented` at under 125% keep their fixed 40 because each holds one line, and the sliding chip is placed by that height; the 44 px round and icon-only buttons stay too. Everything that holds words that can wrap is a minimum.
+- 2026-10-15, batch L2, **Below 125% the label column grows with the text instead of switching layout.** A form row's labels are 84 wide (112 for prices) at 100%; at 115% they are 97 (129), so a label that fit still does, and the label-above-value layout starts only at 125%.
+- 2026-10-15, batch L2, **Eleven tests changed on purpose.** They said `height: 52` and so on, which is now `minHeight: 52`. At 100% the sizes are the same.
+
 (more added as batches go)
 
 ## Session log
@@ -241,3 +245,7 @@ Batch L0: `textZoom: 100` on the PDF (`lib/paperPdf.ts`) and on the page preview
 ### Session 3, 2026-10-15
 
 Batch L1 (foundations): `lib/useTextScale.ts`, `maxScale` and `amountTextProps` in `constants/theme.ts`, the limits on every big title and amount, test helpers, SPEC section 9 and `largeText.test.tsx`. Batch L0 (the PDFs) was merged first as PR #50. Next: Batch L2 (controls).
+
+### Session 4, 2026-10-15
+
+Batch L2 (controls): `Button`, `Field`, `FormRow`, `Segmented`, `AmountInput`, the sheet rows, the date picker, the copies row and `Stepper`, with `largeTextControls.test.tsx`. Batch L1 was merged first (PR #51). Next: Batch L3 (headers, bars and badges).

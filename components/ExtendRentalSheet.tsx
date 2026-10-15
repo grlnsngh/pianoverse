@@ -108,7 +108,7 @@ const ExtendRentalSheet: React.FC<ExtendRentalSheetProps> = ({
               accessibilityState={{ selected }}
               style={({ pressed }) => [styles.option, pressed && styles.pressed]}
             >
-              <View>
+              <View style={styles.optionTexts}>
                 <Text style={styles.optionLabel}>{label}</Text>
                 <Text style={styles.optionUntil}>{until}</Text>
               </View>
@@ -135,13 +135,15 @@ const useStyles = makeStyles((colors) => ({
   explain: { ...type.secondary, textAlign: "center", color: colors.ink2 },
   group: { marginTop: 20 },
   option: {
-    height: 56,
+    minHeight: 56,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
+    paddingVertical: 8,
     paddingHorizontal: 16,
   },
+  optionTexts: { flex: 1, minWidth: 0 },
   pressed: { backgroundColor: colors.grouped },
   optionLabel: { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22, color: colors.ink },
   optionUntil: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },

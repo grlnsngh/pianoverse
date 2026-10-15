@@ -158,7 +158,7 @@ describe("Group", () => {
 });
 
 describe("FormRow on a page", () => {
-  it("is 56 high with a 16 px gap and 16 px sides", async () => {
+  it("is at least 56 high with a 16 px gap and 16 px sides", async () => {
     const renderer = await mount(
       <Group>
         <FormRow testID="row" label="Purchased" value="3 Sep 2026" />
@@ -166,7 +166,7 @@ describe("FormRow on a page", () => {
     );
 
     expect(rowStyle(renderer)).toMatchObject({
-      height: 56,
+      minHeight: 56,
       flexDirection: "row",
       alignItems: "center",
       gap: 16,
@@ -236,10 +236,10 @@ describe("FormRow on a page", () => {
 describe("FormRow in a sheet", () => {
   const inSheet = (child: React.ReactNode) => mount(<Group inSheet>{child}</Group>);
 
-  it("is 52 high, with the label on the left and the value on the right", async () => {
+  it("is at least 52 high, with the label on the left and the value on the right", async () => {
     const renderer = await inSheet(<FormRow testID="row" label="Paid on" value="Today, 29 Sep 2026" />);
 
-    expect(rowStyle(renderer).height).toBe(52);
+    expect(rowStyle(renderer).minHeight).toBe(52);
     expect(textStyle(renderer, "Paid on").width).toBeUndefined();
     expect(textStyle(renderer, "Today, 29 Sep 2026")).toMatchObject({
       textAlign: "right",
@@ -437,7 +437,7 @@ describe("FormRow outside a group", () => {
   it("uses the page layout", async () => {
     const renderer = await mount(<FormRow testID="row" label="Make" value="Schumann" />);
 
-    expect(rowStyle(renderer).height).toBe(56);
+    expect(rowStyle(renderer).minHeight).toBe(56);
     expect(textStyle(renderer, "Make").width).toBe(84);
   });
 

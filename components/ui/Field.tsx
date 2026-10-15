@@ -13,7 +13,8 @@ import { fonts, radii, type } from "@/constants/theme";
 import Icon from "./Icon";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
-const HEIGHT = 60;
+/** The least a field is high: label, value and the room below them, at 100% */
+const MIN_HEIGHT = 60;
 const ERROR_ICON_SIZE = 14;
 
 export type FieldProps = Omit<TextInputProps, "style" | "placeholderTextColor"> & {
@@ -148,17 +149,19 @@ const Field = forwardRef<TextInput, FieldProps>(function Field(
 
 const useStyles = makeStyles((colors) => ({
   box: {
-    height: HEIGHT,
+    minHeight: MIN_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
     paddingLeft: 16,
     borderRadius: radii.input,
   },
   disabled: { backgroundColor: colors.grouped },
-  texts: { flex: 1, minWidth: 0, alignSelf: "stretch", paddingTop: 10 },
+  // 10 above and 6 below the label and value: the 60 of the board at 100%, and
+  // the same room around bigger text, which makes the field taller
+  texts: { flex: 1, minWidth: 0, alignSelf: "stretch", paddingTop: 10, paddingBottom: 6 },
   label: { ...type.hint, color: colors.ink2 },
   input: {
-    height: 28,
+    minHeight: 28,
     padding: 0,
     fontFamily: fonts.medium,
     fontSize: 16,
@@ -167,7 +170,7 @@ const useStyles = makeStyles((colors) => ({
     textAlignVertical: "center",
   },
   reveal: {
-    height: 44,
+    minHeight: 44,
     paddingHorizontal: 12,
     justifyContent: "center",
   },
