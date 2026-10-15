@@ -62,16 +62,16 @@ describe("TabBar", () => {
     });
   });
 
-  it("is 84 high on an iPhone: 50 plus the 34 px home indicator", async () => {
+  it("is at least 84 high on an iPhone: 50 plus the 34 px home indicator", async () => {
     const renderer = await bar("today", jest.fn(), 34).mounted;
 
-    expect(barStyle(renderer).height).toBe(84);
+    expect(barStyle(renderer).minHeight).toBe(84);
   });
 
   it("keeps a little room below on a phone with no home indicator", async () => {
     const renderer = await bar("today", jest.fn(), 0).mounted;
 
-    expect(barStyle(renderer).height).toBe(58);
+    expect(barStyle(renderer).minHeight).toBe(58);
   });
 
   it("shares its width equally, with a tap area of at least 44 px", async () => {
@@ -81,7 +81,7 @@ describe("TabBar", () => {
       expect(flat(tab.props.style)).toMatchObject({ flex: 1, alignItems: "center" });
     }
     // 50 px of content height, more than the 44 px minimum
-    expect(barStyle(renderer).height - 34).toBeGreaterThanOrEqual(44);
+    expect(barStyle(renderer).minHeight - 34).toBeGreaterThanOrEqual(44);
   });
 
   it("draws a 26 px icon over each label, with the icon from the set", async () => {

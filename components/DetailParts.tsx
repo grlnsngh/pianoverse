@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { Icon } from "@/components/ui";
-import { fonts, Palette, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, Palette, spacing, type } from "@/constants/theme";
 import { ACTION_LABELS, ActionKey, DetailRow, DetailTone } from "@/utils/pianoDetail";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
@@ -31,7 +31,11 @@ export const Divider = ({ flush = false }: { flush?: boolean }) => {
 export const SectionTitle = ({ children }: { children: string }) => {
   const styles = useStyles();
   return (
-    <Text style={styles.sectionTitle} accessibilityRole="header">
+    <Text
+      style={styles.sectionTitle}
+      accessibilityRole="header"
+      maxFontSizeMultiplier={maxScale.section}
+    >
       {children}
     </Text>
   );

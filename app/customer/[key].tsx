@@ -49,7 +49,11 @@ const dayText = (paidOn: string) => {
 const SectionTitle = ({ children }: { children: string }) => {
   const styles = useStyles();
   return (
-    <Text style={styles.sectionTitle} accessibilityRole="header">
+    <Text
+      style={styles.sectionTitle}
+      accessibilityRole="header"
+      maxFontSizeMultiplier={maxScale.section}
+    >
       {children}
     </Text>
   );

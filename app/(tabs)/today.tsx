@@ -228,7 +228,11 @@ const Today = () => {
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle} accessibilityRole="header">
+          <Text
+            style={styles.sectionTitle}
+            accessibilityRole="header"
+            maxFontSizeMultiplier={maxScale.section}
+          >
             Needs attention
           </Text>
           {attention.length > 0 && <Text style={styles.sectionCount}>{attention.length}</Text>}
@@ -248,7 +252,11 @@ const Today = () => {
         {owing.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle} accessibilityRole="header">
+              <Text
+                style={styles.sectionTitle}
+                accessibilityRole="header"
+                maxFontSizeMultiplier={maxScale.section}
+              >
                 Rent due
               </Text>
               <Text style={styles.sectionCount}>{owing.length}</Text>
@@ -268,7 +276,11 @@ const Today = () => {
         {serviceDueList.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle} accessibilityRole="header">
+              <Text
+                style={styles.sectionTitle}
+                accessibilityRole="header"
+                maxFontSizeMultiplier={maxScale.section}
+              >
                 Service due
               </Text>
               <Text style={styles.sectionCount}>{serviceDueList.length}</Text>
@@ -290,7 +302,11 @@ const Today = () => {
         {shelf.length > 0 && (
           <>
             <View style={[styles.sectionHeader, styles.shelfHeader]}>
-              <Text style={styles.sectionTitle} accessibilityRole="header">
+              <Text
+                style={styles.sectionTitle}
+                accessibilityRole="header"
+                maxFontSizeMultiplier={maxScale.section}
+              >
                 Rented out
               </Text>
               <Pressable
@@ -317,7 +333,11 @@ const Today = () => {
         {recent.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle} accessibilityRole="header">
+              <Text
+                style={styles.sectionTitle}
+                accessibilityRole="header"
+                maxFontSizeMultiplier={maxScale.section}
+              >
                 Recent payments
               </Text>
             </View>

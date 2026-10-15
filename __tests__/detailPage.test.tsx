@@ -539,10 +539,10 @@ describe("the bar at the bottom", () => {
     expect(flat(record.props.style({ pressed: false })).minHeight).toBe(48);
   });
 
-  it("is as tall as the tab bar: 50 above the home indicator, at least 8 below it", async () => {
+  it("is at least as tall as the tab bar: 50 above the home indicator, at least 8 below it", async () => {
     const { renderer } = await open(rented(10));
 
-    expect(flat(bar(renderer).props.style)).toMatchObject({ height: 58, paddingBottom: 8, borderTopWidth: 1, borderTopColor: colors.hairline });
+    expect(flat(bar(renderer).props.style)).toMatchObject({ minHeight: 58, paddingBottom: 8, borderTopWidth: 1, borderTopColor: colors.hairline });
   });
 
   it("opens the payment sheet from Record payment", async () => {

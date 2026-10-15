@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { fonts, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import {
   clearSelectedItems,
   selectAllItems,
@@ -9,6 +9,7 @@ import {
 } from "@/redux/pianos/actions";
 import { RootState } from "@/redux/store";
 import { makeStyles } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 /**
  * The bar at the top of the Pianos tab while choosing pianos: Cancel, how many
@@ -17,6 +18,7 @@ import { makeStyles } from "@/lib/ThemeContext";
  */
 const SelectionHeader = () => {
   const styles = useStyles();
+  const { large } = useTextScale();
   const dispatch = useDispatch();
   const { selectedItems, filteredItems } = useSelector(
     (state: RootState) => state.pianos,
@@ -38,19 +40,25 @@ const SelectionHeader = () => {
   };
 
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, large && styles.barFlow]}>
       <Pressable
         onPress={cancel}
         accessibilityRole="button"
         accessibilityLabel="Cancel"
         style={styles.button}
       >
-        <Text style={styles.cancel}>Cancel</Text>
+        <Text style={styles.cancel} maxFontSizeMultiplier={maxScale.section}>
+          Cancel
+        </Text>
       </Pressable>
 
       {/* Centred on the bar, whatever the buttons' widths */}
-      <View pointerEvents="none" style={styles.titleWrap}>
-        <Text style={styles.title} accessibilityLiveRegion="polite">
+      <View pointerEvents="none" style={[styles.titleWrap, large && styles.titleFlow]}>
+        <Text
+          style={[styles.title, large && styles.titleCentred]}
+          accessibilityLiveRegion="polite"
+          maxFontSizeMultiplier={maxScale.section}
+        >
           {selectedItems.length} selected
         </Text>
       </View>
@@ -61,7 +69,7 @@ const SelectionHeader = () => {
         accessibilityLabel={allSelected ? "Deselect all" : "Select all"}
         style={styles.button}
       >
-        <Text style={styles.selectAll}>
+        <Text style={styles.selectAll} maxFontSizeMultiplier={maxScale.section}>
           {allSelected ? "Deselect all" : "Select all"}
         </Text>
       </Pressable>
@@ -78,8 +86,22 @@ const useStyles = makeStyles((colors) => ({
     paddingTop: spacing.sm,
     paddingHorizontal: spacing.sm,
   },
+  // With a big Font size the title is no longer laid over the middle of the bar,
+  // where the buttons would run into it: it sits between them and may wrap
+  barFlow: { height: undefined, minHeight: 56, paddingBottom: spacing.xs },
+  titleFlow: {
+    position: "relative",
+    top: undefined,
+    left: undefined,
+    right: undefined,
+    flex: 1,
+    height: undefined,
+    minHeight: spacing.minTarget,
+    paddingHorizontal: spacing.xs,
+  },
+  titleCentred: { textAlign: "center" },
   button: {
-    height: spacing.minTarget,
+    minHeight: spacing.minTarget,
     paddingHorizontal: spacing.md,
     justifyContent: "center",
   },

@@ -182,6 +182,15 @@ describe("where the limits are wired in", () => {
     expect(missing).toEqual([]);
   });
 
+  it("gives every section and sheet title its limit: a style from type.section or type.sheetTitle needs maxScale.section", () => {
+    const missing = files.filter((file) => {
+      const text = read(file);
+      return /\.\.\.type\.(section|sheetTitle)/.test(text) && !text.includes("maxScale.section");
+    });
+
+    expect(missing).toEqual([]);
+  });
+
   it("gives every amount in type.amount its limit and one-line fit", () => {
     const missing = files.filter((file) => {
       const text = read(file);

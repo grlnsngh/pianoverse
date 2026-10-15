@@ -1,8 +1,9 @@
 import React from "react";
 import { Pressable, StyleProp, Text, View, ViewStyle } from "react-native";
-import { fonts, shadows, type } from "@/constants/theme";
+import { fonts, maxScale, radii, shadows, type } from "@/constants/theme";
 import Icon from "./Icon";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const HEIGHT = 52;
 const FILTER_SIZE = 40;
@@ -21,7 +22,10 @@ export type SearchPillProps = {
 /**
  * The search field of the Pianos tab: a white pill with the search icon and
  * two lines of text. It is a button that opens the search screen, so nothing
- * is typed here. The round filter button sits inside its right end.
+ * is typed here. The round filter button sits inside its right end. It is at
+ * least 52 high; with a big Font size the second line ("Title, make or
+ * customer", which the button's hint says anyway) goes, so the title has the
+ * room.
  */
 const SearchPill = ({
   onPress,
@@ -32,6 +36,7 @@ const SearchPill = ({
 }: SearchPillProps) => {
   const colors = useColors();
   const styles = useStyles();
+  const { large } = useTextScale();
   const withFilter = !!onFilterPress;
 
   return (
@@ -51,9 +56,11 @@ const SearchPill = ({
           <Text style={styles.title} numberOfLines={1}>
             Search pianos
           </Text>
-          <Text style={styles.hint} numberOfLines={1}>
-            Title, make or customer
-          </Text>
+          {!large && (
+            <Text style={styles.hint} numberOfLines={1}>
+              Title, make or customer
+            </Text>
+          )}
         </View>
       </Pressable>
 
@@ -71,7 +78,9 @@ const SearchPill = ({
           <Icon name="sliders" size={18} color={colors.ink} strokeWidth={1.9} />
           {filterCount > 0 && (
             <View testID="active-filter-badge" style={styles.count}>
-              <Text style={styles.countText}>{filterCount}</Text>
+              <Text style={styles.countText} maxFontSizeMultiplier={maxScale.count}>
+                {filterCount}
+              </Text>
             </View>
           )}
         </Pressable>
@@ -82,10 +91,10 @@ const SearchPill = ({
 
 const useStyles = makeStyles((colors) => ({
   pill: {
-    height: HEIGHT,
+    minHeight: HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: HEIGHT / 2,
+    borderRadius: radii.full,
     borderWidth: 1,
     borderColor: colors.hairline,
     backgroundColor: colors.surface,
@@ -95,7 +104,8 @@ const useStyles = makeStyles((colors) => ({
   search: {
     flex: 1,
     minWidth: 0,
-    height: HEIGHT - 2,
+    alignSelf: "stretch",
+    minHeight: HEIGHT - 2,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
@@ -117,7 +127,7 @@ const useStyles = makeStyles((colors) => ({
     top: -4,
     right: -4,
     minWidth: 18,
-    height: 18,
+    minHeight: 18,
     paddingHorizontal: 4,
     borderRadius: 9,
     alignItems: "center",

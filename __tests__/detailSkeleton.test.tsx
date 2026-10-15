@@ -140,7 +140,7 @@ describe("the piano page under the status bar", () => {
     expect(flat(back.props.style({ pressed: false })).top).toBe(47 + 12);
   });
 
-  it("makes the bar 84 high on a phone with a home indicator", async () => {
+  it("makes the bar at least 84 high on a phone with a home indicator", async () => {
     fakeBackend.reset();
     const store = createTestStore({ user: testUser, items: [piano] });
     const renderer = await mount(
@@ -154,6 +154,6 @@ describe("the piano page under the status bar", () => {
     );
     const bar = renderer.root.find((node) => typeof node.type === "string" && node.props.testID === "sticky-action-bar");
 
-    expect(flat(bar.props.style)).toMatchObject({ height: 84, paddingBottom: 34 });
+    expect(flat(bar.props.style)).toMatchObject({ minHeight: 84, paddingBottom: 34 });
   });
 });

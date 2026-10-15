@@ -12,6 +12,7 @@ import {
 } from "@/constants/theme";
 import useReducedMotion from "@/lib/useReducedMotion";
 import { addToastListener, setToastListener, ToastDetails, ToastListener } from "@/utils/toast";
+import { useBottomBarHeight } from "@/lib/bottomBars";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 const HOLD_MS = {
@@ -51,6 +52,7 @@ const ToastHost = ({ embedded = false, bottomOffset }: ToastHostProps) => {
   const offset = useRef(new Animated.Value(0)).current;
   // (A dialog can be drawn with no safe area around it, as in a test: no inset then)
   const insets = useContext(SafeAreaInsetsContext) ?? { bottom: 0 };
+  const barHeight = useBottomBarHeight();
   const reduced = useReducedMotion();
   const reducedRef = useRef(reduced);
   const dismiss = useRef<() => void>(() => {});
@@ -133,10 +135,10 @@ const ToastHost = ({ embedded = false, bottomOffset }: ToastHostProps) => {
   if (!toast) return null;
 
   const { message, variant, action } = toast;
-  // 12 px above the tab bar, or the sticky action bar on a piano's page
+  // 12 px above the tab bar, or the sticky action bar on a piano's page: as tall
+  // as that bar says it is, or as it is drawn at 100% before it has said
   const aboveBottomBar =
-    Math.max(insets.bottom, bottomBar.minInset) +
-    bottomBar.content +
+    (barHeight ?? Math.max(insets.bottom, bottomBar.minInset) + bottomBar.content) +
     bottomBar.toastGap;
 
   return (

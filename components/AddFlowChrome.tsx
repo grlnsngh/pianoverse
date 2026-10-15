@@ -25,11 +25,28 @@ export const AddFlowTopBar = ({ onCancel, title = "New piano" }: AddFlowTopBarPr
         accessibilityLabel="Cancel"
         style={styles.cancel}
       >
-        <Text style={styles.cancelText}>Cancel</Text>
+        <Text style={styles.cancelText} maxFontSizeMultiplier={maxScale.section}>
+          Cancel
+        </Text>
       </Pressable>
-      <Text style={styles.topTitle} accessibilityRole="header">
+      <Text
+        style={styles.topTitle}
+        accessibilityRole="header"
+        maxFontSizeMultiplier={maxScale.section}
+      >
         {title}
       </Text>
+      {/* The same word, unseen, so the title is centred and has room to wrap in */}
+      <View
+        style={[styles.cancel, styles.balance]}
+        pointerEvents="none"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        <Text style={styles.cancelText} maxFontSizeMultiplier={maxScale.section}>
+          Cancel
+        </Text>
+      </View>
     </View>
   );
 };
@@ -94,20 +111,20 @@ export const AddFlowFooter = ({ children }: { children: React.ReactNode }) => {
 
 const useStyles = makeStyles((colors) => ({
   topBar: {
-    height: 52,
+    minHeight: 52,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   cancel: {
-    position: "absolute",
-    left: 8,
-    top: 4,
-    height: spacing.minTarget,
+    minHeight: spacing.minTarget,
     paddingHorizontal: spacing.md,
     justifyContent: "center",
   },
+  balance: { opacity: 0 },
   cancelText: { ...type.bodyMedium, color: colors.ink },
-  topTitle: { ...type.sheetTitle, color: colors.ink },
+  topTitle: { ...type.sheetTitle, flex: 1, textAlign: "center", color: colors.ink },
   heading: { paddingHorizontal: spacing.screen },
   segments: { flexDirection: "row", gap: 4 },
   segment: {
