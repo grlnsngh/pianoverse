@@ -44,11 +44,17 @@ jest.mock("expo-local-authentication", () => ({
 }));
 
 // The web view that draws the real-page previews of the paper forms. In tests
-// it draws nothing; a test reads the page it was given from its source prop
+// it draws nothing; a test reads the page it was given from its source prop,
+// and its text zoom (the percent of the phone's Font size it follows)
 jest.mock("react-native-webview", () => {
   const React = require("react");
   const { View } = require("react-native");
-  const WebView = (props) => React.createElement(View, { testID: props.testID ?? "webview", source: props.source });
+  const WebView = (props) =>
+    React.createElement(View, {
+      testID: props.testID ?? "webview",
+      source: props.source,
+      textZoom: props.textZoom,
+    });
   return { __esModule: true, WebView, default: WebView };
 });
 

@@ -55,6 +55,8 @@ const PaperPreview = ({ html, width, visibleHeight = PAGE_HEIGHT, overlay, acces
             originWhitelist={["*"]}
             scrollEnabled={false}
             javaScriptEnabled={false}
+            // Paper keeps its size: don't follow the phone's Font size (Android)
+            textZoom={100}
             showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
             importantForAccessibility="no-hide-descendants"

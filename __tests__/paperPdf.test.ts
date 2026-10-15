@@ -106,6 +106,13 @@ describe("making a form's PDF", () => {
     expect(options.html.match(/<section /g)).toHaveLength(3);
   });
 
+  it("keeps the web view from enlarging the text by the phone's Font size", async () => {
+    // The pages are laid out for the designed size; at 150% a PDF would overflow its boxes
+    await savePaperForm("rent_card", letterhead, 1, none);
+
+    expect(printToFile.mock.calls[0][0]).toMatchObject({ textZoom: 100 });
+  });
+
   it("keeps it in the app's documents as the form's name, replacing the last one", async () => {
     const pdf = await savePaperForm("receipts", letterhead, 1);
 

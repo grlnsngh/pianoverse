@@ -122,10 +122,10 @@ Each has a default; work goes ahead with the default until the owner answers. Mo
 
 Tick `[x]` when done. Rules: work on a branch `feature/large-text` off `main`; keep `npm run typecheck`, `npm test` and `npm run lint` green before every commit; at 100% text nothing may change on screen (existing tests should pass untouched, and any that must change say why under Decisions); commit at the end of each batch as `large-text: batch N <name>`.
 
-- [ ] **Batch L0. Paper forms print at their real size** (S). Do this first, on its own branch off `main`: the owner's printed forms are wrong today, and it is two lines.
-  - [ ] L0.1 `textZoom: 100` in `Print.printToFileAsync` in `lib/paperPdf.ts` (F28)
-  - [ ] L0.2 `textZoom={100}` on the `WebView` in `components/PaperPreview.tsx` (F29)
-  - [ ] L0.3 Tests that both pass 100; typecheck, tests, lint, commit
+- [ ] **Batch L0. Paper forms print at their real size** (S) [L0.1 to L0.3 done 2026-10-15; L0.4 is the owner's check on a phone]. Do this first, on its own branch off `main`: the owner's printed forms are wrong today, and it is two lines.
+  - [x] L0.1 `textZoom: 100` in `Print.printToFileAsync` in `lib/paperPdf.ts` (F28)
+  - [x] L0.2 `textZoom={100}` on the `WebView` in `components/PaperPreview.tsx` (F29)
+  - [x] L0.3 Tests that both pass 100; typecheck, tests, lint, commit [`paperPdf.test.ts` has the PDF case and the new `paperPreview.test.tsx` the preview; the web view mock in `__tests__/helpers/setup.js` now passes `textZoom` through. Both tests fail without the fix. 164 suites, 2597 tests green]
   - [ ] L0.4 On the emulator at Font size 150%, save a form and an agreement and compare them with the same PDFs made at 100%: same text size, same page count. Ship over the air to the runtime 5 build
 - [ ] **Batch L1. Foundations** (S)
   - [ ] L1.1 `lib/useTextScale.ts` (`fontScale`, `large` at 1.25 and up) and a test helper in `__tests__/helpers/render.tsx` that renders at a chosen `fontScale`
@@ -229,3 +229,7 @@ Audit of every screen and shared component against Android Font size and Display
 ### Session 1, 2026-10-15
 
 Second audit, of everything added since (Batches 30 to 35): F28 to F40 and Batch L0. Added the large-text rules to `CLAUDE.md` and to the redesign plan's working rules, so new work follows them. No app code changed.
+
+### Session 2, 2026-10-15
+
+Batch L0: `textZoom: 100` on the PDF (`lib/paperPdf.ts`) and on the page preview's web view (`components/PaperPreview.tsx`), with tests. Not yet checked on a phone (L0.4): at font scale 1.5, save a form and an agreement and compare them with PDFs made at 1.0.
