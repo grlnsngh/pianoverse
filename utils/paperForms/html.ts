@@ -41,6 +41,7 @@ body {
   height: ${PAGE_HEIGHT}px;
   padding: 44px 48px;
   overflow: hidden;
+  isolation: isolate;
   page-break-after: always;
   break-after: page;
 }
@@ -74,6 +75,7 @@ body {
   flex: 1; height: 46px; border-bottom: 1px solid #8A857C;
   font-size: 12px; line-height: 16px; color: #5C574F;
 }
+.compact .box { height: 44px; }
 .tbl { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #8A857C; }
 .tbl th {
   height: 30px; padding: 0 8px; background: #EFEDE8; border: 1px solid #8A857C;
@@ -133,9 +135,36 @@ export const pageWithFooter = (body: string, left: string, right: string, classN
     left
   )}</span><span>${escapeHtml(right)}</span></div></section>`;
 
+/**
+ * One A4 page whose writing starts `padTop` px down (under a letterhead) and
+ * whose footer line sits `footBottom` px up (above a letterhead's footer).
+ */
+export const framedPage = (
+  body: string,
+  left: string,
+  right: string,
+  { padTop, footBottom }: { padTop: number; footBottom: number }
+): string =>
+  `<section class="page" style="padding-top:${padTop}px">${body}<div class="foot" style="bottom:${footBottom}px"><span>${escapeHtml(
+    left
+  )}</span><span>${escapeHtml(right)}</span></div></section>`;
+
 /** One A4 page with the footer every form has. */
 export const page = (body: string, footerName: string, className = ""): string =>
   pageWithFooter(body, "Made with Pianoverse paper forms", `${footerName} · A4`, className);
+
+/**
+ * One page to show on a screen `width` px wide (the real-page previews): the
+ * same page and styles as the PDF, scaled down, with `extraCss` (the fonts and
+ * the letterhead's images).
+ */
+export const previewDocument = (pageHtml: string, extraCss: string, width: number): string => {
+  const scale = width / PAGE_WIDTH;
+  const height = Math.ceil(PAGE_HEIGHT * scale);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=${width},initial-scale=1,maximum-scale=1,user-scalable=no"><style>${extraCss}${CSS}html,body{margin:0;width:${width}px;height:${height}px;overflow:hidden;background:#FFFFFF}#page{width:${PAGE_WIDTH}px;transform:scale(${scale.toFixed(
+    5
+  )});transform-origin:0 0}</style></head><body><div id="page">${pageHtml}</div></body></html>`;
+};
 
 /** Each page repeated `count` times, in order. */
 export const repeatPages = (pages: string[], count: number): string[] =>

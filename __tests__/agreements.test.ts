@@ -1,10 +1,19 @@
-import { EMPTY_LETTERHEAD, type Letterhead } from "@/utils/letterhead";
+import { DEFAULT_DESIGN, EMPTY_LETTERHEAD, LETTERHEAD_TEMPLATES, type Letterhead, type LetterheadDesign } from "@/utils/letterhead";
 import { HOTEL_TERMS, PRIVATE_TERMS } from "@/utils/paperForms/agreementTerms";
-import { agreementCopies, agreementHtml, agreementPages, termPages } from "@/utils/paperForms/agreements";
+import {
+  agreementCopies,
+  agreementHtml,
+  agreementPages,
+  BLOCK_HEIGHTS,
+  paginate,
+  paragraphLines,
+  termParagraphs,
+} from "@/utils/paperForms/agreements";
 import { AGREEMENT_KINDS, AGREEMENTS, FULL_KIT, isAgreementKind } from "@/utils/paperForms/catalog";
 import { kitHtml } from "@/utils/paperForms/forms";
+import { PAGE_HEIGHT } from "@/utils/paperForms/html";
 
-/** The two rental agreements: their terms, what each kind prints, and the letterhead at the top. */
+/** The two rental agreements: their terms, how they fill their pages, and what each kind prints. */
 
 const full: Letterhead = {
   business: "Tune & Play <Pianos>",
@@ -15,26 +24,25 @@ const full: Letterhead = {
   gst: "03ABCDE1234F1Z5",
   pan: "ABCDE1234F",
 };
-const pagesIn = (html: string) => html.match(/<section class="page/g)?.length ?? 0;
+const tps: Letterhead = { ...full, business: "The Piano Services" };
+const none: LetterheadDesign = { ...DEFAULT_DESIGN, style: "none" };
+const pagesIn = (html: string) => html.match(/<section /g)?.length ?? 0;
 const text = (html: string) => html.replace(/<style>.*?<\/style>/gs, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+
+/** Each page's parts and how much room they were given: their measured heights never run past the footer. */
+const fits = (page: string) => {
+  const top = Number(page.match(/padding-top:(\d+)px/)?.[1]);
+  const footBottom = Number(page.match(/class="foot" style="bottom:(\d+)px/)?.[1]);
+  const strip = page.includes('class="ag-strip"') ? 25 : 0;
+  const used = [...page.matchAll(/class="ag-b" data-h="(\d+)"/g)].reduce((sum, match) => sum + Number(match[1]), 0);
+  return { used, room: PAGE_HEIGHT - footBottom - 26 - top - strip };
+};
 
 describe("the agreements in the catalog", () => {
   it("has a hotel and a private-person agreement, two pages each, with ids that never change", () => {
     expect(AGREEMENT_KINDS).toEqual(["hotel", "private"]);
-    expect(AGREEMENTS.hotel).toMatchObject({
-      id: "agreement_hotel",
-      label: "Hotel",
-      title: "Hotel rental agreement",
-      fileName: "Rental agreement (hotel).pdf",
-      pagesPerCopy: 2,
-    });
-    expect(AGREEMENTS.private).toMatchObject({
-      id: "agreement_private",
-      label: "Private person",
-      title: "Private rental agreement",
-      fileName: "Rental agreement (private).pdf",
-      pagesPerCopy: 2,
-    });
+    expect(AGREEMENTS.hotel).toMatchObject({ id: "agreement_hotel", title: "Hotel rental agreement", pagesPerCopy: 2 });
+    expect(AGREEMENTS.private).toMatchObject({ id: "agreement_private", title: "Private rental agreement", pagesPerCopy: 2 });
     expect(isAgreementKind("private")).toBe(true);
     expect(isAgreementKind("company")).toBe(false);
   });
@@ -42,8 +50,8 @@ describe("the agreements in the catalog", () => {
   it("makes the full kit six forms and nine pages: the five forms, then both agreements", () => {
     expect(FULL_KIT).toMatchObject({ forms: 6, pages: 9 });
 
-    const html = kitHtml(EMPTY_LETTERHEAD);
-    const footers = [...html.matchAll(/<div class="foot"><span>([^<]+)<\/span><span>([^<]+)<\/span>/g)].map(
+    const html = kitHtml(tps, "", DEFAULT_DESIGN);
+    const footers = [...html.matchAll(/<div class="foot"[^>]*><span>([^<]+)<\/span><span>([^<]+)<\/span>/g)].map(
       (match) => `${match[1]} | ${match[2]}`
     );
 
@@ -58,16 +66,14 @@ describe("the agreements in the catalog", () => {
 });
 
 describe("the terms, written as plain text", () => {
-  it("splits at the page 2 line, one paragraph per blank line, with the titles in bold", () => {
-    const [first, second] = termPages(HOTEL_TERMS, full);
+  it("gives a paragraph for each blank line, titles in bold, in order", () => {
+    const paragraphs = termParagraphs(HOTEL_TERMS, full);
 
-    expect(first.map((paragraph) => paragraph.match(/^<b>([^<]+)<\/b>/)?.[1])).toEqual([
+    expect(paragraphs.map((paragraph) => paragraph.match(/^<b>([^<]+)<\/b>/)?.[1])).toEqual([
       "Payment:",
       "Late payment:",
       "Ownership:",
       "Care and maintenance:",
-    ]);
-    expect(second.map((paragraph) => paragraph.match(/^<b>([^<]+)<\/b>/)?.[1])).toEqual([
       "Damage:",
       "Shifting:",
       "Maintenance and tuning:",
@@ -77,61 +83,106 @@ describe("the terms, written as plain text", () => {
     ]);
   });
 
+  it("ignores an old line that said where page 2 starts: the pages fill themselves", () => {
+    expect(termParagraphs("**A:** one\n\n--- page 2 ---\n\n**B:** two", full)).toEqual(["<b>A:</b> one", "<b>B:</b> two"]);
+  });
+
   it("prints the business name where it says {business}, escaped, or a line to write it on", () => {
-    const [named] = termPages("The piano belongs to {business}.", full);
-    const [blankName] = termPages("The piano belongs to {business}.", EMPTY_LETTERHEAD);
-
-    expect(named).toEqual(["The piano belongs to Tune &amp; Play &lt;Pianos&gt;."]);
-    expect(blankName).toEqual(['The piano belongs to <span class="ag-blank" style="width:160px"></span>.']);
+    expect(termParagraphs("The piano belongs to {business}.", full)).toEqual([
+      "The piano belongs to Tune &amp; Play &lt;Pianos&gt;.",
+    ]);
+    expect(termParagraphs("The piano belongs to {business}.", EMPTY_LETTERHEAD)).toEqual([
+      'The piano belongs to <span class="ag-blank" style="width:160px"></span>.',
+    ]);
   });
 
-  it("turns {blank} into a line to write on, 120 wide unless it says", () => {
-    const [[paragraph]] = termPages("From {blank} for ₹{blank 90} a month.", EMPTY_LETTERHEAD);
+  it("turns {blank} into a line to write on, 120 wide unless it says, and escapes the rest", () => {
+    expect(termParagraphs("From {blank} for ₹{blank 90} a month.", EMPTY_LETTERHEAD)).toEqual([
+      'From <span class="ag-blank" style="width:120px"></span> for ₹<span class="ag-blank" style="width:90px"></span> a month.',
+    ]);
+    expect(termParagraphs("Rent < 5 & more", EMPTY_LETTERHEAD)).toEqual(["Rent &lt; 5 &amp; more"]);
+  });
+});
 
-    expect(paragraph).toBe(
-      'From <span class="ag-blank" style="width:120px"></span> for ₹<span class="ag-blank" style="width:90px"></span> a month.'
-    );
+describe("how long a paragraph is on paper", () => {
+  it("counts lines the way the page wraps them (measured in the browser)", () => {
+    const [payment, late, ownership, care, , , , termination] = HOTEL_TERMS.split(/\n\s*\n/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean);
+
+    expect(paragraphLines(payment, tps)).toBe(1);
+    expect(paragraphLines(late, tps)).toBe(3);
+    expect(paragraphLines(ownership, tps)).toBe(2);
+    expect(paragraphLines(care, tps)).toBe(2);
+    expect(paragraphLines(termination, tps)).toBe(4);
   });
 
-  it("escapes anything else that looks like HTML in the terms", () => {
-    const [[paragraph]] = termPages("Rent < 5 & more", EMPTY_LETTERHEAD);
+  it("counts a long business name and write-in lines in the width", () => {
+    expect(paragraphLines("Owned by {business}.", { ...tps, business: "x".repeat(10) })).toBe(1);
+    expect(paragraphLines("{blank 600} {blank 600}", tps)).toBe(2);
+  });
+});
 
-    expect(paragraph).toBe("Rent &lt; 5 &amp; more");
+describe("filling the pages", () => {
+  const block = (height: number, extra = {}) => ({ html: `<p>${height}</p>`, height, ...extra });
+  const continued = block(38);
+
+  it("starts a new page when a part doesn't fit", () => {
+    const pages = paginate([block(300), block(300), block(300)], 650, 650, continued);
+
+    expect(pages.map((page) => page.map((part) => part.height))).toEqual([[300, 300], [300]]);
   });
 
-  it("keeps both pages of terms short enough to fit (check the PDF after a change, then raise these)", () => {
-    const length = (part: string) =>
-      part
-        .split(/\n\s*\n/)
-        .map((paragraph) => paragraph.trim())
-        .filter(Boolean)
-        .reduce((sum, paragraph) => sum + paragraph.length, 0);
-    const pagesOf = (terms: string) => terms.split(/^\s*---\s*page 2\s*---\s*$/im);
+  it("keeps a heading with what follows it", () => {
+    const pages = paginate([block(560), block(38, { keepWithNext: true }), block(60)], 650, 650, continued);
 
-    const [hotelFirst, hotelSecond] = pagesOf(HOTEL_TERMS);
-    const [privateFirst, privateSecond] = pagesOf(PRIVATE_TERMS);
-    // Measured with the PDF printed: room for about four more lines on page 1 and one on page 2
-    expect(length(hotelFirst)).toBeLessThanOrEqual(1000);
-    expect(length(privateFirst)).toBeLessThanOrEqual(1000);
-    expect(length(hotelSecond)).toBeLessThanOrEqual(1350);
-    expect(length(privateSecond)).toBeLessThanOrEqual(1400);
+    expect(pages.map((page) => page.map((part) => part.height))).toEqual([[560], [38, 60]]);
+  });
+
+  it("heads terms that go on to a new page with “continued”", () => {
+    const pages = paginate([block(600), block(80, { paragraph: true })], 650, 650, continued);
+
+    expect(pages[1]).toEqual([continued, expect.objectContaining({ height: 80 })]);
+  });
+
+  it("keeps both agreements to two pages under every design, each part inside its page", () => {
+    for (const { id } of LETTERHEAD_TEMPLATES) {
+      for (const kind of AGREEMENT_KINDS) {
+        const pages = agreementPages(kind, tps, { ...DEFAULT_DESIGN, template: id });
+
+        expect(pages).toHaveLength(2);
+        for (const page of pages) {
+          const { used, room } = fits(page);
+          expect(used).toBeLessThanOrEqual(room);
+        }
+      }
+    }
+  });
+
+  it("goes on to more pages when a tall letterhead leaves less room, and numbers them", () => {
+    const tall: LetterheadDesign = {
+      ...DEFAULT_DESIGN,
+      style: "upload",
+      upload: { image: { file: "letterhead-1.jpg", width: 1240, height: 1754 }, kind: "page", top: 90, bottom: 60 },
+    };
+    const pages = agreementPages("hotel", tps, tall, { logo: null, image: "data:image/jpeg;base64,X" });
+
+    expect(pages.length).toBeGreaterThan(2);
+    pages.forEach((page, index) => {
+      expect(page).toContain(`Page ${index + 1} of ${pages.length}`);
+      const { used, room } = fits(page);
+      expect(used).toBeLessThanOrEqual(room);
+    });
+  });
+
+  it("knows the height of each fixed part, measured from the printed page", () => {
+    expect(BLOCK_HEIGHTS).toMatchObject({ titleAndParties: 170, piano: 150, period: 66, chargesHotel: 196, heading: 38 });
   });
 });
 
 describe("what each agreement prints", () => {
-  it("is two pages, numbered, with the agreement's name at the bottom", () => {
-    for (const kind of AGREEMENT_KINDS) {
-      const [first, second] = agreementPages(kind, EMPTY_LETTERHEAD);
-
-      expect(first).toContain(`<span>${AGREEMENTS[kind].footer}</span><span>Page 1 of 2</span>`);
-      expect(second).toContain(`<span>${AGREEMENTS[kind].footer}</span><span>Page 2 of 2</span>`);
-      expect(first).toContain("PIANO RENTAL AGREEMENT");
-      expect(second).toContain("5. Delivery acknowledgment");
-    }
-  });
-
   it("makes the hotel's with its GSTIN, GST on late charges, 18% interest, a designation and a hotel stamp", () => {
-    const words = text(agreementPages("hotel", full).join(""));
+    const words = text(agreementPages("hotel", tps, none).join(""));
 
     expect(words).toContain(" Hotel Name ");
     expect(words).toContain("GSTIN");
@@ -147,7 +198,7 @@ describe("what each agreement prints", () => {
   });
 
   it("makes the private person's with their mobile and ID, a deposit refunded in 15 days, 12% interest and no hotel stamp", () => {
-    const words = text(agreementPages("private", full).join(""));
+    const words = text(agreementPages("private", tps, none).join(""));
 
     expect(words).toContain(" Renter Name ");
     expect(words).toContain("Address where the piano will be kept");
@@ -163,35 +214,37 @@ describe("what each agreement prints", () => {
     expect(words).toContain("Business stamp");
   });
 
-  it("prints the whole letterhead at the top when given, escaped", () => {
-    const [first, second] = agreementPages("hotel", full);
+  it("prints the business on the letterhead, in the terms and in the signatures, escaped", () => {
+    const html = agreementPages("hotel", full).join("");
 
-    expect(first).toContain('<div class="ag-name">Tune &amp; Play &lt;Pianos&gt;</div>');
-    for (const detail of ["Tuning, rentals and moving", "SCO 12, Sector 17-C, Chandigarh"]) {
-      expect(first).toContain(`<div class="ag-small">${detail}</div>`);
-    }
-    for (const detail of ["03ABCDE1234F1Z5", "ABCDE1234F", "98140 12345", "hello@tuneandplay.in"]) {
-      expect(first).toContain(`<b>${detail}</b>`);
-    }
-    expect(second).toContain("Tune &amp; Play &lt;Pianos&gt;  ·  Piano rental agreement");
-    expect(second).toContain("For Tune &amp; Play &lt;Pianos&gt;");
-    expect(first + second).not.toContain("<Pianos>");
+    expect(html).toContain("TUNE &amp; PLAY &lt;PIANOS&gt;");
+    expect(html).toContain("sole property of Tune &amp; Play &lt;Pianos&gt;");
+    expect(html).toContain("For Tune &amp; Play &lt;Pianos&gt;");
+    expect(html).not.toContain("<Pianos>");
   });
 
-  it("prints lines to write the letterhead on when it is empty, and leaves out what you do", () => {
+  it("prints lines to write the details on when there is no business name yet", () => {
     const [first, second] = agreementPages("private", EMPTY_LETTERHEAD);
-    const words = text(first);
 
-    expect(words).toContain("Business");
-    expect(words).toContain("Address");
-    expect(words).toContain("GST No.");
-    expect(first).not.toContain('class="ag-name"');
-    expect(first).not.toContain('class="ag-small"');
+    expect(first).toContain('class="ag-head"');
+    expect(text(first)).toContain("Business");
+    expect(text(first)).toContain("GST No.");
+    expect(second).toContain('class="ag-strip"');
     expect(second).toContain("For the business");
   });
 
+  it("colours the headings in the design's colour on Monogram, Modern and Band, and ink on the rest", () => {
+    expect(agreementPages("hotel", tps, { ...DEFAULT_DESIGN, template: "monogram", colour: "copper" })[0]).toContain(
+      'class="ag-h" style="color:#9A4A24"'
+    );
+    expect(agreementPages("hotel", tps, { ...DEFAULT_DESIGN, template: "classic", colour: "gold" })[0]).toContain(
+      'class="ag-h" style="color:#1A1814"'
+    );
+    expect(agreementPages("hotel", tps, none)[0]).toContain('class="ag-h" style="color:#1A1814"');
+  });
+
   it("fills in nothing about the client, the piano or the money", () => {
-    const html = agreementPages("private", full).join("");
+    const html = agreementPages("private", tps, none).join("");
     const amounts = [...html.matchAll(/<td class="amt"[^>]*>(.*?)<\/td>/g)].map((match) => match[1]);
 
     expect(amounts).toHaveLength(5);
@@ -200,20 +253,28 @@ describe("what each agreement prints", () => {
     }
   });
 
-  it("repeats both pages for each copy, in order, from 1 to 20", () => {
-    const copies = agreementCopies("hotel", EMPTY_LETTERHEAD, 2);
+  it("repeats all the pages for each copy, in order, from 1 to 20", () => {
+    const copies = agreementCopies("hotel", tps, 2, none);
 
     expect(copies).toHaveLength(4);
     expect(copies.map((page) => page.match(/Page (\d) of 2/)?.[1])).toEqual(["1", "2", "1", "2"]);
-    expect(agreementCopies("hotel", EMPTY_LETTERHEAD, 99)).toHaveLength(40);
-    expect(agreementCopies("hotel", EMPTY_LETTERHEAD, 0)).toHaveLength(2);
+    expect(agreementCopies("hotel", tps, 99, none)).toHaveLength(40);
+    expect(agreementCopies("hotel", tps, 0, none)).toHaveLength(2);
   });
 
-  it("makes a whole document named after the agreement, with the font", () => {
-    const html = agreementHtml("private", full, 1, "@font-face{x}");
+  it("makes a whole document named after the agreement, with the font and the letterhead's images", () => {
+    const html = agreementHtml("private", tps, 1, "@font-face{x}", DEFAULT_DESIGN, {
+      logo: "data:image/png;base64,LOGO",
+      image: null,
+    });
 
     expect(html).toContain("<title>Private rental agreement</title>");
     expect(html).toContain("@font-face{x}");
+    expect(html.match(/LOGO/g)).toHaveLength(1);
     expect(pagesIn(html)).toBe(2);
+  });
+
+  it("keeps the private terms with their own clauses", () => {
+    expect(termParagraphs(PRIVATE_TERMS, tps).some((paragraph) => paragraph.startsWith("<b>Security deposit:</b>"))).toBe(true);
   });
 });

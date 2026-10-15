@@ -1,78 +1,67 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FormPreview } from "@/components/FormThumbnail";
+import BackBar from "@/components/BackBar";
+import LetterheadRow from "@/components/LetterheadRow";
 import PaperActions, { CopiesRow } from "@/components/PaperActions";
+import PaperPreview from "@/components/PaperPreview";
 import PaperSavedSheet from "@/components/PaperSavedSheet";
-import { FormRow, Group, Icon, StateView } from "@/components/ui";
+import { StateView } from "@/components/ui";
 import { fonts, spacing, type } from "@/constants/theme";
 import { savePaperForm } from "@/lib/paperPdf";
 import useLetterhead from "@/lib/useLetterhead";
 import usePaperPdf from "@/lib/usePaperPdf";
-import { makeStyles, useColors } from "@/lib/ThemeContext";
-import { LETTERHEAD_LIMITS } from "@/utils/letterhead";
-import { paperFormById, type PaperForm } from "@/utils/paperForms/catalog";
+import usePreviewHtml, { type PageMaker } from "@/lib/usePreviewHtml";
+import { makeStyles } from "@/lib/ThemeContext";
+import { paperFormById, type PaperForm, type PaperFormId } from "@/utils/paperForms/catalog";
+import { formPages } from "@/utils/paperForms/forms";
 
-const goBack = () => {
-  if (router.canGoBack()) router.back();
-  else router.replace("/paper-forms");
+const PREVIEW_WIDTH = 250;
+
+/** One page maker per form, made once, so the preview isn't rebuilt on every render. */
+const PAGE_MAKERS = new Map<PaperFormId, PageMaker>();
+const pageMakerFor = (id: PaperFormId): PageMaker => {
+  let maker = PAGE_MAKERS.get(id);
+  if (!maker) {
+    maker = (details, design, assets) => formPages(id, details, 1, design, assets)[0];
+    PAGE_MAKERS.set(id, maker);
+  }
+  return maker;
+};
+
+/** Where the letterhead goes on each form, for the row under the preview. */
+const LETTERHEAD_HINT: Record<PaperFormId, string> = {
+  rent_card: "The small version goes on this form",
+  receipts: "The small version goes on each receipt",
+  piano_register: "Registers stay plain: the business name only",
+  rental_register: "Registers stay plain: the business name only",
+  handover: "The small version goes on this form",
 };
 
 /** A form's screen, once the form is known. */
 const PaperFormScreen = ({ form }: { form: PaperForm }) => {
   const styles = useStyles();
-  const { letterhead, change, remember } = useLetterhead();
+  const { details, design } = useLetterhead();
   const [count, setCount] = useState(form.defaultCount);
+  const html = usePreviewHtml(design, details, PREVIEW_WIDTH, pageMakerFor(form.id));
 
-  const pdf = usePaperPdf(async () => {
-    await remember();
-    return savePaperForm(form.id, letterhead, count);
-  });
+  const pdf = usePaperPdf(() => savePaperForm(form.id, details, count, design));
 
   return (
     <>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.previewArea}>
-          <FormPreview id={form.id} />
-          <Text style={styles.previewNote}>A4 · {form.pageNote}</Text>
+          <PaperPreview html={html} width={PREVIEW_WIDTH} accessibilityLabel={`${form.title}, the page as it will print`} />
+          <Text style={styles.previewNote}>The real page · A4 · {form.pageNote}</Text>
           <Text style={styles.previewContents}>{form.contents}</Text>
         </View>
 
-        <Group
-          title="Printed at the top"
-          footer="Leave them empty to write by hand. Kept on this phone only."
-          style={styles.section}
-        >
-          <FormRow
-            label="Business"
-            placeholder="Your business name"
-            input={{
-              value: letterhead.business,
-              onChangeText: change("business"),
-              onEndEditing: remember,
-              maxLength: LETTERHEAD_LIMITS.business,
-              autoCapitalize: "words",
-              returnKeyType: "done",
-            }}
-          />
-          <FormRow
-            label="Phone"
-            placeholder="Optional"
-            input={{
-              value: letterhead.phone,
-              onChangeText: change("phone"),
-              onEndEditing: remember,
-              maxLength: LETTERHEAD_LIMITS.phone,
-              keyboardType: "phone-pad",
-              returnKeyType: "done",
-            }}
-          />
-        </Group>
+        <Text style={styles.groupTitle} accessibilityRole="header">
+          Letterhead
+        </Text>
+        <LetterheadRow design={design} details={details} hint={LETTERHEAD_HINT[form.id]} />
+        <Text style={styles.groupFooter}>Changing it here changes it on every form.</Text>
 
         <CopiesRow label={form.countLabel} hint={form.countHint} value={count} onChange={setCount} />
 
@@ -93,28 +82,18 @@ const PaperFormScreen = ({ form }: { form: PaperForm }) => {
 };
 
 /**
- * One paper form (PaperFormDetail board), opened from Paper forms: a drawing
- * of the page, the business name and phone to print at the top, how many
- * copies, and Save PDF, Print and Share.
+ * One paper form (PaperFormDetail board), opened from Paper forms: the real
+ * page as it will print, the letterhead it carries, how many copies, and
+ * Save PDF, Print and Share.
  */
 const PaperFormDetail = () => {
-  const colors = useColors();
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const form = paperFormById(id);
 
   return (
     <SafeAreaView edges={["top"]} style={styles.page}>
-      <View style={styles.bar}>
-        <Pressable onPress={goBack} accessibilityRole="button" accessibilityLabel="Back" style={styles.back}>
-          <Icon name="chevronLeft" size={24} color={colors.ink} strokeWidth={2.2} />
-        </Pressable>
-        <Text style={styles.barTitle} accessibilityRole="header" numberOfLines={1}>
-          {form?.title ?? "Paper forms"}
-        </Text>
-        <View style={styles.back} />
-      </View>
-
+      <BackBar title={form?.title ?? "Paper forms"} fallback="/paper-forms" />
       {form ? (
         <PaperFormScreen form={form} />
       ) : (
@@ -133,16 +112,6 @@ const PaperFormDetail = () => {
 
 const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.grouped },
-  bar: {
-    height: 56,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: spacing.sm,
-    paddingHorizontal: spacing.sm,
-  },
-  back: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
-  barTitle: { ...type.sheetTitle, flex: 1, textAlign: "center", color: colors.ink },
   content: { paddingHorizontal: spacing.screen, paddingBottom: spacing.xxxl },
   previewArea: { alignItems: "center", paddingTop: spacing.lg },
   previewNote: {
@@ -158,7 +127,20 @@ const useStyles = makeStyles((colors) => ({
     textAlign: "center",
     color: colors.ink2,
   },
-  section: { marginTop: spacing.xxl },
+  groupTitle: {
+    ...type.status,
+    marginTop: spacing.xxl,
+    marginLeft: spacing.lg,
+    marginBottom: spacing.sm,
+    color: colors.ink2,
+  },
+  groupFooter: {
+    ...type.caption,
+    fontFamily: fonts.regular,
+    marginTop: spacing.sm,
+    marginHorizontal: spacing.lg,
+    color: colors.ink2,
+  },
 }));
 
 export default PaperFormDetail;

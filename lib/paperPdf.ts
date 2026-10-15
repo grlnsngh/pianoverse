@@ -1,14 +1,18 @@
 import { Figtree_400Regular } from "@expo-google-fonts/figtree/400Regular";
 import { Figtree_600SemiBold } from "@expo-google-fonts/figtree/600SemiBold";
 import { Figtree_700Bold } from "@expo-google-fonts/figtree/700Bold";
+import { Lora_400Regular } from "@expo-google-fonts/lora/400Regular";
+import { PlayfairDisplay_400Regular } from "@expo-google-fonts/playfair-display/400Regular";
+import { PlayfairDisplay_500Medium } from "@expo-google-fonts/playfair-display/500Medium";
 import { Asset } from "expo-asset";
 import { File, Paths } from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Platform } from "react-native";
-import type { Letterhead } from "@/utils/letterhead";
-import { agreementHtml } from "@/utils/paperForms/agreements";
+import { letterheadImageData } from "@/lib/letterheadImages";
+import { DEFAULT_DESIGN, type Letterhead, type LetterheadDesign } from "@/utils/letterhead";
+import { agreementHtml, agreementPages } from "@/utils/paperForms/agreements";
 import {
   AGREEMENTS,
   clampCount,
@@ -19,6 +23,8 @@ import {
   type PaperFormId,
 } from "@/utils/paperForms/catalog";
 import { formHtml, kitHtml } from "@/utils/paperForms/forms";
+import { paperDocument } from "@/utils/paperForms/html";
+import { fontsForDesign, letterheadCss, type LetterheadAssets } from "@/utils/paperForms/letterheads";
 
 /**
  * Paper forms as PDF files, made on the phone: the form's HTML
@@ -39,44 +45,70 @@ export type SavedPdf = {
   pages: number;
 };
 
-/** The weights the forms are set in, from the font files the app already has. */
-const FONT_FILES: [number, number][] = [
-  [Figtree_400Regular, 400],
-  [Figtree_600SemiBold, 600],
-  [Figtree_700Bold, 700],
-];
+type FontId = "figtree400" | "figtree600" | "figtree700" | "lora400" | "playfair400" | "playfair500";
 
-let fontCss: Promise<string> | null = null;
-
-/**
- * The @font-face rules that put Figtree in the PDF, read once. If the font
- * files can't be read, the forms are set in the phone's own sans serif rather
- * than not made at all.
- */
-export const loadFontCss = (): Promise<string> => {
-  if (!fontCss) {
-    fontCss = Promise.all(
-      FONT_FILES.map(async ([module, weight]) => {
-        const asset = Asset.fromModule(module);
-        await asset.downloadAsync();
-        const base64 = await new File(asset.localUri ?? asset.uri).base64();
-        return `@font-face{font-family:'Figtree';font-style:normal;font-weight:${weight};src:url(data:font/ttf;base64,${base64}) format('truetype');}`;
-      })
-    )
-      .then((faces) => faces.join(""))
-      .catch((error) => {
-        console.warn("Could not read the font for paper forms:", error);
-        // Try again next time; this PDF goes without
-        fontCss = null;
-        return "";
-      });
-  }
-  return fontCss;
+/** The font files the PDFs are set in, from the app's own fonts and the letterhead's. */
+const FONT_FILES: Record<FontId, { module: number; family: string; weight: number }> = {
+  figtree400: { module: Figtree_400Regular, family: "Figtree", weight: 400 },
+  figtree600: { module: Figtree_600SemiBold, family: "Figtree", weight: 600 },
+  figtree700: { module: Figtree_700Bold, family: "Figtree", weight: 700 },
+  lora400: { module: Lora_400Regular, family: "Lora", weight: 400 },
+  playfair400: { module: PlayfairDisplay_400Regular, family: "Playfair Display", weight: 400 },
+  playfair500: { module: PlayfairDisplay_500Medium, family: "Playfair Display", weight: 500 },
 };
 
-/** Forgets the font read earlier. For tests. */
+const FIGTREE: FontId[] = ["figtree400", "figtree600", "figtree700"];
+
+const faces = new Map<FontId, Promise<string>>();
+
+/** One @font-face rule, read once; "" (and tried again next time) when its file can't be read. */
+const fontFace = (id: FontId): Promise<string> => {
+  let face = faces.get(id);
+  if (!face) {
+    const { module, family, weight } = FONT_FILES[id];
+    face = (async () => {
+      const asset = Asset.fromModule(module);
+      await asset.downloadAsync();
+      const base64 = await new File(asset.localUri ?? asset.uri).base64();
+      return `@font-face{font-family:'${family}';font-style:normal;font-weight:${weight};src:url(data:font/ttf;base64,${base64}) format('truetype');}`;
+    })().catch((error) => {
+      console.warn("Could not read a font for paper forms:", error);
+      faces.delete(id);
+      return "";
+    });
+    faces.set(id, face);
+  }
+  return face;
+};
+
+/**
+ * The @font-face rules for a PDF: Figtree, and the letterhead's own fonts
+ * when its design uses them. A font that can't be read is left out; the PDF is
+ * still made, in the phone's own font.
+ */
+export const loadFontCss = async (design: LetterheadDesign = DEFAULT_DESIGN): Promise<string> =>
+  (await Promise.all([...FIGTREE, ...fontsForDesign(design)].map(fontFace))).join("");
+
+/** Forgets the fonts read earlier. For tests. */
 export const resetFontCssForTests = () => {
-  fontCss = null;
+  faces.clear();
+};
+
+/** The letterhead's images, read from the phone, for a PDF or a preview. */
+export const loadLetterheadAssets = async (design: LetterheadDesign): Promise<LetterheadAssets> => {
+  const [logo, image] = await Promise.all([
+    design.style === "make" ? letterheadImageData(design.logo) : Promise.resolve(null),
+    design.style === "upload" ? letterheadImageData(design.upload.image) : Promise.resolve(null),
+  ]);
+  return { logo, image };
+};
+
+/** Everything a document needs besides its pages: the fonts and the letterhead's images. */
+export type PaperParts = { fontCss: string; assets: LetterheadAssets };
+
+export const loadPaperParts = async (design: LetterheadDesign): Promise<PaperParts> => {
+  const [fontCss, assets] = await Promise.all([loadFontCss(design), loadLetterheadAssets(design)]);
+  return { fontCss, assets };
 };
 
 /** Draws the HTML as a PDF and keeps it in the app's documents under `fileName`. */
@@ -88,39 +120,43 @@ const savePdf = async (html: string, fileName: string, expectedPages: number): P
 };
 
 /**
- * Makes the form's PDF, `count` copies of it, and keeps it in the app's documents.
+ * Makes the form's PDF, `count` copies of it, on the letterhead, and keeps it in the app's documents.
  *
  * @throws {Error} If the PDF can't be made or kept; the screen tells the person.
  */
 export const savePaperForm = async (
   id: PaperFormId,
   letterhead: Letterhead,
-  count: number
+  count: number,
+  design: LetterheadDesign = DEFAULT_DESIGN
 ): Promise<SavedPdf> => {
   const form = paperFormById(id);
   if (!form) throw new Error(`There is no paper form called ${id}`);
   const copies = clampCount(count);
+  const { fontCss, assets } = await loadPaperParts(design);
   return savePdf(
-    formHtml(id, letterhead, copies, await loadFontCss()),
+    formHtml(id, letterhead, copies, fontCss, design, assets),
     pdfFileName(form),
     copies * form.pagesPerCopy
   );
 };
 
 /**
- * Makes a rental agreement's PDF, `count` copies of its two pages, and keeps it in the app's documents.
+ * Makes a rental agreement's PDF, `count` copies of its pages, and keeps it in the app's documents.
  *
  * @throws {Error} If the PDF can't be made or kept; the screen tells the person.
  */
 export const saveAgreement = async (
   kind: AgreementKind,
   letterhead: Letterhead,
-  count: number
+  count: number,
+  design: LetterheadDesign = DEFAULT_DESIGN
 ): Promise<SavedPdf> => {
   const agreement = AGREEMENTS[kind];
   const copies = clampCount(count);
+  const { fontCss, assets } = await loadPaperParts(design);
   return savePdf(
-    agreementHtml(kind, letterhead, copies, await loadFontCss()),
+    agreementHtml(kind, letterhead, copies, fontCss, design, assets),
     agreement.fileName,
     copies * agreement.pagesPerCopy
   );
@@ -131,8 +167,25 @@ export const saveAgreement = async (
  *
  * @throws {Error} If the PDF can't be made or kept; the screen tells the person.
  */
-export const savePaperKit = async (letterhead: Letterhead): Promise<SavedPdf> =>
-  savePdf(kitHtml(letterhead, await loadFontCss()), FULL_KIT.fileName, FULL_KIT.pages);
+export const savePaperKit = async (
+  letterhead: Letterhead,
+  design: LetterheadDesign = DEFAULT_DESIGN
+): Promise<SavedPdf> => {
+  const { fontCss, assets } = await loadPaperParts(design);
+  return savePdf(kitHtml(letterhead, fontCss, design, assets), FULL_KIT.fileName, FULL_KIT.pages);
+};
+
+/**
+ * A test page for "My printed paper": the first page of the hotel agreement,
+ * to print on plain paper and hold against the pad.
+ *
+ * @throws {Error} If the PDF can't be made or kept; the screen tells the person.
+ */
+export const saveTestPage = async (letterhead: Letterhead, design: LetterheadDesign): Promise<SavedPdf> => {
+  const { fontCss, assets } = await loadPaperParts(design);
+  const [first] = agreementPages("hotel", letterhead, design, assets);
+  return savePdf(paperDocument("Test page", [first], fontCss + letterheadCss(assets)), "Letterhead test page.pdf", 1);
+};
 
 const shareOptions = (fileName: string) => ({
   mimeType: "application/pdf",

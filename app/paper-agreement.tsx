@@ -1,18 +1,20 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import type { KeyboardTypeOptions, TextInputProps } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AgreementPreview } from "@/components/FormThumbnail";
+import BackBar from "@/components/BackBar";
+import LetterheadRow from "@/components/LetterheadRow";
 import PaperActions, { CopiesRow } from "@/components/PaperActions";
+import PaperPreview from "@/components/PaperPreview";
 import PaperSavedSheet from "@/components/PaperSavedSheet";
-import { FormRow, Group, Icon, Segmented } from "@/components/ui";
+import { Segmented } from "@/components/ui";
 import { fonts, spacing, type } from "@/constants/theme";
 import { saveAgreement } from "@/lib/paperPdf";
 import useLetterhead from "@/lib/useLetterhead";
 import usePaperPdf from "@/lib/usePaperPdf";
-import { makeStyles, useColors } from "@/lib/ThemeContext";
-import { LETTERHEAD_LIMITS, type LetterheadKey } from "@/utils/letterhead";
+import usePreviewHtml, { type PageMaker } from "@/lib/usePreviewHtml";
+import { makeStyles } from "@/lib/ThemeContext";
+import { agreementPages } from "@/utils/paperForms/agreements";
 import {
   AGREEMENT_KINDS,
   AGREEMENT_ROW,
@@ -21,68 +23,45 @@ import {
   type AgreementKind,
 } from "@/utils/paperForms/catalog";
 
-const goBack = () => {
-  if (router.canGoBack()) router.back();
-  else router.replace("/paper-forms");
-};
+const PREVIEW_WIDTH = 150;
 
 const KIND_OPTIONS = AGREEMENT_KINDS.map((kind) => ({ value: kind, label: AGREEMENTS[kind].label }));
 
-/** The rows of "Your letterhead", in the order they are printed. */
-const LETTERHEAD_ROWS: {
-  key: LetterheadKey;
-  label: string;
-  placeholder: string;
-  keyboardType?: KeyboardTypeOptions;
-  autoCapitalize?: TextInputProps["autoCapitalize"];
-}[] = [
-  { key: "business", label: "Business", placeholder: "Business name", autoCapitalize: "words" },
-  { key: "tagline", label: "What you do", placeholder: "Tuning and rentals" },
-  { key: "address", label: "Address", placeholder: "Shop address", autoCapitalize: "words" },
-  { key: "phone", label: "Phone", placeholder: "One or two numbers", keyboardType: "phone-pad" },
-  { key: "email", label: "Email", placeholder: "Optional", keyboardType: "email-address", autoCapitalize: "none" },
-  { key: "gst", label: "GST No.", placeholder: "Optional", autoCapitalize: "characters" },
-  { key: "pan", label: "PAN", placeholder: "Optional", autoCapitalize: "characters" },
-];
+/** Pages 1 and 2 of each agreement, made once so the previews aren't rebuilt on every render. */
+const PAGE_MAKERS: Record<AgreementKind, [PageMaker, PageMaker]> = {
+  hotel: [
+    (details, design, assets) => agreementPages("hotel", details, design, assets)[0],
+    (details, design, assets) => agreementPages("hotel", details, design, assets)[1],
+  ],
+  private: [
+    (details, design, assets) => agreementPages("private", details, design, assets)[0],
+    (details, design, assets) => agreementPages("private", details, design, assets)[1],
+  ],
+};
 
 /**
  * The rental agreement (PaperAgreement board), opened from Paper forms: the
  * hotel agreement or the one for a private person, with the owner's terms
- * printed (utils/paperForms/agreementTerms.ts) and the business's letterhead
- * at the top; everything about the client, the piano and the money is
- * written by hand. Two copies by default, one for each side.
+ * printed (utils/paperForms/agreementTerms.ts) on the letterhead; everything
+ * about the client, the piano and the money is written by hand. Two copies by
+ * default, one for each side.
  */
 const PaperAgreement = () => {
-  const colors = useColors();
   const styles = useStyles();
   const params = useLocalSearchParams<{ kind?: string }>();
   const [kind, setKind] = useState<AgreementKind>(isAgreementKind(params.kind) ? params.kind : "hotel");
   const [count, setCount] = useState<number>(AGREEMENT_ROW.defaultCount);
-  const { letterhead, change, remember } = useLetterhead();
+  const { details, design } = useLetterhead();
   const agreement = AGREEMENTS[kind];
+  const first = usePreviewHtml(design, details, PREVIEW_WIDTH, PAGE_MAKERS[kind][0]);
+  const second = usePreviewHtml(design, details, PREVIEW_WIDTH, PAGE_MAKERS[kind][1]);
 
-  const pdf = usePaperPdf(async () => {
-    await remember();
-    return saveAgreement(kind, letterhead, count);
-  });
+  const pdf = usePaperPdf(() => saveAgreement(kind, details, count, design));
 
   return (
     <SafeAreaView edges={["top"]} style={styles.page}>
-      <View style={styles.bar}>
-        <Pressable onPress={goBack} accessibilityRole="button" accessibilityLabel="Back" style={styles.back}>
-          <Icon name="chevronLeft" size={24} color={colors.ink} strokeWidth={2.2} />
-        </Pressable>
-        <Text style={styles.barTitle} accessibilityRole="header" numberOfLines={1}>
-          {AGREEMENT_ROW.title}
-        </Text>
-        <View style={styles.back} />
-      </View>
-
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <BackBar title={AGREEMENT_ROW.title} fallback="/paper-forms" />
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Segmented
           options={KIND_OPTIONS}
           value={kind}
@@ -92,35 +71,16 @@ const PaperAgreement = () => {
         />
         <Text style={styles.note}>{agreement.note}</Text>
 
-        <View style={styles.previewArea}>
-          <AgreementPreview kind={kind} />
-          <Text style={styles.previewNote}>A4 · 2 pages · your terms are printed</Text>
+        <View style={styles.previews}>
+          <PaperPreview html={first} width={PREVIEW_WIDTH} accessibilityLabel={`${agreement.title}, page 1`} />
+          <PaperPreview html={second} width={PREVIEW_WIDTH} accessibilityLabel={`${agreement.title}, page 2`} />
         </View>
+        <Text style={styles.previewNote}>The real pages · A4 · your terms printed</Text>
 
-        <Group
-          title="Your letterhead"
-          footer="Printed at the top of both agreements, and the business and phone on every form. Leave any empty to write by hand. Kept on this phone only."
-          labelWidth={100}
-          style={styles.section}
-        >
-          {LETTERHEAD_ROWS.map((row) => (
-            <FormRow
-              key={row.key}
-              label={row.label}
-              placeholder={row.placeholder}
-              input={{
-                value: letterhead[row.key],
-                onChangeText: change(row.key),
-                onEndEditing: remember,
-                maxLength: LETTERHEAD_LIMITS[row.key],
-                keyboardType: row.keyboardType,
-                autoCapitalize: row.autoCapitalize ?? "sentences",
-                autoCorrect: false,
-                returnKeyType: "done",
-              }}
-            />
-          ))}
-        </Group>
+        <Text style={styles.groupTitle} accessibilityRole="header">
+          Letterhead
+        </Text>
+        <LetterheadRow design={design} details={details} hint="Full on page 1, small on the pages after" />
 
         <CopiesRow label="Copies" hint="One for each side to keep" value={count} onChange={setCount} />
 
@@ -142,16 +102,6 @@ const PaperAgreement = () => {
 
 const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.grouped },
-  bar: {
-    height: 56,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: spacing.sm,
-    paddingHorizontal: spacing.sm,
-  },
-  back: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
-  barTitle: { ...type.sheetTitle, flex: 1, textAlign: "center", color: colors.ink },
   content: { paddingHorizontal: spacing.screen, paddingBottom: spacing.xxxl },
   choice: { marginTop: spacing.sm },
   note: {
@@ -161,15 +111,22 @@ const useStyles = makeStyles((colors) => ({
     textAlign: "center",
     color: colors.ink2,
   },
-  previewArea: { alignItems: "center", paddingTop: spacing.lg },
+  previews: { flexDirection: "row", justifyContent: "center", gap: spacing.md, paddingTop: spacing.lg },
   previewNote: {
     marginTop: 10,
+    textAlign: "center",
     fontFamily: fonts.semibold,
     fontSize: 13,
     lineHeight: 18,
     color: colors.inkBody,
   },
-  section: { marginTop: spacing.xxl },
+  groupTitle: {
+    ...type.status,
+    marginTop: spacing.xxl,
+    marginLeft: spacing.lg,
+    marginBottom: spacing.sm,
+    color: colors.ink2,
+  },
 }));
 
 export default PaperAgreement;

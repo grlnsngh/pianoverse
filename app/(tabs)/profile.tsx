@@ -19,7 +19,7 @@ import { useGlobalContext } from "@/context/GlobalProvider";
 import { useAppLock } from "@/lib/AppLockContext";
 import { deleteAccount, signOut } from "@/lib/appwrite";
 import { exportCustomers, exportPayments } from "@/lib/exportData";
-import { clearLetterhead } from "@/lib/letterheadStorage";
+import { forgetLetterhead } from "@/lib/letterheadStore";
 import { clearPianoCache } from "@/lib/pianoCache";
 import useSavedAt from "@/lib/useSavedAt";
 import { setActiveTab } from "@/redux/navigation/actions";
@@ -229,7 +229,7 @@ const Profile = () => {
   const forgetAccountOnThisPhone = async () => {
     await scheduleAllRentalNotifications([]);
     await clearPianoCache();
-    await clearLetterhead();
+    await forgetLetterhead();
     dispatch(resetPianoState() as any);
     dispatch(setActiveTab("pianos") as any);
     setUser(null);

@@ -1,7 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { cleanLetterhead, EMPTY_LETTERHEAD, isEmptyLetterhead, Letterhead } from "@/utils/letterhead";
+import {
+  cleanDesign,
+  cleanLetterhead,
+  DEFAULT_DESIGN,
+  EMPTY_LETTERHEAD,
+  isEmptyLetterhead,
+  type Letterhead,
+  type LetterheadDesign,
+} from "@/utils/letterhead";
 
 const KEY = "paperForms:letterhead";
+const DESIGN_KEY = "paperForms:letterheadDesign";
 
 /**
  * The business details printed on the paper forms, as typed on this phone.
@@ -31,10 +40,36 @@ export const saveLetterhead = async (letterhead: Letterhead): Promise<boolean> =
   }
 };
 
-/** Forgets the details, when the person signs out or deletes their account, so the next person doesn't print them. */
+/**
+ * How the letterhead looks (the style, the design and colour, the images and
+ * spaces), as chosen on this phone. Nothing stored or unreadable is the
+ * default: Monogram in copper.
+ */
+export const loadLetterheadDesign = async (): Promise<LetterheadDesign> => {
+  try {
+    const stored = await AsyncStorage.getItem(DESIGN_KEY);
+    return stored ? cleanDesign(JSON.parse(stored)) : DEFAULT_DESIGN;
+  } catch (error) {
+    console.warn("Could not read the letterhead design:", error);
+    return DEFAULT_DESIGN;
+  }
+};
+
+/** Remembers the design, cleaned. Resolves to whether it was saved. */
+export const saveLetterheadDesign = async (design: LetterheadDesign): Promise<boolean> => {
+  try {
+    await AsyncStorage.setItem(DESIGN_KEY, JSON.stringify(cleanDesign(design)));
+    return true;
+  } catch (error) {
+    console.warn("Could not save the letterhead design:", error);
+    return false;
+  }
+};
+
+/** Forgets the details and the design, when the person signs out or deletes their account, so the next person doesn't print them. */
 export const clearLetterhead = async (): Promise<void> => {
   try {
-    await AsyncStorage.removeItem(KEY);
+    await AsyncStorage.multiRemove([KEY, DESIGN_KEY]);
   } catch (error) {
     console.warn("Could not clear the letterhead:", error);
   }

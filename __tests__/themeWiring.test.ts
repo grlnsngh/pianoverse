@@ -72,14 +72,18 @@ describe("how screens get their colours", () => {
       // Paper is black on white whatever the theme: the drawings of the forms and the printed forms
       "components/FormThumbnail.tsx",
       "components/GoogleButton.tsx",
+      "components/PaperPreview.tsx",
       "components/SelectionMark.tsx",
       "components/WelcomeScreen.tsx",
       "components/ui/Button.tsx",
       "components/ui/KeyboardMark.tsx",
       "components/ui/PianoPhoto.tsx",
+      // The letterhead's own colours, printed the same on any theme
+      "utils/letterhead.ts",
       "utils/paperForms/agreements.ts",
       "utils/paperForms/forms.ts",
       "utils/paperForms/html.ts",
+      "utils/paperForms/letterheads.ts",
     ]);
   });
 });

@@ -1,6 +1,7 @@
 import {
   cleanDetail,
   cleanLetterhead,
+  DEFAULT_DESIGN,
   EMPTY_LETTERHEAD,
   isEmptyLetterhead,
   LETTERHEAD_KEYS,
@@ -17,12 +18,21 @@ import {
   pdfFileName,
 } from "@/utils/paperForms/catalog";
 import { formHtml, formPages, kitHtml } from "@/utils/paperForms/forms";
-import { escapeHtml, labelledLine, PAGE_HEIGHT, PAGE_WIDTH, paperDocument } from "@/utils/paperForms/html";
+import {
+  escapeHtml,
+  labelledLine,
+  PAGE_HEIGHT,
+  PAGE_WIDTH,
+  paperDocument,
+  previewDocument,
+} from "@/utils/paperForms/html";
 
 /** The paper forms as HTML: what each form prints, and the business details on it. */
 
-const pagesIn = (html: string) => html.match(/<section class="page/g)?.length ?? 0;
+const pagesIn = (html: string) => html.match(/<section /g)?.length ?? 0;
 const named = { ...EMPTY_LETTERHEAD, business: "Tune & Play <Pianos>", phone: "98140 12345" };
+/** No letterhead: the forms' own header with lines for the business and phone */
+const NONE = { ...DEFAULT_DESIGN, style: "none" as const };
 
 describe("the list of paper forms", () => {
   it("has the five forms of the kit, in the order of the boards, with ids that never change", () => {
@@ -129,9 +139,9 @@ describe("the HTML the PDFs are made from", () => {
     expect(formPages("rent_card", EMPTY_LETTERHEAD, 0)).toHaveLength(1);
   });
 
-  it("prints the business name and phone when given, escaped, and blank lines when not", () => {
-    const withName = formHtml("rent_card", named, 1);
-    const blank = formHtml("rent_card", EMPTY_LETTERHEAD, 1);
+  it("with no letterhead, prints the business name and phone on lines, escaped, and blank lines when not given", () => {
+    const withName = formHtml("rent_card", named, 1, "", NONE);
+    const blank = formHtml("rent_card", EMPTY_LETTERHEAD, 1, "", NONE);
 
     expect(withName).toContain("Tune &amp; Play &lt;Pianos&gt;");
     expect(withName).toContain("98140 12345");
@@ -140,13 +150,45 @@ describe("the HTML the PDFs are made from", () => {
     expect(blank).toContain('<span class="lbl">Phone</span><span class="rule"></span>');
   });
 
+  it("with a letterhead, puts the small one at the top of the rent card and handover, and not on the registers", () => {
+    for (const id of ["rent_card", "handover"] as const) {
+      const html = formHtml(id, named, 1, "", DEFAULT_DESIGN);
+
+      expect(html).toContain("TUNE &amp; PLAY &lt;PIANOS&gt;");
+      expect(html).not.toContain('<span class="lbl">Business</span>');
+      expect(html).toContain('<section style="padding-top:28px" class="page');
+    }
+    expect(formHtml("piano_register", named, 1, "", DEFAULT_DESIGN)).toContain(
+      '<span class="lbl">Business</span><span class="rule">Tune &amp; Play &lt;Pianos&gt;</span>'
+    );
+  });
+
   it("puts the business on every receipt, three receipts and two cut lines to a page", () => {
-    const html = formHtml("receipts", named, 2);
+    const html = formHtml("receipts", named, 2, "", NONE);
 
     expect(html.match(/class="rc"/g)).toHaveLength(6);
     expect(html.match(/class="rc-cut"/g)).toHaveLength(4);
-    expect(html.match(/Tune &amp; Play &lt;Pianos&gt;/g)).toHaveLength(6);
+    // On the From line and in "Signature, for …" on each of the six
+    expect(html.match(/Tune &amp; Play &lt;Pianos&gt;/g)).toHaveLength(12);
     expect(html).toContain("Revenue stamp<br>cash over ₹5,000");
+  });
+
+  it("with a letterhead, carries the small one on each receipt instead of the From line", () => {
+    const html = formHtml("receipts", named, 1, "", DEFAULT_DESIGN);
+
+    expect(html.match(/class="rc rc-mark"/g)).toHaveLength(3);
+    expect(html.match(/TUNE &amp; PLAY &lt;PIANOS&gt;/g)).toHaveLength(3);
+    expect(html).not.toContain('<span class="lbl">From</span>');
+  });
+
+  it("shows one page on a screen at the width asked for, with the same page and styles", () => {
+    const [page] = formPages("rent_card", named, 1, NONE);
+    const html = previewDocument(page, "@font-face{x}", 250);
+
+    expect(html).toContain('content="width=250,');
+    expect(html).toContain("transform:scale(0.31486)");
+    expect(html).toContain("@font-face{x}");
+    expect(html).toContain(page);
   });
 
   it("rules 12 months on a rent card, 22 pianos and 20 rentals on the registers", () => {
@@ -171,7 +213,7 @@ describe("the HTML the PDFs are made from", () => {
   });
 
   it("makes the full kit as every form once, in the order of the list (then the agreements)", () => {
-    const html = kitHtml(named, "@font-face{x}");
+    const html = kitHtml(named, "@font-face{x}", NONE);
     const footers = [...html.matchAll(/<span>([^<]+) · A4<\/span>/g)].map((match) => match[1]);
 
     expect(pagesIn(html)).toBe(FULL_KIT.pages);

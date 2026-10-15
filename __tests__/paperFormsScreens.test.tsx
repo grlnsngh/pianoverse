@@ -11,6 +11,7 @@ jest.mock("@/lib/paperPdf", () => ({
   savePaperForm: jest.fn(),
   savePaperKit: jest.fn(),
   saveAgreement: jest.fn(),
+  loadPaperParts: jest.fn(async () => ({ fontCss: "", assets: { logo: null, image: null } })),
   openPdf: jest.fn(async () => undefined),
   printPdf: jest.fn(async () => undefined),
   sharePdf: jest.fn(async () => undefined),
@@ -24,20 +25,18 @@ import { router, useLocalSearchParams } from "expo-router";
 import PaperAgreement from "@/app/paper-agreement";
 import PaperFormDetail from "@/app/paper-form/[id]";
 import PaperForms from "@/app/paper-forms";
-import { AgreementPreview } from "@/components/FormThumbnail";
 import PaperSavedSheet from "@/components/PaperSavedSheet";
-import { loadLetterhead, saveLetterhead } from "@/lib/letterheadStorage";
+import { resetLetterheadStoreForTests } from "@/lib/letterheadStore";
+import { saveLetterhead, saveLetterheadDesign } from "@/lib/letterheadStorage";
 import { openPdf, printPdf, saveAgreement, savePaperForm, savePaperKit, sharePdf } from "@/lib/paperPdf";
-import { EMPTY_LETTERHEAD } from "@/utils/letterhead";
+import { DEFAULT_DESIGN, EMPTY_LETTERHEAD } from "@/utils/letterhead";
 import {
   allTexts,
   captureToastCalls,
   createTestStore,
   flushPromises,
-  inputValue,
   pressLabel,
   renderWithStore,
-  typeInto,
 } from "./helpers/render";
 
 /** The Paper forms screen and a form's screen (PaperForms, PaperFormDetail and PaperSaved boards). */
@@ -53,6 +52,7 @@ const madeAgreement = {
 beforeEach(async () => {
   jest.clearAllMocks();
   await AsyncStorage.clear();
+  resetLetterheadStoreForTests();
   (useLocalSearchParams as jest.Mock).mockReturnValue({ id: "rent_card" });
   (savePaperForm as jest.Mock).mockResolvedValue(madeCard);
   (savePaperKit as jest.Mock).mockResolvedValue(madeKit);
@@ -71,6 +71,21 @@ const render = async (screen: React.ReactElement) => {
 };
 
 const savedSheet = (renderer: any) => renderer.root.findByType(PaperSavedSheet);
+
+/** The pages the previews show, as the web view was given them. */
+const previewPages = (renderer: any): string[] =>
+  renderer.root
+    .findAll((node: any) => typeof node.type === "string" && node.props.testID === "webview" && node.props.source)
+    .map((node: any) => node.props.source.html);
+
+/** The letterhead row that opens the Letterhead screen. */
+const letterheadRow = (renderer: any) =>
+  renderer.root.find(
+    (node: any) =>
+      typeof node.props.accessibilityLabel === "string" &&
+      node.props.accessibilityLabel.startsWith("Letterhead: ") &&
+      typeof node.props.onPress === "function"
+  );
 
 /** The button labelled `label`, the last one drawn when a closing sheet has one too. */
 const button = (renderer: any, label: string) =>
@@ -107,7 +122,10 @@ describe("the Paper forms screen", () => {
     expect(texts).toContain("One per rental, 12 months of payments");
     expect(texts).toContain("Print at home or at a shop");
     expect(texts).toContain("Private by design");
-    expect(texts.indexOf("The full kit")).toBeLessThan(texts.indexOf("One form at a time"));
+    expect(texts.indexOf("The full kit")).toBeLessThan(texts.indexOf("Your letterhead"));
+    expect(texts.indexOf("Your letterhead")).toBeLessThan(texts.indexOf("One form at a time"));
+    expect(texts).toContain("Monogram · add your business name");
+    expect(texts).toContain("On agreements, rent cards, receipts and handover forms");
     expect(texts.indexOf("Handover and return")).toBeLessThan(texts.indexOf("Good to know"));
   });
 
@@ -127,6 +145,18 @@ describe("the Paper forms screen", () => {
     expect(router.push).toHaveBeenCalledWith("/paper-agreement");
   });
 
+  it("opens the Letterhead screen from the letterhead row", async () => {
+    await saveLetterhead({ ...EMPTY_LETTERHEAD, business: "Tune and Play" });
+    const renderer = await render(<PaperForms />);
+
+    expect(letterheadRow(renderer).props.accessibilityLabel).toBe(
+      "Letterhead: Monogram · Tune and Play. On agreements, rent cards, receipts and handover forms"
+    );
+    await act(async () => letterheadRow(renderer).props.onPress());
+
+    expect(router.push).toHaveBeenCalledWith("/letterhead");
+  });
+
   it("goes back to Account", async () => {
     const renderer = await render(<PaperForms />);
 
@@ -138,13 +168,17 @@ describe("the Paper forms screen", () => {
     expect(router.replace).toHaveBeenCalledWith("/profile");
   });
 
-  it("makes the full kit with the saved business details, then says it is ready", async () => {
+  it("makes the full kit with the saved business details and letterhead, then says it is ready", async () => {
     await saveLetterhead({ ...EMPTY_LETTERHEAD, business: "Tune and Play" });
+    await saveLetterheadDesign({ ...DEFAULT_DESIGN, template: "band", colour: "navy" });
     const renderer = await render(<PaperForms />);
 
     await pressLabel(renderer.root, "Get the full kit");
 
-    expect(savePaperKit).toHaveBeenCalledWith(expect.objectContaining({ business: "Tune and Play" }));
+    expect(savePaperKit).toHaveBeenCalledWith(
+      expect.objectContaining({ business: "Tune and Play" }),
+      expect.objectContaining({ template: "band", colour: "navy" })
+    );
     expect(savedSheet(renderer).props.visible).toBe(true);
     const texts = allTexts(renderer.root);
     expect(texts).toContain("Paper forms kit is ready");
@@ -171,26 +205,46 @@ describe("the Paper forms screen", () => {
 });
 
 describe("a form's screen", () => {
-  it("shows the form, how its paper is used and what is on it", async () => {
+  it("shows the real page, what is on it, the letterhead it carries and the copies", async () => {
     const renderer = await render(<PaperFormDetail />);
     const texts = allTexts(renderer.root);
 
     expect(texts).toContain("Rent card");
-    expect(texts).toContain("A4 · 1 page per card");
+    expect(texts).toContain("The real page · A4 · 1 page per card");
     expect(texts).toContain("Customer, piano, rent, and 12 months of payments");
-    expect(texts).toContain("Printed at the top");
-    expect(texts).toContain("Leave them empty to write by hand. Kept on this phone only.");
+    expect(texts).toContain("Letterhead");
+    expect(texts).toContain("The small version goes on this form");
+    expect(texts).toContain("Changing it here changes it on every form.");
     expect(texts).toContain("Cards");
     expect(texts).toContain("One page each");
     expect(texts).toContain("Made on this phone. What you write stays with you.");
   });
 
-  it("fills in the business details saved on this phone", async () => {
+  it("draws the page with the letterhead saved on this phone, and opens the Letterhead screen to change it", async () => {
     await saveLetterhead({ ...EMPTY_LETTERHEAD, business: "Tune and Play", phone: "98140 12345" });
     const renderer = await render(<PaperFormDetail />);
 
-    expect(inputValue(renderer.root, "Business")).toBe("Tune and Play");
-    expect(inputValue(renderer.root, "Phone")).toBe("98140 12345");
+    const [page] = previewPages(renderer);
+    expect(page).toContain("Customer name");
+    expect(page).toContain("transform:scale(");
+    expect(allTexts(renderer.root)).toContain("Monogram · Tune and Play");
+
+    await act(async () => letterheadRow(renderer).props.onPress());
+    expect(router.push).toHaveBeenCalledWith("/letterhead");
+  });
+
+  it("tells each form where its letterhead goes", async () => {
+    const hints = {
+      receipts: "The small version goes on each receipt",
+      piano_register: "Registers stay plain: the business name only",
+      handover: "The small version goes on this form",
+    };
+    for (const [id, hint] of Object.entries(hints)) {
+      (useLocalSearchParams as jest.Mock).mockReturnValue({ id });
+      const renderer = await render(<PaperFormDetail />);
+      expect(allTexts(renderer.root)).toContain(hint);
+      act(() => renderer.unmount());
+    }
   });
 
   it("counts copies from 1 to 20", async () => {
@@ -212,24 +266,21 @@ describe("a form's screen", () => {
     expect(button(renderer, "More cards").props.disabled).toBe(true);
   });
 
-  it("saves the PDF with what was typed and the copies, remembers the details, and says it is ready", async () => {
+  it("saves the PDF with the letterhead and the copies, and says it is ready", async () => {
+    const details = { ...EMPTY_LETTERHEAD, business: "Tune and Play", phone: "98140 12345" };
+    await saveLetterhead(details);
+    await saveLetterheadDesign({ ...DEFAULT_DESIGN, style: "printed" });
     const renderer = await render(<PaperFormDetail />);
-    typeInto(renderer.root, "Business", "Tune and Play");
-    typeInto(renderer.root, "Phone", "98140 12345");
     await pressLabel(renderer.root, "More cards");
 
     await pressLabel(renderer.root, "Save PDF");
 
     expect(savePaperForm).toHaveBeenCalledWith(
       "rent_card",
-      expect.objectContaining({ business: "Tune and Play", phone: "98140 12345" }),
-      2
+      details,
+      2,
+      expect.objectContaining({ style: "printed" })
     );
-    expect(await loadLetterhead()).toEqual({
-      ...EMPTY_LETTERHEAD,
-      business: "Tune and Play",
-      phone: "98140 12345",
-    });
     const texts = allTexts(renderer.root);
     expect(texts).toContain("Rent card is ready");
     expect(texts).toContain("Rent card.pdf");
@@ -329,22 +380,24 @@ describe("the rental agreement's screen", () => {
       (node: any) => node.props.accessibilityRole === "tab" && node.props.accessibilityLabel === label
     );
 
-  it("starts with the hotel agreement, its two pages, the letterhead and two copies", async () => {
+  it("starts with the hotel agreement, its two real pages, the letterhead and two copies", async () => {
     const renderer = await render(<PaperAgreement />);
     const texts = allTexts(renderer.root);
 
     expect(texts).toContain("Rental agreement");
     expect(choice(renderer, "Hotel").props.accessibilityState).toEqual({ selected: true });
     expect(texts).toContain("Your hotel agreement, with GST, designation and a hotel stamp");
-    expect(texts).toContain("A4 · 2 pages · your terms are printed");
-    expect(texts).toContain("Your letterhead");
-    for (const label of ["Business", "What you do", "Address", "Phone", "Email", "GST No.", "PAN"]) {
-      expect(inputValue(renderer.root, label)).toBe("");
-    }
+    expect(texts).toContain("The real pages · A4 · your terms printed");
+    expect(texts).toContain("Letterhead");
+    expect(texts).toContain("Full on page 1, small on the pages after");
     expect(texts).toContain("Copies");
     expect(texts).toContain("One for each side to keep");
     expect(texts).toContain("2");
-    expect(renderer.root.findByType(AgreementPreview).props.kind).toBe("hotel");
+    const [first, second] = previewPages(renderer);
+    expect(first).toContain("PIANO RENTAL AGREEMENT");
+    expect(first).toContain("Page 1 of 2");
+    expect(second).toContain("Page 2 of 2");
+    expect(second).toContain("Hotel stamp");
   });
 
   it("switches to the private person's agreement", async () => {
@@ -355,7 +408,7 @@ describe("the rental agreement's screen", () => {
     expect(allTexts(renderer.root)).toContain(
       "The same terms for one person: ID seen, a refundable deposit, no stamp"
     );
-    expect(renderer.root.findByType(AgreementPreview).props.kind).toBe("private");
+    expect(previewPages(renderer)[1]).toContain("Piano rental agreement · private person");
   });
 
   it("opens on the private person's agreement when asked to", async () => {
@@ -365,28 +418,28 @@ describe("the rental agreement's screen", () => {
     expect(choice(renderer, "Private person").props.accessibilityState).toEqual({ selected: true });
   });
 
-  it("fills in the whole letterhead saved on this phone, shared with the forms", async () => {
-    await saveLetterhead({
-      ...EMPTY_LETTERHEAD,
-      business: "Tune and Play",
-      phone: "98140 12345",
-      gst: "03ABCDE1234F1Z5",
-    });
+  it("uses the letterhead saved on this phone, the same one as the forms, and opens the Letterhead screen", async () => {
+    await saveLetterhead({ ...EMPTY_LETTERHEAD, business: "Tune and Play", phone: "98140 12345" });
+    await saveLetterheadDesign({ ...DEFAULT_DESIGN, style: "none" });
     const renderer = await render(<PaperAgreement />);
 
-    expect(inputValue(renderer.root, "Business")).toBe("Tune and Play");
-    expect(inputValue(renderer.root, "Phone")).toBe("98140 12345");
-    expect(inputValue(renderer.root, "GST No.")).toBe("03ABCDE1234F1Z5");
+    expect(allTexts(renderer.root)).toContain("None · just the document");
+    await act(async () => letterheadRow(renderer).props.onPress());
+    expect(router.push).toHaveBeenCalledWith("/letterhead");
   });
 
-  it("saves the agreement chosen with the letterhead and the copies, remembers the letterhead, and says it is ready", async () => {
+  it("saves the agreement chosen with the letterhead and the copies, and says it is ready", async () => {
+    const expected = {
+      ...EMPTY_LETTERHEAD,
+      business: "Tune and Play",
+      tagline: "Tuning and rentals",
+      address: "Sector 17, Chandigarh",
+      email: "hello@tuneandplay.in",
+      pan: "ABCDE1234F",
+    };
+    await saveLetterhead(expected);
     const renderer = await render(<PaperAgreement />);
     await act(async () => choice(renderer, "Private person").props.onPress());
-    typeInto(renderer.root, "Business", "Tune and Play");
-    typeInto(renderer.root, "What you do", "Tuning and rentals");
-    typeInto(renderer.root, "Address", "Sector 17, Chandigarh");
-    typeInto(renderer.root, "Email", "hello@tuneandplay.in");
-    typeInto(renderer.root, "PAN", "ABCDE1234F");
     await pressLabel(renderer.root, "Fewer copies");
     (saveAgreement as jest.Mock).mockResolvedValueOnce({
       uri: "file:///docs/Rental agreement (private).pdf",
@@ -396,16 +449,7 @@ describe("the rental agreement's screen", () => {
 
     await pressLabel(renderer.root, "Save PDF");
 
-    const expected = {
-      ...EMPTY_LETTERHEAD,
-      business: "Tune and Play",
-      tagline: "Tuning and rentals",
-      address: "Sector 17, Chandigarh",
-      email: "hello@tuneandplay.in",
-      pan: "ABCDE1234F",
-    };
-    expect(saveAgreement).toHaveBeenCalledWith("private", expected, 1);
-    expect(await loadLetterhead()).toEqual(expected);
+    expect(saveAgreement).toHaveBeenCalledWith("private", expected, 1, DEFAULT_DESIGN);
     const texts = allTexts(renderer.root);
     expect(texts).toContain("Private rental agreement is ready");
     expect(texts).toContain("Rental agreement (private).pdf");
@@ -416,7 +460,7 @@ describe("the rental agreement's screen", () => {
     const renderer = await render(<PaperAgreement />);
 
     await pressLabel(renderer.root, "Print");
-    expect(saveAgreement).toHaveBeenLastCalledWith("hotel", EMPTY_LETTERHEAD, 2);
+    expect(saveAgreement).toHaveBeenLastCalledWith("hotel", EMPTY_LETTERHEAD, 2, DEFAULT_DESIGN);
     expect(printPdf).toHaveBeenCalledWith(madeAgreement);
 
     await pressLabel(renderer.root, "Share");
