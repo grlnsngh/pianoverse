@@ -1,8 +1,8 @@
 /**
  * The paper forms (Paper forms boards): what each one is called, what it says
  * about itself on its screen, and how many copies are asked for. The ids are
- * also the names the usage counts will use, so they never change once
- * released.
+ * also the names the usage counts use (utils/formEvents.ts), so they never
+ * change once released.
  */
 export type PaperFormId =
   | "rent_card"
@@ -125,7 +125,7 @@ export type AgreementKind = "hotel" | "private";
 
 export type Agreement = {
   kind: AgreementKind;
-  /** The name the usage counts will use; never changes once released */
+  /** The name the usage counts use; never changes once released */
   id: "agreement_hotel" | "agreement_private";
   /** On the Hotel / Private choice */
   label: string;

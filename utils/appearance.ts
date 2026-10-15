@@ -10,8 +10,13 @@ export const APPEARANCE_SETTINGS: readonly AppearanceSetting[] = [
   "system",
 ];
 
-/** Light is how the app has always looked, so nobody's phone changes until they ask. */
-export const DEFAULT_APPEARANCE: AppearanceSetting = "light";
+/**
+ * Until the person picks, the app matches the phone: dark on a phone set to
+ * dark (the owner's choice, Q34). Before Batch 32 it was light for everybody,
+ * and choosing Light saved nothing, so everyone who hadn't picked Dark or
+ * Match phone now matches their phone.
+ */
+export const DEFAULT_APPEARANCE: AppearanceSetting = "system";
 
 export const APPEARANCE_LABELS: Record<AppearanceSetting, string> = {
   light: "Light",

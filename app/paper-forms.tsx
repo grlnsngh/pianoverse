@@ -67,7 +67,7 @@ const PaperForms = () => {
   const colors = useColors();
   const styles = useStyles();
   const { details, design } = useLetterhead();
-  const kit = usePaperPdf(() => savePaperKit(details, design));
+  const kit = usePaperPdf(() => savePaperKit(details, design), "kit");
 
   return (
     <SafeAreaView edges={["top"]} style={styles.page}>
@@ -152,7 +152,7 @@ const PaperForms = () => {
           <Tip
             icon="lock"
             title="Private by design"
-            text="Forms are made on this phone. What you write on them stays on paper, with you."
+            text="Forms are made on this phone, and what you write stays on paper. Pianoverse counts which forms are used, never what’s on them."
           />
         </View>
       </ScrollView>

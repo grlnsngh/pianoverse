@@ -1,6 +1,7 @@
 import { RESET_PASSWORD_URL } from "@/constants/links";
 import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
+import { formEventRow, type FormEvent } from "@/utils/formEvents";
 import {
   avatarToStore,
   GoogleProfile,
@@ -30,7 +31,10 @@ export const appwriteConfig = {
   userCollectionId: "66b26b2a00163be2e73a",
   pianoCollectionId: "66b26b3c002284a5a862",
   rentPaymentsCollectionId: "rent_payments",
-  rentalHistoryCollectionId: "rental_history",
+  // Named rental_history in the console; it was made with an ID of its own
+  rentalHistoryCollectionId: "6abdffe40034432a5cde",
+  // The paper forms' usage counts (Batch 32)
+  formEventsCollectionId: "form_events",
   storageId: "66b26b77003445e612b4",
   // The Appwrite Function in functions/delete-account
   deleteAccountFunctionId: "delete-account",
@@ -1138,6 +1142,22 @@ export async function deleteRentalHistoryForPiano(pianoId: string) {
         document.$id
       )
     )
+  );
+}
+
+/**
+ * Sends one usage count of a paper form (utils/formEvents.ts). Its ID was
+ * made when it happened, so a count sent again after a lost answer is refused
+ * as already there (409) instead of counted twice. Nobody can read it back
+ * from the app: only the owner, in the Appwrite console.
+ */
+export async function createFormEvent(event: FormEvent) {
+  return databases.createDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.formEventsCollectionId,
+    event.id,
+    formEventRow(event),
+    []
   );
 }
 

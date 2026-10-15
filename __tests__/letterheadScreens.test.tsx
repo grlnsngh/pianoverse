@@ -7,6 +7,7 @@ jest.mock("expo-router", () => ({
   },
   useLocalSearchParams: jest.fn(() => ({})),
 }));
+jest.mock("@/lib/formEvents", () => ({ recordFormEvent: jest.fn() }));
 jest.mock("@/lib/paperPdf", () => ({
   loadPaperParts: jest.fn(async () => ({ fontCss: "", assets: { logo: null, image: null } })),
   saveTestPage: jest.fn(),
@@ -40,6 +41,7 @@ import {
   saveLetterhead,
   saveLetterheadDesign,
 } from "@/lib/letterheadStorage";
+import { recordFormEvent } from "@/lib/formEvents";
 import { printPdf, saveTestPage } from "@/lib/paperPdf";
 import { DEFAULT_DESIGN, EMPTY_LETTERHEAD, type LetterheadDesign } from "@/utils/letterhead";
 import {
@@ -73,7 +75,7 @@ afterEach(() => {
 });
 
 const render = async (screen: React.ReactElement) => {
-  const renderer = renderWithStore(screen, createTestStore());
+  const renderer = renderWithStore(screen, createTestStore({ user: { accountId: "account-1" } }));
   await flushPromises();
   return renderer;
 };
@@ -387,6 +389,7 @@ describe("printing on a letterhead pad", () => {
       expect.objectContaining({ style: "printed", printed: { top: 30, bottom: 10 } })
     );
     expect(printPdf).toHaveBeenCalledWith(testPage);
+    expect(recordFormEvent).toHaveBeenCalledWith("account-1", "letterhead_test", "printed", 1);
   });
 });
 

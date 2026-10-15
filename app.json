@@ -9,7 +9,7 @@
       "pianoverse",
       "appwrite-callback-66b2693000154e2fa3c8"
     ],
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "backgroundColor": "#FFFFFF",
     "ios": {
       "supportsTablet": true

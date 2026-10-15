@@ -40,7 +40,7 @@ describe("launch and system UI", () => {
     expect(expo.backgroundColor).toBe("#FFFFFF");
   });
 
-  it("asks for light native pickers, keyboards and dialogs", () => {
-    expect(expo.userInterfaceStyle).toBe("light");
+  it("lets native pickers, keyboards and dialogs follow the phone, and the theme chosen in the app", () => {
+    expect(expo.userInterfaceStyle).toBe("automatic");
   });
 });

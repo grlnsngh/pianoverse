@@ -16,6 +16,7 @@ import { AppLockProvider } from "@/lib/AppLockContext";
 import { PianoDataProvider } from "@/lib/PianoDataContext";
 import { ThemeProvider, useTheme } from "@/lib/ThemeContext";
 import useAppUpdates from "@/lib/useAppUpdates";
+import useSendFormEvents from "@/lib/useSendFormEvents";
 import useSystemChrome from "@/lib/useSystemChrome";
 import { navigationThemeFor } from "@/utils/navigationTheme";
 
@@ -25,6 +26,8 @@ SplashScreen.preventAutoHideAsync();
 function RootContent() {
   // Fixes published with `eas update` reach the phone without a new build
   useAppUpdates();
+  // Paper forms' usage counts made without a connection go once there is one
+  useSendFormEvents();
 
   const { scheme, colors, ready } = useTheme();
   // The status bar and the window behind the app follow the theme too

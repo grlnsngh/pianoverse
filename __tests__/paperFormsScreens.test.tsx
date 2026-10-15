@@ -7,6 +7,7 @@ jest.mock("expo-router", () => ({
   },
   useLocalSearchParams: jest.fn(() => ({ id: "rent_card" })),
 }));
+jest.mock("@/lib/formEvents", () => ({ recordFormEvent: jest.fn() }));
 jest.mock("@/lib/paperPdf", () => ({
   savePaperForm: jest.fn(),
   savePaperKit: jest.fn(),
@@ -26,6 +27,7 @@ import PaperAgreement from "@/app/paper-agreement";
 import PaperFormDetail from "@/app/paper-form/[id]";
 import PaperForms from "@/app/paper-forms";
 import PaperSavedSheet from "@/components/PaperSavedSheet";
+import { recordFormEvent } from "@/lib/formEvents";
 import { resetLetterheadStoreForTests } from "@/lib/letterheadStore";
 import { saveLetterhead, saveLetterheadDesign } from "@/lib/letterheadStorage";
 import { openPdf, printPdf, saveAgreement, savePaperForm, savePaperKit, sharePdf } from "@/lib/paperPdf";
@@ -65,12 +67,19 @@ afterEach(() => {
 });
 
 const render = async (screen: React.ReactElement) => {
-  const renderer = renderWithStore(screen, createTestStore());
+  const renderer = renderWithStore(screen, createTestStore({ user: { accountId: "account-1" } }));
   await flushPromises();
   return renderer;
 };
 
 const savedSheet = (renderer: any) => renderer.root.findByType(PaperSavedSheet);
+
+/** The usage counts made, as [form, action, pages]. */
+const counts = () =>
+  (recordFormEvent as jest.Mock).mock.calls.map(([creator, form, action, pages]) => {
+    expect(creator).toBe("account-1");
+    return pages === undefined ? [form, action] : [form, action, pages];
+  });
 
 /** The pages the previews show, as the web view was given them. */
 const previewPages = (renderer: any): string[] =>
@@ -122,6 +131,9 @@ describe("the Paper forms screen", () => {
     expect(texts).toContain("One per rental, 12 months of payments");
     expect(texts).toContain("Print at home or at a shop");
     expect(texts).toContain("Private by design");
+    expect(texts).toContain(
+      "Forms are made on this phone, and what you write stays on paper. Pianoverse counts which forms are used, never what’s on them."
+    );
     expect(texts.indexOf("The full kit")).toBeLessThan(texts.indexOf("Your letterhead"));
     expect(texts.indexOf("Your letterhead")).toBeLessThan(texts.indexOf("One form at a time"));
     expect(texts).toContain("Monogram · add your business name");
@@ -187,6 +199,15 @@ describe("the Paper forms screen", () => {
 
     await pressLabel(renderer.root, "Open");
     expect(openPdf).toHaveBeenCalledWith(madeKit);
+  });
+
+  it("counts the kit saved, and nothing for opening the list", async () => {
+    const renderer = await render(<PaperForms />);
+    expect(counts()).toEqual([]);
+
+    await pressLabel(renderer.root, "Get the full kit");
+
+    expect(counts()).toEqual([["kit", "saved", 9]]);
   });
 
   it("says so when the kit can't be made, and stays ready to try again", async () => {
@@ -360,6 +381,46 @@ describe("a form's screen", () => {
     expect(button(renderer, "Print").props.disabled).toBe(false);
   });
 
+  it("counts the form opened, and each PDF saved, printed and shared with its pages", async () => {
+    const renderer = await render(<PaperFormDetail />);
+    expect(counts()).toEqual([["rent_card", "opened"]]);
+
+    await pressLabel(renderer.root, "Save PDF");
+    await act(async () => savedSheet(renderer).props.onPrint());
+    await act(async () => savedSheet(renderer).props.onShare());
+    await act(async () => savedSheet(renderer).props.onOpen());
+    await pressLabel(renderer.root, "Print");
+    await pressLabel(renderer.root, "Share");
+
+    expect(counts()).toEqual([
+      ["rent_card", "opened"],
+      ["rent_card", "saved", 2],
+      ["rent_card", "printed", 2],
+      ["rent_card", "shared", 2],
+      ["rent_card", "printed", 2],
+      ["rent_card", "shared", 2],
+    ]);
+  });
+
+  it("counts nothing that didn't happen: a PDF not made, or a print screen closed", async () => {
+    const renderer = await render(<PaperFormDetail />);
+
+    (savePaperForm as jest.Mock).mockRejectedValueOnce(new Error("WebView gone"));
+    await pressLabel(renderer.root, "Save PDF");
+    (printPdf as jest.Mock).mockRejectedValueOnce(new Error("Print job was cancelled"));
+    await pressLabel(renderer.root, "Print");
+
+    expect(counts()).toEqual([["rent_card", "opened"]]);
+  });
+
+  it("counts the form opened once, not again as the screen draws", async () => {
+    const renderer = await render(<PaperFormDetail />);
+    await pressLabel(renderer.root, "More cards");
+    await pressLabel(renderer.root, "More cards");
+
+    expect(counts()).toEqual([["rent_card", "opened"]]);
+  });
+
   it("explains a form that isn't there, and goes back to the list", async () => {
     (useLocalSearchParams as jest.Mock).mockReturnValue({ id: "nonsense" });
     const renderer = await render(<PaperFormDetail />);
@@ -367,6 +428,7 @@ describe("a form's screen", () => {
     expect(allTexts(renderer.root)).toContain("This form isn’t here");
     await pressLabel(renderer.root, "See all forms");
     expect(router.replace).toHaveBeenCalledWith("/paper-forms");
+    expect(counts()).toEqual([]);
   });
 });
 
@@ -470,6 +532,19 @@ describe("the rental agreement's screen", () => {
     expect(allTexts(renderer.root)).toContain("Hotel rental agreement is ready");
     await act(async () => savedSheet(renderer).props.onOpen());
     expect(openPdf).toHaveBeenCalledWith(madeAgreement);
+  });
+
+  it("counts each agreement opened, and the one saved", async () => {
+    const renderer = await render(<PaperAgreement />);
+    await act(async () => choice(renderer, "Private person").props.onPress());
+
+    await pressLabel(renderer.root, "Save PDF");
+
+    expect(counts()).toEqual([
+      ["agreement_hotel", "opened"],
+      ["agreement_private", "opened"],
+      ["agreement_private", "saved", 4],
+    ]);
   });
 
   it("says so when the agreement can't be made", async () => {

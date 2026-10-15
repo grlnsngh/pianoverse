@@ -13,7 +13,7 @@ import { Alert, Platform } from "react-native";
 import * as appwrite from "@/lib/appwrite";
 import { exportCustomers, exportPayments } from "@/lib/exportData";
 import { ExportPeriod, exportPeriods } from "@/utils/exportPeriods";
-import { fakeBackend } from "./helpers/fakeAppwrite";
+import { fakeBackend, RENTAL_HISTORY_COLLECTION_ID } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import { fakeWriteFile } from "./helpers/fakeFileSystem";
 
@@ -317,7 +317,7 @@ describe("downloading customers", () => {
 
   it("is still written when the rental_history table isn't there", async () => {
     seed("2026-09-03", 4000);
-    fakeBackend.missingCollections.add("rental_history");
+    fakeBackend.missingCollections.add(RENTAL_HISTORY_COLLECTION_ID);
 
     await exportCustomers(ACCOUNT, pianos);
 

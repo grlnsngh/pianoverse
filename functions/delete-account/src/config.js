@@ -11,7 +11,10 @@ module.exports = {
   userTableId: "66b26b2a00163be2e73a",
   pianoTableId: "66b26b3c002284a5a862",
   rentPaymentsTableId: "rent_payments",
-  rentalHistoryTableId: "rental_history",
+  // Named rental_history in the console; it was made with an ID of its own
+  rentalHistoryTableId: "6abdffe40034432a5cde",
+  // The paper forms' usage counts
+  formEventsTableId: "form_events",
   // The bucket the piano and profile photos are in
   storageId: "66b26b77003445e612b4",
 };

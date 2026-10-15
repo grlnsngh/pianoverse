@@ -13,16 +13,7 @@ Status key: **Open** = waiting for you.
 
 ## Open now
 
-### Q34. Does "Match phone" follow your phone, and should the app start light or dark?
-- **Status:** Open. Nothing is blocked: Light and Dark work whatever the answer is.
-- **Raised:** Batch 29 (Dark theme).
-- **What the app does now (default):** it starts **light** for everybody, as it always has. Account, **Appearance**, **Theme** has three choices: **Light**, **Dark** and **Match phone**. Match phone is meant to follow the phone's own dark or light setting, and to change when the phone does. The app is "fixed to light" in its native settings (`app.json`), which can hide the phone's setting from it; the app asks Android to stop hiding it, but I could not try that on a phone.
-- **What to do:** put the phone in dark mode (Settings, Display, Dark theme), open Pianoverse, and choose **Match phone**: it should turn dark. Switch the phone to light: it should turn light again (it may need you to come back to the app).
-- **Options:**
-  - **A. It follows the phone.** Nothing to do. This is the default, and what happens if you say nothing.
-  - **B. It stays light when the phone is dark.** Tell me. The fix is one line in `app.json` (`"userInterfaceStyle": "automatic"`) and a new build (it changes the native part, so a new runtime, 4); best made together with the next change that needs a build, since over-the-air updates won't reach the old build after it.
-  - **C. Start with Match phone instead of Light** for everybody who hasn't chosen. A small JavaScript change; say so once A works.
-- **Your answer:**
+Nothing is open. New questions are added here.
 
 ---
 
@@ -32,6 +23,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 
 - **Batch 30 (paper forms): needs the new build first** (`npm run build:android`, 1.1.20, runtime 5, made after the letterhead pull request is merged, so Batches 30, 31 and 31A come in one build). Account, Paper, Paper forms: get the full kit, then open a form, set 2 copies and Save PDF. The PDF should open with every form on one A4 page each, nothing cut off. Try Print (any Wi-Fi printer, or "Save as PDF") and Share to WhatsApp. Sign out and in again: your business details and letterhead should be gone. On a new account with no pianos, Pianos should show **Prefer paper? Print forms**. If a form spills onto a second page or looks cramped, send me a photo or the PDF.
 - **Batch 31 (rental agreements): in the same 1.1.20 build.** Fill in your details first (Letterhead, **Your details**: business, what you do, address, phone, email, GST, PAN). Paper forms, **Rental agreement**: keep Hotel and Save PDF. You should get 4 pages (two copies of two pages): your letterhead at the top, your TPS 2 terms, 1.5% late interest, a hotel stamp box. Switch to **Private person**: the renter's mobile and ID, a deposit row, 1% late interest, the 15-day deposit refund, no hotel stamp. Read the terms once: if any clause should say something else, tell me the clause and the new words (they are in `utils/paperForms/agreementTerms.ts`). Get the full kit too: it should be 9 pages, the two agreements last.
+- **Batch 32 (usage counts and Match phone): in the same 1.1.20 build.** **First redeploy the delete-account function** (it now deletes the counts too, and finds `rental_history`): in the Appwrite console, Functions, **Delete account**, Deployments, create a deployment from `functions/delete-account` (or `appwrite push functions`), as in the README. Then: put the phone in **dark mode** before opening the new build for the first time: Pianoverse should open **dark** without choosing anything (Account, Theme shows **Match phone**). Switch the phone to light: the app follows. Choose **Light** on a dark phone: the app, the keyboard and a date picker are light. Open a paper form, Save PDF, Print and Share it, and open the Rental agreement: in the Appwrite console, Databases, `form_events`, you should see one row for each (the form, opened, saved, printed or shared, the pages, `1.1.20`, `android`). Do the same with airplane mode on, then turn it off and bring the app back to the front: the rows arrive then. Edit a rented piano to a new customer (or Mark as returned): **Previous renters** should now show the old rental, and the `rental_history` table gets its first row. Update Google Play's data safety form (the README says what to tick).
 - **Batch 31A (the letterhead): in the same 1.1.20 build.** Paper forms, **Your letterhead**, Change: the Letterhead screen shows the agreement's first page as it will print. **Make one**, Edit: try each of the five designs and a few colours (the page at the top changes after a moment), **Add** a logo from your photos (a PNG with a clear background looks best), switch Clean and Elegant. Then Save PDF on the Rental agreement: page 1 should have the full letterhead and page 2 the small one, with nothing cut off; open the Rent card, Rent receipts and Handover: the small letterhead at the top (on each receipt too); the registers stay plain. **Upload mine**: choose your TPS 2 letterhead exported from Canva as a PNG or JPG (Canva: Share, Download, PNG, the empty letterhead page), pick Whole page, and move the two sliders until the orange box sits inside the empty part of the page. **My printed paper**: set the spaces for dad's printed pad, press **Print a test page**, print it on plain paper and hold it over the pad: the writing should start below the printed letterhead. Tell me which design you'd use, anything that looks off on paper, and send the PDF if a page spills or a line wraps oddly.
 
 - **Batch 0:** the piano drawing (no-photo) and the icons look like the boards.
@@ -186,6 +178,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 
 ### Q30. Please create the rental_history table in Appwrite
 - **Answer:** Created (option A) (2026-10-01): the table exists and the Batch 20 pull request is merged.
+- **Found in Batch 32 (2026-10-15):** the table was made with an ID of its own (`6abdffe40034432a5cde`) instead of `rental_history`, so the app never found it and **no rental was kept** (the table was empty; each time the app said the old rental wasn't kept). You chose to point the app at it: Batch 32 uses that ID in the app and in the delete-account function. Rentals are kept from the 1.1.20 build on; earlier ones are known only from payments.
 - **Acted on:** nothing more to build. The app keeps a replaced or ended rental in it, and shows it under Previous renters and Rental history. The columns and permissions are in the README. Still to try on the phone: the Batch 20 check above.
 
 ### Q31. Rent due: when does rent fall due, and where does counting start?
@@ -199,3 +192,7 @@ These are things I could only check in tests. If any looks wrong, tell me and I 
 ### Q33. Should the app follow the name on the Google account?
 - **Answer:** Keep it as built (option A, the default) (2026-10-01): only a **brand new** account gets its name from Google; an account that already exists keeps the name it was signed up with. The photo follows Google.
 - **Why it stays:** the app has no screen to edit a name, so it can’t tell a name you chose from one it set; following Google every time would rename your own existing account. If that changes (for example a screen to edit the name), options B and C are a small change.
+
+### Q34. Does "Match phone" follow your phone, and should the app start light or dark?
+- **Answer:** Start matching the phone (option C) (2026-10-15): “when the app starts, it is light for everyone. I want it to match with phone theme on start.”
+- **Acted on:** Batch 32. Until someone picks, the app follows the phone: dark on a phone set to dark, light on a light one, changing when the phone does. Light and Dark still stay as chosen. Because 1.1.20 isn't built yet, option B came too: `app.json` is now `"userInterfaceStyle": "automatic"` (in runtime 5, no new runtime), so the phone's setting always reaches the app, and the phone's own keyboard, date pickers and dialogs follow the theme chosen in the app. Anyone who had picked Light before (which saved nothing, as Light was the start) now starts on Match phone and can pick Light again.

@@ -32,7 +32,7 @@ import React from "react";
 import { act } from "react-test-renderer";
 import * as appwrite from "@/lib/appwrite";
 import EditScreen from "@/app/edit/[id]";
-import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
+import { fakeBackend, fileViewUrl, RENTAL_HISTORY_COLLECTION_ID } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   captureAlerts,
@@ -167,7 +167,7 @@ describe("the rental_history table", () => {
   });
 
   it("has none to list when the table doesn't exist yet", async () => {
-    fakeBackend.missingCollections.add("rental_history");
+    fakeBackend.missingCollections.add(RENTAL_HISTORY_COLLECTION_ID);
 
     await expect(appwrite.getRentalHistory("account-1")).resolves.toEqual([]);
   });
@@ -188,7 +188,7 @@ describe("the rental_history table", () => {
     expect(kept()).toEqual([]);
 
     fakeBackend.documents.set("piano-1", { ...rented() });
-    fakeBackend.missingCollections.add("rental_history");
+    fakeBackend.missingCollections.add(RENTAL_HISTORY_COLLECTION_ID);
     await expect(
       appwrite.deletePianoEntry({ $id: "piano-1" })
     ).resolves.toBeDefined();
@@ -280,7 +280,7 @@ describe("saving a piano on the Edit screen", () => {
   });
 
   it("still saves the piano, and says the old rental wasn't kept, when the table isn't there", async () => {
-    fakeBackend.missingCollections.add("rental_history");
+    fakeBackend.missingCollections.add(RENTAL_HISTORY_COLLECTION_ID);
     const toasts = captureToastCalls();
     const { renderer } = openEdit();
 

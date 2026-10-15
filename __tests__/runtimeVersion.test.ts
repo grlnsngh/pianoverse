@@ -356,7 +356,9 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
       orientation: "portrait",
       icon: "./assets/images/icon.png",
       scheme: ["pianoverse", "appwrite-callback-66b2693000154e2fa3c8"],
-      userInterfaceStyle: "light",
+      // "automatic" since Batch 32 (the app starts matching the phone, Q34),
+      // before any runtime 5 build was made, so it is still runtime 5
+      userInterfaceStyle: "automatic",
       backgroundColor: "#FFFFFF",
       ios: { supportsTablet: true },
       android: {

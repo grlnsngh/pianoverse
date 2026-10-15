@@ -11,36 +11,36 @@ afterEach(() => {
 });
 
 describe("the saved appearance", () => {
-  it("is light when nothing was saved", async () => {
-    expect(await loadAppearance()).toBe("light");
-  });
-
-  it("remembers dark and following the phone", async () => {
-    expect(await saveAppearance("dark")).toBe(true);
-    expect(await loadAppearance()).toBe("dark");
-
-    expect(await saveAppearance("system")).toBe(true);
+  it("matches the phone when nothing was saved", async () => {
     expect(await loadAppearance()).toBe("system");
   });
 
-  it("keeps nothing for light, which is what no value means", async () => {
-    await saveAppearance("dark");
+  it("remembers dark and light", async () => {
+    expect(await saveAppearance("dark")).toBe(true);
+    expect(await loadAppearance()).toBe("dark");
+
     expect(await saveAppearance("light")).toBe(true);
+    expect(await loadAppearance()).toBe("light");
+  });
+
+  it("keeps nothing for matching the phone, which is what no value means", async () => {
+    await saveAppearance("dark");
+    expect(await saveAppearance("system")).toBe(true);
 
     expect(await AsyncStorage.getAllKeys()).toEqual([]);
-    expect(await loadAppearance()).toBe("light");
+    expect(await loadAppearance()).toBe("system");
   });
 
   it("ignores a value that isn't one of the three", async () => {
     await AsyncStorage.setItem("appearance:setting", "purple");
 
-    expect(await loadAppearance()).toBe("light");
+    expect(await loadAppearance()).toBe("system");
   });
 
-  it("falls back to light, and says why, when the phone can't be read", async () => {
+  it("falls back to matching the phone, and says why, when the phone can't be read", async () => {
     jest.spyOn(AsyncStorage, "getItem").mockRejectedValueOnce(new Error("disk"));
 
-    expect(await loadAppearance()).toBe("light");
+    expect(await loadAppearance()).toBe("system");
     expect(console.warn).toHaveBeenCalledWith(
       "Could not read the appearance setting:",
       expect.any(Error)

@@ -60,7 +60,8 @@ const run = async ({ args, env = process.env, sdk = require("node-appwrite"), lo
   const count = (n, one) => `${n} ${one}${n === 1 ? "" : "s"}`;
   log(
     `Deleted ${count(deleted.pianos, "piano")}, ${count(deleted.photos, "photo")}, ` +
-      `${count(deleted.payments, "payment")}, ${count(deleted.rentals, "kept rental")} and the account. ` +
+      `${count(deleted.payments, "payment")}, ${count(deleted.rentals, "kept rental")}, ` +
+      `${count(deleted.formEvents, "form usage count")} and the account. ` +
       "Reply to the request to say it's done."
   );
   return 0;

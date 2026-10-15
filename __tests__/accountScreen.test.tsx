@@ -559,6 +559,32 @@ describe("signing out", () => {
     expect(await loadLetterhead()).toEqual(EMPTY_LETTERHEAD);
   });
 
+  it("forgets the paper forms' usage counts not sent yet, so none go out under the next person", async () => {
+    await AsyncStorage.setItem(
+      "paperForms:events",
+      JSON.stringify([
+        {
+          id: "e1",
+          creator: testUser.accountId,
+          form: "rent_card",
+          action: "saved",
+          pages: 1,
+          happenedAt: "2026-10-15T09:00:00.000Z",
+          appVersion: "1.1.20",
+          platform: "android",
+        },
+      ])
+    );
+    const { renderer } = await openSheet();
+
+    await act(async () => {
+      sheet(renderer).props.onConfirm();
+    });
+    await flushPromises();
+
+    expect(await AsyncStorage.getItem("paperForms:events")).toBeNull();
+  });
+
   it("closes the sheet and says why when signing out fails", async () => {
     const alerts = captureAlerts();
     fakeBackend.signOutError = new Error("Network request failed");

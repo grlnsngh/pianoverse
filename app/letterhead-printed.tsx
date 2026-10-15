@@ -31,7 +31,7 @@ const LetterheadPrinted = () => {
   const { printed } = design;
   const onPad = useMemo<LetterheadDesign>(() => ({ ...design, style: "printed" }), [design]);
   const html = usePreviewHtml(onPad, details, PREVIEW_WIDTH, agreementFirstPage);
-  const test = usePaperPdf(() => saveTestPage(details, onPad));
+  const test = usePaperPdf(() => saveTestPage(details, onPad), "letterhead_test");
 
   const setSpace = (patch: Partial<LetterheadDesign["printed"]>) =>
     updateDesign({ style: "printed", printed: { ...printed, ...patch } });
