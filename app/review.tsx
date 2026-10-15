@@ -453,7 +453,7 @@ const useStyles = makeStyles((colors) => ({
     textAlign: "right",
     color: colors.ink,
   },
-  back: { width: 104 },
+  back: { minWidth: 104 },
   primary: { flex: 1 },
   centre: {
     flex: 1,

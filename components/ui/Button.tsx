@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { motion, Palette, radii, type } from "@/constants/theme";
 import { useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 import Spinner from "./Spinner";
 
 export type ButtonVariant =
@@ -19,7 +20,10 @@ export type ButtonVariant =
   | "destructive"
   | "text";
 
-/** Regular is 52 high. Compact is 48, for a sticky bar or a tight spot. */
+/**
+ * Regular is 52 high. Compact is 48, for a sticky bar or a tight spot. These
+ * are the least a button is: its label may take more room when the text is big.
+ */
 export type ButtonSize = "regular" | "compact";
 
 const HEIGHT: Record<ButtonSize, number> = { regular: 52, compact: 48 };
@@ -134,6 +138,7 @@ const Button = ({
   // make a button that sizes to its label jump narrower or wider
   const [restingWidth, setRestingWidth] = useState<number>();
   const colors = useColors();
+  const { large } = useTextScale();
   const look = lookOf(variant, tone, colors);
   const blocked = loading || disabled;
   const label = loading && loadingTitle ? loadingTitle : title;
@@ -161,7 +166,7 @@ const Button = ({
         return [
           styles.base,
           {
-            height: HEIGHT[size],
+            minHeight: HEIGHT[size],
             borderRadius: look.radius,
             backgroundColor: greyedOut
               ? isText || isOutline
@@ -192,8 +197,9 @@ const Button = ({
         />
       )}
       <Text
-        numberOfLines={1}
-        style={[look.labelStyle, { color: greyedOut ? colors.disabledText : look.label }]}
+        // One line, but a big Font size may use two rather than cut the label
+        numberOfLines={large ? 2 : 1}
+        style={[styles.label, look.labelStyle, { color: greyedOut ? colors.disabledText : look.label }]}
       >
         {label}
       </Text>
@@ -207,7 +213,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
+    // Nothing at 100%, where the label is 22 high in a box of 48 or 52; room above
+    // and below it when the label takes two lines
+    paddingVertical: 10,
   },
+  label: { flexShrink: 1, textAlign: "center" },
   spinner: { marginRight: SPINNER_GAP },
 });
 

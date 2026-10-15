@@ -81,15 +81,17 @@ function PickerSheet<T extends string>({
 
 const useStyles = makeStyles((colors) => ({
   row: {
-    height: 52,
+    minHeight: 52,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 12,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.hairline,
   },
   pressed: { backgroundColor: colors.grouped },
-  label: { fontSize: 16, color: colors.ink },
+  label: { flexShrink: 1, fontSize: 16, color: colors.ink },
 }));
 
 export default PickerSheet;

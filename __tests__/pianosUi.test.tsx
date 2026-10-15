@@ -315,7 +315,7 @@ describe("StateView", () => {
     expect(textContent(button)).toBe("Add your first piano");
     expect(flat(button.props.style({ pressed: false }))).toMatchObject({
       backgroundColor: colors.brand,
-      height: 52,
+      minHeight: 52,
       marginTop: 28,
       paddingHorizontal: 28,
     });
@@ -459,11 +459,11 @@ describe("PickerSheet", () => {
     expect(flat(sheet.props.style).backgroundColor).toBe(colors.white);
   });
 
-  it("draws 52 px rows with a hairline between them", async () => {
+  it("draws rows at least 52 high with a hairline between them", async () => {
     const renderer = await setup().mounted;
 
     expect(flat(rows(renderer)[0].props.style({ pressed: false }))).toMatchObject({
-      height: 52,
+      minHeight: 52,
       borderBottomWidth: 1,
       borderBottomColor: colors.hairline,
       flexDirection: "row",

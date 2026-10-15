@@ -57,8 +57,9 @@ const PaymentActionsSheet = ({ payment, onClose, onSelect }: PaymentActionsSheet
 
 const useStyles = makeStyles((colors) => ({
   row: {
-    height: 52,
+    minHeight: 52,
     justifyContent: "center",
+    paddingVertical: 8,
     paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: colors.hairline,

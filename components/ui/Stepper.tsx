@@ -73,7 +73,8 @@ const useStyles = makeStyles((colors) => ({
   },
   pressed: { backgroundColor: colors.fillPressed },
   value: {
-    width: 36,
+    // Room for two digits at 100%; a bigger number or bigger text takes more
+    minWidth: 36,
     textAlign: "center",
     fontFamily: fonts.bold,
     fontSize: 18,

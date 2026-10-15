@@ -346,8 +346,8 @@ describe("AmountInput", () => {
       fontFamily: fonts.bold,
       fontSize: 44,
       color: colors.ink,
-      width: 180,
-      height: 56,
+      minWidth: 180,
+      minHeight: 56,
     });
     const rupee = renderer.root.findAll((node) => (node.type as unknown) === "Text" && textContent(node) === "₹")[0];
     expect(flat(rupee.props.style)).toMatchObject({ fontSize: 44, color: colors.ink2 });

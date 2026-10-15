@@ -5,6 +5,7 @@ import type { IconName } from "@/components/ui";
 import { fonts, radii, spacing, type } from "@/constants/theme";
 import type { PaperAction } from "@/lib/usePaperPdf";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 import { MAX_COPIES } from "@/utils/paperForms/catalog";
 
 /** A grey button with an icon, for Print and Share under Save PDF. */
@@ -56,9 +57,10 @@ export const CopiesRow = ({
   onChange: (value: number) => void;
 }) => {
   const styles = useStyles();
+  const { large } = useTextScale();
   return (
-    <View style={styles.countRow}>
-      <View style={styles.countText}>
+    <View style={[styles.countRow, large && styles.countRowStacked]}>
+      <View style={large ? styles.countTextStacked : styles.countText}>
         <Text style={styles.countLabel}>{label}</Text>
         <Text style={styles.countHint}>{hint}</Text>
       </View>
@@ -122,24 +124,29 @@ const PaperActions = ({ busy, onSave, onPrint, onShare }: PaperActionsProps) => 
 
 const useStyles = makeStyles((colors) => ({
   countRow: {
-    height: 60,
+    minHeight: 60,
     marginTop: spacing.xl,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingVertical: spacing.sm,
     paddingLeft: spacing.lg,
     paddingRight: spacing.sm,
     borderRadius: radii.card,
     backgroundColor: colors.surface,
   },
+  // A big Font size puts the buttons under the words instead of beside them
+  countRowStacked: { flexDirection: "column", alignItems: "flex-start", gap: spacing.sm, paddingRight: spacing.lg },
   countText: { flex: 1 },
+  countTextStacked: { flex: 0 },
   countLabel: { ...type.rowTitle, color: colors.ink },
   countHint: { ...type.caption, fontFamily: fonts.regular, color: colors.ink2 },
   actions: { marginTop: spacing.xxl, gap: 10 },
   row: { flexDirection: "row", gap: 10 },
   quiet: {
     flex: 1,
-    height: 48,
+    minHeight: 48,
+    paddingVertical: spacing.sm,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

@@ -23,10 +23,10 @@ const focus = (renderer: Mounted) => act(() => input(renderer).props.onFocus({})
 const blur = (renderer: Mounted) => act(() => input(renderer).props.onBlur({}));
 
 describe("Field at rest", () => {
-  it("is 60 high with a 1 px grey outline and radius 12", async () => {
+  it("is at least 60 high with a 1 px grey outline and radius 12", async () => {
     const renderer = await setup();
 
-    expect(box(renderer)).toMatchObject({ height: 60, borderRadius: radii.input });
+    expect(box(renderer)).toMatchObject({ minHeight: 60, borderRadius: radii.input });
     expect(ring(renderer)).toMatchObject({
       borderWidth: 1,
       borderColor: colors.inputBorder,
@@ -53,7 +53,7 @@ describe("Field at rest", () => {
     expect(StyleSheet.flatten(input(renderer).props.style)).toMatchObject({
       fontFamily: fonts.medium,
       fontSize: 16,
-      height: 28,
+      minHeight: 28,
       color: colors.ink,
     });
     expect(input(renderer).props.placeholderTextColor).toBe(colors.ink3);
@@ -240,10 +240,10 @@ describe("Field with a password", () => {
     expect(textContent(toggle(renderer))).toBe("Show");
   });
 
-  it("draws the toggle 14 px bold and underlined, in a 44 px high target", async () => {
+  it("draws the toggle 14 px bold and underlined, in a target at least 44 high", async () => {
     const renderer = await passwordField();
 
-    expect(StyleSheet.flatten(toggle(renderer).props.style)).toMatchObject({ height: 44 });
+    expect(StyleSheet.flatten(toggle(renderer).props.style)).toMatchObject({ minHeight: 44 });
     expect(StyleSheet.flatten(toggle(renderer).findByType(Text).props.style)).toMatchObject({
       fontFamily: fonts.bold,
       fontSize: 14,

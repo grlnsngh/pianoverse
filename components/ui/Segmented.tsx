@@ -15,6 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { fonts, motion } from "@/constants/theme";
 import useReducedMotion from "@/lib/useReducedMotion";
+import useTextScale from "@/lib/useTextScale";
 import { makeStyles } from "@/lib/ThemeContext";
 
 const PADDING = 2;
@@ -39,6 +40,10 @@ export type SegmentedProps<T extends string> = {
  * Two to four choices in one grey track, of which one is selected: a white
  * chip with a bold label. Options share the width equally. The chip slides to
  * the option that is pressed in 200 ms; with reduced motion it jumps.
+ *
+ * With a big Font size the choices don't fit side by side ("Private person",
+ * "Match phone"), so they become one row each, and the chosen one is the white
+ * row itself rather than a chip that slides.
  */
 function Segmented<T extends string>({
   options,
@@ -50,6 +55,7 @@ function Segmented<T extends string>({
 }: SegmentedProps<T>) {
   const styles = useStyles();
   const reduced = useReducedMotion();
+  const { large } = useTextScale();
   const [width, setWidth] = useState(0);
   const x = useSharedValue(0);
   const placed = useRef(false);
@@ -84,9 +90,9 @@ function Segmented<T extends string>({
       accessibilityLabel={accessibilityLabel}
       testID={testID}
       onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}
-      style={[styles.track, style]}
+      style={[styles.track, large && styles.trackStacked, style]}
     >
-      {optionWidth > 0 && (
+      {!large && optionWidth > 0 && (
         <Animated.View
           pointerEvents="none"
           testID={testID ? `${testID}-chip` : undefined}
@@ -106,11 +112,15 @@ function Segmented<T extends string>({
             testID={testID ? `${testID}-${option.value}` : undefined}
             // 40 px high on the board, inside a 2 px padding: 44 px to touch
             hitSlop={{ top: PADDING, bottom: PADDING }}
-            style={styles.option}
+            style={[
+              styles.option,
+              large && styles.optionStacked,
+              large && selected && styles.optionChosen,
+            ]}
           >
             <Text
-              numberOfLines={1}
-              style={[styles.label, selected && styles.labelSelected]}
+              numberOfLines={large ? undefined : 1}
+              style={[styles.label, large && styles.labelStacked, selected && styles.labelSelected]}
             >
               {option.label}
             </Text>
@@ -128,6 +138,7 @@ const useStyles = makeStyles((colors) => ({
     borderRadius: 10,
     backgroundColor: colors.hairline,
   },
+  trackStacked: { flexDirection: "column", gap: PADDING },
   chip: {
     position: "absolute",
     top: PADDING,
@@ -144,7 +155,11 @@ const useStyles = makeStyles((colors) => ({
     paddingHorizontal: 4,
     borderRadius: 8,
   },
+  // One row each: as tall as its text needs, and never less than a row of the track
+  optionStacked: { flex: 0, height: undefined, minHeight: OPTION_HEIGHT, paddingVertical: 8, paddingHorizontal: 12 },
+  optionChosen: { backgroundColor: colors.raised },
   label: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink2 },
+  labelStacked: { textAlign: "center" },
   labelSelected: { fontFamily: fonts.bold, color: colors.ink },
 }));
 

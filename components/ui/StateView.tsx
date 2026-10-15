@@ -118,7 +118,7 @@ const useStyles = makeStyles((colors) => ({
     color: colors.ink2,
   },
   button: { marginTop: 28, paddingHorizontal: 28 },
-  link: { marginTop: spacing.sm, height: spacing.minTarget },
+  link: { marginTop: spacing.sm, minHeight: spacing.minTarget },
 }));
 
 export default StateView;
