@@ -1,12 +1,17 @@
 import React from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import ToastHost from "@/components/ToastHost";
-import { fonts, radii } from "@/constants/theme";
+import { fonts, maxScale, radii } from "@/constants/theme";
 import { confirmTap } from "@/utils/haptics";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
+/** As drawn; on a narrower screen (a large Screen zoom) it keeps 20 px to each side */
 const WIDTH = 284;
+const SIDE_ROOM = 20;
+/** The least a choice is high; it is taller when its words wrap */
 const ACTION_HEIGHT = 52;
+/** The most of the screen the dialog may take, so its choices are never pushed off it */
+const HEIGHT_SHARE = 0.9;
 
 export type DialogAction = {
   label: string;
@@ -38,6 +43,9 @@ export type DialogProps = {
  * A confirmation for something that can't be undone: 284 wide, title and
  * message centred, one full-width row per choice. Name the piano or the
  * amount in the title or message, so nobody confirms blindly.
+ *
+ * With a big Font size the words take more room: the message scrolls inside
+ * the dialog if it has to, and the choices stay where they can be pressed.
  */
 const Dialog = ({
   visible,
@@ -49,6 +57,7 @@ const Dialog = ({
 }: DialogProps) => {
   const colors = useColors();
   const styles = useStyles();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   // Destructive first, keeping the order given otherwise
   const ordered = [
     ...actions.filter((action) => action.tone === "destructive"),
@@ -65,13 +74,23 @@ const Dialog = ({
       onRequestClose={back}
     >
       <View style={styles.dim} testID={testID}>
-        <View style={styles.card} accessibilityViewIsModal testID="dialog-card">
-          <View style={styles.text}>
-            <Text style={styles.title} accessibilityRole="header">
+        <View
+          style={[
+            styles.card,
+            {
+              width: Math.min(WIDTH, windowWidth - 2 * SIDE_ROOM),
+              maxHeight: windowHeight * HEIGHT_SHARE,
+            },
+          ]}
+          accessibilityViewIsModal
+          testID="dialog-card"
+        >
+          <ScrollView style={styles.scroll} contentContainerStyle={styles.text} bounces={false}>
+            <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={maxScale.section}>
               {title}
             </Text>
             {message ? <Text style={styles.message}>{message}</Text> : null}
-          </View>
+          </ScrollView>
 
           {ordered.map((action) => {
             const destructive = action.tone === "destructive";
@@ -117,11 +136,12 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.dim,
   },
   card: {
-    width: WIDTH,
     overflow: "hidden",
     borderRadius: radii.panel,
     backgroundColor: colors.surface,
   },
+  // Takes what its words need and no more; shrinks, and scrolls, only if the screen is full
+  scroll: { flexGrow: 0, flexShrink: 1 },
   text: {
     alignItems: "center",
     paddingTop: 22,
@@ -144,13 +164,15 @@ const useStyles = makeStyles((colors) => ({
     color: colors.ink2,
   },
   action: {
-    height: ACTION_HEIGHT,
+    minHeight: ACTION_HEIGHT,
     alignItems: "center",
     justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
   },
-  actionText: { fontFamily: fonts.medium, fontSize: 16, color: colors.ink },
+  actionText: { fontFamily: fonts.medium, fontSize: 16, textAlign: "center", color: colors.ink },
   destructive: { fontFamily: fonts.bold, color: colors.late },
   emphasis: { fontFamily: fonts.semibold },
 }));

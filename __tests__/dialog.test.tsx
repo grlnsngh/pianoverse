@@ -114,12 +114,12 @@ describe("Dialog look", () => {
 });
 
 describe("Dialog choices", () => {
-  it("has a full-width 52 px row for each, with a hairline above", async () => {
+  it("has a full-width row at least 52 high for each, with a hairline above", async () => {
     const renderer = await open();
 
     for (const row of rows(renderer)) {
       expect(flat(row.props.style({ pressed: false }))).toMatchObject({
-        height: 52,
+        minHeight: 52,
         alignItems: "center",
         justifyContent: "center",
         borderTopWidth: 1,

@@ -21,7 +21,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ToastHost from "@/components/ToastHost";
 import useReducedMotion from "@/lib/useReducedMotion";
-import { bottomBar, motion, radii, spacing, type } from "@/constants/theme";
+import { bottomBar, maxScale, motion, radii, spacing, type } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 /** Dragging the header down further than this lets go of the sheet */
@@ -208,13 +208,31 @@ const Sheet = ({
                     onPress={onLeftPress ?? onClose}
                     accessibilityRole="button"
                     accessibilityLabel={leftLabel}
-                    style={styles.left}
+                    style={styles.side}
                   >
-                    <Text style={styles.leftText}>{leftLabel}</Text>
+                    <Text style={styles.leftText} maxFontSizeMultiplier={maxScale.section}>
+                      {leftLabel}
+                    </Text>
                   </Pressable>
-                  <Text style={styles.title} accessibilityRole="header">
+                  <Text
+                    style={styles.title}
+                    accessibilityRole="header"
+                    maxFontSizeMultiplier={maxScale.section}
+                  >
                     {title}
                   </Text>
+                  {/* The same words, unseen, so the title is centred whatever the button says
+                      and has the room between the two to wrap in */}
+                  <View
+                    style={[styles.side, styles.balance]}
+                    pointerEvents="none"
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                  >
+                    <Text style={styles.leftText} maxFontSizeMultiplier={maxScale.section}>
+                      {leftLabel}
+                    </Text>
+                  </View>
                 </View>
               )}
             </View>
@@ -273,21 +291,23 @@ const useStyles = makeStyles((colors) => ({
     marginTop: 8,
     backgroundColor: colors.grabber,
   },
+  // 52 high at 100%: a 44 button with 4 above and below. Longer when the title
+  // wraps onto a second line.
   titleRow: {
-    height: 52,
+    minHeight: 52,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
-  left: {
-    position: "absolute",
-    left: 8,
-    top: 4,
-    height: spacing.minTarget,
+  side: {
+    minHeight: spacing.minTarget,
     paddingHorizontal: spacing.md,
     justifyContent: "center",
   },
+  balance: { opacity: 0 },
   leftText: { ...type.bodyMedium, color: colors.ink },
-  title: { ...type.sheetTitle, color: colors.ink },
+  title: { ...type.sheetTitle, flex: 1, textAlign: "center", color: colors.ink },
   content: { flexShrink: 1 },
   tallContent: { flex: 1 },
   contentInner: { paddingHorizontal: spacing.screen },

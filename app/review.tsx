@@ -366,7 +366,11 @@ const Review = () => {
               style={styles.thumb}
             />
             <View style={styles.summaryText}>
-              <Text style={styles.summaryTitle} numberOfLines={2}>
+              <Text
+                style={styles.summaryTitle}
+                numberOfLines={2}
+                maxFontSizeMultiplier={maxScale.section}
+              >
                 {form.title}
               </Text>
               <Text style={styles.summaryMeta}>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import IncomeChart from "@/components/IncomeChart";
-import { fonts, spacing, type } from "@/constants/theme";
+import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import { MonthIncome, noIncome, sofarLine } from "@/utils/income";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
@@ -53,7 +53,11 @@ const IncomeCard = ({ months, loaded, failed, onSeeAll }: IncomeCardProps) => {
   return (
     <View testID="income-card">
       <View style={styles.header}>
-        <Text style={styles.title} accessibilityRole="header">
+        <Text
+          style={styles.title}
+          accessibilityRole="header"
+          maxFontSizeMultiplier={maxScale.section}
+        >
           Income
         </Text>
         {!failed && !empty && (

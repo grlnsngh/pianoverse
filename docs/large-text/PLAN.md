@@ -142,16 +142,16 @@ Tick `[x]` when done. Rules: work on a branch `feature/large-text` off `main`; k
   - [x] L2.7 `DatePickerSheet`: `minHeight` on the month and weekday rows (F13) [the month's name may wrap before it pushes the arrows off; the weekday heads take the `count` limit (1.2) since seven of them share the width]
   - [x] L2.7a The copies row: `minHeight`, and in big-text mode the stepper goes under the label; `Stepper`'s number gets a `minWidth` instead of a width (F30, F38) [also Print and Share `minHeight` 48]
   - [x] L2.8 Tests at 1.0 and 1.5 for each, typecheck, lint, commit [`largeTextControls.test.tsx`, 21 tests, 12 of which fail without the change. Eleven older assertions changed from `height` to `minHeight` on purpose (button, field, form row, picker, amount input, state view, filters and detail tests). 166 suites, 2630 tests]
-- [ ] **Batch L3. Headers, bars and badges** (M)
-  - [ ] L3.1 `Sheet` title row, the Add and Edit top bar and the select-mode header: three slots (left button, title, right button or spacer of the same width), as `BackBar` already does, so the title never runs into a button and may take two lines; `BackBar` gets `minHeight` and a two-line title too (F4, F40)
-  - [ ] L3.2 `TabBar`: `minHeight`, label limit 1.5, reports its height (F8)
-  - [ ] L3.3 `StickyActionBar`: `minHeight`, stacked in big-text mode, reports its height (F5)
-  - [ ] L3.4 `ToastHost`: sits above the reported bar height (F8)
-  - [ ] L3.5 `IconTabs`: in big-text mode the row scrolls sideways and tabs take their label's width (F14, Q4)
-  - [ ] L3.6 `SearchPill`: `minHeight`; the hint line hides in big-text mode; filter count limit 1.2 (F10)
-  - [ ] L3.7 `Badge`: limit 1.3, one line, leaves room for the category circle (F9)
-  - [ ] L3.8 `Dialog`: width the smaller of 284 and the screen less 40; choices `minHeight` (F12)
-  - [ ] L3.9 Tests, typecheck, lint, commit
+- [x] **Batch L3. Headers, bars and badges** (M) [done 2026-10-15; not yet looked at on a phone]
+  - [x] L3.1 `Sheet` title row, the Add and Edit top bar and the select-mode header: three slots (left button, title, right button or spacer of the same width), as `BackBar` already does, so the title never runs into a button and may take two lines; `BackBar` gets `minHeight` and a two-line title too (F4, F40) [the sheet and the Add flow use one layout at every size: Cancel, the title with `flex: 1`, and an unseen copy of Cancel at the other end so the title stays centred and has the room between to wrap in. Select mode keeps its title laid over the middle of the bar below 125%, since its two buttons differ in width, and puts it between them from 125%. Titles and their buttons take the `section` limit (1.5)]
+  - [x] L3.2 `TabBar`: `minHeight`, label limit 1.5, reports its height (F8) [`lib/bottomBars.ts`: a bar calls `useReportBottomBar()` and puts the result on its `onLayout`; the bar in front wins and a bar that leaves is forgotten. A tab is 51 high at 100%, so the bar keeps the 84 of the board with 33 below it]
+  - [x] L3.3 `StickyActionBar`: `minHeight`, stacked in big-text mode, reports its height (F5) [from 125% the amount and its line sit above a full-width button; the line may take two lines]
+  - [x] L3.4 `ToastHost`: sits above the reported bar height (F8) [12 above the bar in front; the 100% value until a bar has been measured, and again once it has gone]
+  - [x] L3.5 `IconTabs`: in big-text mode the row scrolls sideways and tabs take their label's width (F14, Q4)
+  - [x] L3.6 `SearchPill`: `minHeight`; the hint line hides in big-text mode; filter count limit 1.2 (F10) [the pill's radius is 999 instead of 26, which is the same at 52 high and keeps it round when taller; the Search pianos button still says "Title, make or customer" to a screen reader]
+  - [x] L3.7 `Badge`: limit 1.3, one line, leaves room for the category circle (F9) [on a photo, from 125%: at most 65% of the photo wide and the words may take a second line ("Overdue ·" / "18 days") rather than end in a dot; at 100% it is as drawn]
+  - [x] L3.8 `Dialog`: width the smaller of 284 and the screen less 40; choices `minHeight` (F12) [also at most 90% of the screen high, its words scrolling inside so the choices can always be pressed, and the title takes the `section` limit]
+  - [x] L3.9 Tests, typecheck, lint, commit [`largeTextBars.test.tsx`, 28 tests, 11 of which fail without the change, and a third guard in `largeText.test.tsx`: a screen that uses `type.section` or `type.sheetTitle` needs `maxScale.section`. Also the section titles of Today, a customer's page, the piano page, the Income card and the Add flow summary take the limit. Eight older assertions moved from `height` to `minHeight`. 167 suites, 2659 tests]
 - [ ] **Batch L4. Screens** (M)
   - [ ] L4.1 Today: counts become a list in big-text mode; row and shelf titles may take two lines (F19, F20)
   - [ ] L4.2 Pianos grid card in big-text mode: still two columns, the title may take two lines, price and status on their own lines (Q2); the list row's price under the status line (F15, F16)
@@ -226,6 +226,11 @@ Continue the large-text work. Read docs/large-text/PLAN.md (Progress, Decisions,
 - 2026-10-15, batch L2, **Below 125% the label column grows with the text instead of switching layout.** A form row's labels are 84 wide (112 for prices) at 100%; at 115% they are 97 (129), so a label that fit still does, and the label-above-value layout starts only at 125%.
 - 2026-10-15, batch L2, **Eleven tests changed on purpose.** They said `height: 52` and so on, which is now `minHeight: 52`. At 100% the sizes are the same.
 
+- 2026-10-15, batch L3, **One layout at every size for the title rows.** The sheet's and the Add flow's title rows used to lay the button over the corner and centre the title on the whole row. They are now three slots with an unseen copy of Cancel at the right, which looks the same at 100% (the title is centred, the button is 44 high at 4 from the top and 8 from the side) and can't run into the button at any size. A conditional layout would have left the sizes between 100% and 125% to chance.
+- 2026-10-15, batch L3, **Select mode is the exception.** Its left and right buttons differ ("Cancel" and "Select all"), so a copy of one can't centre the title. Below 125% it keeps the title over the middle of the bar, as drawn; from 125% the title sits between the buttons.
+- 2026-10-15, batch L3, **A bar at the bottom tells the toasts how tall it is.** `lib/bottomBars.ts`. The constants in `bottomBar` stay for the bar's least height and for the toast's place before a bar has been measured.
+- 2026-10-15, batch L3, **Eight tests changed on purpose.** `height: 84` and the like became `minHeight: 84`; the search pill's radius 26 became 999 (the same shape); the sheet's Cancel is no longer `position: absolute`.
+
 (more added as batches go)
 
 ## Session log
@@ -249,3 +254,7 @@ Batch L1 (foundations): `lib/useTextScale.ts`, `maxScale` and `amountTextProps` 
 ### Session 4, 2026-10-15
 
 Batch L2 (controls): `Button`, `Field`, `FormRow`, `Segmented`, `AmountInput`, the sheet rows, the date picker, the copies row and `Stepper`, with `largeTextControls.test.tsx`. Batch L1 was merged first (PR #51). Next: Batch L3 (headers, bars and badges).
+
+### Session 5, 2026-10-15
+
+Batch L3 (headers, bars and badges): sheet, Add flow, Back and select-mode titles, the tab bar, the sticky bar and the toasts above them (`lib/bottomBars.ts`), the category tabs, the search pill, the badge on a photo and the dialog, with `largeTextBars.test.tsx`. Batch L2 was merged first (PR #52). Next: Batch L4 (screens).

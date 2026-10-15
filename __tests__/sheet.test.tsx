@@ -140,13 +140,12 @@ describe("Sheet look", () => {
       color: colors.ink,
     });
     expect(title.props.accessibilityRole).toBe("header");
+    // A slot of the title row (the title is centred between this and an unseen copy of it)
     expect(flat(left.props.style)).toMatchObject({
-      position: "absolute",
-      left: 8,
-      top: 4,
-      height: 44,
+      minHeight: 44,
       paddingHorizontal: 12,
     });
+    expect(flat(left.props.style).position).toBeUndefined();
     expect(flat(left.findByType(Text).props.style)).toMatchObject({
       fontFamily: fonts.medium,
       fontSize: 16,

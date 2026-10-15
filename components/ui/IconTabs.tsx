@@ -1,8 +1,9 @@
 import React from "react";
-import { Pressable, StyleProp, Text, View, ViewStyle } from "react-native";
+import { Pressable, ScrollView, StyleProp, Text, View, ViewStyle } from "react-native";
 import { type } from "@/constants/theme";
 import Icon, { IconName } from "./Icon";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const ICON_SIZE = 24;
 
@@ -26,7 +27,9 @@ export type IconTabsProps<T extends string> = {
 
 /**
  * A row of equal tabs, each an icon over a label, with a hairline under the
- * row. The active one is ink and bold with a 2 px ink line under it.
+ * row. The active one is ink and bold with a 2 px ink line under it. With a big
+ * Font size the labels would be cut, so the tabs stop sharing the width: each
+ * is as wide as its label and the row scrolls sideways.
  */
 function IconTabs<T extends string>({
   tabs,
@@ -38,13 +41,9 @@ function IconTabs<T extends string>({
 }: IconTabsProps<T>) {
   const colors = useColors();
   const styles = useStyles();
-  return (
-    <View
-      accessibilityRole="tablist"
-      accessibilityLabel={accessibilityLabel}
-      testID={testID}
-      style={[styles.row, style]}
-    >
+  const { large } = useTextScale();
+  const items = (
+    <>
       {tabs.map((tab) => {
         const selected = tab.key === active;
         return (
@@ -58,6 +57,7 @@ function IconTabs<T extends string>({
             testID={testID ? `${testID}-${tab.key}` : undefined}
             style={[
               styles.tab,
+              large && styles.tabScrolling,
               // The line sits over the row's hairline instead of above it
               { borderBottomColor: selected ? colors.ink : "transparent" },
               tab.disabled && styles.disabled,
@@ -84,6 +84,33 @@ function IconTabs<T extends string>({
           </Pressable>
         );
       })}
+    </>
+  );
+
+  if (large) {
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        accessibilityRole="tablist"
+        accessibilityLabel={accessibilityLabel}
+        testID={testID}
+        style={style}
+        contentContainerStyle={[styles.row, styles.rowScrolling]}
+      >
+        {items}
+      </ScrollView>
+    );
+  }
+
+  return (
+    <View
+      accessibilityRole="tablist"
+      accessibilityLabel={accessibilityLabel}
+      testID={testID}
+      style={[styles.row, style]}
+    >
+      {items}
     </View>
   );
 }
@@ -95,7 +122,11 @@ const useStyles = makeStyles((colors) => ({
     borderBottomWidth: 1,
     borderBottomColor: colors.hairline,
   },
+  // So the hairline still reaches across the screen when the tabs are narrower than it
+  rowScrolling: { flexGrow: 1 },
   disabled: { opacity: 0.4 },
+  // As wide as its label, with room either side to press
+  tabScrolling: { flex: 0, paddingHorizontal: 14 },
   tab: {
     flex: 1,
     alignItems: "center",

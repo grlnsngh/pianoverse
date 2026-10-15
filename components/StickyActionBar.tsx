@@ -5,7 +5,9 @@ import { Button } from "@/components/ui";
 import { bottomBar, fonts, spacing } from "@/constants/theme";
 import type { BarInfo } from "@/utils/pianoDetail";
 import { toneColor } from "./DetailParts";
+import { useReportBottomBar } from "@/lib/bottomBars";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 export type StickyActionBarProps = {
   /** The amount and the line under it, on the left */
@@ -20,7 +22,9 @@ export type StickyActionBarProps = {
 /**
  * The bar at the bottom of a piano's page: an amount with a line under it,
  * and the one action that fits the piano's state. As tall as the tab bar (84
- * on an iPhone), so a toast clears it the same way.
+ * on an iPhone), so a toast clears it the same way. That is the least it is:
+ * with a big Font size the amount goes above a full-width button, and the bar
+ * tells the toasts how tall it really is (lib/bottomBars.ts).
  */
 const StickyActionBar = ({ info, label, variant = "primary", onPress }: StickyActionBarProps) => {
   const styles = useStyles();
@@ -28,11 +32,18 @@ const StickyActionBar = ({ info, label, variant = "primary", onPress }: StickyAc
   const insets = useSafeAreaInsets();
   const emphasised = info.tone === "late" || info.tone === "soon";
   const inset = Math.max(insets.bottom, bottomBar.minInset);
+  const { large } = useTextScale();
+  const reportHeight = useReportBottomBar();
 
   return (
     <View
       testID="sticky-action-bar"
-      style={[styles.bar, { height: bottomBar.content + inset, paddingBottom: inset }]}
+      onLayout={reportHeight}
+      style={[
+        styles.bar,
+        large && styles.barStacked,
+        { minHeight: bottomBar.content + inset, paddingBottom: large ? inset + spacing.md : inset },
+      ]}
     >
       <View style={styles.left}>
         {!!info.amount && <Text style={styles.amount}>{info.amount}</Text>}
@@ -42,7 +53,7 @@ const StickyActionBar = ({ info, label, variant = "primary", onPress }: StickyAc
               styles.caption,
               { fontFamily: emphasised ? fonts.semibold : fonts.medium, color: toneColor(info.tone, colors) },
             ]}
-            numberOfLines={1}
+            numberOfLines={large ? 2 : 1}
           >
             {info.caption}
           </Text>
@@ -63,6 +74,14 @@ const useStyles = makeStyles((colors) => ({
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
     backgroundColor: colors.surface,
+  },
+  // The amount and the line under it, then the button across the whole width
+  barStacked: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    justifyContent: "center",
+    gap: spacing.md,
+    paddingTop: spacing.md,
   },
   left: { flexShrink: 1, minWidth: 0 },
   amount: {

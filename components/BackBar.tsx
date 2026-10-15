@@ -2,7 +2,7 @@ import { Href, router } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { Icon } from "@/components/ui";
-import { spacing, type } from "@/constants/theme";
+import { maxScale, spacing, type } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 /**
@@ -21,7 +21,12 @@ const BackBar = ({ title, fallback }: { title: string; fallback: Href }) => {
       <Pressable onPress={goBack} accessibilityRole="button" accessibilityLabel="Back" style={styles.side}>
         <Icon name="chevronLeft" size={24} color={colors.ink} strokeWidth={2.2} />
       </Pressable>
-      <Text style={styles.title} accessibilityRole="header" numberOfLines={1}>
+      <Text
+        style={styles.title}
+        accessibilityRole="header"
+        numberOfLines={2}
+        maxFontSizeMultiplier={maxScale.section}
+      >
         {title}
       </Text>
       <View style={styles.side} />
@@ -31,13 +36,14 @@ const BackBar = ({ title, fallback }: { title: string; fallback: Href }) => {
 
 const useStyles = makeStyles((colors) => ({
   bar: {
-    height: 56,
+    minHeight: 56,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingTop: spacing.sm,
     paddingHorizontal: spacing.sm,
   },
+  // The Back button is an icon: it stays 44 square. The title between the two may take two lines.
   side: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   title: { ...type.sheetTitle, flex: 1, textAlign: "center", color: colors.ink },
 }));

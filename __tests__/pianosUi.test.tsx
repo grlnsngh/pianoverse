@@ -153,12 +153,13 @@ describe("SearchPill", () => {
   const pill = (renderer: Mounted) => flat(hostByTestId(renderer.root, "pill").props.style);
   const buttons = (renderer: Mounted) => findAllPressables(renderer.root);
 
-  it("is a white 52 px pill with a hairline and the search shadow", async () => {
+  it("is a white pill at least 52 high with a hairline and the search shadow", async () => {
     const renderer = await setup().mounted;
 
     expect(pill(renderer)).toMatchObject({
-      height: 52,
-      borderRadius: 26,
+      minHeight: 52,
+      // As round as it is high, however high that is
+      borderRadius: 999,
       borderWidth: 1,
       borderColor: colors.hairline,
       backgroundColor: colors.white,
