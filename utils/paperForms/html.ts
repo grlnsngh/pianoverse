@@ -127,11 +127,15 @@ export const formHeader = (title: string, subtitle: string, lines: string[]): st
     subtitle
   )}</div></div><div class="lh">${lines.map((line) => `<div class="ln">${line}</div>`).join("")}</div></div>`;
 
+/** One A4 page with its own words at the bottom left and right. */
+export const pageWithFooter = (body: string, left: string, right: string, className = ""): string =>
+  `<section class="page${className ? " " + className : ""}">${body}<div class="foot"><span>${escapeHtml(
+    left
+  )}</span><span>${escapeHtml(right)}</span></div></section>`;
+
 /** One A4 page with the footer every form has. */
 export const page = (body: string, footerName: string, className = ""): string =>
-  `<section class="page${className ? " " + className : ""}">${body}<div class="foot"><span>Made with Pianoverse paper forms</span><span>${escapeHtml(
-    footerName
-  )} · A4</span></div></section>`;
+  pageWithFooter(body, "Made with Pianoverse paper forms", `${footerName} · A4`, className);
 
 /** Each page repeated `count` times, in order. */
 export const repeatPages = (pages: string[], count: number): string[] =>

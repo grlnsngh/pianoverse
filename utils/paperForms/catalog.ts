@@ -120,10 +120,74 @@ export const pagesText = (pages: number): string => `${pages} ${pages === 1 ? "p
 export const pageCountText = (form: PaperForm, count: number): string =>
   pagesText(clampCount(count) * form.pagesPerCopy);
 
-/** Every form once, in one PDF: what the full kit is called and how long it is. */
+/** Who the rental agreement is with: the owner's two kinds of client. */
+export type AgreementKind = "hotel" | "private";
+
+export type Agreement = {
+  kind: AgreementKind;
+  /** The name the usage counts will use; never changes once released */
+  id: "agreement_hotel" | "agreement_private";
+  /** On the Hotel / Private choice */
+  label: string;
+  /** What the choice means, under it */
+  note: string;
+  /** "Hotel rental agreement": the ready sheet's title */
+  title: string;
+  fileName: string;
+  /** Bottom left of each page: "Piano rental agreement · hotel" */
+  footer: string;
+  /** What the other side of the agreement is called on paper */
+  party: string;
+  pagesPerCopy: number;
+};
+
+export const AGREEMENTS: Record<AgreementKind, Agreement> = {
+  hotel: {
+    kind: "hotel",
+    id: "agreement_hotel",
+    label: "Hotel",
+    note: "Your hotel agreement, with GST, designation and a hotel stamp",
+    title: "Hotel rental agreement",
+    fileName: "Rental agreement (hotel).pdf",
+    footer: "Piano rental agreement · hotel",
+    party: "hotel",
+    pagesPerCopy: 2,
+  },
+  private: {
+    kind: "private",
+    id: "agreement_private",
+    label: "Private person",
+    note: "The same terms for one person: ID seen, a refundable deposit, no stamp",
+    title: "Private rental agreement",
+    fileName: "Rental agreement (private).pdf",
+    footer: "Piano rental agreement · private person",
+    party: "renter",
+    pagesPerCopy: 2,
+  },
+};
+
+export const AGREEMENT_KINDS: readonly AgreementKind[] = ["hotel", "private"];
+
+export const isAgreementKind = (value: unknown): value is AgreementKind =>
+  value === "hotel" || value === "private";
+
+/** The rental agreement's row in the list of forms, and its screen. */
+export const AGREEMENT_ROW = {
+  title: "Rental agreement",
+  summary: "Hotel or private person, your terms printed",
+  thumbnail: "lines" as FormThumbnailKind,
+  /** Copies of an agreement: one for each side to keep */
+  defaultCount: 2,
+} as const;
+
+/** Every form once and both agreements, in one PDF: what the full kit is called and how long it is. */
 export const FULL_KIT = {
   /** Its name in the app and its PDF's name */
   title: "Paper forms kit",
   fileName: "Paper forms kit.pdf",
-  pages: PAPER_FORMS.reduce((sum, form) => sum + form.pagesPerCopy, 0),
+  /** The forms in the list: the five, and the rental agreement */
+  forms: PAPER_FORMS.length + 1,
+  pages:
+    PAPER_FORMS.reduce((sum, form) => sum + form.pagesPerCopy, 0) +
+    AGREEMENT_KINDS.reduce((sum, kind) => sum + AGREEMENTS[kind].pagesPerCopy, 0),
 } as const;

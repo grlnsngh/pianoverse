@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View, ViewStyle } from "react-native";
-import type { FormThumbnailKind, PaperFormId } from "@/utils/paperForms/catalog";
+import type { AgreementKind, FormThumbnailKind, PaperFormId } from "@/utils/paperForms/catalog";
 
 /**
  * Drawings of the paper forms (PaperForms and PaperFormDetail boards): a
@@ -205,6 +205,49 @@ export const FormPreview = ({ id, testID }: { id: PaperFormId; testID?: string }
   );
 };
 
+/** The letterhead's colour on the agreement's drawing: the business's own name at the top */
+const LETTERHEAD = { name: "#A85D00", line: "#D9B98A" } as const;
+
+/** The two pages of a rental agreement, side by side (PaperAgreement board). */
+export const AgreementPreview = ({ kind, testID }: { kind: AgreementKind; testID?: string }) => (
+  <View style={styles.agreement} testID={testID} {...hidden}>
+    <View style={styles.agreementPage}>
+      <Bar width={70} height={6} color={LETTERHEAD.name} />
+      <Bar width={90} height={2} color={LETTERHEAD.line} style={{ marginTop: 4 }} />
+      <Bar color={PAPER.ink} style={{ marginTop: 6 }} />
+      <Bar width={70} height={4} color={PAPER.ink} style={{ marginTop: 8, alignSelf: "center" }} />
+      <Bar style={{ marginTop: 8 }} />
+      <Bar style={{ marginTop: 6 }} />
+      <Bar width="70%" style={{ marginTop: 6 }} />
+      <View style={[styles.agreementTable, { height: kind === "private" ? 28 : 24 }]} />
+      {(["100%", "100%", "100%", "80%", "100%", "60%", "100%"] as const).map((width, line) => (
+        <Bar key={line} width={width} height={2} color={PAPER.light} style={{ marginTop: line === 0 ? 8 : 4 }} />
+      ))}
+    </View>
+    <View style={styles.agreementPage}>
+      <Bar width={80} height={2} color={PAPER.light} />
+      {(["100%", "100%", "85%", "100%", "70%", "100%"] as const).map((width, line) => (
+        <Bar key={line} width={width} height={2} color={PAPER.light} style={{ marginTop: line === 0 ? 10 : 4 }} />
+      ))}
+      <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
+        {[0, 1].map((side) => (
+          <View key={side} style={{ flex: 1 }}>
+            <Bar />
+            <Bar style={{ marginTop: 8 }} />
+            <Bar style={{ marginTop: 8 }} />
+          </View>
+        ))}
+      </View>
+      <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
+        <View style={styles.agreementStamp} />
+        {kind === "hotel" ? <View style={styles.agreementStamp} /> : <View style={{ flex: 1 }} />}
+      </View>
+      <Bar style={{ marginTop: 14 }} />
+      <Bar style={{ marginTop: 8 }} />
+    </View>
+  </View>
+);
+
 /** Three pages fanned out, on the full kit's card. */
 export const KitThumbnail = () => (
   <View style={styles.kit} {...hidden}>
@@ -262,6 +305,20 @@ const styles = StyleSheet.create({
   },
   smallTableLine: { height: 1, backgroundColor: PAPER.light },
   smallReceipt: { height: 12, borderWidth: 1, borderColor: PAPER.light },
+  agreement: { flexDirection: "row", justifyContent: "center", gap: 12 },
+  agreementPage: {
+    width: 150,
+    height: 212,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: PAPER.edgeLarge,
+    backgroundColor: PAPER.page,
+    paddingVertical: 10,
+    paddingHorizontal: 9,
+    overflow: "hidden",
+  },
+  agreementTable: { marginTop: 8, borderWidth: 1, borderColor: PAPER.faint },
+  agreementStamp: { flex: 1, height: 30, borderWidth: 1, borderStyle: "dashed", borderColor: PAPER.faint },
   kit: { width: 76, height: 72 },
   kitPage: { position: "absolute" },
   kitBack: { left: 24, top: 0, transform: [{ rotate: "8deg" }] },

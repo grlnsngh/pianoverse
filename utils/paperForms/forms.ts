@@ -1,5 +1,13 @@
 import type { Letterhead } from "../letterhead";
-import { clampCount, FULL_KIT, PAPER_FORMS, paperFormById, type PaperFormId } from "./catalog";
+import { agreementPages } from "./agreements";
+import {
+  AGREEMENT_KINDS,
+  clampCount,
+  FULL_KIT,
+  PAPER_FORMS,
+  paperFormById,
+  type PaperFormId,
+} from "./catalog";
 import {
   box,
   boxRow,
@@ -262,10 +270,13 @@ export const formHtml = (
   fontCss = ""
 ): string => paperDocument(paperFormById(id)?.title ?? "Paper form", formPages(id, letterhead, count), fontCss);
 
-/** The full kit: every form once, in the order of the list, in one document. */
+/** The full kit: every form once in the order of the list, then both agreements, in one document. */
 export const kitHtml = (letterhead: Letterhead, fontCss = ""): string =>
   paperDocument(
     FULL_KIT.title,
-    PAPER_FORMS.flatMap((form) => formPages(form.id, letterhead, 1)),
+    [
+      ...PAPER_FORMS.flatMap((form) => formPages(form.id, letterhead, 1)),
+      ...AGREEMENT_KINDS.flatMap((kind) => agreementPages(kind, letterhead)),
+    ],
     fontCss
   );

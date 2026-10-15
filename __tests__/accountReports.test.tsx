@@ -95,7 +95,7 @@ describe("the Paper group on Account", () => {
     expect(texts).toContain("Paper");
     expect(texts).toContain("Paper forms");
     expect(texts).toContain("New");
-    expect(texts).toContain("Rent cards, receipts and registers to print");
+    expect(texts).toContain("Rent cards, receipts, registers and agreements to print");
     expect(texts.indexOf("Reports")).toBeLessThan(texts.indexOf("Paper"));
     expect(texts.indexOf("Paper")).toBeLessThan(texts.indexOf("Your data"));
   });
@@ -105,7 +105,7 @@ describe("the Paper group on Account", () => {
     const paper = row(renderer, "Paper forms, New.");
 
     expect(paper.props.accessibilityLabel).toBe(
-      "Paper forms, New. Rent cards, receipts and registers to print"
+      "Paper forms, New. Rent cards, receipts, registers and agreements to print"
     );
     await act(async () => paper.props.onPress());
 

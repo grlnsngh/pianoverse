@@ -8,11 +8,14 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Platform } from "react-native";
 import type { Letterhead } from "@/utils/letterhead";
+import { agreementHtml } from "@/utils/paperForms/agreements";
 import {
+  AGREEMENTS,
   clampCount,
   FULL_KIT,
   paperFormById,
   pdfFileName,
+  type AgreementKind,
   type PaperFormId,
 } from "@/utils/paperForms/catalog";
 import { formHtml, kitHtml } from "@/utils/paperForms/forms";
@@ -105,7 +108,26 @@ export const savePaperForm = async (
 };
 
 /**
- * Makes the full kit, every form once, and keeps it in the app's documents.
+ * Makes a rental agreement's PDF, `count` copies of its two pages, and keeps it in the app's documents.
+ *
+ * @throws {Error} If the PDF can't be made or kept; the screen tells the person.
+ */
+export const saveAgreement = async (
+  kind: AgreementKind,
+  letterhead: Letterhead,
+  count: number
+): Promise<SavedPdf> => {
+  const agreement = AGREEMENTS[kind];
+  const copies = clampCount(count);
+  return savePdf(
+    agreementHtml(kind, letterhead, copies, await loadFontCss()),
+    agreement.fileName,
+    copies * agreement.pagesPerCopy
+  );
+};
+
+/**
+ * Makes the full kit, every form once and both agreements, and keeps it in the app's documents.
  *
  * @throws {Error} If the PDF can't be made or kept; the screen tells the person.
  */
