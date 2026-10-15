@@ -8,6 +8,7 @@ import { initialsOf, rentalPeriod, rentalRows } from "@/utils/pianoDetail";
 import { balanceLine, type RentBalance } from "@/utils/rentDue";
 import { InfoRows, SectionTitle, toneColor } from "./DetailParts";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const AVATAR = 48;
 const BUTTON = 44;
@@ -33,6 +34,7 @@ const RentalSection = ({
 }) => {
   const colors = useColors();
   const styles = useStyles();
+  const { large } = useTextScale();
   const name = piano.rental_customer_name?.trim() || "";
   const mobile = piano.rental_customer_mobile?.trim() || "";
   const period = rentalPeriod(piano);
@@ -56,7 +58,7 @@ const RentalSection = ({
             </View>
             <View style={styles.names}>
               {!!name && (
-                <Text style={styles.name} numberOfLines={1}>
+                <Text style={styles.name} numberOfLines={large ? 2 : 1}>
                   {name}
                 </Text>
               )}

@@ -6,6 +6,7 @@ import { fonts, spacing, type } from "@/constants/theme";
 import { Customer, customerLine } from "@/utils/customers";
 import { formatRupees } from "@/utils/money";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 export type CustomerRowProps = {
   customer: Customer;
@@ -31,6 +32,9 @@ const initialsOf = (name: string) =>
 const CustomerRow = ({ customer, onOpen }: CustomerRowProps) => {
   const colors = useColors();
   const styles = useStyles();
+  const { large } = useTextScale();
+  // One line each, unless the text is big: then a name or a status may take two rather than be cut
+  const lines = large ? 2 : 1;
   const total = formatRupees(customer.total);
   const note = customer.renting
     ? "Renting now"
@@ -38,6 +42,17 @@ const CustomerRow = ({ customer, onOpen }: CustomerRowProps) => {
       ? `Last paid ${format(customer.lastPaidOn, "d MMM yyyy")}`
       : "";
   const line = customerLine(customer);
+
+  const amounts = (
+    <View style={[styles.amounts, large && styles.amountsBelow]}>
+      <Text style={styles.total}>{total}</Text>
+      {!!note && (
+        <Text style={[styles.note, customer.renting && styles.renting]} numberOfLines={lines}>
+          {note}
+        </Text>
+      )}
+    </View>
+  );
 
   return (
     <Pressable
@@ -54,24 +69,16 @@ const CustomerRow = ({ customer, onOpen }: CustomerRowProps) => {
       </View>
       <View style={styles.content}>
         <View style={styles.texts}>
-          <Text style={styles.name} numberOfLines={1}>
+          <Text style={styles.name} numberOfLines={lines}>
             {customer.name}
           </Text>
-          <Text style={styles.line} numberOfLines={1}>
+          <Text style={styles.line} numberOfLines={lines}>
             {line}
           </Text>
+          {/* With a big Font size the amounts go under the words instead of taking a column of the row */}
+          {large && amounts}
         </View>
-        <View style={styles.amounts}>
-          <Text style={styles.total}>{total}</Text>
-          {!!note && (
-            <Text
-              style={[styles.note, customer.renting && styles.renting]}
-              numberOfLines={1}
-            >
-              {note}
-            </Text>
-          )}
-        </View>
+        {!large && amounts}
         <Icon
           name="chevronRight"
           size={18}
@@ -115,6 +122,7 @@ const useStyles = makeStyles((colors) => ({
   name: { ...type.rowTitle, color: colors.ink },
   line: { ...type.secondary, color: colors.ink2 },
   amounts: { alignItems: "flex-end" },
+  amountsBelow: { alignItems: "flex-start", marginTop: 2 },
   total: { ...type.rowTitle, color: colors.ink, fontVariant: ["tabular-nums"] },
   note: { ...type.caption, fontFamily: fonts.regular, color: colors.ink2 },
   renting: { fontFamily: fonts.semibold, color: colors.brandText },

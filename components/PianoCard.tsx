@@ -7,6 +7,7 @@ import { getPianoDisplay } from "@/utils/pianoDisplay";
 import { getPianoPhotos } from "@/utils/photos";
 import SelectionMark from "./SelectionMark";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const PHOTO_HEIGHT = 169;
 const CATEGORY_CIRCLE = 30;
@@ -41,6 +42,9 @@ const PianoCard = ({
 }: PianoCardProps) => {
   const colors = useColors();
   const styles = useStyles();
+  const { large } = useTextScale();
+  // One line each, unless the text is big: then a name or a status may take two rather than be cut
+  const lines = large ? 2 : 1;
   const display = getPianoDisplay(item);
   const id = item.$id;
   const company = item.company_associated;
@@ -79,19 +83,35 @@ const PianoCard = ({
         )}
       </PianoPhoto>
 
-      <Text style={styles.title} numberOfLines={1}>
+      <Text style={styles.title} numberOfLines={lines}>
         <HighlightedText text={item.title} term={highlight} matchStyle={styles.titleMatch} />
       </Text>
       {!!company && (
-        <Text style={styles.line} numberOfLines={1}>
+        <Text style={styles.line} numberOfLines={lines}>
           <HighlightedText text={company} term={highlight} matchStyle={styles.lineMatch} />
         </Text>
       )}
       {!selecting && (display.price || display.cardRest) ? (
-        <Text style={styles.line} numberOfLines={1}>
-          {display.price ? <Text style={styles.price}>{display.price}</Text> : null}
-          {display.cardRest}
-        </Text>
+        large ? (
+          // With a big Font size the price and the status don't share a line that would cut one of them
+          <>
+            {display.price ? (
+              <Text style={[styles.line, styles.price]} numberOfLines={lines}>
+                {display.price}
+              </Text>
+            ) : null}
+            {display.cardRest.replace(/^ · /, "") ? (
+              <Text style={styles.line} numberOfLines={lines}>
+                {display.cardRest.replace(/^ · /, "")}
+              </Text>
+            ) : null}
+          </>
+        ) : (
+          <Text style={styles.line} numberOfLines={1}>
+            {display.price ? <Text style={styles.price}>{display.price}</Text> : null}
+            {display.cardRest}
+          </Text>
+        )
       ) : null}
     </Pressable>
   );

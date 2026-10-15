@@ -229,9 +229,11 @@ const useStyles = makeStyles((colors) => ({
   },
   designs: { gap: 10, paddingRight: spacing.screen },
   design: {
-    width: 84,
+    // 84 at 100%; as wide as the name when that is wider, so "Monogram" never breaks in the middle
+    minWidth: 84,
     alignItems: "center",
     gap: 6,
+    paddingHorizontal: 6,
     paddingTop: spacing.sm,
     paddingBottom: 6,
     borderRadius: radii.control,

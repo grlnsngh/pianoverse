@@ -6,6 +6,7 @@ import { getPianoPhotos } from "@/utils/photos";
 import { canRemind } from "@/utils/reminders";
 import { serviceDueLine, whereLine, type ServiceDueEntry } from "@/utils/serviceLog";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const THUMBNAIL = 64;
 const BUTTON = 44;
@@ -28,6 +29,9 @@ export type ServiceDueRowProps = {
 const ServiceDueRow = ({ entry, onOpen, onMessage }: ServiceDueRowProps) => {
   const colors = useColors();
   const styles = useStyles();
+  const { large } = useTextScale();
+  // One line each, unless the text is big: then a name or a status may take two rather than be cut
+  const lines = large ? 2 : 1;
   const { piano, state } = entry;
   const where = whereLine(piano);
   const line = serviceDueLine(state);
@@ -47,13 +51,13 @@ const ServiceDueRow = ({ entry, onOpen, onMessage }: ServiceDueRowProps) => {
           <PianoPhoto id={piano.$id} uri={getPianoPhotos(piano)[0]} style={styles.photo} />
         </View>
         <View style={styles.texts}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={styles.title} numberOfLines={lines}>
             {piano.title}
           </Text>
-          <Text style={styles.where} numberOfLines={1}>
+          <Text style={styles.where} numberOfLines={lines}>
             {where}
           </Text>
-          <Text style={[styles.due, { color: state.tone === "late" ? colors.late : colors.brandText }]} numberOfLines={1}>
+          <Text style={[styles.due, { color: state.tone === "late" ? colors.late : colors.brandText }]} numberOfLines={lines}>
             {line}
           </Text>
         </View>

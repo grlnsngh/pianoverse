@@ -14,11 +14,13 @@ import type { RootState } from "@/redux/store";
 import { formatRupees } from "@/utils/money";
 import { byYear, intervalLabel, serviceSummary } from "@/utils/serviceLog";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 /** One piano's whole log, by year (ServiceHistory board). */
 const ServiceList = ({ piano }: { piano: PianoItem }) => {
   const colors = useColors();
   const styles = useStyles();
+  const { large } = useTextScale();
   const { entries, state, months, startLogging, hold, edit, confirmDelete, sheets } = useServiceSheets(piano);
   const summary = serviceSummary(entries);
   const nextTone = !state ? colors.ink2 : state.tone === "late" ? colors.late : state.tone === "soon" ? colors.brandText : colors.ink2;
@@ -37,17 +39,17 @@ const ServiceList = ({ piano }: { piano: PianoItem }) => {
           {piano.title} · {months === 0 ? "no tuning reminders" : `tuned ${intervalLabel(months).toLowerCase()}`}
         </Text>
 
-        <View style={styles.stats}>
-          <View style={styles.stat} accessible accessibilityLabel={`${summary.count} services`}>
+        <View style={[styles.stats, large && styles.statsList]}>
+          <View style={[styles.stat, large && styles.statItem]} accessible accessibilityLabel={`${summary.count} services`}>
             <Text style={styles.statValue}>{summary.count}</Text>
             <Text style={styles.statLabel}>Services</Text>
           </View>
-          <View style={styles.stat} accessible accessibilityLabel={`${formatRupees(summary.spent)} spent`}>
+          <View style={[styles.stat, large && styles.statItem]} accessible accessibilityLabel={`${formatRupees(summary.spent)} spent`}>
             <Text style={styles.statValue}>{formatRupees(summary.spent)}</Text>
             <Text style={styles.statLabel}>Spent</Text>
           </View>
           <View
-            style={[styles.stat, styles.wide]}
+            style={[styles.stat, styles.wide, large && styles.statItem]}
             accessible
             accessibilityLabel={state ? `Next tuning ${format(state.next, "d MMMM yyyy")}` : "No next tuning"}
           >
@@ -128,6 +130,9 @@ const useStyles = makeStyles((colors) => ({
   },
   stat: { flex: 1 },
   wide: { flex: 1.2 },
+  // With a big Font size three columns would cut the amounts: one line each, the number at the right
+  statsList: { flexDirection: "column", gap: spacing.sm },
+  statItem: { flex: 0, flexDirection: "row-reverse", justifyContent: "space-between", alignItems: "baseline" },
   statValue: { fontFamily: fonts.semibold, fontSize: 20, lineHeight: 26, color: colors.ink, fontVariant: ["tabular-nums"] },
   statLabel: { ...type.caption, color: colors.ink2 },
   quiet: { ...type.secondary, marginTop: spacing.xl, color: colors.ink2 },

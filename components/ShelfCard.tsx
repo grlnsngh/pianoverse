@@ -6,6 +6,7 @@ import { getPianoPhotos } from "@/utils/photos";
 import { statusToneColor } from "@/utils/rentalStatus";
 import type { ShelfEntry } from "@/utils/today";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 export const SHELF_CARD_WIDTH = 244;
 const PHOTO_HEIGHT = 152;
@@ -23,6 +24,9 @@ export type ShelfCardProps = {
  */
 const ShelfCard = ({ entry, onOpen }: ShelfCardProps) => {
   const styles = useStyles();
+  const { large } = useTextScale();
+  // One line each, unless the text is big: then a name or a status may take two rather than be cut
+  const lines = large ? 2 : 1;
   const colors = useColors();
   const { piano, who, status, progress } = entry;
   const summary = [piano.title, who, status.text].filter(Boolean).join(", ");
@@ -46,15 +50,15 @@ const ShelfCard = ({ entry, onOpen }: ShelfCardProps) => {
         )}
       </PianoPhoto>
 
-      <Text style={styles.title} numberOfLines={1}>
+      <Text style={styles.title} numberOfLines={lines}>
         {piano.title}
       </Text>
       {!!who && (
-        <Text style={styles.who} numberOfLines={1}>
+        <Text style={styles.who} numberOfLines={lines}>
           {who}
         </Text>
       )}
-      <Text style={[styles.status, { color: statusToneColor(status.tone, colors) }]} numberOfLines={1}>
+      <Text style={[styles.status, { color: statusToneColor(status.tone, colors) }]} numberOfLines={lines}>
         {status.text}
       </Text>
     </Pressable>

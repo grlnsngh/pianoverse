@@ -4,6 +4,7 @@ import { Icon } from "@/components/ui";
 import { fonts, maxScale, Palette, spacing, type } from "@/constants/theme";
 import { ACTION_LABELS, ActionKey, DetailRow, DetailTone } from "@/utils/pianoDetail";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 // The small pieces a piano's page is built from: the rule between sections,
 // a section's title, a list of label and value rows, and a row that does
@@ -44,6 +45,7 @@ export const SectionTitle = ({ children }: { children: string }) => {
 /** Rows of a label in grey and its value, each under a hairline. */
 export const InfoRows = ({ rows }: { rows: DetailRow[] }) => {
   const styles = useStyles();
+  const { large } = useTextScale();
   return (
     <View style={styles.rows}>
       {rows.map((row) => (
@@ -51,10 +53,10 @@ export const InfoRows = ({ rows }: { rows: DetailRow[] }) => {
           key={row.label}
           accessible
           accessibilityLabel={`${row.label}, ${row.value}`}
-          style={styles.row}
+          style={[styles.row, large && styles.rowStacked]}
         >
-          <Text style={styles.label}>{row.label}</Text>
-          <Text style={[styles.value, row.strong && styles.strong]}>{row.value}</Text>
+          <Text style={[styles.label, large && styles.labelStacked]}>{row.label}</Text>
+          <Text style={[styles.value, large && styles.valueStacked, row.strong && styles.strong]}>{row.value}</Text>
         </View>
       ))}
     </View>
@@ -106,7 +108,10 @@ const useStyles = makeStyles((colors) => ({
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
   },
+  // With a big Font size the label sits above its value, so a long value has the whole width
+  rowStacked: { flexDirection: "column", alignItems: "flex-start", justifyContent: "center", gap: 2, paddingVertical: spacing.md },
   label: { ...type.body, color: colors.ink2 },
+  labelStacked: { ...type.secondary },
   value: {
     flexShrink: 1,
     textAlign: "right",
@@ -115,15 +120,18 @@ const useStyles = makeStyles((colors) => ({
     lineHeight: 22,
     color: colors.ink,
   },
+  valueStacked: { flexShrink: 0, textAlign: "left" },
   strong: { fontFamily: fonts.bold, fontVariant: ["tabular-nums"] },
   action: {
-    height: 52,
+    minHeight: 52,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
   },
   actionRule: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
   actionPressed: { opacity: 0.6 },
-  actionText: { fontFamily: fonts.medium, fontSize: 16, lineHeight: 22, color: colors.ink },
+  actionText: { flexShrink: 1, fontFamily: fonts.medium, fontSize: 16, lineHeight: 22, color: colors.ink },
   actionDestructive: { color: colors.late },
 }));

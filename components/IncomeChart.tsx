@@ -15,6 +15,7 @@ export type IncomeChartProps = {
   testID?: string;
 };
 
+/** The widest a bar is; in a narrow column (many months, a large Screen zoom) it is as wide as the column */
 const BAR_WIDTH = 28;
 
 /**
@@ -69,9 +70,9 @@ const IncomeChart = ({
 
 const useStyles = makeStyles((colors) => ({
   chart: { flexDirection: "row", alignItems: "flex-end", gap: 4 },
-  column: { flex: 1, alignItems: "center" },
+  column: { flex: 1, minWidth: 0, alignItems: "center" },
   // Bars grow up from the bottom of this; a sale dot sits just over the bar
-  well: { width: BAR_WIDTH, justifyContent: "flex-end", alignItems: "stretch" },
+  well: { width: "100%", maxWidth: BAR_WIDTH, justifyContent: "flex-end", alignItems: "stretch" },
   rent: {
     backgroundColor: colors.ink,
     borderRadius: radii.input / 3,

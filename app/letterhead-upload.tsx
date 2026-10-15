@@ -179,9 +179,12 @@ const useStyles = makeStyles((colors) => ({
   cardTitle: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 22, color: colors.ink },
   step: { flexDirection: "row", gap: spacing.md, marginTop: 10 },
   stepNumber: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    minWidth: 24,
+    minHeight: 24,
+    paddingHorizontal: 4,
+    // Beside a step that takes several lines it stays a circle at the top, not an oval
+    alignSelf: "flex-start",
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.fill,

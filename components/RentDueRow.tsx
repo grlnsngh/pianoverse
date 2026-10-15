@@ -6,6 +6,7 @@ import { getPianoPhotos } from "@/utils/photos";
 import { canRemind } from "@/utils/reminders";
 import { dueLine, dueShort, type RentDueEntry } from "@/utils/rentDue";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const THUMBNAIL = 64;
 const BUTTON = 44;
@@ -29,6 +30,9 @@ export type RentDueRowProps = {
 const RentDueRow = ({ entry, today, onOpen, onRemind }: RentDueRowProps) => {
   const colors = useColors();
   const styles = useStyles();
+  const { large } = useTextScale();
+  // One line each, unless the text is big: then a name or a status may take two rather than be cut
+  const lines = large ? 2 : 1;
   const { piano, who, balance } = entry;
   // The row says it short, so it fits beside the button; a screen reader gets since when too
   const summary = [piano.title, who, dueLine(balance, today)]
@@ -49,15 +53,15 @@ const RentDueRow = ({ entry, today, onOpen, onRemind }: RentDueRowProps) => {
           <PianoPhoto id={piano.$id} uri={getPianoPhotos(piano)[0]} style={styles.photo} />
         </View>
         <View style={styles.texts}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={styles.title} numberOfLines={lines}>
             {piano.title}
           </Text>
           {!!who && (
-            <Text style={styles.who} numberOfLines={1}>
+            <Text style={styles.who} numberOfLines={lines}>
               {who}
             </Text>
           )}
-          <Text style={styles.due} numberOfLines={1}>
+          <Text style={styles.due} numberOfLines={lines}>
             {dueShort(balance)}
           </Text>
         </View>

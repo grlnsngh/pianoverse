@@ -500,7 +500,7 @@ const useStyles = makeStyles((colors) => ({
   note: { ...type.body, marginTop: 12, color: colors.ink },
   missing: { alignItems: "center", justifyContent: "center" },
   missingTitle: { ...type.rowTitle, fontSize: 18, color: colors.ink },
-  missingButton: { marginTop: 16, width: 128 },
+  missingButton: { marginTop: 16, minWidth: 128 },
 }));
 
 export default DetailScreen;

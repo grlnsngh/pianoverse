@@ -37,6 +37,7 @@ import { fakeNotifications } from "./helpers/fakeNotifications";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
+  atFontScale,
   captureToastCalls,
   createTestStore,
   dialogOf,
@@ -340,5 +341,56 @@ describe("the 9:00 reminder", () => {
     const { forgetServiceLog } = require("@/lib/serviceLogStore");
     await act(async () => forgetServiceLog());
     expect(fakeNotifications.scheduled.filter((notification) => notification.content.data?.type === "service_due")).toHaveLength(0);
+  });
+});
+
+describe("the service section with a big Font size", () => {
+  const flat = (style: unknown) => require("react-native").StyleSheet.flatten(style as any);
+  /** The innermost view that holds all of the given words */
+  const holding = (renderer: ReactTestRenderer, ...words: string[]) =>
+    renderer.root
+      .findAll((node) => (node.type as unknown) === "View" && words.every((word) => allTexts(node).join("|").includes(word)))
+      .pop()!;
+  const pressable = (renderer: ReactTestRenderer, label: string) =>
+    renderer.root.find((node) => node.props.accessibilityLabel === label && typeof node.props.style === "function");
+
+  beforeEach(() => {
+    // Tuned 7 months ago: overdue, so a rented piano also gets the Message button
+    seedService(subMonths(today, 7));
+  });
+
+  it("puts Log service and Message side by side, each half the width, at 100%", async () => {
+    const renderer = await open(<DetailScreen />);
+
+    expect(flat(holding(renderer, "Log service", "Message Meera").props.style).flexDirection).toBe("row");
+    expect(flat(pressable(renderer, "Log service").props.style({ pressed: false })).flex).toBe(1);
+    expect(flat(pressable(renderer, "Log service").props.style({ pressed: false })).minHeight).toBe(48);
+  });
+
+  describe("at 150%", () => {
+    atFontScale(1.5);
+
+    it("puts Log service above Message, so neither label is cut", async () => {
+      const renderer = await open(<DetailScreen />);
+
+      expect(flat(holding(renderer, "Log service", "Message Meera").props.style).flexDirection).toBe("column");
+      expect(flat(pressable(renderer, "Log service").props.style({ pressed: false })).flex).toBeUndefined();
+      const message = pressable(renderer, "Message Meera Kapoor about the tuning");
+      expect(flat(message.props.style({ pressed: false })).flex).toBeUndefined();
+      expect(message.findByType(require("react-native").Text).props.numberOfLines).toBe(2);
+    });
+
+    it("lists the numbers on the full service page one line each, as Today does", async () => {
+      const renderer = await open(<ServiceScreen />);
+      const stats = holding(renderer, "Services", "Spent", "Next tuning");
+
+      expect(flat(stats.props.style).flexDirection).toBe("column");
+    });
+  });
+
+  it("keeps the numbers on the full service page in three columns at 100%", async () => {
+    const renderer = await open(<ServiceScreen />);
+
+    expect(flat(holding(renderer, "Services", "Spent", "Next tuning").props.style).flexDirection).toBe("row");
   });
 });
