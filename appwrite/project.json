@@ -313,6 +313,15 @@
                     "size": 1000,
                     "default": null,
                     "encrypt": false
+                },
+                {
+                    "key": "tuning_interval_months",
+                    "type": "integer",
+                    "required": false,
+                    "array": false,
+                    "default": null,
+                    "min": 0,
+                    "max": 24
                 }
             ],
             "indexes": [
@@ -621,6 +630,93 @@
                     "status": "available",
                     "columns": [
                         "creator"
+                    ],
+                    "orders": []
+                }
+            ]
+        },
+        {
+            "$id": "service_log",
+            "$permissions": [
+                "create(\"users\")"
+            ],
+            "databaseId": "66b26b1300171b9140be",
+            "name": "service_log",
+            "enabled": true,
+            "rowSecurity": true,
+            "columns": [
+                {
+                    "key": "piano_id",
+                    "type": "varchar",
+                    "required": true,
+                    "array": false,
+                    "size": 255,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "creator",
+                    "type": "varchar",
+                    "required": true,
+                    "array": false,
+                    "size": 255,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "serviced_on",
+                    "type": "datetime",
+                    "required": true,
+                    "array": false,
+                    "default": null,
+                    "format": ""
+                },
+                {
+                    "key": "kind",
+                    "type": "varchar",
+                    "required": true,
+                    "array": false,
+                    "size": 20,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "cost",
+                    "type": "double",
+                    "required": false,
+                    "array": false,
+                    "default": null,
+                    "min": 0,
+                    "max": 1.7976931348623157e+308
+                },
+                {
+                    "key": "note",
+                    "type": "varchar",
+                    "required": false,
+                    "array": false,
+                    "size": 1000,
+                    "default": null,
+                    "encrypt": false
+                }
+            ],
+            "indexes": [
+                {
+                    "key": "by_creator_serviced_on",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "creator",
+                        "serviced_on"
+                    ],
+                    "orders": []
+                },
+                {
+                    "key": "by_piano_serviced_on",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "piano_id",
+                        "serviced_on"
                     ],
                     "orders": []
                 }

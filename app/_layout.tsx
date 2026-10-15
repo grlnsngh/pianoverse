@@ -91,6 +91,8 @@ function RootContent() {
                   <Stack.Screen name="letterhead-details" options={{ headerShown: false }} />
                   <Stack.Screen name="letterhead-upload" options={{ headerShown: false }} />
                   <Stack.Screen name="letterhead-printed" options={{ headerShown: false }} />
+                  {/* A piano's whole tuning and service log, from Show all on its page */}
+                  <Stack.Screen name="service/[id]" options={{ headerShown: false }} />
                   {/* Edit profile, opened from Account, draws its own back button */}
                   <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
                   {/* Its third step, the review, and the Edit screen draw their own top bar */}
