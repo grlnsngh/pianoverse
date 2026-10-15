@@ -21,6 +21,7 @@ import { deleteAccount, signOut } from "@/lib/appwrite";
 import { exportCustomers, exportPayments } from "@/lib/exportData";
 import { forgetFormEvents } from "@/lib/formEvents";
 import { forgetLetterhead } from "@/lib/letterheadStore";
+import { forgetServiceLog } from "@/lib/serviceLogStore";
 import { forgetPaperPdfs } from "@/lib/paperPdf";
 import { clearPianoCache } from "@/lib/pianoCache";
 import useSavedAt from "@/lib/useSavedAt";
@@ -233,6 +234,7 @@ const Profile = () => {
     await clearPianoCache();
     await forgetLetterhead();
     await forgetFormEvents();
+    await forgetServiceLog();
     forgetPaperPdfs();
     dispatch(resetPianoState() as any);
     dispatch(setActiveTab("pianos") as any);

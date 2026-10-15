@@ -9,6 +9,7 @@ import IncomeCard from "@/components/IncomeCard";
 import PaymentRow from "@/components/PaymentRow";
 import RefreshBand, { HIDDEN_REFRESH_INDICATOR } from "@/components/RefreshBand";
 import RentDueRow from "@/components/RentDueRow";
+import ServiceDueRow from "@/components/ServiceDueRow";
 import ShelfCard from "@/components/ShelfCard";
 import TodaySkeleton from "@/components/TodaySkeleton";
 import { AddButton, useSkeletonDelay } from "@/components/ui";
@@ -16,6 +17,8 @@ import { fonts, spacing, type } from "@/constants/theme";
 import { usePianoData } from "@/lib/PianoDataContext";
 import useCurrentDay from "@/lib/useCurrentDay";
 import useIncome from "@/lib/useIncome";
+import useLetterhead from "@/lib/useLetterhead";
+import useServiceLog, { useTuningReminders } from "@/lib/useServiceLog";
 import useTodayPayments from "@/lib/useTodayPayments";
 import { setActiveTab } from "@/redux/navigation/actions";
 import { setPianoFilters } from "@/redux/pianos/actions";
@@ -26,6 +29,7 @@ import { incomeByMonth, TODAY_MONTHS } from "@/utils/income";
 import { formatRupees } from "@/utils/money";
 import { buildReminderMessage } from "@/utils/reminders";
 import { type RentDueEntry, rentDueEntries, rentDueMonths } from "@/utils/rentDue";
+import { serviceDue, serviceMessage, type ServiceDueEntry } from "@/utils/serviceLog";
 import {
   needsAttention,
   receivedInMonth,
@@ -51,6 +55,11 @@ const Today = () => {
   const filters = useSelector((state: RootState) => state.pianos.filters);
   const { status: pianoStatus, refresher } = usePianoData();
   const { loaded, failed, payments, reload } = useTodayPayments();
+  const serviceLog = useServiceLog();
+  const reloadService = serviceLog.reload;
+  const { details: letterhead } = useLetterhead();
+  // The 9:00 tuning reminders follow the pianos (an interval changed, a piano sold or deleted)
+  useTuningReminders();
   // The income chart's months, or further back when a rental out began before
   // them: the rent that is due needs every payment since its start
   const income = useIncome(Math.max(TODAY_MONTHS, rentDueMonths(pianos)));
@@ -88,6 +97,7 @@ const Today = () => {
   // Not worked out until the payments are here: with none, every rental would owe
   const owing =
     income.loaded && !income.failed ? rentDueEntries(pianos, income.payments) : [];
+  const serviceDueList = serviceLog.status === "ready" ? serviceDue(pianos, serviceLog.entries) : [];
 
   const openAdd = useCallback(() => router.push("/create"), []);
   const openIncome = useCallback(() => router.push("/income"), []);
@@ -100,6 +110,19 @@ const Today = () => {
       `${entry.piano.title} rental`
     );
   }, []);
+
+  // The renter's WhatsApp, with a message about booking the tuning visit
+  const business = letterhead.business;
+  const messageAboutTuning = useCallback(
+    (entry: ServiceDueEntry) => {
+      sendMessage(
+        entry.piano.rental_customer_mobile?.trim() || null,
+        serviceMessage(entry.piano, entry.state.next, business),
+        `${entry.piano.title} tuning`
+      );
+    },
+    [business]
+  );
 
   // The Pianos tab, showing the rentals that are out (what the shelf holds)
   const seeAll = useCallback(() => {
@@ -117,11 +140,11 @@ const Today = () => {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refresher.current?.(), reload(), reloadIncome()]);
+      await Promise.all([refresher.current?.(), reload(), reloadIncome(), reloadService()]);
     } finally {
       if (mounted.current) setRefreshing(false);
     }
-  }, [refresher, reload, reloadIncome]);
+  }, [refresher, reload, reloadIncome, reloadService]);
 
   if (loadingFirstTime) {
     return (
@@ -236,6 +259,28 @@ const Today = () => {
           </>
         )}
 
+        {serviceDueList.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle} accessibilityRole="header">
+                Service due
+              </Text>
+              <Text style={styles.sectionCount}>{serviceDueList.length}</Text>
+            </View>
+            {serviceDueList.map((entry) => (
+              <ServiceDueRow
+                key={entry.piano.$id}
+                entry={entry}
+                onOpen={openPiano}
+                onMessage={messageAboutTuning}
+              />
+            ))}
+            <Text style={styles.sectionNote}>
+              Tunings that are overdue or due within a week. Log one on the piano’s page and it leaves this list.
+            </Text>
+          </>
+        )}
+
         {shelf.length > 0 && (
           <>
             <View style={[styles.sectionHeader, styles.shelfHeader]}>
@@ -337,6 +382,13 @@ const useStyles = makeStyles((colors) => ({
   quiet: {
     ...type.secondary,
     paddingTop: spacing.sm,
+    paddingHorizontal: spacing.screen,
+    color: colors.ink2,
+  },
+  sectionNote: {
+    ...type.caption,
+    fontFamily: fonts.regular,
+    paddingTop: 10,
     paddingHorizontal: spacing.screen,
     color: colors.ink2,
   },

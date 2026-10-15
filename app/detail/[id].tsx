@@ -20,6 +20,7 @@ import PhotoHero from "@/components/PhotoHero";
 import PianoActionsSheet from "@/components/PianoActionsSheet";
 import RecordPaymentSheet from "@/components/RecordPaymentSheet";
 import RentalSection from "@/components/RentalSection";
+import ServiceSection from "@/components/ServiceSection";
 import StickyActionBar from "@/components/StickyActionBar";
 import { Button, ScreenEntrance, useSkeletonDelay } from "@/components/ui";
 import { fonts, type } from "@/constants/theme";
@@ -380,6 +381,13 @@ const DetailScreen = () => {
               <>
                 <Divider />
                 <PastRentersSection rentals={previous} onOpen={openCustomer} />
+              </>
+            )}
+
+            {!sold && (
+              <>
+                <Divider />
+                <ServiceSection piano={piano} />
               </>
             )}
 

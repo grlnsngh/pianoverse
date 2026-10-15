@@ -30,6 +30,7 @@ export const BUCKET_ID = "66b26b77003445e612b4";
 export const PAYMENTS_COLLECTION_ID = "rent_payments";
 // Named rental_history in the console; it was made with an ID of its own
 export const RENTAL_HISTORY_COLLECTION_ID = "6abdffe40034432a5cde";
+export const SERVICE_LOG_COLLECTION_ID = "service_log";
 
 type StoredFile = { name: string; type: string; size: number; uri: string };
 type Doc = Record<string, any> & { $id: string; $createdAt: string };
@@ -40,6 +41,8 @@ export const fakeBackend = {
   payments: new Map<string, Doc>(),
   // Rentals that are over (the rental_history table)
   history: new Map<string, Doc>(),
+  // Tunings, repairs and the rest (the service_log table)
+  service: new Map<string, Doc>(),
   missingCollections: new Set<string>(),
   // Columns the tables don't have (yet): a document that uses one is rejected
   unknownColumns: new Set<string>(),
@@ -51,6 +54,7 @@ export const fakeBackend = {
     this.documents.clear();
     this.payments.clear();
     this.history.clear();
+    this.service.clear();
     this.missingCollections.clear();
     this.unknownColumns.clear();
     this.files.clear();
@@ -80,6 +84,7 @@ const storeFor = (collectionId: string) => {
   tableFor(collectionId);
   if (collectionId === PAYMENTS_COLLECTION_ID) return fakeBackend.payments;
   if (collectionId === RENTAL_HISTORY_COLLECTION_ID) return fakeBackend.history;
+  if (collectionId === SERVICE_LOG_COLLECTION_ID) return fakeBackend.service;
   return fakeBackend.documents;
 };
 

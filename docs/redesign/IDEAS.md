@@ -25,7 +25,7 @@ The sizes are estimates, not promises. Prices and store rules below come from ge
 | M6 | Keep what was owed on a return | S | Appwrite column |
 | M7 | Income per piano | S | JS only |
 | M8 | Online payments (a payment gateway) | L | Gateway account, server code, Appwrite |
-| P1 | Tuning and service log | M | Appwrite table; **next, as Batch 35** |
+| P1 | Tuning and service log | M | **Built as Batch 35** (per-piano interval, Today, 9:00 reminder, WhatsApp) |
 | P2 | Condition photos at handover and return | M | Appwrite table |
 | P3 | Availability calendar | M | JS only |
 | P4 | QR labels, scan to open a piano | M | New build |

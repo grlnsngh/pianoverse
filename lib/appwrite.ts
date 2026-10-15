@@ -2,6 +2,7 @@ import { RESET_PASSWORD_URL } from "@/constants/links";
 import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
 import { formEventRow, type FormEvent } from "@/utils/formEvents";
+import type { ServiceEntry, ServiceKind } from "@/utils/serviceLog";
 import {
   avatarToStore,
   GoogleProfile,
@@ -35,6 +36,8 @@ export const appwriteConfig = {
   rentalHistoryCollectionId: "6abdffe40034432a5cde",
   // The paper forms' usage counts (Batch 32)
   formEventsCollectionId: "form_events",
+  // The tuning and service log (Batch 35)
+  serviceLogCollectionId: "service_log",
   storageId: "66b26b77003445e612b4",
   // The Appwrite Function in functions/delete-account
   deleteAccountFunctionId: "delete-account",
@@ -822,6 +825,12 @@ export async function deletePianoEntry(item: any) {
         console.warn("Could not delete the piano's rental history:", error);
       }
     });
+    // And its tuning and service log
+    await deleteServiceLogForPiano(item.$id).catch((error) => {
+      if (!isMissingTable(error)) {
+        console.warn("Could not delete the piano's service log:", error);
+      }
+    });
 
     return response;
   } catch (error) {
@@ -1141,6 +1150,99 @@ export async function deleteRentalHistoryForPiano(pianoId: string) {
         appwriteConfig.rentalHistoryCollectionId,
         document.$id
       )
+    )
+  );
+}
+
+/** A tuning, repair, cleaning, move or other service to keep (utils/serviceLog.ts). */
+export interface NewServiceEntry {
+  pianoId: string;
+  creator: string;
+  servicedOn: Date;
+  kind: ServiceKind;
+  cost?: number | null;
+  note?: string | null;
+}
+
+/** Only the fields of an entry that changed. */
+export interface ServiceEntryChanges {
+  servicedOn?: Date;
+  kind?: ServiceKind;
+  cost?: number | null;
+  note?: string | null;
+}
+
+const serviceRow = (changes: ServiceEntryChanges) => {
+  const data: Record<string, unknown> = {};
+  if (changes.servicedOn !== undefined) data.serviced_on = toStoredDate(changes.servicedOn);
+  if (changes.kind !== undefined) data.kind = changes.kind;
+  if (changes.cost !== undefined) data.cost = changes.cost && changes.cost > 0 ? changes.cost : null;
+  if (changes.note !== undefined) data.note = changes.note?.trim() || null;
+  return data;
+};
+
+/** Keeps one service of a piano. */
+export async function createServiceEntry(entry: NewServiceEntry): Promise<ServiceEntry> {
+  const { pianoId, creator, ...changes } = entry;
+  const fields = serviceRow(changes);
+  // Nothing empty is sent for a new entry
+  const data = Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== null));
+  return (await databases.createDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.serviceLogCollectionId,
+    ID.unique(),
+    { piano_id: pianoId, creator, ...data }
+  )) as unknown as ServiceEntry;
+}
+
+/** Changes an entry: only the fields in `changes` are sent. */
+export async function updateServiceEntry(entryId: string, changes: ServiceEntryChanges): Promise<ServiceEntry> {
+  return (await databases.updateDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.serviceLogCollectionId,
+    entryId,
+    serviceRow(changes)
+  )) as unknown as ServiceEntry;
+}
+
+export async function deleteServiceEntry(entryId: string) {
+  return databases.deleteDocument(appwriteConfig.databaseId, appwriteConfig.serviceLogCollectionId, entryId);
+}
+
+/** Every service the owner has kept, for all their pianos, page by page; none when the table isn't there. */
+export async function getServiceLog(creator: string): Promise<ServiceEntry[]> {
+  const entries: ServiceEntry[] = [];
+  let cursor: string | undefined;
+  try {
+    for (let page = 0; page < MAX_PAYMENT_PAGES; page++) {
+      const queries = [Query.equal("creator", creator), Query.limit(PAYMENT_PAGE_SIZE)];
+      if (cursor) queries.push(Query.cursorAfter(cursor));
+      const { documents } = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.serviceLogCollectionId,
+        queries
+      );
+      entries.push(...(documents as unknown as ServiceEntry[]));
+      if (documents.length < PAYMENT_PAGE_SIZE) break;
+      cursor = documents[documents.length - 1].$id;
+    }
+  } catch (error) {
+    if (isMissingTable(error)) return [];
+    throw error;
+  }
+  return entries;
+}
+
+/** Deletes every service kept for a piano, e.g. because the piano is deleted. */
+export async function deleteServiceLogForPiano(pianoId: string) {
+  const { documents } = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.serviceLogCollectionId,
+    [Query.equal("piano_id", pianoId), Query.limit(PAYMENT_PAGE_SIZE)]
+  );
+  await Promise.all(
+    documents.map((document) =>
+      databases.deleteDocument(appwriteConfig.databaseId, appwriteConfig.serviceLogCollectionId, document.$id)
     )
   );
 }

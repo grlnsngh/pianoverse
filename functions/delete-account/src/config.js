@@ -15,6 +15,8 @@ module.exports = {
   rentalHistoryTableId: "6abdffe40034432a5cde",
   // The paper forms' usage counts
   formEventsTableId: "form_events",
+  // The tuning and service log
+  serviceLogTableId: "service_log",
   // The bucket the piano and profile photos are in
   storageId: "66b26b77003445e612b4",
 };

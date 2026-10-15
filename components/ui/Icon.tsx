@@ -104,6 +104,18 @@ export const ICONS = {
   ],
   document: [{ d: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5M9 13h6M9 17h6" }],
   minus: [{ d: "M5 12h14" }],
+  // From the Tuning and service boards: the kinds of service
+  tuningFork: [{ d: "M9 3v7a3 3 0 0 0 6 0V3M12 13v8" }],
+  wrench: [{ d: "M14.5 6.5a4 4 0 0 0-5 5L4 17l3 3 5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-2.5-2.5z" }],
+  sparkle: [
+    { d: "M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8zM18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9z" },
+  ],
+  truck: [
+    { d: "M3 7h11v9H3zM14 10h4l3 3v3h-7" },
+    { cx: 7, cy: 17, r: 2 },
+    { cx: 17, cy: 17, r: 2 },
+  ],
+  calendar: [{ x: 3.5, y: 5, width: 17, height: 15.5, rx: 3 }, { d: "M3.5 10h17M8 3v4M16 3v4" }],
 } as const satisfies Record<string, readonly Shape[]>;
 
 export type IconName = keyof typeof ICONS;

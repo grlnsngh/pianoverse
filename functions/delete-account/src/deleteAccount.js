@@ -1,8 +1,8 @@
 /**
  * Deletes everything Pianoverse keeps for one account, then the account: its
- * rent payments, kept rentals and pianos, the photos of those pianos and of
- * the person, the paper forms' usage counts, their user row, and the Appwrite
- * account itself, which also ends every session.
+ * rent payments, kept rentals, service log and pianos, the photos of those
+ * pianos and of the person, the paper forms' usage counts, their user row, and
+ * the Appwrite account itself, which also ends every session.
  *
  * The account goes last, so a deletion that stops half way (a timeout, a lost
  * connection) leaves the person signed in to ask again, and every step is safe
@@ -96,12 +96,13 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
     }
   };
 
-  const [payments, rentals, pianos, profiles, formEvents] = await Promise.all([
+  const [payments, rentals, pianos, profiles, formEvents, services] = await Promise.all([
     rowsWhere(config.rentPaymentsTableId, "creator", accountId),
     rowsWhere(config.rentalHistoryTableId, "creator", accountId),
     rowsWhere(config.pianoTableId, "creator", accountId),
     rowsWhere(config.userTableId, "accountId", accountId),
     rowsWhere(config.formEventsTableId, "creator", accountId),
+    rowsWhere(config.serviceLogTableId, "creator", accountId),
   ]);
 
   // Piano photos are named after the person's user row, profile photos after the account
@@ -122,6 +123,7 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
   await deleteRows(config.rentPaymentsTableId, payments);
   await deleteRows(config.rentalHistoryTableId, rentals);
   await deleteRows(config.formEventsTableId, formEvents);
+  await deleteRows(config.serviceLogTableId, services);
   await deleteRows(config.pianoTableId, pianos);
   await inBatches([...photoIds], async (fileId) => {
     try {
@@ -145,6 +147,7 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
     photos: photoIds.size,
     profiles: profiles.length,
     formEvents: formEvents.length,
+    services: services.length,
   };
   log(`Deleted account ${accountId}: ${JSON.stringify(deleted)}`);
   return deleted;

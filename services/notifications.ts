@@ -243,13 +243,80 @@ export const scheduleAllRentalNotifications = (pianoItems: any[]) => {
   return result;
 };
 
+/** A piano's next tuning, for its 9:00 reminder on the day. */
+export interface TuningReminder {
+  pianoId: string;
+  title: string;
+  /** Who has it, for a rented piano */
+  who?: string | null;
+  due: Date;
+}
+
+/** 9:00 on the day a tuning is due, or null once that has passed. */
+export const getServiceReminderTime = (due: Date, now = new Date()) => {
+  const date = new Date(due);
+  date.setHours(REMINDER_HOUR, 0, 0, 0);
+  return date > now ? date : null;
+};
+
+const cancelAllServiceNotifications = async () => {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    scheduled
+      .filter((notification) => notification.content.data?.type === "service_due")
+      .map((notification) => Notifications.cancelScheduledNotificationAsync(notification.identifier))
+  );
+};
+
+let serviceQueue: Promise<unknown> = Promise.resolve();
+
+/**
+ * Replaces every tuning reminder with one at 9:00 on each of these due days
+ * (utils/serviceLog.ts works them out). An empty list removes them all, as at
+ * sign out.
+ */
+export const scheduleAllServiceNotifications = (reminders: TuningReminder[]) => {
+  const run = async () => {
+    try {
+      await cancelAllServiceNotifications();
+      const ids = await Promise.all(
+        reminders.map(async ({ pianoId, title, who, due }) => {
+          const date = getServiceReminderTime(due);
+          if (!date) return null;
+          return Notifications.scheduleNotificationAsync({
+            content: {
+              title: "Tuning due today",
+              body: who ? `${title}, rented to ${who}.` : `${title}.`,
+              data: { pianoId, type: "service_due" },
+              sound: "default",
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DATE,
+              date,
+              channelId: Platform.OS === "android" ? "rental-reminders" : undefined,
+            },
+          });
+        })
+      );
+      return ids.filter((id): id is string => !!id);
+    } catch (error) {
+      console.error("❌ Error scheduling tuning reminders:", error);
+      return [];
+    }
+  };
+  // One at a time, so overlapping calls can't leave duplicates
+  const result = serviceQueue.then(run, run);
+  serviceQueue = result;
+  return result;
+};
+
 // Handle notification response (when user taps on notification)
 export const handleNotificationResponse = (
   response: Notifications.NotificationResponse
 ) => {
   const data = response.notification.request.content.data;
 
-  if (data?.type === "rental_due" && data?.pianoId) {
+  if ((data?.type === "rental_due" || data?.type === "service_due") && data?.pianoId) {
     router.push(`/detail/${data.pianoId}`);
   }
 };
