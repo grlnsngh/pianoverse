@@ -158,6 +158,8 @@ const useStyles = makeStyles((colors) => ({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.lg,
+    // With bigger text the row grows, and keeps this room above and below its words
+    paddingVertical: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
   },

@@ -122,11 +122,11 @@ Each has a default; work goes ahead with the default until the owner answers. Mo
 
 Tick `[x]` when done. Rules: work on a branch `feature/large-text` off `main`; keep `npm run typecheck`, `npm test` and `npm run lint` green before every commit; at 100% text nothing may change on screen (existing tests should pass untouched, and any that must change say why under Decisions); commit at the end of each batch as `large-text: batch N <name>`.
 
-- [ ] **Batch L0. Paper forms print at their real size** (S) [L0.1 to L0.3 done 2026-10-15; L0.4 is the owner's check on a phone]. Do this first, on its own branch off `main`: the owner's printed forms are wrong today, and it is two lines.
+- [x] **Batch L0. Paper forms print at their real size** (S) [done 2026-10-15; L0.4 checked on the emulator 2026-10-16, the over-the-air update is under L5.3]. Do this first, on its own branch off `main`: the owner's printed forms are wrong today, and it is two lines.
   - [x] L0.1 `textZoom: 100` in `Print.printToFileAsync` in `lib/paperPdf.ts` (F28)
   - [x] L0.2 `textZoom={100}` on the `WebView` in `components/PaperPreview.tsx` (F29)
   - [x] L0.3 Tests that both pass 100; typecheck, tests, lint, commit [`paperPdf.test.ts` has the PDF case and the new `paperPreview.test.tsx` the preview; the web view mock in `__tests__/helpers/setup.js` now passes `textZoom` through. Both tests fail without the fix. 164 suites, 2597 tests green]
-  - [ ] L0.4 On the emulator at Font size 150%, save a form and an agreement and compare them with the same PDFs made at 100%: same text size, same page count. Ship over the air to the runtime 5 build
+  - [x] L0.4 On the emulator at Font size 150%, save a form and an agreement and compare them with the same PDFs made at 100%: same text size, same page count. Ship over the air to the runtime 5 build [the comparison was done in the second emulator pass (L5b): the rental agreement and the rent card saved at 100% and at 150% were the same, page for page. The over-the-air update is the owner's, under L5.3]
 - [x] **Batch L1. Foundations** (S) [done 2026-10-15]
   - [x] L1.1 `lib/useTextScale.ts` (`fontScale`, `large` at 1.25 and up) and a test helper in `__tests__/helpers/render.tsx` that renders at a chosen `fontScale` [`useTextScale()` returns `{ fontScale, large }`; `isLargeText` and `LARGE_TEXT_FROM` are exported. React Native's Jest preset says the phone's Font size is 200%, so `helpers/setup.js` now starts every test at 100%; `setFontScale(n)` and `atFontScale(n)` (a describe block's `beforeEach`/`afterEach`) in `helpers/render.tsx` change it]
   - [x] L1.2 `maxScale` table in `constants/theme.ts` (D1) and a short "Large text" section in `docs/redesign/SPEC.md` [section 9 of SPEC; the table has `amount` and `title` 1.3, `section` and `tabLabel` 1.5, `badge` 1.3, `count` 1.2; also `amountTextProps` for an amount's one-line fit]
@@ -164,11 +164,11 @@ Tick `[x]` when done. Rules: work on a branch `feature/large-text` off `main`; k
   - [x] L4.9 Letterhead screens: design cards grow with their name and wrap by word; thumbnail initials don't scale; the upload step circles get a `minWidth` and `minHeight` (F34, F35, F39)
   - [x] L4.10 Empty Pianos: the "Prefer paper? Print forms" link uses the button's own `minHeight`, not a fixed height, and may take two lines (F36) [done in Batch L2, with the button]
   - [x] L4.11 Tests, typecheck, lint, commit [`largeTextScreens.test.tsx` (19 tests) and new cases in `accountScreen` and `serviceScreens`; 12 of the new ones fail without the change. 168 suites, 2684 tests]
-- [ ] **Batch L5. Check on a phone** (S) [the emulator part was done 2026-10-15 on Android 15; the phone part is the owner's]
-  - [~] L5.1 On the emulator, go through every screen in section 7 at 100%, 130%, 150% and 200%, and at the largest Display size; fix what is left [done at 150% and 200% for the screens listed under "What L5 looked at" below; not done at 130%, 180% or the largest Screen zoom, on an Android 13 image, or for the screens under "Not looked at"]
-  - [ ] L5.2 Check at 100% that every screen still matches its board [only Welcome was looked at at 100%; the rest is covered by the tests, which pass with the sizes of the boards]
+- [~] **Batch L5. Check on a phone** (S) [the emulator part was done 2026-10-15 and 2026-10-16 (second pass, L5b) on Android 15 and 13; the phone part is the owner's]
+  - [x] L5.1 On the emulator, go through every screen in section 7 at 100%, 130%, 150% and 200%, and at the largest Display size; fix what is left [done in two passes, see "What L5 looked at" below: 150% and 200% on 2026-10-15; 130%, 180%, a 330 dp wide screen (Display size at its largest, `wm density 525`) and an Android 13 image on 2026-10-16. The Income, Customers and Customer screens were looked at only through their rows and chart, since they need real data]
+  - [~] L5.2 Check at 100% that every screen still matches its board [only Welcome and the paper PDFs were looked at at 100%; the rest is covered by the tests, which pass with the sizes of the boards. Everything added in L5b is a no-op at 100%: the row padding sits inside the minimum heights, the dialog is 284 wide, and the grid has two columns]
   - [ ] L5.3 Ship as an over-the-air update, then check on the dad's Galaxy S24 FE at his own settings (Q1); if the Pianos grid still looks wrong there, revisit Q2 [not done: needs the owner's go-ahead to publish, and his phone]
-  - [ ] L5.4 Session log, commit
+  - [x] L5.4 Session log, commit
 
 ## 7. How to check
 
@@ -218,7 +218,19 @@ Continue the large-text work. Read docs/large-text/PLAN.md (Progress, Decisions,
 
 **At 200%:** Welcome; Pianos (grid cards and badges); Account; a piano's page; the Record payment sheet; the date picker; Add piano, step 1; the Make picker with its index.
 
-**Not looked at:** 130%, 180% and the largest Screen zoom; a narrow (360 wide) screen; Android 13 (linear scaling); Today, controls, bars and Paper forms at 200%; Sign in and Sign up; Letterhead make, upload and printed; the rental agreement; Extend rental, Mark as sold, Mark returned and Edit payment; the piano's ⋯ menu; dialogs; the select-mode header; Filters and Sort by; the Income chart; the customers list and a customer's page; the Welcome screen on a short phone; real data (long names, big amounts).
+**Not looked at in the first pass (done in the second, below):** 130%, 180% and the largest Screen zoom; a narrow (360 wide) screen; Android 13 (linear scaling); Today, controls, bars and Paper forms at 200%; Sign in and Sign up; Letterhead make, upload and printed; the rental agreement; Extend rental, Mark as sold, Mark returned and Edit payment; the piano's ⋯ menu; dialogs; the select-mode header; Filters and Sort by; the Income chart; the customers list and a customer's page; the Welcome screen on a short phone; real data (long names, big amounts).
+
+## What L5b looked at (2026-10-16, Android 15 and Android 13 emulators, 1080 x 2400 at 420 dpi)
+
+**At 150% and 200%, Android 15:** Welcome (also at 100%); Sign in and Sign up; Letterhead make, upload and printed; the rental agreement and the rent card saved as PDFs at 100% and 150%; every sheet (Extend rental, Mark as sold, Mark returned, Edit payment, Log service, Tuning interval, Filters, Sort by, Export, Sign out, the piano's ⋯ menu and the payment's menu); the delete and discard dialogs; select mode; the 12-month chart; Pianos (also at 115%).
+
+**At 130% and 180%, Android 15:** Today, Pianos, the controls, and the delete dialog.
+
+**At 150% on a 330 dp wide screen (`adb shell wm density 525`), Android 15:** Today, Pianos, the controls, two sheets (Tuning interval, Edit payment) and the delete dialog.
+
+**At 150%, Android 13 (linear scaling):** Today, Pianos grid and list, Filters, the delete dialog, the controls.
+
+**Still not looked at:** the real Income, Customers and Customer screens (they need data: only a made-up customer row and the chart were drawn); a short phone; the Samsung One UI Font size and Screen zoom screens themselves (the emulator has the Android ones).
 
 ## Decisions
 
@@ -245,6 +257,11 @@ Continue the large-text work. Read docs/large-text/PLAN.md (Progress, Decisions,
 
 - 2026-10-15, batch L5, **What the emulator showed that the code review and the tests didn't.** (1) Welcome: shrinking the orange top (L4) let the drawn keys rise behind the name, so the shortening was removed. (2) Account's rows had no vertical padding, so with wrapped text their titles touched the lines between rows: `dataRow` and Sign out now have `paddingVertical` 12 with the same minimum heights. (3) The photo badge broke between the number and its unit ("Overdue · 18 / days"): from 125% the space after a digit is a non-breaking one. (4) A sheet's "Paid on" broke in two and the Note field's hint was cut at 200%: in a sheet the label now keeps its words together (up to half the row) and the value wraps, and a text field in a sheet gets its label above it, as on a page. (5) The letterhead row's title was cut ("Monogram · add…"): two lines from 125%. Tests: the code is checked against styles, and these five were about what Android's text engine does with them.
 - 2026-10-15, batch L5, **How it was looked at.** A development build made in WSL (`eas build --profile development --local`), installed on an Android 15 emulator profile made for the purpose (`Pixel_8_Android_15`, a copy of the Android 13 one pointing at the Android 15 image), Metro on this PC and `adb reverse tcp:8081 tcp:8081`, `adb shell settings put system font_scale 1.5` (and `2.0`). Sign-in is not possible there without the owner's real credentials, so a scratch screen (not kept) seeded the redux store with six made-up pianos and opened the real screens; Today, Pianos and Account were drawn with those, and the piano page, Paper forms, Letterhead and Add piano were the real routes. The development build also created a `development` update channel on the EAS project.
+
+- 2026-10-16, batch L5b, **Rows keep their own room above and below.** The rows in Filters (Sort by, the switches), Income, a customer's page (row and payment row), the payment list and the service interval were `minHeight` with no padding, so a row that wrapped to two lines put its words against the hairlines. Each has `paddingVertical` of `spacing.sm`, inside the minimum height, so nothing changes at 100%. Checked on the emulator in Filters; the others are guarded by `largeText.test.tsx`.
+- 2026-10-16, batch L5b, **The dialog grows with the text.** `Dialog` is 284 wide at 100% and `284 × fontScale` above it, never more than the screen less 20 on each side, so a title such as "Delete Young Chang U-121 Upright?" breaks in two lines rather than three at 150% to 200%, and the buttons stay whole on a 330 dp screen.
+- 2026-10-16, batch L5b, **Q2 revisited: one column when two can't hold a name.** On a 330 dp screen at 150% the company "Shamshersons" broke in the middle of a word and a title was cut. From the second pass, the Pianos grid and the search results show one card a row when the window's width divided by the Font size is under 225 (`gridColumnsFor` in `lib/useTextScale.ts`). That means two columns stay on a 384 dp phone (the S24 FE) up to about 170%, and on a 411 dp one up to 180%; from 200% on those, and on a 330 dp screen from 150%, it is one card a row. At 100% it is always two. The owner chose "two columns for now", to be revisited if it broke; it only changes where it did.
+- 2026-10-16, batch L5b, **How it was looked at.** The same development build and scratch screens as the first pass, plus a clone of the Android 13 emulator profile with fresh data (`Pixel_8_Android_13_dev`, made by copying the profile's `config.ini` and starting with `-wipe-data`): the existing Android 13 profile holds the owner's release build and a signed-in session, which was not touched, and its Font size was put back to 1.0. The extra tooling (a harness screen, small adb scripts) was not kept.
 
 (more added as batches go)
 
@@ -281,3 +298,7 @@ Batch L4 (screens): Today, Account and service counts as lists; two-line rows an
 ### Session 7, 2026-10-15
 
 Batch L5, the emulator part: a development build on an Android 15 emulator, the screens listed above at 150% and 200%, and five fixes the pass showed (Welcome's orange top, Account's row padding, the badge's line break, the sheets' label and field layout, the letterhead row's title). Batch L4 was merged first (PR #54). Not done: the over-the-air update and the check on the dad's phone, which need the owner.
+
+### Session 8, 2026-10-16
+
+Batch L5b, the second emulator pass: Android 15 at 100%, 115%, 130%, 150%, 180% and 200%, a 330 dp wide screen, and an Android 13 image at 150%; the screens left from the first pass (sign in and up, letterhead, the agreement, every sheet, the dialogs, select mode, Filters, the chart). Three fixes: rows keep room above and below (Filters, Income, customer, payments, service interval), the dialog grows with the text and stays inside the screen, and the Pianos grid and search results show one card a row where two columns can't hold a name (Q2, see Decisions). L0.4 is done: the PDFs at 100% and 150% are the same. Still the owner's: the build 1.1.20 (runtime 5), the over-the-air update (ask first) and a look on the S24 FE.

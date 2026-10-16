@@ -10,6 +10,7 @@ import { fonts, spacing } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
 import { padToFullRows } from "@/utils/grid";
+import { useGridColumns } from "@/lib/useTextScale";
 import { layoutOf } from "@/utils/filters";
 import { searchPianoItems } from "@/utils/ObjectManipulation";
 import { makeStyles } from "@/lib/ThemeContext";
@@ -38,12 +39,13 @@ const Search = () => {
   const pianos = useSelector((state: RootState) => state.pianos.items);
   const filters = useSelector((state: RootState) => state.pianos.filters);
   const isGrid = layoutOf(filters) === "grid";
+  const columns = useGridColumns();
 
   const term = text.trim();
   const results = useMemo(() => searchPianoItems(pianos, text), [pianos, text]);
   const data = useMemo(
-    () => (isGrid ? padToFullRows(results, 2) : results),
-    [isGrid, results]
+    () => (isGrid ? padToFullRows(results, columns) : results),
+    [isGrid, columns, results]
   );
 
   const cancel = useCallback(() => {
@@ -132,11 +134,11 @@ const Search = () => {
 
       {isGrid ? (
         <FlatList
-          key="grid"
+          key={`grid-${columns}`}
           {...shared}
-          numColumns={2}
-          columnWrapperStyle={styles.gridRow}
-          contentContainerStyle={styles.gridContent}
+          numColumns={columns}
+          columnWrapperStyle={columns > 1 ? styles.gridRow : undefined}
+          contentContainerStyle={[styles.gridContent, columns === 1 && styles.gridOneColumn]}
         />
       ) : (
         <FlatList
@@ -186,6 +188,8 @@ const useStyles = makeStyles((colors) => ({
   },
   gridRow: { gap: 12, paddingHorizontal: spacing.screen },
   gridContent: { rowGap: 20, paddingBottom: 32, flexGrow: 1 },
+  // One card a row has no row wrapper to give it the screen's side room
+  gridOneColumn: { paddingHorizontal: spacing.screen },
   listContent: { paddingBottom: 32, flexGrow: 1 },
   blankCell: { flex: 1 },
 }));

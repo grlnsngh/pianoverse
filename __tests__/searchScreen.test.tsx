@@ -10,7 +10,7 @@ jest.mock("expo-router", () => ({
 }));
 
 import React from "react";
-import { StyleSheet, TextInput } from "react-native";
+import { FlatList, StyleSheet, TextInput } from "react-native";
 import { act } from "react-test-renderer";
 import { router, useLocalSearchParams } from "expo-router";
 import Search from "@/app/search/[query]";
@@ -18,7 +18,14 @@ import { DEFAULT_FILTERS } from "@/constants/Piano";
 import { fonts } from "@/constants/theme";
 import { setPianoFilters, setPianoListItems } from "@/redux/pianos/actions";
 import { makePiano } from "./helpers/fixtures";
-import { allTexts, createTestStore, queryAllByText, renderWithStore } from "./helpers/render";
+import {
+  allTexts,
+  atFontScale,
+  atWindowWidth,
+  createTestStore,
+  queryAllByText,
+  renderWithStore,
+} from "./helpers/render";
 
 type Renderer = ReturnType<typeof renderWithStore>;
 
@@ -279,5 +286,33 @@ describe("the results", () => {
     expect(cards(renderer)).toHaveLength(0);
     expect(has(renderer, "Warehouse · The Piano Services")).toBe(true);
     expect(shownTitles(renderer)).toEqual(TITLES);
+  });
+});
+
+describe("the grid on a narrow screen with big text", () => {
+  describe("at 150% on a 330 dp wide phone", () => {
+    atFontScale(1.5);
+    atWindowWidth(330);
+
+    it("shows one result a row, with the screen's side room", () => {
+      const { renderer } = open("a");
+      const grid = renderer.root.findByType(FlatList);
+
+      expect(grid.props.numColumns).toBe(1);
+      expect(grid.props.columnWrapperStyle).toBeUndefined();
+      expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toMatchObject({ paddingHorizontal: 20 });
+      // No blank cell is added to fill a second column
+      expect(grid.props.data.some((cell: { empty?: boolean }) => cell.empty)).toBe(false);
+    });
+  });
+
+  describe("at 100% on a 330 dp wide phone", () => {
+    atWindowWidth(330);
+
+    it("keeps two columns", () => {
+      const { renderer } = open("a");
+
+      expect(renderer.root.findByType(FlatList).props.numColumns).toBe(2);
+    });
   });
 });

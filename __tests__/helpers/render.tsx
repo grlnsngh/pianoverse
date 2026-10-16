@@ -71,6 +71,24 @@ export const setFontScale = (fontScale: number) => {
   });
 };
 
+/** The window's width in dp, for what is rendered next: 390 is the boards' phone, 330 a narrow one. */
+export const setWindowWidth = (width: number) => {
+  const window = Dimensions.get("window");
+  act(() => {
+    Dimensions.set({ window: { ...window, width }, screen: { ...window, width } });
+  });
+};
+
+/** For a describe block: every test in it runs on a window `width` dp wide, then goes back to the preset's. */
+export const atWindowWidth = (width: number) => {
+  let before = 0;
+  beforeEach(() => {
+    before = Dimensions.get("window").width;
+    setWindowWidth(width);
+  });
+  afterEach(() => setWindowWidth(before));
+};
+
 /** For a describe block: every test in it runs with the Font size at `fontScale`, then goes back to 1. */
 export const atFontScale = (fontScale: number) => {
   beforeEach(() => setFontScale(fontScale));
