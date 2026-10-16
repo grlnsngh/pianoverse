@@ -135,6 +135,32 @@ Written 2026-10-16, after Batch 40. **Nothing here is built.** The owner asked f
 
 ---
 
+## Decisions so far (2026-10-16): the defaults, until the owner confirms with his father
+
+The owner said to go with the recommended answers for now and to update them after he asks his father. Everything below is built to these, and each is a small change if the answer turns out different.
+
+**Deposits** (option B, fields on the piano and the history)
+1. Optional on each rental: empty means no deposit.
+2. A typed amount, with a quick fill of "2 months' rent".
+3. One deposit per rental; no part-payments or top-ups.
+4. Kept **for unpaid rent**: the kept amount is also recorded as a rent payment ("From deposit"). Kept **for damage**: stored as "kept" on the history row and **not** added to income until the accountant says.
+5. The same optional row for hotel and private rentals.
+6. Rentals only: not event hires.
+
+**QR labels**
+1. Sheets of **24** (63.5 × 33.9 mm, the default) and **65** (38.1 × 21.2 mm, small), plus a test page; each label is the code, the piano's title and make and, when the Letterhead has them, the business name and phone ("If found, call…").
+2. The label goes inside the lid.
+3. Scanning is from the **Pianos tab** (a Scan button) and opens the piano's page.
+
+**Availability calendar**
+1. One screen answers both: **On a day** (what is free and what is out, with when it is back) and **Back soon** (rentals ended but not returned, and rentals ending in the next 30 days).
+2. Version 1 uses only the dates the app already has; bookings (promising a piano for later) wait until the owner has used it. A future-dated rental can stand in for one booking per piano.
+3. No event hires, and a piano in service still counts as available.
+4. It opens from a **calendar icon in the Pianos tab header**.
+5. **Changed from the section above:** no "Booked periods" section on the piano's page, because Previous renters already lists the past rentals with their dates. The Rental section gets one line instead: **"Free from 13 Dec 2026"**.
+
+---
+
 ## Suggested order and builds
 
 | # | Batch | Needs |
