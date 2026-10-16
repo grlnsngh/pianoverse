@@ -4,6 +4,7 @@ import { Pressable, Text, View } from "react-native";
 import { LetterheadThumbnail } from "@/components/FormThumbnail";
 import { fonts, radii, spacing, type } from "@/constants/theme";
 import { makeStyles } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 import { designSummary, initialsOf, type Letterhead, type LetterheadDesign } from "@/utils/letterhead";
 
 type LetterheadRowProps = {
@@ -21,6 +22,7 @@ type LetterheadRowProps = {
  */
 const LetterheadRow = ({ design, details, hint, testID }: LetterheadRowProps) => {
   const styles = useStyles();
+  const { large } = useTextScale();
   const summary = designSummary(design, details);
   return (
     <Pressable
@@ -33,7 +35,7 @@ const LetterheadRow = ({ design, details, hint, testID }: LetterheadRowProps) =>
     >
       <LetterheadThumbnail design={design} initials={initialsOf(details.business)} />
       <View style={styles.text}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={styles.title} numberOfLines={large ? 2 : 1}>
           {summary}
         </Text>
         <Text style={styles.hint}>{hint}</Text>

@@ -6,7 +6,6 @@ import Svg, { Rect } from "react-native-svg";
 import { BrandMark, Button } from "@/components/ui";
 import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
-import useTextScale from "@/lib/useTextScale";
 
 // The board's 390 x 468 orange top: a keyboard running off the left, right and bottom
 const HERO_WIDTH = 390;
@@ -81,10 +80,10 @@ const WelcomeScreen = () => {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
-  const { large } = useTextScale();
-  // The board's height, plus the status bar; shorter phones give some of it back,
-  // and so do those with a big Font size, whose words need the room
-  const heroHeight = Math.min(HERO_HEIGHT + insets.top, windowHeight * (large ? 0.3 : 0.52));
+  // The board's height, plus the status bar; shorter phones give some of it back.
+  // With a big Font size it stays as it is, since the keyboard drawn in it needs
+  // this much to leave the name above it clear, and the screen scrolls instead
+  const heroHeight = Math.min(HERO_HEIGHT + insets.top, windowHeight * 0.52);
 
   return (
     <ScrollView

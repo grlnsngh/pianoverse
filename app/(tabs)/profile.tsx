@@ -599,6 +599,9 @@ const useStyles = makeStyles((colors) => ({
     alignItems: "center",
     gap: 14,
     paddingHorizontal: spacing.lg,
+    // A title and a hint are 40 high, so 64 at 100%; with bigger text they keep this room
+    // above and below instead of touching the line between the rows
+    paddingVertical: spacing.md,
   },
   pressed: { backgroundColor: colors.grouped },
   themeRow: { gap: spacing.md, padding: spacing.lg },
@@ -636,10 +639,11 @@ const useStyles = makeStyles((colors) => ({
     overflow: "hidden",
   },
   signOut: {
-    height: 56,
+    minHeight: 56,
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
   },
   signOutText: { ...type.rowTitle, color: colors.late },

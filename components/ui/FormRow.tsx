@@ -44,8 +44,10 @@ export type FormRowProps = {
  *
  * Both heights are the least a row is. With a big Font size a row on a page
  * puts its label above its value instead of beside it (the column would cut
- * the label), and a row in a sheet lets the label and the value wrap. Short of
- * that the label column grows with the text, so a label that fit still does.
+ * the label), and so does a text field in a sheet (its hint would be cut);
+ * a row in a sheet that opens a picker keeps its label whole and lets the value
+ * wrap. Short of that the label column grows with the text, so a label that
+ * fit still does.
  */
 const FormRow = ({
   label,
@@ -66,7 +68,8 @@ const FormRow = ({
   const inputRef = useRef<TextInput>(null);
   const showChevron = chevron ?? !!onPress;
   const columnWidth = labelWidth ?? group.labelWidth;
-  const stacked = large && !group.inSheet;
+  // Label above value: on a page, and for a text field in a sheet, whose hint has to be read
+  const stacked = large && (!group.inSheet || !!input);
   const digits =
     !!input?.keyboardType && KEYBOARDS_WITH_DIGITS.includes(input.keyboardType);
 
@@ -74,14 +77,15 @@ const FormRow = ({
   if (stacked) {
     // The label sits above the value, so it needs no column
   } else if (group.inSheet) {
-    // The value is pushed right; with big text the label may wrap instead of crowding it
-    if (large) labelStyle.push(styles.labelShrinks);
+    // The value is pushed right; with big text the label keeps its words together
+    // (up to half the row) and the value is what wraps
+    if (large) labelStyle.push(styles.labelHalf);
   } else {
     // On a page the labels line up in a column that grows with the text
     labelStyle.push({ width: Math.round(columnWidth * Math.max(1, fontScale)) });
   }
 
-  const valueAlign: TextStyle = { textAlign: group.inSheet ? "right" : "left" };
+  const valueAlign: TextStyle = { textAlign: group.inSheet && !stacked ? "right" : "left" };
   // One line, unless the text is big: then it wraps rather than being cut
   const lines = large ? undefined : 1;
 
@@ -204,7 +208,7 @@ const useStyles = makeStyles((colors) => ({
   rowStacked: { paddingVertical: spacing.md },
   label: { ...type.body, flexShrink: 0, color: colors.ink2 },
   labelStacked: { ...type.secondary, color: colors.ink2 },
-  labelShrinks: { flexShrink: 1 },
+  labelHalf: { flexShrink: 0, maxWidth: "50%" },
   stack: { flex: 1, minWidth: 0, gap: 2 },
   valueLine: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   prefix: { ...type.bodyMedium, color: colors.ink2 },
