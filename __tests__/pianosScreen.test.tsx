@@ -13,7 +13,7 @@ jest.mock("expo-router", () => ({
 }));
 
 import React from "react";
-import { FlatList, RefreshControl } from "react-native";
+import { FlatList, RefreshControl, StyleSheet } from "react-native";
 import { act } from "react-test-renderer";
 import { router } from "expo-router";
 import Home from "@/app/(tabs)/home";
@@ -24,6 +24,8 @@ import { setPianoFilters } from "@/redux/pianos/actions";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
+  atFontScale,
+  atWindowWidth,
   captureAlerts,
   createTestStore,
   flushPromises,
@@ -646,5 +648,62 @@ describe("the page", () => {
 
     expect(has(renderer, "Edit")).toBe(false);
     expect(allTexts(renderer.root)).not.toContain("Delete");
+  });
+});
+
+describe("the grid on a narrow screen with big text", () => {
+  describe("at 150% on a 330 dp wide phone", () => {
+    atFontScale(1.5);
+    atWindowWidth(330);
+
+    it("shows one card a row, so no name is broken in the middle of a word", async () => {
+      const { renderer } = await renderHome();
+      const grid = renderer.root.findByType(FlatList);
+
+      expect(grid.props.numColumns).toBe(1);
+      expect(grid.props.columnWrapperStyle).toBeUndefined();
+      // A lone last card has no blank cell beside it to fill
+      expect(grid.props.data).toHaveLength(all.length);
+      expect(titles(renderer)).toHaveLength(4);
+    });
+
+    it("keeps the screen's side room on the cards", async () => {
+      const { renderer } = await renderHome();
+
+      expect(StyleSheet.flatten(renderer.root.findByType(FlatList).props.contentContainerStyle)).toMatchObject({
+        paddingHorizontal: 20,
+      });
+    });
+
+    it("still lists the pianos as rows, one a row", async () => {
+      const { renderer } = await renderHome();
+
+      press(renderer, "Show as list");
+
+      expect(renderer.root.findByType(FlatList).props.numColumns).toBe(1);
+    });
+  });
+
+  describe("at 150% on a 390 dp wide phone", () => {
+    atFontScale(1.5);
+    atWindowWidth(390);
+
+    it("keeps the two columns the owner chose", async () => {
+      const { renderer } = await renderHome();
+      const grid = renderer.root.findByType(FlatList);
+
+      expect(grid.props.numColumns).toBe(2);
+      expect(grid.props.columnWrapperStyle).toBeDefined();
+    });
+  });
+
+  describe("at 100% on a 330 dp wide phone", () => {
+    atWindowWidth(330);
+
+    it("keeps the two columns, as drawn", async () => {
+      const { renderer } = await renderHome();
+
+      expect(renderer.root.findByType(FlatList).props.numColumns).toBe(2);
+    });
   });
 });

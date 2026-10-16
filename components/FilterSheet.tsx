@@ -183,6 +183,8 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    // With bigger text the row grows, and keeps this room above and below its words
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
   },
   sortValue: { flexDirection: "row", alignItems: "center", gap: 4 },
@@ -198,6 +200,8 @@ const useStyles = makeStyles((colors) => ({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
+    // With bigger text the row grows, and keeps this room above and below its words
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
   },
   switchTexts: { flex: 1 },

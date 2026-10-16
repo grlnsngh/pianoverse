@@ -4,6 +4,7 @@ import { Dialog } from "@/components/ui";
 import { lightColors as colors, fonts } from "@/constants/theme";
 import { hostByTestId, mount, textContent } from "./helpers/ui";
 import { findAllPressables } from "./helpers/pressables";
+import { atFontScale, atWindowWidth } from "./helpers/render";
 
 type Mounted = Awaited<ReturnType<typeof mount>>;
 type Props = Partial<React.ComponentProps<typeof Dialog>>;
@@ -243,5 +244,46 @@ describe("Dialog leaving", () => {
     const renderer = await open({ actions: [] });
 
     expect(() => renderer.root.findByType(Modal).props.onRequestClose()).not.toThrow();
+  });
+});
+
+describe("Dialog with big text", () => {
+  describe("at 120% on a 390 dp wide phone", () => {
+    atFontScale(1.2);
+    atWindowWidth(390);
+
+    it("grows with the text, so the title and the message keep their line lengths", async () => {
+      const renderer = await open();
+
+      expect(flat(card(renderer).props.style).width).toBeCloseTo(284 * 1.2);
+    });
+  });
+
+  describe("at 150% on a 390 dp wide phone", () => {
+    atFontScale(1.5);
+    atWindowWidth(390);
+
+    it("stops 20 short of each edge of the screen, however far the text grows", async () => {
+      const renderer = await open();
+
+      expect(flat(card(renderer).props.style).width).toBe(390 - 2 * 20);
+    });
+  });
+
+  describe("at 200% on a 330 dp wide phone", () => {
+    atFontScale(2);
+    atWindowWidth(330);
+
+    it("fits inside the screen, with room at both sides", async () => {
+      const renderer = await open();
+
+      expect(flat(card(renderer).props.style).width).toBe(330 - 2 * 20);
+    });
+  });
+
+  it("is 284 wide at 100%", async () => {
+    const renderer = await open();
+
+    expect(flat(card(renderer).props.style).width).toBe(284);
   });
 });

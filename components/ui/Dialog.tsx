@@ -4,8 +4,13 @@ import ToastHost from "@/components/ToastHost";
 import { fonts, maxScale, radii } from "@/constants/theme";
 import { confirmTap } from "@/utils/haptics";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
-/** As drawn; on a narrower screen (a large Screen zoom) it keeps 20 px to each side */
+/**
+ * As drawn at 100%. With bigger text it grows with it, so the message has room,
+ * and never more than the screen less 20 px to each side (a large Screen zoom
+ * makes the screen narrower too).
+ */
 const WIDTH = 284;
 const SIDE_ROOM = 20;
 /** The least a choice is high; it is taller when its words wrap */
@@ -58,6 +63,7 @@ const Dialog = ({
   const colors = useColors();
   const styles = useStyles();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { fontScale } = useTextScale();
   // Destructive first, keeping the order given otherwise
   const ordered = [
     ...actions.filter((action) => action.tone === "destructive"),
@@ -78,7 +84,7 @@ const Dialog = ({
           style={[
             styles.card,
             {
-              width: Math.min(WIDTH, windowWidth - 2 * SIDE_ROOM),
+              width: Math.min(WIDTH * Math.max(1, fontScale), windowWidth - 2 * SIDE_ROOM),
               maxHeight: windowHeight * HEIGHT_SHARE,
             },
           ]}

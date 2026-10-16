@@ -36,6 +36,7 @@ import {
 } from "@/utils/filters";
 import { applyPianoFilters } from "@/utils/filterPianos";
 import { padToFullRows } from "@/utils/grid";
+import { useGridColumns } from "@/lib/useTextScale";
 import { SORT_BY_OPTIONS } from "@/constants/Piano";
 import { RootState } from "@/redux/store";
 import { Href, router } from "expo-router";
@@ -181,6 +182,7 @@ const Home = () => {
   const hasPianos = pianoReduxItems.length > 0;
   const layout = layoutOf(filters);
   const isGrid = layout === "grid";
+  const columns = useGridColumns();
   const activeTab = categoryTabOf(filters);
   const activeFilterCount = countActiveFilters(filters);
   // Sorting by due date, or showing only active rentals, only shows rentals,
@@ -287,10 +289,10 @@ const Home = () => {
 
   const displayData = useMemo(() => {
     if (isGrid) {
-      return padToFullRows(filteredPianoReduxItems, 2);
+      return padToFullRows(filteredPianoReduxItems, columns);
     }
     return filteredPianoReduxItems;
-  }, [isGrid, filteredPianoReduxItems]);
+  }, [isGrid, columns, filteredPianoReduxItems]);
 
   const applyFilters = useCallback(() => {
     dispatch(
@@ -484,12 +486,12 @@ const Home = () => {
         ) : null
       ) : isGrid ? (
         <FlatList
-          key="grid"
+          key={`grid-${columns}`}
           data={displayData}
           keyExtractor={(item) => item.$id || item.title}
-          numColumns={2}
-          columnWrapperStyle={styles.gridRow}
-          contentContainerStyle={styles.gridContent}
+          numColumns={columns}
+          columnWrapperStyle={columns > 1 ? styles.gridRow : undefined}
+          contentContainerStyle={[styles.gridContent, columns === 1 && styles.gridOneColumn]}
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={10}
@@ -580,6 +582,8 @@ const useStyles = makeStyles((colors) => ({
   },
   gridRow: { gap: 12, paddingHorizontal: spacing.screen },
   gridContent: { rowGap: 20, paddingTop: 4, paddingBottom: 24, flexGrow: 1 },
+  // One card a row has no row wrapper to give it the screen's side room
+  gridOneColumn: { paddingHorizontal: spacing.screen },
   listContent: { paddingBottom: 24, flexGrow: 1 },
   blankCell: { flex: 1 },
 }));

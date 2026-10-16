@@ -15,7 +15,12 @@ import Today from "@/app/(tabs)/today";
 import { amountTextProps, maxScale } from "@/constants/theme";
 import { getRentPaymentsBetween } from "@/lib/appwrite";
 import { PianoDataContext } from "@/lib/PianoDataContext";
-import useTextScale, { isLargeText, LARGE_TEXT_FROM } from "@/lib/useTextScale";
+import useTextScale, {
+  gridColumnsFor,
+  GRID_ONE_COLUMN_BELOW,
+  isLargeText,
+  LARGE_TEXT_FROM,
+} from "@/lib/useTextScale";
 import { testUser } from "./helpers/fixtures";
 import { mount } from "./helpers/ui";
 import { atFontScale, createTestStore, queryAllByText, setFontScale } from "./helpers/render";
@@ -198,5 +203,72 @@ describe("where the limits are wired in", () => {
     });
 
     expect(missing).toEqual([]);
+  });
+});
+
+describe("how many cards a row of the pianos grid holds", () => {
+  it("is two on every phone at 100%, even a narrow one", () => {
+    expect(gridColumnsFor(411, 1)).toBe(2);
+    expect(gridColumnsFor(390, 1)).toBe(2);
+    expect(gridColumnsFor(330, 1)).toBe(2);
+    expect(gridColumnsFor(300, 1)).toBe(2);
+  });
+
+  it("ignores a Font size under 100%, which only makes the words smaller", () => {
+    expect(gridColumnsFor(330, 0.85)).toBe(2);
+  });
+
+  it("stays two for the phone the owner's father has, up to about 170%", () => {
+    expect(gridColumnsFor(384, 1.15)).toBe(2);
+    expect(gridColumnsFor(384, 1.3)).toBe(2);
+    expect(gridColumnsFor(384, 1.5)).toBe(2);
+    expect(gridColumnsFor(384, 1.7)).toBe(2);
+  });
+
+  it("is one when half the width can no longer hold a name, as seen on the emulator", () => {
+    expect(gridColumnsFor(330, 1.5)).toBe(1);
+    expect(gridColumnsFor(384, 2)).toBe(1);
+    expect(gridColumnsFor(411, 2)).toBe(1);
+  });
+
+  it("keeps two columns on a 411 dp phone up to 180%, which the emulator showed well", () => {
+    expect(gridColumnsFor(411, 1.8)).toBe(2);
+  });
+
+  it("changes at one place", () => {
+    expect(GRID_ONE_COLUMN_BELOW).toBe(225);
+    expect(gridColumnsFor(GRID_ONE_COLUMN_BELOW, 1)).toBe(2);
+    expect(gridColumnsFor(GRID_ONE_COLUMN_BELOW * 1.5 - 1, 1.5)).toBe(1);
+    expect(gridColumnsFor(GRID_ONE_COLUMN_BELOW * 1.5, 1.5)).toBe(2);
+  });
+});
+
+describe("rows of words keep room above and below", () => {
+  const read = (file: string) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
+  /** The style block with this name, from "name: {" to its closing brace */
+  const block = (file: string, name: string) => {
+    const text = read(file).replace(/\r\n/g, "\n");
+    const start = text.indexOf(`  ${name}: {`);
+    expect(start).toBeGreaterThan(-1);
+    return text.slice(start, text.indexOf("\n  },", start));
+  };
+
+  // A row is minHeight tall at 100%. With bigger text it grows, and without its
+  // own padding the words would touch the hairline above and the one below.
+  const ROWS: [string, string][] = [
+    ["components/FilterSheet.tsx", "sortRow"],
+    ["components/FilterSheet.tsx", "switchRow"],
+    ["components/PaymentsSection.tsx", "row"],
+    ["components/ServiceSection.tsx", "interval"],
+    ["app/income.tsx", "row"],
+    ["app/customer/[key].tsx", "row"],
+    ["app/customer/[key].tsx", "paymentRow"],
+  ];
+
+  it.each(ROWS)("%s: %s has paddingVertical and a minHeight", (file, name) => {
+    const style = block(file, name);
+
+    expect(style).toMatch(/minHeight: \d+/);
+    expect(style).toMatch(/paddingVertical: spacing\.sm/);
   });
 });
