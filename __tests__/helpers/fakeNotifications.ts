@@ -22,6 +22,9 @@ export const fakeNotifications = {
   tap(response: any) {
     this.responseListeners.forEach((listener) => listener(response));
   },
+  morningSummaries() {
+    return this.scheduled.filter((notification) => notification.content.data?.type === "morning_summary");
+  },
   rentalReminders(pianoId?: string) {
     return this.scheduled.filter(
       (notification) =>
@@ -44,6 +47,19 @@ export const reminderTapFor = (pianoId: string, identifier = "reminder-1") => ({
   },
 });
 
+export const summaryTap = (identifier = "summary-1") => ({
+  actionIdentifier: "expo.modules.notifications.actions.DEFAULT",
+  notification: {
+    request: {
+      identifier,
+      content: {
+        title: "🎹 Good morning",
+        data: { type: "morning_summary" },
+      },
+    },
+  },
+});
+
 const subscribe = (listeners: Set<Listener>) => (listener: Listener) => {
   listeners.add(listener);
   return { remove: () => listeners.delete(listener) };
@@ -51,7 +67,7 @@ const subscribe = (listeners: Set<Listener>) => (listener: Listener) => {
 
 export const createFakeNotificationsModule = () => ({
   __esModule: true,
-  AndroidImportance: { HIGH: 4 },
+  AndroidImportance: { DEFAULT: 3, HIGH: 4 },
   SchedulableTriggerInputTypes: { DATE: "date" },
   setNotificationHandler: jest.fn(),
   getPermissionsAsync: jest.fn(async () => ({ status: "granted" })),

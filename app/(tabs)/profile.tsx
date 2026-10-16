@@ -29,7 +29,8 @@ import useSavedAt from "@/lib/useSavedAt";
 import { setActiveTab } from "@/redux/navigation/actions";
 import { resetPianoState } from "@/redux/pianos/actions";
 import { RootState } from "@/redux/store";
-import { scheduleAllRentalNotifications } from "@/services/notifications";
+import { scheduleAllRentalNotifications, scheduleMorningSummaries } from "@/services/notifications";
+import { setMorningSummaryEnabled, useMorningSummarySetting } from "@/lib/morningSummarySetting";
 import { formatLastUpdated, initialOf, memberSince, profilePhoto } from "@/utils/account";
 import { versionLabel } from "@/utils/appVersion";
 import { exportPianosToCSV } from "@/utils/csvExport";
@@ -177,6 +178,7 @@ const Profile = () => {
   // The photo that couldn't be loaded, so the initial shows instead of an empty circle
   const [brokenPhoto, setBrokenPhoto] = useState<string | null>(null);
   const appLock = useAppLock();
+  const morningSummary = useMorningSummarySetting();
   const theme = useTheme();
 
   const counts = stockCounts(items);
@@ -220,6 +222,15 @@ const Profile = () => {
     );
   };
 
+  // Turning it off takes the summaries away at once; turning it on puts them back (Today does that, as it loads)
+  const handleMorningSummary = async (turnOn: boolean) => {
+    await setMorningSummaryEnabled(turnOn);
+    if (!turnOn) await scheduleMorningSummaries([]);
+    showToast(turnOn ? "Morning summary is on" : "Morning summary is off", {
+      variant: turnOn ? "success" : undefined,
+    });
+  };
+
   // Turning it on first asks the phone to check the person, so it can never be turned on and not work
   const handleAppLock = async (turnOn: boolean) => {
     if (!turnOn) {
@@ -247,6 +258,7 @@ const Profile = () => {
   // Don't leave this account's pianos or reminders behind for the next user
   const forgetAccountOnThisPhone = async () => {
     await scheduleAllRentalNotifications([]);
+    await scheduleMorningSummaries([]);
     await clearPianoCache();
     await forgetLetterhead();
     await forgetFormEvents();
@@ -484,6 +496,24 @@ const Profile = () => {
             </Text>
           </View>
         </View>
+
+        <Group title="Morning summary" radius="panel" style={styles.section}>
+          <View style={styles.dataRow}>
+            <Icon name="bell" size={24} color={colors.ink} />
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>Morning summary</Text>
+              <Text style={styles.rowHint}>
+                At 9:00 AM, only on days when rent is due, a rental has ended or ends that day, or a
+                tuning is due. Tap it to open Today.
+              </Text>
+            </View>
+            <Switch
+              value={morningSummary.enabled}
+              onValueChange={handleMorningSummary}
+              accessibilityLabel="Morning summary"
+            />
+          </View>
+        </Group>
 
         <Group title="Privacy" radius="panel" style={styles.section}>
           <DataRow
