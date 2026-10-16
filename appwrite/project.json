@@ -322,6 +322,15 @@
                     "default": null,
                     "min": 0,
                     "max": 24
+                },
+                {
+                    "key": "purchase_price",
+                    "type": "double",
+                    "required": false,
+                    "array": false,
+                    "default": null,
+                    "min": 0,
+                    "max": 1.7976931348623157e+308
                 }
             ],
             "indexes": [
@@ -719,6 +728,77 @@
                         "serviced_on"
                     ],
                     "orders": []
+                }
+            ]
+        },
+        {
+            "$id": "expenses",
+            "$permissions": [
+                "create(\"users\")"
+            ],
+            "databaseId": "66b26b1300171b9140be",
+            "name": "expenses",
+            "enabled": true,
+            "rowSecurity": true,
+            "columns": [
+                {
+                    "key": "creator",
+                    "type": "varchar",
+                    "required": true,
+                    "array": false,
+                    "size": 255,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "spent_on",
+                    "type": "datetime",
+                    "required": true,
+                    "array": false,
+                    "default": null,
+                    "format": ""
+                },
+                {
+                    "key": "amount",
+                    "type": "double",
+                    "required": true,
+                    "array": false,
+                    "default": null,
+                    "min": 0,
+                    "max": 1.7976931348623157e+308
+                },
+                {
+                    "key": "category",
+                    "type": "varchar",
+                    "required": true,
+                    "array": false,
+                    "size": 20,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "note",
+                    "type": "varchar",
+                    "required": false,
+                    "array": false,
+                    "size": 1000,
+                    "default": null,
+                    "encrypt": false
+                }
+            ],
+            "indexes": [
+                {
+                    "key": "by_creator_spent_on",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "creator",
+                        "spent_on"
+                    ],
+                    "orders": [
+                        "asc",
+                        "desc"
+                    ]
                 }
             ]
         }

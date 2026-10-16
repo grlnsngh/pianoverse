@@ -31,6 +31,7 @@ export const PAYMENTS_COLLECTION_ID = "rent_payments";
 // Named rental_history in the console; it was made with an ID of its own
 export const RENTAL_HISTORY_COLLECTION_ID = "6abdffe40034432a5cde";
 export const SERVICE_LOG_COLLECTION_ID = "service_log";
+export const EXPENSES_COLLECTION_ID = "expenses";
 
 type StoredFile = { name: string; type: string; size: number; uri: string };
 type Doc = Record<string, any> & { $id: string; $createdAt: string };
@@ -43,11 +44,15 @@ export const fakeBackend = {
   history: new Map<string, Doc>(),
   // Tunings, repairs and the rest (the service_log table)
   service: new Map<string, Doc>(),
+  // Business expenses (the expenses table)
+  expenses: new Map<string, Doc>(),
   missingCollections: new Set<string>(),
   // Columns the tables don't have (yet): a document that uses one is rejected
   unknownColumns: new Set<string>(),
   files: new Map<string, StoredFile>(),
   listCalls: [] as string[][],
+  // The table each list was of, in the same order as `listCalls`
+  listCollections: [] as string[],
   failNextDocumentUpdate: false,
   signOutError: null as Error | null,
   reset() {
@@ -55,10 +60,12 @@ export const fakeBackend = {
     this.payments.clear();
     this.history.clear();
     this.service.clear();
+    this.expenses.clear();
     this.missingCollections.clear();
     this.unknownColumns.clear();
     this.files.clear();
     this.listCalls = [];
+    this.listCollections = [];
     this.failNextDocumentUpdate = false;
     this.signOutError = null;
     fakeAccount.get.mockReset();
@@ -85,6 +92,7 @@ const storeFor = (collectionId: string) => {
   if (collectionId === PAYMENTS_COLLECTION_ID) return fakeBackend.payments;
   if (collectionId === RENTAL_HISTORY_COLLECTION_ID) return fakeBackend.history;
   if (collectionId === SERVICE_LOG_COLLECTION_ID) return fakeBackend.service;
+  if (collectionId === EXPENSES_COLLECTION_ID) return fakeBackend.expenses;
   return fakeBackend.documents;
 };
 
@@ -123,6 +131,7 @@ class Client {
 class Databases {
   async listDocuments(_databaseId: string, collectionId: string, queries: string[] = []) {
     fakeBackend.listCalls.push(queries);
+    fakeBackend.listCollections.push(collectionId);
     const parsed = queries.map((query) => JSON.parse(query));
 
     let docs = [...storeFor(collectionId).values()];

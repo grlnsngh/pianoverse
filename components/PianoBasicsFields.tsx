@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { TextInput, View } from "react-native";
 import DateRow from "@/components/DateRow";
 import MakePickerSheet from "@/components/MakePickerSheet";
+import PriceRow from "@/components/PriceRow";
 import { FormRow, Group, PickerSheet } from "@/components/ui";
 import { COLUMN_LIMITS } from "@/constants/columnLimits";
 import { COMPANY_ASSOCIATED, pianoCompaniesMakeList } from "@/constants/Piano";
@@ -23,9 +24,10 @@ const COMPANIES = Object.values(COMPANY_ASSOCIATED).map((company) => ({
 }));
 
 /**
- * What every piano has (Add1Basics board): its photos, then title, make,
- * company and purchase date in one panel and the notes in another. Make and
- * company open pickers and the date opens the calendar.
+ * What every piano has (Add1Basics and BoughtFor boards): its photos, then
+ * title, make, company, purchase date and what it was bought for in one panel
+ * and the notes in another. Make and company open pickers and the date opens
+ * the calendar. Bought for is optional; it is only used for the piano's profit.
  */
 const PianoBasicsFields: React.FC<PianoBasicsFieldsProps> = ({
   form,
@@ -40,7 +42,10 @@ const PianoBasicsFields: React.FC<PianoBasicsFieldsProps> = ({
     <View>
       {photo}
 
-      <Group style={styles.panel}>
+      <Group
+        style={styles.panel}
+        footer="What you paid for it. Used only for this piano’s profit; leave it empty if you don’t know."
+      >
         <FormRow
           label="Title"
           placeholder="Required"
@@ -68,6 +73,12 @@ const PianoBasicsFields: React.FC<PianoBasicsFieldsProps> = ({
           label="Purchased"
           value={form.dateOfPurchase}
           onChange={(dateOfPurchase) => onChange({ dateOfPurchase })}
+        />
+        <PriceRow
+          label="Bought for"
+          placeholder="Optional"
+          value={form.purchasePrice}
+          onChangeValue={(purchasePrice) => onChange({ purchasePrice })}
         />
       </Group>
 

@@ -18,6 +18,7 @@ import PastRentersSection from "@/components/PastRentersSection";
 import PaymentsSection from "@/components/PaymentsSection";
 import PhotoHero from "@/components/PhotoHero";
 import PianoActionsSheet from "@/components/PianoActionsSheet";
+import PianoMoneySection from "@/components/PianoMoneySection";
 import RecordPaymentSheet from "@/components/RecordPaymentSheet";
 import RentalSection from "@/components/RentalSection";
 import ServiceSection from "@/components/ServiceSection";
@@ -30,6 +31,7 @@ import { usePianoData } from "@/lib/PianoDataContext";
 import useDeletePiano from "@/lib/useDeletePiano";
 import useOwnerRentalHistory from "@/lib/useOwnerRentalHistory";
 import useRentPayments from "@/lib/useRentPayments";
+import useServiceLog from "@/lib/useServiceLog";
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { RootState } from "@/redux/store";
@@ -37,6 +39,7 @@ import { sendMessage } from "@/utils/contact";
 import { pastRentals } from "@/utils/customers";
 import { formatRupees } from "@/utils/money";
 import { getPianoPhotos } from "@/utils/photos";
+import { pianoMoney } from "@/utils/pianoMoney";
 import { isSold } from "@/utils/pianoStatus";
 import {
   aboutSection,
@@ -63,6 +66,7 @@ import {
 } from "@/utils/reminders";
 import { rentBalance } from "@/utils/rentDue";
 import { buildShareMessage } from "@/utils/share";
+import { entriesFor } from "@/utils/serviceLog";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 // The ⋯ sheet takes 240 ms to leave; what it chose runs after that, so the
@@ -102,10 +106,9 @@ const DetailScreen = () => {
   );
   const rentable = piano?.category === PIANO_CATEGORY.RENTABLE;
   const rentalHistory = useOwnerRentalHistory(rentable);
-  const rentPayments = useRentPayments(
-    typeof id === "string" ? id : "",
-    rentable,
-  );
+  // Loaded for every piano: its Money section counts the rent it earned while it was rented
+  const rentPayments = useRentPayments(typeof id === "string" ? id : "");
+  const serviceLog = useServiceLog();
 
   // The pianos are still on their way (a link opened before the list loaded)
   const waiting = !piano && !isDeleted && pianoLoad === "loading";
@@ -176,6 +179,21 @@ const DetailScreen = () => {
         ? rentBalance(piano, rentPayments.payments)
         : null,
     [piano, rentPayments.status, rentPayments.payments],
+  );
+
+  // What the piano earned and cost, once its payments and the service log are here
+  const moneyStatus =
+    rentPayments.status === "error" || serviceLog.status === "error"
+      ? "error"
+      : rentPayments.status === "ready" && serviceLog.status === "ready"
+        ? "ready"
+        : "loading";
+  const money = useMemo(
+    () =>
+      piano && moneyStatus === "ready"
+        ? pianoMoney(piano, rentPayments.payments, entriesFor(serviceLog.entries, piano.$id))
+        : null,
+    [piano, moneyStatus, rentPayments.payments, serviceLog.entries],
   );
 
   // A reminder about the rental, typed into the renter's WhatsApp chat ready to send
@@ -399,6 +417,18 @@ const DetailScreen = () => {
               </>
             )}
 
+            <Divider />
+            <PianoMoneySection
+              money={money}
+              status={moneyStatus}
+              sold={sold}
+              onRetry={() => {
+                void rentPayments.reload();
+                void serviceLog.reload();
+              }}
+              onAddPrice={() => router.push(`/edit/${piano.$id}`)}
+            />
+
             {(about.rows.length > 0 || !!about.note) && (
               <>
                 <Divider />
@@ -437,6 +467,7 @@ const DetailScreen = () => {
       />
       <MarkAsSoldSheet
         piano={piano}
+        money={money}
         visible={showSoldSheet}
         onClose={() => setShowSoldSheet(false)}
       />

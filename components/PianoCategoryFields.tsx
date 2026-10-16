@@ -21,7 +21,7 @@ const SEGMENTS = categoryOptions.map((option) => ({
   label: categoryLabelOf(option.value),
 }));
 
-// "Purchase price" and "Bought from" need more room than "Customer"
+// "Bought from" and "Model number" need more room than "Customer"
 const WIDE_LABELS = 112;
 
 /**
@@ -116,11 +116,6 @@ const PianoCategoryFields: React.FC<PianoCategoryFieldsProps> = ({
 
       {form.category === PIANO_CATEGORY.EVENTS && (
         <Group style={styles.panel} labelWidth={WIDE_LABELS}>
-          <PriceRow
-            label="Purchase price"
-            value={form.eventPurchasePrice}
-            onChangeValue={(eventPurchasePrice) => onChange({ eventPurchasePrice })}
-          />
           <FormRow
             label="Bought from"
             placeholder="Seller or dealer"

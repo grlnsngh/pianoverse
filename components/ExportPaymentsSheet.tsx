@@ -11,21 +11,29 @@ export type ExportPaymentsSheetProps = {
   /** The stretches to choose from, in the order they are shown */
   periods: ExportPeriod[];
   onChoose: (period: ExportPeriod) => void;
+  /** The sheet's title: "Download payments" unless said (it also asks for the expenses) */
+  title?: string;
 };
 
 /**
- * Asks which payments to download: this month, last month, this financial
- * year, last financial year, or all of them. Each row says what it covers, so
- * "this financial year" is never a guess.
+ * Asks which payments (or expenses) to download: this month, last month, this
+ * financial year, last financial year, or all of them. Each row says what it
+ * covers, so "this financial year" is never a guess.
  */
-const ExportPaymentsSheet = ({ visible, onClose, periods, onChoose }: ExportPaymentsSheetProps) => {
+const ExportPaymentsSheet = ({
+  visible,
+  onClose,
+  periods,
+  onChoose,
+  title = "Download payments",
+}: ExportPaymentsSheetProps) => {
   const styles = useStyles();
   return (
     <Sheet
       visible={visible}
       onClose={onClose}
       tone="white"
-      title="Download payments"
+      title={title}
       testID="export-payments-sheet"
     >
       {periods.map((period) => (

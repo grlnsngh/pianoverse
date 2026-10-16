@@ -65,7 +65,7 @@ describe("the Reports group on Account", () => {
     expect(texts).toContain("Reports");
     expect(texts).toContain("Income");
     expect(texts).toContain("Customers");
-    expect(texts).toContain("Rent and sales, month by month");
+    expect(texts).toContain("Profit: rent, sales and expenses, month by month");
     expect(texts).toContain("Who has rented your pianos, and what they paid");
     expect(texts.indexOf("Reports")).toBeLessThan(texts.indexOf("Your data"));
   });

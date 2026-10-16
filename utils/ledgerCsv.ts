@@ -1,6 +1,8 @@
 import type { RentPayment } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import type { Customer } from "@/utils/customers";
+import { categoryOf, PIANO_SERVICE, type Cost } from "@/utils/expenses";
+import { kindOf } from "@/utils/serviceLog";
 import { toCSVText } from "@/utils/csvExport";
 import { parseStoredDate, toStoredDate } from "@/utils/dates";
 
@@ -49,6 +51,42 @@ export const convertPaymentsToCSV = (payments: RentPayment[], pianos: PianoItem[
       asText(payment.note),
       day(payment.$createdAt),
     ])
+  );
+};
+
+export const COST_HEADERS = ["Date", "Kind", "What", "Piano", "Amount", "Recorded on"];
+
+/**
+ * The costs as CSV, the oldest first: the day, the kind (Piano service, or the
+ * expense's kind), what it was (the expense's note, or the service and its
+ * note), the piano for a service, how much, and the day it was recorded.
+ */
+export const convertCostsToCSV = (costs: Cost[]): string => {
+  const created = (cost: Cost) => (cost.type === "expense" ? cost.expense.$createdAt : cost.entry.$createdAt);
+  const ordered = [...costs].sort(
+    (a, b) => a.day.getTime() - b.day.getTime() || created(a).localeCompare(created(b))
+  );
+  return toCSVText(
+    COST_HEADERS,
+    ordered.map((cost) =>
+      cost.type === "expense"
+        ? [
+            toStoredDate(cost.day),
+            categoryOf(cost.expense.category).label,
+            asText(cost.expense.note),
+            "",
+            cost.amount,
+            day(cost.expense.$createdAt),
+          ]
+        : [
+            toStoredDate(cost.day),
+            PIANO_SERVICE.label,
+            asText([kindOf(cost.entry.kind).label, cost.entry.note?.trim()].filter(Boolean).join(": ")),
+            asText(cost.piano?.title),
+            cost.amount,
+            day(cost.entry.$createdAt),
+          ]
+    )
   );
 };
 

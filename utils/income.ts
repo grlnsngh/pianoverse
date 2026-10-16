@@ -121,6 +121,63 @@ export const monthDetail = (entry: MonthIncome): string => {
   return parts.length > 0 ? parts.join(" · ") : "Nothing recorded";
 };
 
+// --- Profit (M2): what came in less the costs, on the Income screen ---
+
+export interface MonthProfit extends MonthIncome {
+  /** The costs in the month (expenses and services with a cost), and how many */
+  costs: number;
+  costCount: number;
+  /** What came in less the costs; below zero for a month that cost more */
+  profit: number;
+}
+
+/** Each month with its costs and its profit. A cost outside the months is left out. */
+export const withCosts = (
+  months: MonthIncome[],
+  costs: { day: Date; amount: number }[]
+): MonthProfit[] =>
+  months.map((entry) => {
+    const inMonth = costs.filter((cost) => isSameMonth(cost.day, entry.month));
+    const spent = inMonth.reduce((sum, cost) => sum + cost.amount, 0);
+    return { ...entry, costs: spent, costCount: inMonth.length, profit: entry.total - spent };
+  });
+
+/** What all the months add up to: income, costs and profit. */
+export const profitTotals = (months: MonthProfit[]) => {
+  const income = months.reduce((sum, entry) => sum + entry.total, 0);
+  const costs = months.reduce((sum, entry) => sum + entry.costs, 0);
+  return { income, costs, profit: income - costs };
+};
+
+/** Whether nothing came in and nothing was spent during any of the months. */
+export const nothingRecorded = (months: MonthProfit[]) =>
+  noIncome(months) && months.every((entry) => entry.costCount === 0);
+
+/** "₹2,46,300", or "−₹3,500" for a loss. */
+export const formatSigned = (amount: number) =>
+  amount < 0 ? `−${formatRupees(-amount)}` : formatRupees(amount);
+
+/** The line under a month: "₹18,000 in · ₹3,200 out", with "· 1 piano sold" when one was. */
+export const profitDetail = (entry: MonthProfit): string => {
+  if (entry.total === 0 && entry.costs === 0 && entry.rentCount === 0 && entry.salesCount === 0) {
+    return "Nothing recorded";
+  }
+  const sold = entry.salesCount > 0 ? ` · ${count(entry.salesCount, "piano sold", "pianos sold")}` : "";
+  return `${formatRupees(entry.total)} in · ${formatRupees(entry.costs)} out${sold}`;
+};
+
+/** What a screen reader says for the chart with its costs. */
+export const profitChartSummary = (months: MonthProfit[]): string =>
+  `Rent and costs by month. ${months
+    .map((entry) => {
+      const sold =
+        entry.salesCount > 0
+          ? `, ${count(entry.salesCount, "piano", "pianos")} sold for ${formatRupees(entry.sales)}`
+          : "";
+      return `${format(entry.month, "MMMM yyyy")}: rent ${formatRupees(entry.rent)}${sold}, costs ${formatRupees(entry.costs)}`;
+    })
+    .join(". ")}.`;
+
 /** What a screen reader says for the chart, since it can't see the bars or the dots. */
 export const chartSummary = (months: MonthIncome[]): string =>
   `Rent received by month. ${months

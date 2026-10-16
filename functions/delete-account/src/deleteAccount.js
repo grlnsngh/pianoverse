@@ -96,13 +96,14 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
     }
   };
 
-  const [payments, rentals, pianos, profiles, formEvents, services] = await Promise.all([
+  const [payments, rentals, pianos, profiles, formEvents, services, expenses] = await Promise.all([
     rowsWhere(config.rentPaymentsTableId, "creator", accountId),
     rowsWhere(config.rentalHistoryTableId, "creator", accountId),
     rowsWhere(config.pianoTableId, "creator", accountId),
     rowsWhere(config.userTableId, "accountId", accountId),
     rowsWhere(config.formEventsTableId, "creator", accountId),
     rowsWhere(config.serviceLogTableId, "creator", accountId),
+    rowsWhere(config.expensesTableId, "creator", accountId),
   ]);
 
   // Piano photos are named after the person's user row, profile photos after the account
@@ -124,6 +125,7 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
   await deleteRows(config.rentalHistoryTableId, rentals);
   await deleteRows(config.formEventsTableId, formEvents);
   await deleteRows(config.serviceLogTableId, services);
+  await deleteRows(config.expensesTableId, expenses);
   await deleteRows(config.pianoTableId, pianos);
   await inBatches([...photoIds], async (fileId) => {
     try {
@@ -148,6 +150,7 @@ async function deleteAccount({ tablesDB, storage, users, Query, config, accountI
     profiles: profiles.length,
     formEvents: formEvents.length,
     services: services.length,
+    expenses: expenses.length,
   };
   log(`Deleted account ${accountId}: ${JSON.stringify(deleted)}`);
   return deleted;

@@ -5,6 +5,7 @@ import { PianoItem } from "@/redux/pianos/types";
 import { getRemainingPeriod, parseStoredDate, StoredDate } from "@/utils/dates";
 import { formatRupees } from "@/utils/money";
 import { getPianoDisplay } from "@/utils/pianoDisplay";
+import { purchasePriceOf } from "@/utils/pianoMoney";
 import { getPianoRentalState, isSold } from "@/utils/pianoStatus";
 import { canRemind } from "@/utils/reminders";
 import { hasRentalToReturn } from "@/utils/returnPiano";
@@ -194,11 +195,6 @@ export const aboutSection = (piano: PianoItem): DetailSection => {
   switch (piano.category) {
     case PIANO_CATEGORY.EVENTS:
       rows.push(
-        ...row(
-          "Purchase price",
-          piano.event_purchase_price != null ? formatRupees(piano.event_purchase_price) : null,
-          true
-        ),
         ...row("Bought from", clean(piano.event_purchase_from)),
         ...row("Model number", clean(piano.event_model_number)),
         ...row("B number", clean(piano.event_b_number))
@@ -215,6 +211,8 @@ export const aboutSection = (piano: PianoItem): DetailSection => {
       break;
   }
   rows.push(...row("Purchased", formatDay(piano.date_of_purchase)));
+  const bought = purchasePriceOf(piano);
+  rows.push(...row("Bought for", bought !== null ? formatRupees(bought) : null, true));
 
   const aboutTitle = isRentable(piano) || isSold(piano);
   return {

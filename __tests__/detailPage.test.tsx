@@ -30,7 +30,12 @@ import { PianoDataContext, PianoLoadStatus } from "@/lib/PianoDataContext";
 import { setPianoListItems } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
-import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
+import {
+  fakeBackend,
+  fileViewUrl,
+  PAYMENTS_COLLECTION_ID,
+  RENTAL_HISTORY_COLLECTION_ID,
+} from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import { advance, mount, textContent } from "./helpers/ui";
 import {
@@ -399,7 +404,7 @@ describe("the other categories", () => {
   it("shows an events piano's price, where it was bought, its model number and its B number", async () => {
     const { renderer } = await open(events);
 
-    ["Details", "Purchase price", "₹7,80,000", "Bought from", "Bose Pianos", "Model number", "Model D", "B number", "B-12/34"].forEach(
+    ["Details", "Bought for", "₹7,80,000", "Bought from", "Bose Pianos", "Model number", "Model D", "B number", "B-12/34"].forEach(
       (text) => expect(has(renderer, text)).toBe(true)
     );
   });
@@ -411,10 +416,13 @@ describe("the other categories", () => {
     expect(has(renderer, "5 Mar 2026")).toBe(true);
   });
 
-  it("asks nothing of the payments for a piano that isn't rented", async () => {
+  it("asks only for its own payments for a piano that isn't rented (for its Money section), not the rentals", async () => {
     await open(warehouse);
 
-    expect(fakeBackend.listCalls).toEqual([]);
+    expect(fakeBackend.listCollections).not.toContain(RENTAL_HISTORY_COLLECTION_ID);
+    const payments = fakeBackend.listCalls.filter((_, index) => fakeBackend.listCollections[index] === PAYMENTS_COLLECTION_ID);
+    expect(payments).toHaveLength(1);
+    expect(payments[0]).toContain(JSON.stringify({ method: "equal", attribute: "piano_id", values: ["piano-1"] }));
   });
 
   it("shows a sold piano's sale, and keeps the payments it took while rented", async () => {

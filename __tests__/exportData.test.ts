@@ -11,7 +11,7 @@ jest.mock("expo-intent-launcher", () => ({
 
 import { Alert, Platform } from "react-native";
 import * as appwrite from "@/lib/appwrite";
-import { exportCustomers, exportPayments } from "@/lib/exportData";
+import { exportCustomers, exportExpenses, exportPayments } from "@/lib/exportData";
 import { ExportPeriod, exportPeriods } from "@/utils/exportPeriods";
 import { fakeBackend, RENTAL_HISTORY_COLLECTION_ID } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
@@ -240,6 +240,80 @@ describe("downloading payments", () => {
     await exportPayments(ACCOUNT, pianos, period("last-financial-year"));
 
     expect(between).toHaveBeenCalledWith(ACCOUNT, new Date(2025, 3, 1), new Date(2026, 3, 1));
+  });
+});
+
+describe("downloading expenses", () => {
+  const expense = (spentOn: string, amount: number, category: string, note: string | null = null, creator = ACCOUNT) => {
+    const id = `e-${++counter}`;
+    fakeBackend.expenses.set(id, {
+      $id: id,
+      $createdAt: `${spentOn}T09:00:00.000+00:00`,
+      creator,
+      spent_on: spentOn,
+      amount,
+      category,
+      ...(note ? { note } : {}),
+    });
+  };
+  const service = (servicedOn: string, kind: string, cost?: number) => {
+    const id = `s-${++counter}`;
+    fakeBackend.service.set(id, {
+      $id: id,
+      $createdAt: `${servicedOn}T10:00:00.000+00:00`,
+      piano_id: "kawai",
+      creator: ACCOUNT,
+      serviced_on: servicedOn,
+      kind,
+      ...(cost ? { cost } : {}),
+    });
+  };
+
+  it("writes the period's expenses and service costs, oldest first, with what each was", async () => {
+    expense("2026-09-01", 2000, "shop", "Shop rent");
+    expense("2026-08-20", 1111, "staff");
+    expense("2026-09-05", 7777, "other", null, "someone-else");
+    service("2026-09-12", "repair", 1800);
+    service("2026-09-13", "cleaning");
+
+    await exportExpenses(ACCOUNT, pianos, period("this-month"));
+
+    expect(written().uri).toMatch(/^file:\/\/\/docs\/expenses_2026-09_/);
+    expect(written().content.startsWith(BOM + "Date,Kind,")).toBe(true);
+    expect(written().lines).toEqual([
+      "Date,Kind,What,Piano,Amount,Recorded on",
+      "2026-09-01,Shop and storage,Shop rent,,2000,2026-09-01",
+      "2026-09-12,Piano service,Repair,Kawai K-300,1800,2026-09-12",
+    ]);
+  });
+
+  it("says there is nothing, naming the period, and writes no file", async () => {
+    expense("2026-08-20", 1111, "staff");
+
+    await exportExpenses(ACCOUNT, pianos, period("this-month"));
+
+    expect(Alert.alert).toHaveBeenCalledWith("No Data", "There are no expenses recorded for this month (September 2026).");
+    expect(write).not.toHaveBeenCalled();
+  });
+
+  it("still has the service costs when the expenses table isn't there", async () => {
+    fakeBackend.missingCollections.add("expenses");
+    service("2026-09-12", "tuning", 1200);
+
+    await exportExpenses(ACCOUNT, pianos, period("all"));
+
+    expect(written().lines).toHaveLength(2);
+  });
+
+  it("says why when the file can't be written", async () => {
+    expense("2026-09-01", 2000, "shop");
+    write.mockImplementation(() => {
+      throw new Error("No space left");
+    });
+
+    await exportExpenses(ACCOUNT, pianos, period("this-month"));
+
+    expect(Alert.alert).toHaveBeenCalledWith("Export Failed", "Failed to export CSV: No space left");
   });
 });
 

@@ -103,7 +103,7 @@ describe("the review screen", () => {
 
   it.each([
     ["rentable", "Rentable", { rentalPrice: 4000 }, "₹4,000"],
-    ["events", "Events", { eventPurchasePrice: 150000 }, "₹1,50,000"],
+    ["events", "Events", { purchasePrice: 150000 }, "₹1,50,000"],
     ["on_sale", "On sale", { onSalePrice: 250000 }, "₹2,50,000"],
   ])(
     "shows a %s piano's category by name, its notes and prices in rupees",

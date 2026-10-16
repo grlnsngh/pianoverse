@@ -2,6 +2,7 @@ import { RESET_PASSWORD_URL } from "@/constants/links";
 import { PianoItem, PianoItemFormStateType } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
 import { formEventRow, type FormEvent } from "@/utils/formEvents";
+import type { Expense, ExpenseCategory } from "@/utils/expenses";
 import type { ServiceEntry, ServiceKind } from "@/utils/serviceLog";
 import {
   avatarToStore,
@@ -38,6 +39,8 @@ export const appwriteConfig = {
   formEventsCollectionId: "form_events",
   // The tuning and service log (Batch 35)
   serviceLogCollectionId: "service_log",
+  // Business expenses, not tied to a piano (Batch 36)
+  expensesCollectionId: "expenses",
   storageId: "66b26b77003445e612b4",
   // The Appwrite Function in functions/delete-account
   deleteAccountFunctionId: "delete-account",
@@ -1245,6 +1248,84 @@ export async function deleteServiceLogForPiano(pianoId: string) {
       databases.deleteDocument(appwriteConfig.databaseId, appwriteConfig.serviceLogCollectionId, document.$id)
     )
   );
+}
+
+/** A business expense to keep (utils/expenses.ts). */
+export interface NewExpense {
+  creator: string;
+  spentOn: Date;
+  amount: number;
+  category: ExpenseCategory;
+  note?: string | null;
+}
+
+/** Only the fields of an expense that changed. */
+export interface ExpenseChanges {
+  spentOn?: Date;
+  amount?: number;
+  category?: ExpenseCategory;
+  note?: string | null;
+}
+
+const expenseRow = (changes: ExpenseChanges) => {
+  const data: Record<string, unknown> = {};
+  if (changes.spentOn !== undefined) data.spent_on = toStoredDate(changes.spentOn);
+  if (changes.amount !== undefined) data.amount = changes.amount;
+  if (changes.category !== undefined) data.category = changes.category;
+  if (changes.note !== undefined) data.note = changes.note?.trim() || null;
+  return data;
+};
+
+/** Keeps one business expense. */
+export async function createExpense(expense: NewExpense): Promise<Expense> {
+  const { creator, ...changes } = expense;
+  const fields = expenseRow(changes);
+  // Nothing empty is sent for a new expense
+  const data = Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== null));
+  return (await databases.createDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.expensesCollectionId,
+    ID.unique(),
+    { creator, ...data }
+  )) as unknown as Expense;
+}
+
+/** Changes an expense: only the fields in `changes` are sent. */
+export async function updateExpense(expenseId: string, changes: ExpenseChanges): Promise<Expense> {
+  return (await databases.updateDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.expensesCollectionId,
+    expenseId,
+    expenseRow(changes)
+  )) as unknown as Expense;
+}
+
+export async function deleteExpense(expenseId: string) {
+  return databases.deleteDocument(appwriteConfig.databaseId, appwriteConfig.expensesCollectionId, expenseId);
+}
+
+/** Every business expense the owner has kept, page by page; none when the table isn't there. */
+export async function getExpenses(creator: string): Promise<Expense[]> {
+  const expenses: Expense[] = [];
+  let cursor: string | undefined;
+  try {
+    for (let page = 0; page < MAX_PAYMENT_PAGES; page++) {
+      const queries = [Query.equal("creator", creator), Query.limit(PAYMENT_PAGE_SIZE)];
+      if (cursor) queries.push(Query.cursorAfter(cursor));
+      const { documents } = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.expensesCollectionId,
+        queries
+      );
+      expenses.push(...(documents as unknown as Expense[]));
+      if (documents.length < PAYMENT_PAGE_SIZE) break;
+      cursor = documents[documents.length - 1].$id;
+    }
+  } catch (error) {
+    if (isMissingTable(error)) return [];
+    throw error;
+  }
+  return expenses;
 }
 
 /**

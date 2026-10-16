@@ -78,6 +78,8 @@ function RootContent() {
                   <Stack.Screen name="create" options={{ headerShown: false }} />
                   {/* The Income screen, opened from Today, draws its own back button */}
                   <Stack.Screen name="income" options={{ headerShown: false }} />
+                  {/* Everything that cost money, from the Income screen */}
+                  <Stack.Screen name="expenses" options={{ headerShown: false }} />
                   {/* The customers, opened from Account or a piano's Previous renters, draw their own back button */}
                   <Stack.Screen name="customers" options={{ headerShown: false }} />
                   <Stack.Screen name="customer/[key]" options={{ headerShown: false }} />

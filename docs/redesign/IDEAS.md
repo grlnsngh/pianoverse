@@ -18,12 +18,12 @@ The sizes are estimates, not promises. Prices and store rules below come from ge
 | ID | Idea | Size | Needs |
 | --- | --- | --- | --- |
 | M1 | UPI details in reminders | S | JS only (and one column, if saved in Appwrite) |
-| M2 | Expenses and profit | M | Appwrite table |
-| M3 | Purchase price and profit per piano | S | Appwrite column |
+| M2 | Expenses and profit | M | **Built as Batch 36** (business expenses; service costs count too) |
+| M3 | Purchase price and profit per piano | S | **Built as Batch 36** (Bought for, Money section, Mark as sold) |
 | M4 | Security deposits | M | Appwrite column |
 | M5 | Rent exceptions | M | Your terms first; maybe a column |
 | M6 | Keep what was owed on a return | S | Appwrite column |
-| M7 | Income per piano | S | JS only |
+| M7 | Income per piano | S | **Built as Batch 36** (the Money section) |
 | M8 | Online payments (a payment gateway) | L | Gateway account, server code, Appwrite |
 | P1 | Tuning and service log | M | **Built as Batch 35** (per-piano interval, Today, 9:00 reminder, WhatsApp) |
 | P2 | Condition photos at handover and return | M | Appwrite table |

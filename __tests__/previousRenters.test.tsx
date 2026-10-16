@@ -342,9 +342,9 @@ describe("Previous renters with the rentals that were kept", () => {
     expect(has(renderer, "Ravi Kumar")).toBe(true);
   });
 
-  it("asks for nothing for a piano that isn't a rental", async () => {
+  it("doesn't ask for the kept rentals for a piano that isn't a rental", async () => {
     await openDetail(makePiano({ $id: "piano-1", category: "on_sale" }));
 
-    expect(fakeBackend.listCalls).toEqual([]);
+    expect(fakeBackend.listCollections).not.toContain(RENTAL_HISTORY_COLLECTION_ID);
   });
 });
