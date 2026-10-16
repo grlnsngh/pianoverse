@@ -1,9 +1,10 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { Button, Icon } from "@/components/ui";
-import { fonts, spacing } from "@/constants/theme";
+import { fonts, radii, spacing } from "@/constants/theme";
 import { PianoItem } from "@/redux/pianos/types";
 import { callNumber, messageOnWhatsApp } from "@/utils/contact";
+import { depositHeldLine } from "@/utils/deposits";
 import { initialsOf, rentalPeriod, rentalRows } from "@/utils/pianoDetail";
 import { balanceLine, type RentBalance } from "@/utils/rentDue";
 import { InfoRows, SectionTitle, toneColor } from "./DetailParts";
@@ -41,6 +42,7 @@ const RentalSection = ({
   const rows = rentalRows(piano);
   const initials = initialsOf(name);
   const bar = period.bar;
+  const depositLine = depositHeldLine(piano);
 
   return (
     <View>
@@ -162,6 +164,18 @@ const RentalSection = ({
       {rows.some((row) => row.label === "Free from") && (
         <Text style={styles.freeNote}>The last day of a rental is still out; the piano is free from the day after.</Text>
       )}
+
+      {depositLine && (
+        <View style={styles.deposit} accessible accessibilityLabel={`${depositLine}. Refundable. Not part of your income.`}>
+          <View style={styles.depositIcon}>
+            <Icon name="shield" size={20} color={colors.ink} strokeWidth={1.8} />
+          </View>
+          <View style={styles.depositTexts}>
+            <Text style={styles.depositTitle}>{depositLine}</Text>
+            <Text style={styles.depositSub}>Refundable. Not part of your income.</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -225,6 +239,27 @@ const useStyles = makeStyles((colors) => ({
   dateText: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, color: colors.ink },
   caption: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
   rows: { marginTop: spacing.md - spacing.sm },
+  deposit: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.control,
+    backgroundColor: colors.grouped,
+  },
+  depositIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  depositTexts: { flex: 1, minWidth: 0 },
+  depositTitle: { fontFamily: fonts.semibold, fontSize: 15, lineHeight: 20, color: colors.ink },
+  depositSub: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
   freeNote: { marginTop: spacing.sm, fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
 }));
 

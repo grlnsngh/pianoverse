@@ -35,6 +35,8 @@ const entryOf = (
   periodStart: dayOf(piano.rental_period_start),
   periodEnd,
   price: typeof piano.rental_price === "number" ? piano.rental_price : null,
+  // A deposit still held goes with the rental, not settled until it is told how it ended
+  deposit: typeof piano.rental_deposit === "number" && piano.rental_deposit > 0 ? piano.rental_deposit : null,
   closedOn,
   reason,
 });

@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { Icon } from "@/components/ui";
 import { fonts, spacing, type } from "@/constants/theme";
 import { formatRupees } from "@/utils/money";
-import { PastRental, pastRentalDetail } from "@/utils/customers";
+import { PastRental, pastRentalDeposit, pastRentalDetail } from "@/utils/customers";
 import { SectionTitle } from "./DetailParts";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
@@ -41,10 +41,11 @@ const PastRentersSection = ({ rentals, onOpen, onHold, onEdit, onDelete }: PastR
       <View style={styles.list}>
         {rentals.map((rental) => {
           const detail = pastRentalDetail(rental);
+          const deposit = pastRentalDeposit(rental);
           const total = rental.paymentsCount > 0 ? formatRupees(rental.total) : "";
           const open = () => onOpen(rental.key);
           const holdable = fixable && rental.fromHistory;
-          const label = [rental.name, detail, total].filter(Boolean).join(", ");
+          const label = [rental.name, detail, deposit, total].filter(Boolean).join(", ");
           const holdProps = holdable
             ? {
                 onLongPress: () => onHold?.(rental),
@@ -68,6 +69,12 @@ const PastRentersSection = ({ rentals, onOpen, onHold, onEdit, onDelete }: PastR
                   <Text style={styles.detail} numberOfLines={2}>
                     {detail}
                   </Text>
+                )}
+                {!!deposit && (
+                  <View style={styles.depositLine}>
+                    <View style={styles.depositDot} />
+                    <Text style={styles.deposit}>{deposit}</Text>
+                  </View>
                 )}
               </View>
               {!!total && <Text style={styles.total}>{total}</Text>}
@@ -126,6 +133,10 @@ const useStyles = makeStyles((colors) => ({
   texts: { flex: 1, minWidth: 0 },
   name: { fontFamily: fonts.medium, fontSize: 16, lineHeight: 22, color: colors.ink },
   detail: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
+  // A deposit that wasn't settled: an orange dot, so it isn't forgotten
+  depositLine: { flexDirection: "row", alignItems: "center", gap: 6 },
+  depositDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.brand },
+  deposit: { flexShrink: 1, fontFamily: fonts.medium, fontSize: 13, lineHeight: 18, color: colors.brandText },
   total: { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22, color: colors.ink, fontVariant: ["tabular-nums"] },
   hint: { ...type.caption, marginTop: spacing.md, fontFamily: fonts.regular, color: colors.ink2 },
 }));

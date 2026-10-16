@@ -37,6 +37,9 @@ export interface PianoFormState {
   rentalStartDate: Date;
   rentalEndDate: Date;
   rentalPrice: number;
+  // The refundable deposit for the rental, 0 when there is none, and the day it was received
+  rentalDeposit: number;
+  depositReceivedOn: Date;
   warehouseStoredSinceDate: Date;
   eventPurchaseFrom: string;
   eventModelNumber: string;
@@ -50,6 +53,7 @@ const DATE_FIELDS = [
   "dateOfPurchase",
   "rentalStartDate",
   "rentalEndDate",
+  "depositReceivedOn",
   "warehouseStoredSinceDate",
   "onSaleImportDate",
 ] as const;
@@ -69,6 +73,8 @@ export const createEmptyPianoForm = (): PianoFormState => ({
   rentalStartDate: new Date(),
   rentalEndDate: new Date(),
   rentalPrice: 0,
+  rentalDeposit: 0,
+  depositReceivedOn: new Date(),
   warehouseStoredSinceDate: new Date(),
   eventPurchaseFrom: "",
   eventModelNumber: "",
@@ -94,6 +100,8 @@ export const pianoToForm = (piano: PianoItem): PianoFormState => ({
   rentalStartDate: parseStoredDate(piano.rental_period_start) ?? new Date(),
   rentalEndDate: parseStoredDate(piano.rental_period_end) ?? new Date(),
   rentalPrice: piano.rental_price || 0,
+  rentalDeposit: piano.rental_deposit || 0,
+  depositReceivedOn: parseStoredDate(piano.deposit_received_on) ?? new Date(),
   warehouseStoredSinceDate:
     parseStoredDate(piano.warehouse_since_date) ?? new Date(),
   eventPurchaseFrom: piano.event_purchase_from || "",
@@ -134,6 +142,7 @@ export const hasEntries = (form: PianoFormState) =>
   !!form.make ||
   !!form.companyAssociated ||
   form.rentalPrice > 0 ||
+  form.rentalDeposit > 0 ||
   form.purchasePrice > 0 ||
   form.onSalePrice > 0 ||
   [
@@ -208,6 +217,9 @@ const NO_CUSTOMER = {
   rental_customer_name: null,
   rental_customer_address: null,
   rental_customer_mobile: null,
+  // A deposit belongs to the rental too: with no rental there is none held
+  rental_deposit: null,
+  deposit_received_on: null,
 };
 
 /**
@@ -244,6 +256,9 @@ export const toPianoEntryInput = (
         rental_period_start: toStoredDate(form.rentalStartDate),
         rental_period_end: toStoredDate(form.rentalEndDate),
         rental_price: form.rentalPrice,
+        // Optional: nothing typed means no deposit. The day it was received only goes with an amount.
+        rental_deposit: form.rentalDeposit > 0 ? form.rentalDeposit : null,
+        deposit_received_on: form.rentalDeposit > 0 ? toStoredDate(form.depositReceivedOn) : null,
       };
     case PIANO_CATEGORY.WAREHOUSE:
       return {

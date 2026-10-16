@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { Href, router } from "expo-router";
 import { format } from "date-fns";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -23,6 +23,7 @@ import useIncome from "@/lib/useIncome";
 import useServiceLog from "@/lib/useServiceLog";
 import useTextScale from "@/lib/useTextScale";
 import { RootState } from "@/redux/store";
+import { depositsHeld, heldSummary } from "@/utils/deposits";
 import { allCosts } from "@/utils/expenses";
 import { formatRupees } from "@/utils/money";
 import {
@@ -113,6 +114,29 @@ const Income = () => {
   );
   const totals = profitTotals(months);
   const empty = nothingRecorded(months);
+  // Deposits are held for the customers, not income: their own row, never in the profit
+  const held = depositsHeld(pianos);
+  const depositsRow =
+    held.entries.length > 0 ? (
+      <Pressable
+        onPress={() => router.push("/deposits" as Href)}
+        accessibilityRole="button"
+        accessibilityLabel={`Deposits held, ${formatRupees(held.total)}, ${heldSummary(held)}`}
+        style={({ pressed }) => [styles.deposits, empty && styles.depositsAlone, pressed && styles.expensesPressed]}
+      >
+        <View style={styles.expensesIcon}>
+          <Icon name="shield" size={20} color={colors.ink} strokeWidth={1.8} />
+        </View>
+        <View style={styles.rowTexts}>
+          <Text style={styles.rowTitle}>Deposits held</Text>
+          <Text style={styles.rowDetail}>
+            {large ? `${formatRupees(held.total)} · ${heldSummary(held)}` : heldSummary(held)}
+          </Text>
+        </View>
+        {!large && <Text style={styles.rowAmount}>{formatRupees(held.total)}</Text>}
+        <Icon name="chevronRight" size={18} color={colors.chevron} strokeWidth={2} />
+      </Pressable>
+    ) : null;
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.page}>
@@ -180,6 +204,8 @@ const Income = () => {
           </Text>
         )}
 
+        {ready && !failed && empty && depositsRow}
+
         {ready && !failed && !empty && (
           <>
             <Text style={styles.label}>Profit, last {INCOME_MONTHS} months</Text>
@@ -215,6 +241,8 @@ const Income = () => {
               {!large && <Text style={styles.rowAmount}>{formatRupees(totals.costs)}</Text>}
               <Icon name="chevronRight" size={18} color={colors.chevron} strokeWidth={2} />
             </Pressable>
+
+            {depositsRow}
 
             <Text style={styles.section} accessibilityRole="header" maxFontSizeMultiplier={maxScale.section}>
               By month
@@ -301,6 +329,19 @@ const useStyles = makeStyles((colors) => ({
     borderColor: colors.hairline,
   },
   expensesPressed: { backgroundColor: colors.grouped },
+  // Under Expenses: the same row, with the line above it already there
+  deposits: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    minHeight: 64,
+    marginHorizontal: spacing.screen,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderColor: colors.hairline,
+  },
+  // With nothing else on the screen it stands on its own
+  depositsAlone: { marginTop: spacing.xxl, borderTopWidth: 1 },
   expensesIcon: {
     width: 40,
     height: 40,

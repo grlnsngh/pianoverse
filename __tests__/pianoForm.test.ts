@@ -122,6 +122,9 @@ describe("saving a piano", () => {
     rental_customer_name: null,
     rental_customer_address: null,
     rental_customer_mobile: null,
+    // A deposit goes with the rental
+    rental_deposit: null,
+    deposit_received_on: null,
   };
 
   it.each([
@@ -134,6 +137,8 @@ describe("saving a piano", () => {
         rental_period_start: "2026-09-01",
         rental_period_end: "2026-12-01",
         rental_price: 4000,
+        rental_deposit: 8000,
+        deposit_received_on: "2026-09-01",
       },
     ],
     ["warehouse", { warehouse_since_date: "2026-02-01" }],
@@ -183,6 +188,63 @@ describe("saving a piano", () => {
       });
     }
   );
+
+  it("saves no deposit for a rental that has none, and no day it was received", () => {
+    const rental = makePiano({
+      category: "rentable",
+      rental_customer_name: "Asha Mehta",
+      rental_customer_address: "12 MG Road",
+      rental_customer_mobile: "9876543210",
+      rental_price: 4000,
+    });
+
+    expect(toPianoEntryInput(pianoToForm(rental), { user })).toMatchObject({
+      rental_deposit: null,
+      deposit_received_on: null,
+    });
+  });
+
+  it("saves the deposit with the day it was received, and nothing about it for another kind of piano", () => {
+    const form = {
+      ...pianoToForm(makePiano({ category: "rentable", rental_customer_name: "Asha Mehta" })),
+      rentalDeposit: 8000,
+      depositReceivedOn: new Date(2026, 8, 1),
+    };
+
+    expect(toPianoEntryInput(form, { user })).toMatchObject({
+      rental_deposit: 8000,
+      deposit_received_on: "2026-09-01",
+    });
+    expect(toPianoEntryInput({ ...form, category: "warehouse" }, { user })).toMatchObject({
+      rental_deposit: null,
+      deposit_received_on: null,
+    });
+  });
+
+  it("starts the form with the deposit saved on the piano, and none on a new one", () => {
+    expect(createEmptyPianoForm().rentalDeposit).toBe(0);
+    const form = pianoToForm(
+      makePiano({ category: "rentable", rental_deposit: 8000, deposit_received_on: "2026-09-01" as any })
+    );
+    expect(form.rentalDeposit).toBe(8000);
+    expect(form.depositReceivedOn).toEqual(new Date(2026, 8, 1));
+    expect(pianoToForm(makePiano({ category: "rentable" })).rentalDeposit).toBe(0);
+  });
+
+  it("brings the day a deposit was received back as a date between screens", () => {
+    const form = { ...createEmptyPianoForm(), rentalDeposit: 8000, depositReceivedOn: new Date(2026, 8, 1) };
+
+    const parsed = parsePianoForm(JSON.stringify(form));
+
+    expect(parsed.rentalDeposit).toBe(8000);
+    expect(parsed.depositReceivedOn).toBeInstanceOf(Date);
+    expect(parsed.depositReceivedOn.getTime()).toBe(form.depositReceivedOn.getTime());
+  });
+
+  it("counts a deposit typed as something entered, so leaving the Add flow asks first", () => {
+    expect(hasEntries(createEmptyPianoForm())).toBe(false);
+    expect(hasEntries({ ...createEmptyPianoForm(), rentalDeposit: 8000 })).toBe(true);
+  });
 
   it("clears the customer's details when a rental becomes another kind of piano", () => {
     const rental = makePiano({

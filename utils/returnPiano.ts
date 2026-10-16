@@ -38,6 +38,9 @@ export const clearedRental = (): PianoFieldsUpdate => ({
   rental_period_start: null,
   rental_period_end: null,
   rental_price: null,
+  // The deposit goes with the rental: it is kept in the history, not on the piano
+  rental_deposit: null,
+  deposit_received_on: null,
 });
 
 /** What puts a piano's rental back as it was (Undo), in the way the fields are saved. */
@@ -48,4 +51,6 @@ export const restoredRental = (piano: PianoItem): PianoFieldsUpdate => ({
   rental_period_start: dayOf(piano.rental_period_start) as any,
   rental_period_end: dayOf(piano.rental_period_end) as any,
   rental_price: typeof piano.rental_price === "number" ? piano.rental_price : null,
+  rental_deposit: typeof piano.rental_deposit === "number" && piano.rental_deposit > 0 ? piano.rental_deposit : null,
+  deposit_received_on: dayOf(piano.deposit_received_on) as any,
 });

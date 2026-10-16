@@ -270,6 +270,15 @@ export const pastRentalDetail = (rental: PastRental): string => {
     .join(" · ");
 };
 
+/**
+ * The deposit line of a kept rental that held one: "Deposit ₹9,000 · not settled". It isn't settled
+ * yet because nothing says how it ended; null for a rental with no deposit.
+ */
+export const pastRentalDeposit = (rental: PastRental): string | null =>
+  rental.fromHistory && typeof rental.deposit === "number" && rental.deposit > 0
+    ? `Deposit ${formatRupees(rental.deposit)} · not settled`
+    : null;
+
 /** The line under a customer in the list: "Kawai K-300 · 3 payments", or the pianos when there are several. */
 export const customerLine = (customer: Customer): string => {
   const pianos = customer.pianos.map((entry) => entry.title);
@@ -305,6 +314,8 @@ export interface PastRental {
   endOn: Date | null;
   /** The rent that was asked, per payment, when it ended */
   price: number | null;
+  /** The deposit that was held when it ended, for a kept rental that had one (not settled yet) */
+  deposit?: number | null;
   paymentsCount: number;
   total: number;
   firstPaidOn: Date | null;
@@ -367,6 +378,7 @@ export const pastRentals = (
       startOn: start,
       endOn: entry.period_end ? dayOf(entry.period_end) : closed,
       price: typeof entry.price === "number" ? entry.price : null,
+      deposit: typeof entry.deposit === "number" && entry.deposit > 0 ? entry.deposit : null,
       paymentsCount: theirs.length,
       total: theirs.reduce((sum, payment) => sum + payment.amount, 0),
       firstPaidOn: days.length

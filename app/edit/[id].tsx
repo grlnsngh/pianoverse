@@ -12,6 +12,7 @@ import {
   toPianoEntryInput,
 } from "@/utils/pianoForm";
 import { getPianoPhotos } from "@/utils/photos";
+import { dropsOldDeposit, depositAmount } from "@/utils/deposits";
 import { rentalToArchive } from "@/utils/rentalHistory";
 import { showDialog } from "@/utils/dialog";
 import { showToast } from "@/utils/toast";
@@ -106,11 +107,15 @@ const EditScreen = () => {
 
     try {
       setUploading(true);
-      const updatedPiano = await updatePianoEntry(
-        id.toString(),
-        toPianoEntryInput(form, { user }),
-        getPianoPhotos(filteredPiano)
-      );
+      const input = toPianoEntryInput(form, { user });
+      // A new rental starts without the old one's deposit, which is kept in that rental's history
+      // (not settled), unless the deposit was changed here
+      const startsNewRental = !!rentalToArchive(filteredPiano, { ...filteredPiano, ...input } as unknown as PianoItem);
+      if (dropsOldDeposit(filteredPiano, input, startsNewRental)) {
+        input.rental_deposit = null;
+        input.deposit_received_on = null;
+      }
+      const updatedPiano = await updatePianoEntry(id.toString(), input, getPianoPhotos(filteredPiano));
       // The end date or category may have changed
       await scheduleRentalDueNotification(updatedPiano);
       const updatedItem = toPianoItem(updatedPiano);
@@ -150,6 +155,7 @@ const EditScreen = () => {
           <PianoFormFields
             form={form}
             onChange={updateForm}
+            holdsDeposit={depositAmount(filteredPiano) > 0}
             photo={
               <PianoPhotoField
                 photos={form.photos}

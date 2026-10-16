@@ -82,6 +82,8 @@ function RootContent() {
                   <Stack.Screen name="expenses" options={{ headerShown: false }} />
                   {/* Which pianos are free on a day, from the calendar button on the Pianos tab */}
                   <Stack.Screen name="availability" options={{ headerShown: false }} />
+                  {/* Deposits held for the rentals on the pianos, from the Income screen */}
+                  <Stack.Screen name="deposits" options={{ headerShown: false }} />
                   {/* The customers, opened from Account or a piano's Previous renters, draw their own back button */}
                   <Stack.Screen name="customers" options={{ headerShown: false }} />
                   <Stack.Screen name="customer/[key]" options={{ headerShown: false }} />
