@@ -54,14 +54,29 @@ const dueSentence = (balance: RentBalance) => {
 };
 
 /**
+ * Where to pay, as its own paragraph so the UPI ID is easy to hold and copy in
+ * WhatsApp: "You can pay ₹8,000 to UPI ID name@bank." The amount is only said
+ * when it is known (rent that is due).
+ */
+const payLine = (upiId: string, amount: number | null) =>
+  `You can pay${amount && amount > 0 ? ` ${formatRupees(amount)}` : ""} to UPI ID ${upiId}.`;
+
+/**
  * The reminder for a rental, worded for where it is: ended, ending today,
  * ending soon, or still running. When `balance` says rent is due, it says how
  * much, and asks for that payment.
+ *
+ * `upiId` is the owner's own UPI ID from their profile, or null when they have
+ * none (then the message is as it always was). It is added where the message
+ * asks for a payment: when rent is due, or the rental has ended. A rental that
+ * is only ending, with nothing owed, asks to extend, not to pay, so it gets no
+ * line.
  */
 export const buildReminderMessage = (
   piano: PianoItem,
   today = startOfToday(),
-  balance: RentBalance | null = null
+  balance: RentBalance | null = null,
+  upiId: string | null = null
 ) => {
   const name = clean(piano.rental_customer_name);
   const title = clean(piano.title) || "the piano";
@@ -112,10 +127,15 @@ export const buildReminderMessage = (
     }
   }
 
+  const asksForPayment = !!owes || (!!end && left !== null && left < 0);
+  const pay =
+    upiId && asksForPayment ? payLine(upiId, balance && balance.due > 0 ? balance.due : null) : "";
+
   return [
     `Hello${name ? ` ${name}` : ""},`,
     "",
     sentences.join(" "),
+    ...(pay ? ["", pay] : []),
     "",
     "Thank you.",
   ].join("\n");

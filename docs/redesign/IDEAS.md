@@ -17,7 +17,7 @@ The sizes are estimates, not promises. Prices and store rules below come from ge
 
 | ID | Idea | Size | Needs |
 | --- | --- | --- | --- |
-| M1 | UPI details in reminders | S | JS only (and one column, if saved in Appwrite) |
+| M1 | UPI details in reminders | S | **Built as Batch 39** (own UPI ID in Edit profile; only added when entered) |
 | M2 | Expenses and profit | M | **Built as Batch 36** (business expenses; service costs count too) |
 | M3 | Purchase price and profit per piano | S | **Built as Batch 36** (Bought for, Money section, Mark as sold) |
 | M4 | Security deposits | M | Appwrite column |

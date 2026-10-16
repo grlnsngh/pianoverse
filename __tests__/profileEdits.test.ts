@@ -3,7 +3,7 @@ jest.mock("react-native-appwrite", () =>
 );
 
 import { ensureUserDocument } from "@/lib/appwrite";
-import { changeProfilePhoto, removeProfilePhoto, renameProfile } from "@/lib/profileEdits";
+import { changeProfilePhoto, removeProfilePhoto, renameProfile, saveProfileDetails } from "@/lib/profileEdits";
 import { isRemovedAvatar, isUploadedPhoto } from "@/utils/profile";
 import { appwriteError, BUCKET_ID, fakeAccount, fakeBackend, PROJECT_ID } from "./helpers/fakeAppwrite";
 
@@ -224,5 +224,48 @@ describe("changing the name", () => {
 
     expect(fakeAccount.createSession).not.toHaveBeenCalled();
     expect(appwriteError).toBeDefined();
+  });
+});
+
+describe("saving the name and the UPI ID", () => {
+  it("saves only what is given, cleaned: the name's spaces, and the UPI ID's all of them", async () => {
+    const user = signedUp({ avatar: GOOGLE });
+
+    const updated = await saveProfileDetails(user, { upiId: " Gurleen @oksbi " });
+    expect(saved()).toMatchObject({ username: "grlnsngh", upi_id: "Gurleen@oksbi", avatar: GOOGLE });
+    expect(updated.upi_id).toBe("Gurleen@oksbi");
+
+    await saveProfileDetails(user, { name: "  Gurleen   Singh " });
+    expect(saved()).toMatchObject({ username: "Gurleen Singh", upi_id: "Gurleen@oksbi" });
+  });
+
+  it("saves both together in one change", async () => {
+    await saveProfileDetails(signedUp(), { name: "Gurleen Singh", upiId: "gurleen@ybl" });
+
+    expect(saved()).toMatchObject({ username: "Gurleen Singh", upi_id: "gurleen@ybl" });
+  });
+
+  it("takes the UPI ID off when it is empty", async () => {
+    const user = signedUp({ upi_id: "gurleen@oksbi" });
+
+    await saveProfileDetails(user, { upiId: "   " });
+
+    expect(saved().upi_id).toBeNull();
+    expect(saved().username).toBe("grlnsngh");
+  });
+
+  it("changes neither when it can't be saved", async () => {
+    const user = signedUp({ upi_id: "gurleen@oksbi" });
+    fakeBackend.failNextDocumentUpdate = true;
+
+    await expect(saveProfileDetails(user, { name: "Gurleen Singh", upiId: "new@ybl" })).rejects.toThrow(
+      "Network request failed"
+    );
+
+    expect(saved()).toMatchObject({ username: "grlnsngh", upi_id: "gurleen@oksbi" });
+  });
+
+  it("is what the users table takes: an optional column of 100 characters", async () => {
+    await expect(saveProfileDetails(signedUp(), { upiId: `${"a".repeat(101)}` })).rejects.toThrow();
   });
 });

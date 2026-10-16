@@ -5,6 +5,9 @@
  * typed instead of failing to save with Appwrite's error.
  */
 export const COLUMN_LIMITS = {
+  users: {
+    upi_id: 100,
+  },
   pianos: {
     title: 255,
     description: 1020,

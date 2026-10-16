@@ -7,6 +7,7 @@ import {
   uploadFile,
 } from "@/lib/appwrite";
 import { cleanName, isUploadedPhoto } from "@/utils/profile";
+import { cleanUpiId } from "@/utils/upi";
 
 /** The part of the signed-in user these changes need. */
 export interface ProfileUser {
@@ -80,4 +81,22 @@ export async function removeProfilePhoto(user: ProfileUser): Promise<any> {
  */
 export async function renameProfile(user: ProfileUser, name: string): Promise<any> {
   return updateUserProfile(user.$id, { username: cleanName(name) });
+}
+
+/**
+ * Saves what changed of the name and the UPI ID in one go, so they are saved
+ * together or not at all. An empty UPI ID takes it off. Only what is given is
+ * sent.
+ *
+ * @returns {Promise<any>} The updated user document.
+ * @throws {Error} If the change fails; nothing has changed then.
+ */
+export async function saveProfileDetails(
+  user: ProfileUser,
+  changes: { name?: string; upiId?: string }
+): Promise<any> {
+  return updateUserProfile(user.$id, {
+    ...(changes.name !== undefined ? { username: cleanName(changes.name) } : {}),
+    ...(changes.upiId !== undefined ? { upi_id: cleanUpiId(changes.upiId) || null } : {}),
+  });
 }

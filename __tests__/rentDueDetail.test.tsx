@@ -83,9 +83,9 @@ const seedPayment = (id: string, paidOn: string, amount: number, extra = {}) =>
     ...extra,
   });
 
-const openDetail = async (piano: PianoItem = rental()) => {
+const openDetail = async (piano: PianoItem = rental(), user: any = testUser) => {
   fakeBackend.documents.set(piano.$id, { ...piano });
-  const store = createTestStore({ user: testUser, items: [piano] });
+  const store = createTestStore({ user, items: [piano] });
   const renderer = renderWithStore(<DetailScreen />, store);
   await flushPromises();
   return { store, renderer };
@@ -234,6 +234,65 @@ describe("reminding when rent is due", () => {
     expect(sentText()).toContain(
       "₹4,000 of the rent is due (1 month, since 1 Sep 2026)."
     );
+  });
+
+  describe("with the owner's own UPI ID", () => {
+    const withUpi = (upi_id: string | null | undefined) => ({ ...testUser, upi_id });
+    const send = async (label: string, renderer: ReactTestRenderer) => {
+      await act(async () => {
+        await buttons(renderer, label)[0].props.onPress();
+      });
+      await flushPromises();
+    };
+
+    it("adds where to pay, with how much, when the owner entered one in their profile", async () => {
+      seedPayment("aug", "2026-08-02", 3000);
+      const { renderer } = await openDetail(rental(), withUpi("gurleen@oksbi"));
+
+      await send("Send reminder", renderer);
+
+      expect(sentText()).toContain("₹5,000 of the rent is due (2 months, since 1 Aug 2026).");
+      expect(sentText()).toContain("\n\nYou can pay ₹5,000 to UPI ID gurleen@oksbi.\n\nThank you.");
+    });
+
+    it("adds it from the Remind customer row too", async () => {
+      const { renderer } = await openDetail(rental(), withUpi("gurleen@oksbi"));
+
+      await send("Remind customer", renderer);
+
+      expect(sentText()).toContain("You can pay ₹4,000 to UPI ID gurleen@oksbi.");
+    });
+
+    it("leaves it out when the owner entered none, or what they entered isn't a UPI ID", async () => {
+      for (const upi of [undefined, null, "", "not an id"]) {
+        jest.mocked(Linking.openURL).mockClear();
+        const { renderer } = await openDetail(rental(), withUpi(upi));
+
+        await send("Send reminder", renderer);
+
+        expect(sentText()).not.toContain("UPI");
+        renderer.unmount();
+      }
+    });
+
+    it("leaves it out when the rent is paid up and the rental is only running: nothing to ask for", async () => {
+      seedPayment("aug", "2026-08-02", 4000);
+      seedPayment("sep", "2026-09-03", 4000);
+      const { renderer } = await openDetail(rental(), withUpi("gurleen@oksbi"));
+
+      await send("Remind customer", renderer);
+
+      expect(sentText()).not.toContain("UPI");
+    });
+
+    it("leaves it out when the payments haven't loaded, since nothing is known to be due", async () => {
+      fakeBackend.missingCollections.add("rent_payments");
+      const { renderer } = await openDetail(rental(), withUpi("gurleen@oksbi"));
+
+      await send("Remind customer", renderer);
+
+      expect(sentText()).not.toContain("UPI");
+    });
   });
 
   it("says nothing about rent in the message when the payments haven't loaded", async () => {

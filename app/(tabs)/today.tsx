@@ -28,6 +28,7 @@ import { sendMessage } from "@/utils/contact";
 import { incomeByMonth, TODAY_MONTHS } from "@/utils/income";
 import { formatRupees } from "@/utils/money";
 import { buildReminderMessage } from "@/utils/reminders";
+import { reminderUpiId } from "@/utils/upi";
 import { type RentDueEntry, rentDueEntries, rentDueMonths } from "@/utils/rentDue";
 import { serviceDue, serviceMessage, type ServiceDueEntry } from "@/utils/serviceLog";
 import {
@@ -55,6 +56,8 @@ const Today = () => {
   const dispatch = useDispatch();
   const pianos = useSelector((state: RootState) => state.pianos.items);
   const filters = useSelector((state: RootState) => state.pianos.filters);
+  // The owner's own UPI ID (Edit profile), added to a rent reminder when they have one
+  const upiId = reminderUpiId(useSelector((state: RootState) => state.users.user));
   const { status: pianoStatus, refresher } = usePianoData();
   const { loaded, failed, payments, reload } = useTodayPayments();
   const serviceLog = useServiceLog();
@@ -105,13 +108,16 @@ const Today = () => {
   const openIncome = useCallback(() => router.push("/income"), []);
   const openPiano = useCallback((id: string) => router.push(`/detail/${id}`), []);
   // A reminder that says how much is due, typed into the renter's WhatsApp chat
-  const remind = useCallback((entry: RentDueEntry) => {
-    sendMessage(
-      entry.piano.rental_customer_mobile?.trim() || null,
-      buildReminderMessage(entry.piano, undefined, entry.balance),
-      `${entry.piano.title} rental`
-    );
-  }, []);
+  const remind = useCallback(
+    (entry: RentDueEntry) => {
+      sendMessage(
+        entry.piano.rental_customer_mobile?.trim() || null,
+        buildReminderMessage(entry.piano, undefined, entry.balance, upiId),
+        `${entry.piano.title} rental`
+      );
+    },
+    [upiId]
+  );
 
   // The renter's WhatsApp, with a message about booking the tuning visit
   const business = letterhead.business;
