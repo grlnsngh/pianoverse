@@ -7,13 +7,30 @@ import {
   View,
 } from "react-native";
 import { Icon, Sheet } from "@/components/ui";
-import { fonts, radii, spacing } from "@/constants/theme";
+import { fonts, maxScale, radii, spacing } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const ROW = 52;
 const HEADER = 32;
+/** A letter of the index: 13 high, 3 apart, from 8 below the top (see `index` in the styles) */
+const INDEX_LETTER = 13;
+const INDEX_GAP = 3;
+const INDEX_TOP = 8;
 
 type MakeSection = { letter: string; makes: string[] };
+
+/**
+ * Whether the A to Z index has room beside the list. Its letters grow with the
+ * Font size up to the limit, so with 26 of them on a short screen it may not
+ * fit, and then it is left out rather than run off the bottom. Before the list
+ * has been measured it is shown.
+ */
+export const indexFits = (letters: number, fontScale: number, listHeight: number) => {
+  if (listHeight <= 0) return true;
+  const letter = INDEX_LETTER * Math.min(Math.max(fontScale, 1), maxScale.count) + INDEX_GAP;
+  return INDEX_TOP + letters * letter <= listHeight;
+};
 
 /** The makes that match what was typed, A to Z, grouped by their first letter. */
 export const makeSections = (
@@ -65,7 +82,9 @@ const MakePickerSheet = ({
 }: MakePickerSheetProps) => {
   const colors = useColors();
   const styles = useStyles();
+  const { fontScale } = useTextScale();
   const [query, setQuery] = useState("");
+  const [listHeight, setListHeight] = useState(0);
   const list = useRef<ScrollView>(null);
   const sections = useMemo(() => makeSections(makes, query), [makes, query]);
 
@@ -106,7 +125,7 @@ const MakePickerSheet = ({
         </View>
       </View>
 
-      <View style={styles.listArea}>
+      <View style={styles.listArea} onLayout={(event) => setListHeight(event.nativeEvent.layout.height)}>
         <ScrollView
           ref={list}
           keyboardShouldPersistTaps="handled"
@@ -116,7 +135,11 @@ const MakePickerSheet = ({
           {sections.map((section) => (
             <View key={section.letter}>
               <View style={styles.heading}>
-                <Text style={styles.headingText} accessibilityRole="header">
+                <Text
+                  style={styles.headingText}
+                  accessibilityRole="header"
+                  maxFontSizeMultiplier={maxScale.section}
+                >
                   {section.letter}
                 </Text>
               </View>
@@ -132,6 +155,7 @@ const MakePickerSheet = ({
                     style={({ pressed }) => [styles.row, pressed && styles.pressed]}
                   >
                     <Text
+                      numberOfLines={1}
                       style={[
                         styles.make,
                         { fontFamily: selected ? fonts.bold : fonts.medium },
@@ -153,7 +177,7 @@ const MakePickerSheet = ({
           )}
         </ScrollView>
 
-        {sections.length > 1 && (
+        {sections.length > 1 && indexFits(sections.length, fontScale, listHeight) && (
           <View
             style={styles.index}
             accessibilityElementsHidden
@@ -166,7 +190,9 @@ const MakePickerSheet = ({
                 hitSlop={{ left: 8, right: 4 }}
                 testID={`make-index-${section.letter}`}
               >
-                <Text style={styles.indexLetter}>{section.letter}</Text>
+                <Text style={styles.indexLetter} maxFontSizeMultiplier={maxScale.count}>
+                  {section.letter}
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -215,7 +241,7 @@ const useStyles = makeStyles((colors) => ({
     borderBottomColor: colors.hairline,
   },
   pressed: { backgroundColor: colors.grouped },
-  make: { fontSize: 16, color: colors.ink },
+  make: { flexShrink: 1, fontSize: 16, color: colors.ink },
   empty: {
     marginTop: spacing.xxl,
     paddingHorizontal: spacing.screen,

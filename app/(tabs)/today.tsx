@@ -38,6 +38,7 @@ import {
   stockCounts,
 } from "@/utils/today";
 import { makeStyles } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -50,6 +51,7 @@ const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : 
  */
 const Today = () => {
   const styles = useStyles();
+  const { large } = useTextScale();
   const dispatch = useDispatch();
   const pianos = useSelector((state: RootState) => state.pianos.items);
   const filters = useSelector((state: RootState) => state.pianos.filters);
@@ -206,17 +208,25 @@ const Today = () => {
           </Text>
         </View>
 
-        <View style={styles.counts}>
-          <View style={styles.countCell} accessible accessibilityLabel={`In stock, ${counts.inStock}`}>
+        <View style={[styles.counts, large && styles.countsList]}>
+          <View
+            style={[styles.countCell, large && styles.countItem]}
+            accessible
+            accessibilityLabel={`In stock, ${counts.inStock}`}
+          >
             <Text style={styles.countValue}>{counts.inStock}</Text>
             <Text style={styles.countLabel}>In stock</Text>
           </View>
-          <View style={styles.countCell} accessible accessibilityLabel={`On rent, ${counts.onRent}`}>
+          <View
+            style={[styles.countCell, large && styles.countItem]}
+            accessible
+            accessibilityLabel={`On rent, ${counts.onRent}`}
+          >
             <Text style={styles.countValue}>{counts.onRent}</Text>
             <Text style={styles.countLabel}>On rent</Text>
           </View>
           <View
-            style={[styles.countCell, styles.wideCell]}
+            style={[styles.countCell, styles.wideCell, large && styles.countItem]}
             accessible
             accessibilityLabel={`Sold this month, ${soldTotal}`}
           >
@@ -385,6 +395,9 @@ const useStyles = makeStyles((colors) => ({
   },
   countCell: { flex: 1 },
   wideCell: { flex: 1.3 },
+  // With a big Font size three columns would cut the sold amount: one line each, the number at the right
+  countsList: { flexDirection: "column", gap: spacing.sm },
+  countItem: { flex: 0, flexDirection: "row-reverse", justifyContent: "space-between", alignItems: "baseline" },
   countValue: {
     fontFamily: fonts.semibold,
     fontSize: 20,

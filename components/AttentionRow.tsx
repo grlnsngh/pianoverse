@@ -6,6 +6,7 @@ import { getPianoPhotos } from "@/utils/photos";
 import { statusToneColor } from "@/utils/rentalStatus";
 import type { RentalEntry } from "@/utils/today";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const THUMBNAIL = 64;
 
@@ -22,6 +23,9 @@ export type AttentionRowProps = {
 const AttentionRow = ({ entry, onOpen }: AttentionRowProps) => {
   const colors = useColors();
   const styles = useStyles();
+  const { large } = useTextScale();
+  // One line each, unless the text is big: then a name or a status may take two rather than be cut
+  const lines = large ? 2 : 1;
   const { piano, who, status } = entry;
   const summary = [piano.title, who, status.text].filter(Boolean).join(", ");
 
@@ -39,15 +43,15 @@ const AttentionRow = ({ entry, onOpen }: AttentionRowProps) => {
 
       <View style={styles.content}>
         <View style={styles.texts}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={styles.title} numberOfLines={lines}>
             {piano.title}
           </Text>
           {!!who && (
-            <Text style={styles.who} numberOfLines={1}>
+            <Text style={styles.who} numberOfLines={lines}>
               {who}
             </Text>
           )}
-          <Text style={[styles.status, { color: statusToneColor(status.tone, colors) }]} numberOfLines={1}>
+          <Text style={[styles.status, { color: statusToneColor(status.tone, colors) }]} numberOfLines={lines}>
             {status.text}
           </Text>
         </View>

@@ -59,6 +59,7 @@ import { fakeNotifications } from "./helpers/fakeNotifications";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
+  atFontScale,
   captureAlerts,
   createTestStore,
   flushPromises,
@@ -598,5 +599,46 @@ describe("signing out", () => {
     expect(alerts.titles()).toEqual(["Sign Out Failed"]);
     expect(sheet(renderer).props.visible).toBe(false);
     expect(sheet(renderer).props.signingOut).toBe(false);
+  });
+});
+
+describe("the counts under the profile", () => {
+  /** The view that holds the three counts: the one whose children are named "In stock", "On rent" and "Sold this month". */
+  const countsOf = (renderer: any) =>
+    renderer.root
+      .findAll(
+        (node: any) =>
+          (node.type as unknown) === "View" &&
+          node.props.accessibilityLabel === undefined &&
+          allTexts(node).join("|") === "1|In stock|0|On rent|0|Sold this month"
+      )
+      .pop();
+  const cell = (renderer: any, label: string) =>
+    renderer.root.find((node: any) => node.props.accessibilityLabel?.startsWith(`${label},`) && (node.type as unknown) === "View");
+  const flat = (style: unknown) => require("react-native").StyleSheet.flatten(style as any);
+
+  it("are three columns with a line between them at 100%", async () => {
+    const { renderer } = await renderAccount([makePiano()]);
+
+    expect(flat(countsOf(renderer).props.style).flexDirection).toBe("row");
+    expect(flat(cell(renderer, "In stock").props.style)).toMatchObject({ flex: 1, alignItems: "center", borderRightWidth: 1 });
+  });
+
+  describe("at 150%", () => {
+    atFontScale(1.5);
+
+    it("are one line each, the number at the right, so \"Sold this month\" has the room", async () => {
+      const { renderer } = await renderAccount([makePiano()]);
+
+      expect(flat(countsOf(renderer).props.style).flexDirection).toBe("column");
+      expect(flat(cell(renderer, "In stock").props.style)).toMatchObject({
+        flex: 0,
+        flexDirection: "row-reverse",
+        justifyContent: "space-between",
+        borderBottomWidth: 1,
+      });
+      // The last one has no line under it
+      expect(flat(cell(renderer, "Sold this month").props.style).borderBottomWidth).toBeUndefined();
+    });
   });
 });

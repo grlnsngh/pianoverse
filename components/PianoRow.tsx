@@ -9,6 +9,7 @@ import { statusToneColor } from "@/utils/rentalStatus";
 import SelectionMark from "./SelectionMark";
 import SwipeableRow from "./SwipeableRow";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 const THUMBNAIL = 64;
 
@@ -49,6 +50,9 @@ const PianoRow = ({
   onDelete,
 }: PianoRowProps) => {
   const styles = useStyles();
+  const { large } = useTextScale();
+  // One line each, unless the text is big: then a name or a status may take two rather than be cut
+  const lines = large ? 2 : 1;
   const colors = useColors();
   const display = getPianoDisplay(item);
   const id = item.$id;
@@ -93,10 +97,10 @@ const PianoRow = ({
 
       <View style={styles.content}>
         <View style={styles.texts}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={styles.title} numberOfLines={lines}>
             <HighlightedText text={item.title} term={highlight} matchStyle={styles.titleMatch} />
           </Text>
-          <Text style={styles.line} numberOfLines={1}>
+          <Text style={styles.line} numberOfLines={lines}>
             {company ? (
               <>
                 {display.categoryLabel} ·{" "}
@@ -108,15 +112,17 @@ const PianoRow = ({
           </Text>
           <Text
             style={[styles.status, { color: statusToneColor(display.status.tone, colors) }]}
-            numberOfLines={1}
+            numberOfLines={lines}
           >
             {display.status.text}
           </Text>
+          {/* With a big Font size the price goes under the status instead of squeezing the words into what is left */}
+          {large && !selecting && display.price ? <Text style={styles.price}>{display.price}</Text> : null}
         </View>
 
         {selecting ? (
           <SelectionMark variant="row" selected={selected} />
-        ) : display.price ? (
+        ) : !large && display.price ? (
           <Text style={styles.price}>{display.price}</Text>
         ) : null}
       </View>

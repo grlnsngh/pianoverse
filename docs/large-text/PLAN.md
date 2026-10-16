@@ -152,18 +152,18 @@ Tick `[x]` when done. Rules: work on a branch `feature/large-text` off `main`; k
   - [x] L3.7 `Badge`: limit 1.3, one line, leaves room for the category circle (F9) [on a photo, from 125%: at most 65% of the photo wide and the words may take a second line ("Overdue ·" / "18 days") rather than end in a dot; at 100% it is as drawn]
   - [x] L3.8 `Dialog`: width the smaller of 284 and the screen less 40; choices `minHeight` (F12) [also at most 90% of the screen high, its words scrolling inside so the choices can always be pressed, and the title takes the `section` limit]
   - [x] L3.9 Tests, typecheck, lint, commit [`largeTextBars.test.tsx`, 28 tests, 11 of which fail without the change, and a third guard in `largeText.test.tsx`: a screen that uses `type.section` or `type.sheetTitle` needs `maxScale.section`. Also the section titles of Today, a customer's page, the piano page, the Income card and the Add flow summary take the limit. Eight older assertions moved from `height` to `minHeight`. 167 suites, 2659 tests]
-- [ ] **Batch L4. Screens** (M)
-  - [ ] L4.1 Today: counts become a list in big-text mode; row and shelf titles may take two lines (F19, F20)
-  - [ ] L4.2 Pianos grid card in big-text mode: still two columns, the title may take two lines, price and status on their own lines (Q2); the list row's price under the status line (F15, F16)
-  - [ ] L4.3 Piano page: details stack in big-text mode; "Go back" button `minWidth` instead of a width (F21, F26)
-  - [ ] L4.4 Make picker: A to Z index limit 1.2, hidden when it doesn't fit the sheet (F22)
-  - [ ] L4.5 Account counts become a list in big-text mode (F25)
-  - [ ] L4.6 Income chart bars fit their columns (F23, D6)
-  - [ ] L4.7 Welcome scrolls; the orange top gets shorter in big-text mode (F24)
-  - [ ] L4.8 Service on a piano's page: the two buttons get `minHeight` and stack in big-text mode; the service history numbers become a list like Today's (F31, F37)
-  - [ ] L4.9 Letterhead screens: design cards grow with their name and wrap by word; thumbnail initials don't scale; the upload step circles get a `minWidth` and `minHeight` (F34, F35, F39)
-  - [ ] L4.10 Empty Pianos: the "Prefer paper? Print forms" link uses the button's own `minHeight`, not a fixed height, and may take two lines (F36)
-  - [ ] L4.11 Tests, typecheck, lint, commit
+- [x] **Batch L4. Screens** (M) [done 2026-10-15; not yet looked at on a phone]
+  - [x] L4.1 Today: counts become a list in big-text mode; row and shelf titles may take two lines (F19, F20) [the three counts are one line each, the number at the right; the rows of Attention, Rent due, Rented out, Recent payments and Service due, and the customers list, give every line two lines, and a customer's amounts go under the name]
+  - [x] L4.2 Pianos grid card in big-text mode: still two columns, the title may take two lines, price and status on their own lines (Q2); the list row's price under the status line (F15, F16) [the grid keeps its two columns as the owner chose (Q2); its price and status get a line each, the status without its leading " · "]
+  - [x] L4.3 Piano page: details stack in big-text mode; "Go back" button `minWidth` instead of a width (F21, F26) [the page's action rows (Edit, Share, Delete…) are `minHeight` 52 and wrap; the renter's name may take two lines]
+  - [x] L4.4 Make picker: A to Z index limit 1.2, hidden when it doesn't fit the sheet (F22) [`indexFits`: 8 + letters x (13 x the Font size, up to 1.2, + 3) must fit the list's measured height; the make rows and headings stay a fixed height on purpose, since the jump to a letter adds them up: a make is one line, a heading takes the `section` limit]
+  - [x] L4.5 Account counts become a list in big-text mode (F25)
+  - [x] L4.6 Income chart bars fit their columns (F23, D6) [a bar is `width: 100%` up to 28, in a column that may shrink]
+  - [x] L4.7 Welcome scrolls; the orange top gets shorter in big-text mode (F24) [from 125% the orange top is 30% of the screen instead of 52%]
+  - [x] L4.8 Service on a piano's page: the two buttons get `minHeight` and stack in big-text mode; the service history numbers become a list like Today's (F31, F37)
+  - [x] L4.9 Letterhead screens: design cards grow with their name and wrap by word; thumbnail initials don't scale; the upload step circles get a `minWidth` and `minHeight` (F34, F35, F39)
+  - [x] L4.10 Empty Pianos: the "Prefer paper? Print forms" link uses the button's own `minHeight`, not a fixed height, and may take two lines (F36) [done in Batch L2, with the button]
+  - [x] L4.11 Tests, typecheck, lint, commit [`largeTextScreens.test.tsx` (19 tests) and new cases in `accountScreen` and `serviceScreens`; 12 of the new ones fail without the change. 168 suites, 2684 tests]
 - [ ] **Batch L5. Check on a phone** (S)
   - [ ] L5.1 On the emulator, go through every screen in section 7 at 100%, 130%, 150% and 200%, and at the largest Display size; fix what is left
   - [ ] L5.2 Check at 100% that every screen still matches its board
@@ -231,6 +231,10 @@ Continue the large-text work. Read docs/large-text/PLAN.md (Progress, Decisions,
 - 2026-10-15, batch L3, **A bar at the bottom tells the toasts how tall it is.** `lib/bottomBars.ts`. The constants in `bottomBar` stay for the bar's least height and for the toast's place before a bar has been measured.
 - 2026-10-15, batch L3, **Eight tests changed on purpose.** `height: 84` and the like became `minHeight: 84`; the search pill's radius 26 became 999 (the same shape); the sheet's Cancel is no longer `position: absolute`.
 
+- 2026-10-15, batch L4, **The make picker's rows keep a fixed height.** The jump to a letter adds up the headings and rows (`headingOffset`), so they must have known heights. A make is one line now (`numberOfLines` 1), which fits the row at any Font size; a make that is too long ends in a dot instead of overflowing.
+- 2026-10-15, batch L4, **One list for every row of three counts.** Today, Account and a piano's service history show "In stock / On rent / Sold this month"-style columns; from 125% each becomes a line with the number at the right (`flexDirection: row-reverse`, so the order of the words for a screen reader is unchanged).
+- 2026-10-15, batch L4, **The Welcome screen scrolls.** It is a `ScrollView` whose content is at least the screen, so at 100% the buttons stay at the bottom as drawn and with a big Font size nothing is pushed off the screen.
+
 (more added as batches go)
 
 ## Session log
@@ -258,3 +262,7 @@ Batch L2 (controls): `Button`, `Field`, `FormRow`, `Segmented`, `AmountInput`, t
 ### Session 5, 2026-10-15
 
 Batch L3 (headers, bars and badges): sheet, Add flow, Back and select-mode titles, the tab bar, the sticky bar and the toasts above them (`lib/bottomBars.ts`), the category tabs, the search pill, the badge on a photo and the dialog, with `largeTextBars.test.tsx`. Batch L2 was merged first (PR #52). Next: Batch L4 (screens).
+
+### Session 6, 2026-10-15
+
+Batch L4 (screens): Today, Account and service counts as lists; two-line rows and shelf cards; the Pianos card and row (price on its own line); the piano page details and actions; the make picker index; the Income chart; Welcome; the service buttons; the letterhead cards, thumbnails and steps. Batch L3 was merged first (PR #53). Next: Batch L5 (check on a phone), which needs the owner's phone or an emulator.

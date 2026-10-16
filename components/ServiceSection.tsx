@@ -19,6 +19,7 @@ import {
   serviceSummary,
 } from "@/utils/serviceLog";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 import { SectionTitle } from "./DetailParts";
 
 /** The latest services on the piano's page; the rest are on its full list. */
@@ -32,6 +33,7 @@ export const SERVICES_SHOWN = 3;
 const ServiceSection = ({ piano }: { piano: PianoItem }) => {
   const colors = useColors();
   const styles = useStyles();
+  const { large } = useTextScale();
   const { details } = useLetterhead();
   const { log, entries, state, months, startLogging, hold, edit, confirmDelete, chooseIntervalOpen, sheets } =
     useServiceSheets(piano);
@@ -101,17 +103,18 @@ const ServiceSection = ({ piano }: { piano: PianoItem }) => {
             </View>
           )}
 
-          <View style={styles.buttons}>
-            <LogButton onPress={startLogging} style={styles.flex} />
+          {/* Side by side, each half the width; with a big Font size one above the other, so neither label is cut */}
+          <View style={[styles.buttons, large && styles.buttonsStacked]}>
+            <LogButton onPress={startLogging} style={large ? undefined : styles.flex} />
             {messageable && (
               <Pressable
                 onPress={message}
                 accessibilityRole="button"
                 accessibilityLabel={`Message ${renter || "the renter"} about the tuning`}
-                style={({ pressed }) => [styles.outline, styles.flex, pressed && styles.outlinePressed]}
+                style={({ pressed }) => [styles.outline, !large && styles.flex, pressed && styles.outlinePressed]}
               >
                 <Icon name="message" size={18} color={colors.ink} strokeWidth={1.8} />
-                <Text style={styles.outlineLabel} numberOfLines={1}>
+                <Text style={styles.outlineLabel} numberOfLines={large ? 2 : 1}>
                   {`Message ${renter.split(/\s+/)[0] || "renter"}`}
                 </Text>
               </Pressable>
@@ -182,9 +185,11 @@ const useStyles = makeStyles((colors) => ({
   headline: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 22 },
   detail: { ...type.secondary, marginTop: 2, paddingLeft: 16, color: colors.inkBody },
   buttons: { flexDirection: "row", gap: 10, marginTop: 12 },
+  buttonsStacked: { flexDirection: "column" },
   flex: { flex: 1 },
   log: {
-    height: 48,
+    minHeight: 48,
+    paddingVertical: 8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -193,9 +198,10 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.ink,
   },
   logPressed: { opacity: 0.85 },
-  logLabel: { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22, color: colors.onInk },
+  logLabel: { flexShrink: 1, textAlign: "center", fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22, color: colors.onInk },
   outline: {
-    height: 48,
+    minHeight: 48,
+    paddingVertical: 8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

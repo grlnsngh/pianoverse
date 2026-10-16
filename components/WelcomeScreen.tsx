@@ -1,11 +1,12 @@
 import { router } from "expo-router";
 import React from "react";
-import { Text, useWindowDimensions, View } from "react-native";
+import { ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Rect } from "react-native-svg";
 import { BrandMark, Button } from "@/components/ui";
 import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 // The board's 390 x 468 orange top: a keyboard running off the left, right and bottom
 const HERO_WIDTH = 390;
@@ -80,11 +81,19 @@ const WelcomeScreen = () => {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
-  // The board's height, plus the status bar; shorter phones give some of it back
-  const heroHeight = Math.min(HERO_HEIGHT + insets.top, windowHeight * 0.52);
+  const { large } = useTextScale();
+  // The board's height, plus the status bar; shorter phones give some of it back,
+  // and so do those with a big Font size, whose words need the room
+  const heroHeight = Math.min(HERO_HEIGHT + insets.top, windowHeight * (large ? 0.3 : 0.52));
 
   return (
-    <View style={styles.screen} testID="welcome">
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.screenContent}
+      bounces={false}
+      showsVerticalScrollIndicator={false}
+      testID="welcome"
+    >
       <View style={[styles.hero, { height: heroHeight }]}>
         <Keyboard height={Math.min(HERO_HEIGHT, heroHeight)} />
         <View style={[styles.brand, { top: insets.top + spacing.lg }]}>
@@ -119,12 +128,14 @@ const WelcomeScreen = () => {
           onPress={() => router.push("/sign-up")}
         />
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.surface },
+  // As tall as the screen at least, so the buttons stay at the bottom; longer, it scrolls
+  screenContent: { flexGrow: 1 },
   hero: {
     overflow: "hidden",
     borderBottomLeftRadius: 32,
@@ -145,7 +156,8 @@ const useStyles = makeStyles((colors) => ({
     letterSpacing: -0.44,
     color: colors.onBrand,
   },
-  text: { paddingTop: 28, paddingHorizontal: spacing.xxl },
+  // The bottom keeps the words clear of the buttons when the screen scrolls
+  text: { paddingTop: 28, paddingBottom: spacing.xl, paddingHorizontal: spacing.xxl },
   headline: { ...type.largeTitle, color: colors.ink },
   subtitle: { marginTop: 10, ...type.body, color: colors.ink2 },
   buttons: {

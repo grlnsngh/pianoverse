@@ -37,6 +37,7 @@ import { showDialog } from "@/utils/dialog";
 import { showToast } from "@/utils/toast";
 import { stockCounts } from "@/utils/today";
 import { makeStyles, useColors, useTheme } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 import { APPEARANCE_LABELS, APPEARANCE_SETTINGS } from "@/utils/appearance";
 
 const THEME_OPTIONS = APPEARANCE_SETTINGS.map((value) => ({
@@ -54,11 +55,17 @@ const CountCell = ({
   last?: boolean;
 }) => {
   const styles = useStyles();
+  const { large } = useTextScale();
   return (
     <View
       accessible
       accessibilityLabel={`${label}, ${value}`}
-      style={[styles.count, !last && styles.countDivider]}
+      style={[
+        styles.count,
+        // With a big Font size the three share a column, one line each, the number at the right
+        large ? styles.countItem : !last && styles.countDivider,
+        large && !last && styles.countItemDivider,
+      ]}
     >
       <Text style={styles.countValue}>{value}</Text>
       <Text style={styles.countLabel}>{label}</Text>
@@ -141,6 +148,7 @@ const DataRow = ({
 const Profile = () => {
   const colors = useColors();
   const styles = useStyles();
+  const { large } = useTextScale();
   const dispatch = useDispatch();
   const { user, setUser, setIsLogged } = useGlobalContext();
   const items = useSelector((state: RootState) => state.pianos.items);
@@ -337,7 +345,7 @@ const Profile = () => {
             </View>
             <Icon name="chevronRight" size={18} color={colors.chevron} strokeWidth={2} />
           </Pressable>
-          <View style={styles.counts}>
+          <View style={[styles.counts, large && styles.countsList]}>
             <CountCell value={counts.inStock} label="In stock" />
             <CountCell value={counts.onRent} label="On rent" />
             <CountCell value={counts.soldThisMonth.count} label="Sold this month" last />
@@ -560,6 +568,15 @@ const useStyles = makeStyles((colors) => ({
     borderTopColor: colors.hairline,
   },
   count: { flex: 1, paddingVertical: 14, alignItems: "center" },
+  countsList: { flexDirection: "column" },
+  countItem: {
+    flex: 0,
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    alignItems: "baseline",
+    paddingHorizontal: spacing.xl,
+  },
+  countItemDivider: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
   countDivider: { borderRightWidth: 1, borderRightColor: colors.hairline },
   countValue: {
     fontFamily: fonts.bold,

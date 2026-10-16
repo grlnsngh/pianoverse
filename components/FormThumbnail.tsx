@@ -68,6 +68,8 @@ export const LetterheadThumbnail = ({
         top = (
           <>
             <Text
+              // A drawing of a page: its letters are part of the picture, not words to read
+              allowFontScaling={false}
               style={{
                 position: "absolute",
                 left: at(4),

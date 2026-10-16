@@ -4,6 +4,7 @@ import { fonts } from "@/constants/theme";
 import { formatRupees } from "@/utils/money";
 import type { RecentPayment } from "@/utils/today";
 import { makeStyles } from "@/lib/ThemeContext";
+import useTextScale from "@/lib/useTextScale";
 
 export type PaymentRowProps = {
   payment: RecentPayment;
@@ -16,6 +17,9 @@ export type PaymentRowProps = {
  */
 const PaymentRow = ({ payment }: PaymentRowProps) => {
   const styles = useStyles();
+  const { large } = useTextScale();
+  // One line each, unless the text is big: then a name or a status may take two rather than be cut
+  const lines = large ? 2 : 1;
   const amount = formatRupees(payment.amount);
 
   return (
@@ -26,10 +30,10 @@ const PaymentRow = ({ payment }: PaymentRowProps) => {
     >
       <View style={styles.content}>
         <View style={styles.texts}>
-          <Text style={styles.primary} numberOfLines={1}>
+          <Text style={styles.primary} numberOfLines={lines}>
             {payment.primary}
           </Text>
-          <Text style={styles.secondary} numberOfLines={1}>
+          <Text style={styles.secondary} numberOfLines={lines}>
             {payment.secondary}
           </Text>
         </View>
