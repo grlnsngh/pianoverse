@@ -116,6 +116,10 @@ export const ICONS = {
     { cx: 17, cy: 17, r: 2 },
   ],
   calendar: [{ x: 3.5, y: 5, width: 17, height: 15.5, rx: 3 }, { d: "M3.5 10h17M8 3v4M16 3v4" }],
+  // From the Expenses and profit boards: the kinds of expense, and the Expenses row
+  shop: [{ d: "M3 10l9-6 9 6v10H3zM9 20v-6h6v6" }],
+  megaphone: [{ d: "M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12" }],
+  receipt: [{ d: "M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4" }],
 } as const satisfies Record<string, readonly Shape[]>;
 
 export type IconName = keyof typeof ICONS;

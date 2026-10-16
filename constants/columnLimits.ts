@@ -24,4 +24,7 @@ export const COLUMN_LIMITS = {
   service_log: {
     note: 1000,
   },
+  expenses: {
+    note: 1000,
+  },
 } as const;

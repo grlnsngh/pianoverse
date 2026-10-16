@@ -6,6 +6,7 @@ import * as IntentLauncher from "expo-intent-launcher";
 import { Alert, Platform } from "react-native";
 import { differenceInCalendarDays, startOfToday } from "date-fns";
 import { parseStoredDate } from "./dates";
+import { purchasePriceOf } from "./pianoMoney";
 import { isSold } from "./pianoStatus";
 
 /**
@@ -74,6 +75,7 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
     "Brand/Make",
     "Company/Owner",
     "Purchase Date",
+    "Bought For",
 
     // Rental Information
     "Rental Customer Name",
@@ -90,7 +92,6 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
     "Days in Warehouse",
 
     // Event Information
-    "Event Purchase Price",
     "Purchased From (Event)",
     "Model Number",
     "B Number",
@@ -137,6 +138,7 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
       escapeCSVField(
         piano.date_of_purchase ? formatDate(piano.date_of_purchase) : ""
       ),
+      escapeCSVField(formatPrice(purchasePriceOf(piano))),
 
       // Rental Information (only for rentable pianos)
       escapeCSVField(
@@ -194,11 +196,6 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
       ),
 
       // Event Information (only for event pianos)
-      escapeCSVField(
-        piano.category.toLowerCase() === "events" && piano.event_purchase_price
-          ? formatPrice(piano.event_purchase_price)
-          : ""
-      ),
       escapeCSVField(
         piano.category.toLowerCase() === "events"
           ? piano.event_purchase_from

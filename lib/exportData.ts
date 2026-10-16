@@ -1,6 +1,6 @@
 import { addMonths, startOfMonth } from "date-fns";
 import { Alert } from "react-native";
-import { getRentalHistory, getRentPaymentsBetween } from "@/lib/appwrite";
+import { getExpenses, getRentalHistory, getRentPaymentsBetween, getServiceLog } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import {
   CSV_BOM,
@@ -9,8 +9,9 @@ import {
   saveAndOpenCSV,
 } from "@/utils/csvExport";
 import { buildCustomers } from "@/utils/customers";
+import { allCosts, costsBetween } from "@/utils/expenses";
 import { ALL_PAYMENTS_FROM, ExportPeriod } from "@/utils/exportPeriods";
-import { convertCustomersToCSV, convertPaymentsToCSV } from "@/utils/ledgerCsv";
+import { convertCostsToCSV, convertCustomersToCSV, convertPaymentsToCSV } from "@/utils/ledgerCsv";
 
 /**
  * Downloads the payments of a period as a CSV file and opens it. The payments
@@ -41,6 +42,42 @@ export const exportPayments = async (
     await saveAndOpenCSV(
       `payments_${period.slug}_${fileTimestamp()}.csv`,
       CSV_BOM + convertPaymentsToCSV(payments, pianos)
+    );
+  } catch (error) {
+    reportExportFailure(error);
+  }
+};
+
+/**
+ * Downloads the costs of a period as a CSV file and opens it: the business
+ * expenses and the services that cost something, asked for when it is
+ * pressed. A period with nothing spent says so instead of making an empty file.
+ *
+ * @param {string} accountId - The signed-in owner's account ID.
+ * @param {PianoItem[]} pianos - The pianos, for the name beside each service.
+ * @param {ExportPeriod} period - The days to export.
+ */
+export const exportExpenses = async (
+  accountId: string,
+  pianos: PianoItem[],
+  period: ExportPeriod
+): Promise<void> => {
+  try {
+    const [expenses, entries] = await Promise.all([getExpenses(accountId), getServiceLog(accountId)]);
+    const costs = costsBetween(allCosts(expenses, entries, pianos), period.from, period.to);
+    if (costs.length === 0) {
+      Alert.alert(
+        "No Data",
+        period.key === "all"
+          ? "There are no expenses to export yet."
+          : `There are no expenses recorded for ${period.label.toLowerCase()} (${period.detail}).`
+      );
+      return;
+    }
+
+    await saveAndOpenCSV(
+      `expenses_${period.slug}_${fileTimestamp()}.csv`,
+      CSV_BOM + convertCostsToCSV(costs)
     );
   } catch (error) {
     reportExportFailure(error);

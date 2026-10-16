@@ -14,8 +14,8 @@ export type IncomeCardProps = {
   onSeeAll: () => void;
 };
 
-/** The two colours of the bars, named under the chart. */
-export const IncomeLegend = () => {
+/** The colours of the bars, named under the chart; with `costs`, the grey bars below the line too. */
+export const IncomeLegend = ({ costs = false }: { costs?: boolean }) => {
   const colors = useColors();
   const styles = useStyles();
   return (
@@ -34,6 +34,12 @@ export const IncomeLegend = () => {
         />
         <Text style={styles.keyText}>Piano sold</Text>
       </View>
+      {costs && (
+        <View style={styles.key}>
+          <View style={[styles.swatch, { backgroundColor: colors.chevron }]} />
+          <Text style={styles.keyText}>Costs, below the line</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -109,7 +115,8 @@ const useStyles = makeStyles((colors) => ({
     paddingHorizontal: spacing.screen,
     color: colors.ink2,
   },
-  legend: { flexDirection: "row", gap: spacing.lg, marginTop: spacing.md },
+  // The keys wrap onto another line when they don't fit (three of them, or a big Font size)
+  legend: { flexDirection: "row", flexWrap: "wrap", columnGap: spacing.lg, rowGap: spacing.xs, marginTop: spacing.md },
   key: { flexDirection: "row", alignItems: "center", gap: 6 },
   swatch: { width: 10, height: 10, borderRadius: 3 },
   dot: { borderRadius: 5 },

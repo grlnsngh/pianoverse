@@ -25,6 +25,7 @@ const TABLES = [
   config.rentalHistoryTableId,
   config.formEventsTableId,
   config.serviceLogTableId,
+  config.expensesTableId,
 ];
 
 let server: FakeServer;
@@ -51,6 +52,9 @@ const seed = () => {
   server.addRow(config.formEventsTableId, { $id: "e3", creator: SOMEONE_ELSE, form: "receipts", action: "printed" });
   server.addRow(config.serviceLogTableId, { $id: "s1", creator: ME, piano_id: "p1", kind: "tuning" });
   server.addRow(config.serviceLogTableId, { $id: "s2", creator: SOMEONE_ELSE, piano_id: "p3", kind: "repair" });
+  server.addRow(config.expensesTableId, { $id: "e1", creator: ME, category: "shop", amount: 2000 });
+  server.addRow(config.expensesTableId, { $id: "e2", creator: ME, category: "staff", amount: 6000 });
+  server.addRow(config.expensesTableId, { $id: "e3", creator: SOMEONE_ELSE, category: "other", amount: 50 });
   for (const id of ["f1", "f2", "f_avatar"]) server.addFile({ $id: id, name: `${photoNamePrefix(ME)}itemTitle_x.jpg` });
   // A photo whose piano never got saved: only its name says whose it is
   server.addFile({ $id: "f_orphan", name: `${photoNamePrefix(ME)}itemTitle_lost.jpg` });
@@ -82,11 +86,12 @@ describe("deleting an account", () => {
     expect(ids(config.rentalHistoryTableId)).toEqual([]);
     expect(ids(config.formEventsTableId)).toEqual(["e3"]);
     expect(ids(config.serviceLogTableId)).toEqual(["s2"]);
+    expect(ids(config.expensesTableId)).toEqual(["e3"]);
     expect(ids(config.pianoTableId)).toEqual(["p3"]);
     expect(ids(config.userTableId)).toEqual(["u_other"]);
     expect(server.files.map((file) => file.$id).sort()).toEqual(["f_theirs", "f_theirs2"]);
     expect(server.accounts.map((user) => user.$id)).toEqual([SOMEONE_ELSE]);
-    expect(deleted).toEqual({ pianos: 2, payments: 1, rentals: 1, photos: 5, profiles: 1, formEvents: 2, services: 1 });
+    expect(deleted).toEqual({ pianos: 2, payments: 1, rentals: 1, photos: 5, profiles: 1, formEvents: 2, services: 1, expenses: 2 });
   });
 
   it("deletes the account last, so a deletion that stops leaves the person able to ask again", async () => {
@@ -112,7 +117,7 @@ describe("deleting an account", () => {
     await run();
     server.addAccount({ $id: ME, email: "me@example.com", name: "Me", $createdAt: "2025-09-01" });
 
-    await expect(run()).resolves.toEqual({ pianos: 0, payments: 0, rentals: 0, photos: 0, profiles: 0, formEvents: 0, services: 0 });
+    await expect(run()).resolves.toEqual({ pianos: 0, payments: 0, rentals: 0, photos: 0, profiles: 0, formEvents: 0, services: 0, expenses: 0 });
     expect(server.accounts.map((user) => user.$id)).toEqual([SOMEONE_ELSE]);
   });
 
@@ -262,7 +267,7 @@ describe("the function itself", () => {
     expect(reply.status).toBe(200);
     expect(reply.body).toEqual({
       ok: true,
-      deleted: { pianos: 2, payments: 1, rentals: 1, photos: 5, profiles: 1, formEvents: 2, services: 1 },
+      deleted: { pianos: 2, payments: 1, rentals: 1, photos: 5, profiles: 1, formEvents: 2, services: 1, expenses: 2 },
     });
     expect(server.accounts.map((user) => user.$id)).toEqual([SOMEONE_ELSE]);
   });
@@ -360,7 +365,7 @@ describe("deleting an account asked for by email", () => {
     const { code, lines } = await script([" Me@Example.com ", "--yes"]);
 
     expect(code).toBe(0);
-    expect(lines[lines.length - 1]).toContain("Deleted 2 pianos, 5 photos, 1 payment, 1 kept rental, 1 service, 2 form usage counts and the account.");
+    expect(lines[lines.length - 1]).toContain("Deleted 2 pianos, 5 photos, 1 payment, 1 kept rental, 1 service, 2 expenses, 2 form usage counts and the account.");
     expect(server.accounts.map((user) => user.$id)).toEqual([SOMEONE_ELSE]);
   });
 

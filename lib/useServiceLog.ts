@@ -22,10 +22,11 @@ const useServiceLog = () => {
   useEffect(() => {
     void loadServiceLog(accountId);
   }, [accountId]);
-  const mine = log.accountId === accountId;
+  const mine = !!accountId && log.accountId === accountId;
   return {
     entries: mine ? log.entries : [],
-    status: mine ? log.status : "loading",
+    // Nobody signed in has nothing to wait for
+    status: !accountId ? "ready" : mine ? log.status : "loading",
     reload: () => loadServiceLog(accountId, true),
     add: addServiceEntry,
     change: changeServiceEntry,

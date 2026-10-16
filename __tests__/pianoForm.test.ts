@@ -175,6 +175,8 @@ describe("saving a piano", () => {
         company_associated: piano.company_associated,
         photos: [piano.image_url],
         date_of_purchase: "2026-01-15",
+        // Bought for is saved for every piano; an events piano's Purchase price became it
+        purchase_price: category === "events" ? 150000 : 0,
         ...details,
         // Only a rental keeps a customer
         ...(category !== "rentable" && noCustomer),

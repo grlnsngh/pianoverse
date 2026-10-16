@@ -3,14 +3,18 @@ import { Alert, Text, View } from "react-native";
 import { format, isToday } from "date-fns";
 import { AmountInput, Button, DatePickerSheet, FormRow, Group, Sheet } from "@/components/ui";
 import { COLUMN_LIMITS } from "@/constants/columnLimits";
-import { type } from "@/constants/theme";
+import { fonts, maxScale, radii, type } from "@/constants/theme";
 import useUpdatePiano from "@/lib/useUpdatePiano";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
+import { formatRupees } from "@/utils/money";
+import { profitIfSold, type PianoMoney } from "@/utils/pianoMoney";
 import { makeStyles } from "@/lib/ThemeContext";
 
 interface MarkAsSoldSheetProps {
   piano: PianoItem;
+  /** The piano's money, for the profit the sale would make; none while it loads */
+  money?: PianoMoney | null;
   visible: boolean;
   onClose: () => void;
 }
@@ -20,12 +24,14 @@ const dayLabel = (date: Date) =>
   `${isToday(date) ? "Today, " : ""}${format(date, "d MMM yyyy")}`;
 
 /**
- * Records that a piano was sold (MarkSold board): the price big and centred,
- * suggesting the asking price of a piano on sale, then the day, the buyer and
- * an optional address, and one orange button.
+ * Records that a piano was sold (MarkSold and MarkSoldProfit boards): the
+ * price big and centred, suggesting the asking price of a piano on sale, then
+ * the day, the buyer and an optional address, what the piano will have made
+ * as the price is typed, and one orange button.
  */
 const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
   piano,
+  money = null,
   visible,
   onClose,
 }) => {
@@ -123,6 +129,8 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
         />
       </Group>
 
+      {money && <SaleProfit money={money} price={price} />}
+
       <Text style={styles.note}>
         The piano leaves your stock and is marked Sold. You can undo this later from its page.
       </Text>
@@ -140,9 +148,61 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
   );
 };
 
+/** What the piano will have made once sold for `price`: the sale and its rent, less what it was bought for and its service. */
+const SaleProfit = ({ money, price }: { money: PianoMoney; price: number }) => {
+  const styles = useStyles();
+  const profit = profitIfSold(money, price);
+  if (profit === null) {
+    return (
+      <Text style={styles.profitAsk}>
+        Add what you paid for it (Bought for, on its Edit page) to see the profit on this piano.
+      </Text>
+    );
+  }
+  const loss = profit < 0;
+  const lines = [
+    { label: "Sale", value: formatRupees(Math.max(0, price)) },
+    ...(money.rent > 0 ? [{ label: "Rent received", value: formatRupees(money.rent) }] : []),
+    { label: "Bought for", value: `−${formatRupees(money.bought ?? 0)}` },
+    ...(money.service > 0 ? [{ label: "Service", value: `−${formatRupees(money.service)}` }] : []),
+  ];
+  return (
+    <View
+      style={styles.profit}
+      accessible
+      accessibilityLabel={`${loss ? "Loss" : "Profit"} on this piano, ${formatRupees(Math.abs(profit))}. ${lines
+        .map((line) => `${line.label} ${line.value}`)
+        .join(", ")}`}
+    >
+      <Text style={styles.profitLabel}>{loss ? "Loss on this piano" : "Profit on this piano"}</Text>
+      <Text style={[styles.profitAmount, loss && styles.profitLoss]} maxFontSizeMultiplier={maxScale.title}>
+        {formatRupees(Math.abs(profit))}
+      </Text>
+      <View style={styles.profitLines}>
+        {lines.map((line) => (
+          <View key={line.label} style={styles.profitLine}>
+            <Text style={styles.profitText}>{line.label}</Text>
+            <Text style={[styles.profitText, styles.profitValue]}>{line.value}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
+
 const useStyles = makeStyles((colors) => ({
   subject: { ...type.secondary, textAlign: "center", color: colors.ink2 },
   group: { marginTop: 20 },
+  profit: { marginTop: 12, padding: 16, borderRadius: radii.card, backgroundColor: colors.surface },
+  profitLabel: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, color: colors.ink2 },
+  profitAmount: { ...type.pianoTitle, marginTop: 2, color: colors.ink, fontVariant: ["tabular-nums"] },
+  profitLoss: { color: colors.late },
+  profitLines: { marginTop: 8, gap: 2 },
+  // The amount stays at the right; with a big Font size a long label wraps under it
+  profitLine: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", columnGap: 12 },
+  profitText: { ...type.secondary, color: colors.inkBody },
+  profitValue: { fontVariant: ["tabular-nums"] },
+  profitAsk: { ...type.caption, marginTop: 12, marginHorizontal: 16, fontFamily: fonts.regular, color: colors.ink2 },
   note: { ...type.caption, marginTop: 12, marginHorizontal: 16, fontFamily: type.secondary.fontFamily, color: colors.ink2 },
   bottom: { height: 8 },
 }));

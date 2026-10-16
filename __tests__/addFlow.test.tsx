@@ -357,7 +357,7 @@ describe("step 2 of the Add flow", () => {
 
   it.each([
     ["rentable", ["Customer", "Mobile", "Address", "Rent"], ["Starts", "Ends"]],
-    ["events", ["Purchase price", "Bought from", "Model number", "B number"], []],
+    ["events", ["Bought from", "Model number", "B number"], []],
     ["on_sale", ["Sale price", "Bought from"], ["Import date"]],
     ["warehouse", [], ["Stored since"]],
   ])("shows the fields of a %s piano", async (category, inputs, rows) => {
@@ -552,8 +552,8 @@ describe("the review, publishing and published screens", () => {
     it.each([
       [
         "events",
-        { eventPurchasePrice: 780000, eventPurchaseFrom: "Dealer", eventModelNumber: "M1", eventBNumber: "B7" },
-        ["Event", "₹7,80,000", "Dealer", "M1", "B7"],
+        { purchasePrice: 780000, eventPurchaseFrom: "Dealer", eventModelNumber: "M1", eventBNumber: "B7" },
+        ["Bought for", "₹7,80,000", "Event", "Dealer", "M1", "B7"],
       ],
       [
         "on_sale",

@@ -3,6 +3,7 @@ import { LocalImageAsset, PianoEntryInput } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate, toStoredDate } from "@/utils/dates";
 import { getPianoPhotos } from "@/utils/photos";
+import { purchasePriceOf } from "@/utils/pianoMoney";
 import { rentalDetailsError } from "@/utils/validation";
 
 /** A photo picked on the device that hasn't been uploaded yet. */
@@ -28,6 +29,8 @@ export interface PianoFormState {
   make: string;
   companyAssociated: string;
   dateOfPurchase: Date;
+  // What it was bought for, for any category; 0 when not known
+  purchasePrice: number;
   rentalCustomerName: string;
   rentalCustomerAddress: string;
   rentalCustomerMobileNumber: string;
@@ -35,7 +38,6 @@ export interface PianoFormState {
   rentalEndDate: Date;
   rentalPrice: number;
   warehouseStoredSinceDate: Date;
-  eventPurchasePrice: number;
   eventPurchaseFrom: string;
   eventModelNumber: string;
   eventBNumber: string;
@@ -60,6 +62,7 @@ export const createEmptyPianoForm = (): PianoFormState => ({
   make: "",
   companyAssociated: "",
   dateOfPurchase: new Date(),
+  purchasePrice: 0,
   rentalCustomerName: "",
   rentalCustomerAddress: "",
   rentalCustomerMobileNumber: "",
@@ -67,7 +70,6 @@ export const createEmptyPianoForm = (): PianoFormState => ({
   rentalEndDate: new Date(),
   rentalPrice: 0,
   warehouseStoredSinceDate: new Date(),
-  eventPurchasePrice: 0,
   eventPurchaseFrom: "",
   eventModelNumber: "",
   eventBNumber: "",
@@ -85,6 +87,7 @@ export const pianoToForm = (piano: PianoItem): PianoFormState => ({
   make: piano.make || "",
   companyAssociated: piano.company_associated || "",
   dateOfPurchase: parseStoredDate(piano.date_of_purchase) ?? new Date(),
+  purchasePrice: purchasePriceOf(piano) ?? 0,
   rentalCustomerName: piano.rental_customer_name || "",
   rentalCustomerAddress: piano.rental_customer_address || "",
   rentalCustomerMobileNumber: piano.rental_customer_mobile || "",
@@ -93,7 +96,6 @@ export const pianoToForm = (piano: PianoItem): PianoFormState => ({
   rentalPrice: piano.rental_price || 0,
   warehouseStoredSinceDate:
     parseStoredDate(piano.warehouse_since_date) ?? new Date(),
-  eventPurchasePrice: piano.event_purchase_price || 0,
   eventPurchaseFrom: piano.event_purchase_from || "",
   eventModelNumber: piano.event_model_number || "",
   eventBNumber: piano.event_b_number || "",
@@ -132,7 +134,7 @@ export const hasEntries = (form: PianoFormState) =>
   !!form.make ||
   !!form.companyAssociated ||
   form.rentalPrice > 0 ||
-  form.eventPurchasePrice > 0 ||
+  form.purchasePrice > 0 ||
   form.onSalePrice > 0 ||
   [
     form.title,
@@ -228,6 +230,8 @@ export const toPianoEntryInput = (
     company_associated: form.companyAssociated,
     photos: form.photos,
     date_of_purchase: toStoredDate(form.dateOfPurchase),
+    // Saved for every piano, 0 when not known, so it is what counts from now on (utils/pianoMoney.ts)
+    purchase_price: form.purchasePrice > 0 ? form.purchasePrice : 0,
   };
 
   switch (form.category) {
@@ -251,7 +255,8 @@ export const toPianoEntryInput = (
       return {
         ...basics,
         ...NO_CUSTOMER,
-        event_purchase_price: form.eventPurchasePrice,
+        // The same as Bought for, which took the place of the events' own Purchase price
+        event_purchase_price: form.purchasePrice,
         event_purchase_from: form.eventPurchaseFrom,
         event_model_number: form.eventModelNumber,
         event_b_number: form.eventBNumber,

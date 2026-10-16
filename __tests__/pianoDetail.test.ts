@@ -247,12 +247,13 @@ describe("the Details / About this piano section", () => {
     expect(aboutSection(events).rows).toEqual([
       { label: "Make", value: "Steinway" },
       { label: "Company", value: "Shamshersons" },
-      { label: "Purchase price", value: "₹7,80,000", strong: true },
       { label: "Bought from", value: "Bose Pianos" },
       { label: "Model number", value: "Model D" },
       { label: "B number", value: "B-12/34" },
       // Every fixture piano was bought on 15 Jan 2026
       { label: "Purchased", value: "15 Jan 2026" },
+      // Its Purchase price, from before Bought for, which every piano has now
+      { label: "Bought for", value: "₹7,80,000", strong: true },
     ]);
   });
 

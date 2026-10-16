@@ -18,9 +18,10 @@ import { fonts, maxScale, radii, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { useAppLock } from "@/lib/AppLockContext";
 import { deleteAccount, signOut } from "@/lib/appwrite";
-import { exportCustomers, exportPayments } from "@/lib/exportData";
+import { exportCustomers, exportExpenses, exportPayments } from "@/lib/exportData";
 import { forgetFormEvents } from "@/lib/formEvents";
 import { forgetLetterhead } from "@/lib/letterheadStore";
+import { forgetExpenses } from "@/lib/expensesStore";
 import { forgetServiceLog } from "@/lib/serviceLogStore";
 import { forgetPaperPdfs } from "@/lib/paperPdf";
 import { clearPianoCache } from "@/lib/pianoCache";
@@ -163,8 +164,9 @@ const Profile = () => {
     Updates.isEmbeddedLaunch
   );
   // Which download is going on, if one is: they take a moment (the data is asked for first)
-  const [exporting, setExporting] = useState<"pianos" | "payments" | "customers" | null>(null);
-  const [choosingPeriod, setChoosingPeriod] = useState(false);
+  const [exporting, setExporting] = useState<"pianos" | "payments" | "customers" | "expenses" | null>(null);
+  // Which download the period sheet is choosing a period for, while it shows
+  const [periodFor, setPeriodFor] = useState<"payments" | "expenses" | null>(null);
   const exportTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -184,7 +186,7 @@ const Profile = () => {
   // Read again each time the tab is shown, since the Pianos tab saves a copy after every load
   const savedAt = useSavedAt(user?.accountId, activeTab);
 
-  const runExport = async (kind: "pianos" | "payments" | "customers", task: () => Promise<void>) => {
+  const runExport = async (kind: "pianos" | "payments" | "customers" | "expenses", task: () => Promise<void>) => {
     setExporting(kind);
     try {
       await task();
@@ -204,10 +206,16 @@ const Profile = () => {
   // The sheet takes 240 ms to leave; the download starts after that, so what it shows
   // (a message, the share sheet) isn't started under a sheet that is still going
   const handleChoosePeriod = (period: ExportPeriod) => {
-    setChoosingPeriod(false);
-    if (!user) return;
+    const kind = periodFor;
+    setPeriodFor(null);
+    if (!user || !kind) return;
     exportTimer.current = setTimeout(
-      () => runExport("payments", () => exportPayments(user.accountId, items, period)),
+      () =>
+        runExport(kind, () =>
+          kind === "expenses"
+            ? exportExpenses(user.accountId, items, period)
+            : exportPayments(user.accountId, items, period)
+        ),
       300
     );
   };
@@ -243,6 +251,7 @@ const Profile = () => {
     await forgetLetterhead();
     await forgetFormEvents();
     await forgetServiceLog();
+    forgetExpenses();
     forgetPaperPdfs();
     dispatch(resetPianoState() as any);
     dispatch(setActiveTab("pianos") as any);
@@ -356,7 +365,7 @@ const Profile = () => {
           <DataRow
             icon="chart"
             title="Income"
-            hint="Rent and sales, month by month"
+            hint="Profit: rent, sales and expenses, month by month"
             onPress={() => router.push("/income")}
           />
           <DataRow
@@ -390,8 +399,16 @@ const Profile = () => {
             icon="download"
             title="Download payments"
             hint="CSV file for your accountant. You choose the period."
-            onPress={() => setChoosingPeriod(true)}
+            onPress={() => setPeriodFor("payments")}
             busy={exporting === "payments"}
+            locked={exporting !== null}
+          />
+          <DataRow
+            icon="download"
+            title="Download expenses"
+            hint="CSV file: business expenses and piano service costs. You choose the period."
+            onPress={() => setPeriodFor("expenses")}
+            busy={exporting === "expenses"}
             locked={exporting !== null}
           />
           <DataRow
@@ -500,10 +517,11 @@ const Profile = () => {
       </ScrollView>
 
       <ExportPaymentsSheet
-        visible={choosingPeriod}
-        onClose={() => setChoosingPeriod(false)}
+        visible={periodFor !== null}
+        onClose={() => setPeriodFor(null)}
         periods={exportPeriods()}
         onChoose={handleChoosePeriod}
+        title={periodFor === "expenses" ? "Download expenses" : "Download payments"}
       />
       <SignOutSheet
         visible={signOutOpen}

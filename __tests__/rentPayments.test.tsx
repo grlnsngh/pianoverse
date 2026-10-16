@@ -253,13 +253,13 @@ describe("rent payments on the Detail screen", () => {
     expect(texts).toContain("Record payment");
   });
 
-  it("is only shown for rented pianos", async () => {
+  it("is only shown for rented pianos, though the Money section still counts what one earned", async () => {
     seedPayment("p", "2026-08-05", 5000);
     const { renderer } = await openDetail(warehouse);
 
     expect(allTexts(renderer.root)).not.toContain("Payments");
     expect(allTexts(renderer.root)).not.toContain("Record payment");
-    expect(fakeBackend.listCalls).toEqual([]);
+    expect(allTexts(renderer.root)).toContain("Rent received · 1 payment");
   });
 
   it("lists the payments, newest first, with what has been received", async () => {

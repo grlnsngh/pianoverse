@@ -34,6 +34,7 @@ describe("the project the app expects", () => {
       rental_history: configured("rentalHistoryCollectionId"),
       form_events: configured("formEventsCollectionId"),
       service_log: configured("serviceLogCollectionId"),
+      expenses: configured("expensesCollectionId"),
     };
     for (const [name, id] of Object.entries(tables)) {
       expect(tableById(id)?.name).toBe(name);
@@ -41,6 +42,7 @@ describe("the project the app expects", () => {
     expect(tableById(functionConfig.rentalHistoryTableId)?.name).toBe("rental_history");
     expect(tableById(functionConfig.formEventsTableId)?.name).toBe("form_events");
     expect(tableById(functionConfig.serviceLogTableId)?.name).toBe("service_log");
+    expect(tableById(functionConfig.expensesTableId)?.name).toBe("expenses");
     expect(project.tables.map((table: { name: string }) => table.name).sort()).toEqual(Object.keys(tables).sort());
   });
 
@@ -66,6 +68,7 @@ describe("the project the app expects", () => {
     expect(indexes("rental_history")).toEqual(expect.arrayContaining(["creator", "piano_id"]));
     expect(indexes("form_events")).toContain("creator");
     expect(indexes("service_log")).toEqual(expect.arrayContaining(["creator+serviced_on", "piano_id+serviced_on"]));
+    expect(indexes("expenses")).toContain("creator+spent_on");
   });
 
   it("stops each text field at the length of its column", () => {
@@ -187,7 +190,7 @@ describe("npm run check:appwrite", () => {
     const log = jest.fn();
 
     expect(run({ expected: project, pull: pullInto(copy()), log })).toBe(0);
-    expect(log).toHaveBeenCalledWith("Appwrite matches appwrite/project.json: 6 tables and 1 bucket.");
+    expect(log).toHaveBeenCalledWith("Appwrite matches appwrite/project.json: 7 tables and 1 bucket.");
   });
 
   it("lists each difference and fails", () => {

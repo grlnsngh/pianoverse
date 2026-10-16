@@ -33,6 +33,7 @@ jest.mock("@/utils/csvExport", () => ({
 jest.mock("@/lib/exportData", () => ({
   exportPayments: jest.fn(() => Promise.resolve()),
   exportCustomers: jest.fn(() => Promise.resolve()),
+  exportExpenses: jest.fn(() => Promise.resolve()),
 }));
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -50,7 +51,7 @@ import { EMPTY_LETTERHEAD } from "@/utils/letterhead";
 import { setActiveTab } from "@/redux/navigation/actions";
 import { getRentalReminderTimes, scheduleAllRentalNotifications } from "@/services/notifications";
 import { formatLastUpdated } from "@/utils/account";
-import { exportCustomers, exportPayments } from "@/lib/exportData";
+import { exportCustomers, exportExpenses, exportPayments } from "@/lib/exportData";
 import { exportPianosToCSV } from "@/utils/csvExport";
 import { exportPeriods } from "@/utils/exportPeriods";
 import { toStoredDate } from "@/utils/dates";
@@ -375,6 +376,24 @@ describe("the other downloads", () => {
     await pressLabel(renderer.root, "Cancel");
     await waitForSheetToLeave();
 
+    expect(exportPayments).not.toHaveBeenCalled();
+  });
+
+  it("asks which period for the expenses, under their own title, and downloads that period", async () => {
+    const EXPENSES = "Download expenses. CSV file: business expenses and piano service costs. You choose the period.";
+    const items = [makePiano({ $id: "a" })];
+    const { renderer } = await renderAccount(items);
+    const texts = allTexts(renderer.root);
+    expect(texts.indexOf("Download payments")).toBeLessThan(texts.indexOf("Download expenses"));
+
+    await pressLabel(renderer.root, EXPENSES);
+    const sheet = renderer.root.findAll((node: any) => node.props.testID === "export-payments-sheet" && "visible" in node.props)[0];
+    expect(sheet.props.title).toBe("Download expenses");
+    const thisMonth = exportPeriods()[0];
+    await pressLabel(renderer.root, `${thisMonth.label}, ${thisMonth.detail}`);
+    await waitForSheetToLeave();
+
+    expect(exportExpenses).toHaveBeenCalledWith(testUser.accountId, items, expect.objectContaining({ key: thisMonth.key }));
     expect(exportPayments).not.toHaveBeenCalled();
   });
 

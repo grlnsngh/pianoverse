@@ -74,12 +74,6 @@ const categoryRows = (form: PianoFormState): { title: string; rows: Row[] } => {
       return {
         title: "Event",
         rows: [
-          {
-            label: "Purchase price",
-            value: formatRupees(form.eventPurchasePrice),
-            strong: true,
-            tabular: true,
-          },
           { label: "Bought from", value: form.eventPurchaseFrom },
           { label: "Model number", value: form.eventModelNumber },
           { label: "B number", value: form.eventBNumber },
@@ -388,6 +382,9 @@ const Review = () => {
               { label: "Make", value: form.make },
               { label: "Company", value: form.companyAssociated },
               { label: "Purchased", value: day(form.dateOfPurchase), tabular: true },
+              ...(form.purchasePrice > 0
+                ? [{ label: "Bought for", value: formatRupees(form.purchasePrice), strong: true, tabular: true }]
+                : []),
               ...(form.description.trim()
                 ? [{ label: "Notes", value: form.description.trim() }]
                 : []),

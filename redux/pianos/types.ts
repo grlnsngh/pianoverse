@@ -52,6 +52,8 @@ export interface PianoItem {
   company_associated?: string | null;
   // How often it is tuned, in months (0: no reminders); none means every 6
   tuning_interval_months?: number | null;
+  // What it was bought for (Bought for); 0 or none when not known
+  purchase_price?: number | null;
   date_of_purchase?: Date;
 }
 
@@ -84,6 +86,7 @@ export interface PianoItemFormStateType {
   users: User;
   warehouse_since_date?: string | null; // Changed to string
   tuning_interval_months?: number | null;
+  purchase_price?: number | null;
   date_of_purchase?: string; // Changed to string
 }
 

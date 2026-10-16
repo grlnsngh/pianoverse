@@ -17,6 +17,8 @@ module.exports = {
   formEventsTableId: "form_events",
   // The tuning and service log
   serviceLogTableId: "service_log",
+  // Business expenses
+  expensesTableId: "expenses",
   // The bucket the piano and profile photos are in
   storageId: "66b26b77003445e612b4",
 };
