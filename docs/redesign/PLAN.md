@@ -329,6 +329,13 @@ Tick `[x]` when done. Add a short note in brackets if something differs from the
   - [x] 39.4 The reminder [`buildReminderMessage` takes the owner's UPI ID and adds "You can pay ₹X to UPI ID …" as its own paragraph where the message asks for a payment; Today's Remind and the piano's Send reminder and Remind customer pass it]
   - [x] 39.5 Tests, README, privacy pages, checks, commit, push, pull request [`upiReminders` (new); `editProfileScreen`, `profileEdits`, `rentDueDetail`, `rentDueToday` extended]
   - [ ] 39.6 Try it on the phone (the owner: see "How to check"); it can go over the air to any runtime 5 build
+- [x] **Batch 40. The 9:00 morning summary (D1)** (S). The owner asked for it from the ideas list: a notification at 9:00 a.m. "if there is anything to show". **JavaScript only; no Appwrite change and no build needed**
+  - [x] 40.1 The rules [`utils/morningSummary.ts`: what needs the owner on a morning (rent that is due, rentals that have ended or end that day, tunings overdue or due that day), the lines, and the plan for the next 7 mornings, each as of its own day, leaving out the mornings with nothing to say]
+  - [x] 40.2 The notifications [`scheduleMorningSummaries` in `services/notifications.ts`: replaces every summary, never touches the rental and tuning reminders, skips a time already past; its own Android channel "Morning summary"; tapping one shows Today]
+  - [x] 40.3 Keeping them fresh [`lib/useMorningSummary.ts` on Today: plans again whenever the pianos, the payments, the service log, the day or the setting change, and only once all of it is known; `lib/morningSummarySetting.ts`: the on/off choice, on this phone]
+  - [x] 40.4 Account [a "Morning summary" switch with what it does; turning it off takes the summaries away at once; sign out takes them away too]
+  - [x] 40.5 Tests, README, privacy page, checks, commit, push, pull request [`morningSummary` and `morningSummaryScreens` (new); `fakeNotifications` helper extended]
+  - [ ] 40.6 Try it on the phone (the owner: see "How to check"); it can go over the air to any runtime 5 build
 
 ## Batch notes
 
@@ -656,6 +663,14 @@ Record every choice that is not obvious from the boards. Format: `date, batch, d
 - 2026-10-16, batch 39, **Appwrite.** One optional column on `users` (`upi_id`, varchar 100), made with the owner's go-ahead to implement it in the profile; the user row is the person's own (created by them, so they can change it, like their name), existing accounts are untouched, and the app keeps working with it empty. The user is kept on the phone whole, so the ID works offline. Delete account already deletes the `users` row, so nothing was added there; the privacy and delete-account pages mention it.
 - 2026-10-16, batch 39, **Tests.** New: `upiReminders` (what reads as a UPI ID, the message with and without one in each case, the receipt). Extended: `editProfileScreen` (the field, saving, removing, errors, both together), `profileEdits` (`saveProfileDetails`), `rentDueDetail` and `rentDueToday` (the piano page and Today add it, and leave it out with none, an invalid one, a paid-up rental, or no payments loaded).
 
+- 2026-10-16, batch 40, **Only on a day with something to say.** The owner asked for the notification "if there is anything to show", so a morning with nothing to say has no notification at all (it is not scheduled), rather than an empty or cheerful one.
+- 2026-10-16, batch 40, **What it says: only what needs doing that day.** Rent to collect (how much, and from whom when it is one rental, otherwise from how many), rentals that have ended (still out) or end that day, and tunings that are overdue or due that day, in that order: "₹18,000 to collect from 2 rentals", "Rentals: 2 ended, 1 ends today", "2 tunings: 1 overdue, 1 due today". What is only coming up (a rental ending within a week, a tuning due this week) is left out: it already has its own reminders (a week before, the day before) and is on Today, and saying it every morning would be noise. The title is "🎹 Good morning", like the other reminders' emoji.
+- 2026-10-16, batch 40, **Fresh as the last time the app was used.** A scheduled notification has its words fixed when it is scheduled (the limit noted in the ideas file), so the next 7 mornings are worked out together, each as of its own day (rent that falls due on the 1st is in the summaries from the 1st, not before), and put in place again whenever the app opens or the pianos, the payments, the service log, the day or the setting change. After 7 days without opening the app there are none. A server schedule would always be right but is far bigger.
+- 2026-10-16, batch 40, **It waits until it knows.** Today puts them in place only once the pianos have loaded and the payments and the service log are known, so opening the app without a connection (or before things load) never swaps good summaries for poorer ones or wipes them; they are left as they were.
+- 2026-10-16, batch 40, **A switch on Account, on by default, and its own channel.** The notification wasn't asked for one by one, so a Morning summary switch (on until turned off, kept on this phone, like App lock) is on Account, and on Android it has its own channel (default importance, not the reminders' high one) so it can be silenced in the phone's settings without touching the reminders. Turning it off takes the summaries away at once; turning it on puts them back when Today next works them out (straight away: Today is already open behind). Sign out takes them away.
+- 2026-10-16, batch 40, **Tapping it shows Today.** The tab is chosen in the store and the tabs are navigated to, so it works from a piano's page or another tab too.
+- 2026-10-16, batch 40, **Tests.** New: `morningSummary` (what needs the owner on a morning, each line and its wording, the order, sold and non-rental pianos left out, unknown data left out, the mornings planned: seven at 9:00, starting with tomorrow once 9:00 has passed, each as of its own day, none when nothing to say) and `morningSummaryScreens` (Today puts them in place with the right words and times, none and the old ones removed when nothing to say, again after a payment, waits for the pianos and the payments, the service log, switched off, after 9:00; Account's switch on, off and on again, usable, sign out; replaced never added to, the reminders left alone, a past time never scheduled, the Android channel, tapping opens Today). `fakeNotifications` knows the summaries and a tap on one.
+
 ## Session log
 
 Add one entry per session, newest last. Format:
@@ -962,3 +977,10 @@ Add one entry per session, newest last. Format:
 - Checks: typecheck clean. Jest 173 suites, 2848 tests pass. Lint 0 errors and 6 warnings (the same). `npm run check:appwrite` matches (7 tables).
 - Known issues and follow-ups: (1) No tappable payment link (see Decisions); (2) not looked at on a phone.
 - Next: whatever the owner picks (handover photos, the morning summary).
+
+### Session 43, 2026-10-16
+- Batch and sub-tasks done: **Batch 40 The 9:00 morning summary (D1)**: 40.1 to 40.5. **40.6 is yours.**
+- Commit(s): `feature: batch 40 morning summary` on the branch `feature/morning-summary`, made from `feature/upi` (Batch 39) so the plan doesn't conflict; pushed, pull request into `main` after #60.
+- Checks: typecheck clean. Jest 175 suites, 2884 tests pass. Lint 0 errors and 6 warnings (the same). No Appwrite change.
+- Known issues and follow-ups: (1) Not looked at on a phone: notifications at 9:00 need a day to see. Check it the day after installing, or open the app, wait for the summary of the next morning, and compare it with Today. (2) Only 7 mornings ahead, so a week without opening the app means no summary.
+- Next: whatever the owner picks (photos at handover and return were the other suggested).

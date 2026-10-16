@@ -16,6 +16,7 @@ import { AddButton, useSkeletonDelay } from "@/components/ui";
 import { amountTextProps, fonts, maxScale, spacing, type } from "@/constants/theme";
 import { usePianoData } from "@/lib/PianoDataContext";
 import useCurrentDay from "@/lib/useCurrentDay";
+import useMorningSummary from "@/lib/useMorningSummary";
 import useIncome from "@/lib/useIncome";
 import useLetterhead from "@/lib/useLetterhead";
 import useServiceLog, { useTuningReminders } from "@/lib/useServiceLog";
@@ -71,7 +72,16 @@ const Today = () => {
   const reloadIncome = income.reload;
   // Re-renders on a new day, even if the app stayed open, so what follows
   // (which reads today's date) is worked out again
-  useCurrentDay();
+  const day = useCurrentDay();
+  // The 9:00 morning summaries say what needs the owner, so they are put in
+  // place again whenever the pianos, the payments or the service log change
+  useMorningSummary(
+    pianoStatus === "ready",
+    pianos,
+    income.loaded && !income.failed ? income.payments : null,
+    serviceLog.status === "ready" ? serviceLog.entries : null,
+    day
+  );
 
   const [refreshing, setRefreshing] = useState(false);
   const mounted = useRef(true);

@@ -2,7 +2,10 @@ import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import { Platform } from "react-native";
 import { subDays } from "date-fns";
+import { setActiveTab } from "@/redux/navigation/actions";
+import store from "@/redux/store";
 import { parseStoredDate } from "@/utils/dates";
+import type { PlannedSummary } from "@/utils/morningSummary";
 
 // Configure notification handler
 Notifications.setNotificationHandler({
@@ -14,13 +17,21 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// The Android channel the rental reminders go through
+// The Android channels: the rental reminders, and the morning summary, which
+// has its own so it can be switched off in the phone's settings on its own
+const SUMMARY_CHANNEL = "morning-summary";
 const setUpReminderChannel = async () => {
   if (Platform.OS !== "android") return;
   await Notifications.setNotificationChannelAsync("rental-reminders", {
     name: "Rental Reminders",
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
+    lightColor: "#FF9C01",
+    sound: "default",
+  });
+  await Notifications.setNotificationChannelAsync(SUMMARY_CHANNEL, {
+    name: "Morning summary",
+    importance: Notifications.AndroidImportance.DEFAULT,
     lightColor: "#FF9C01",
     sound: "default",
   });
@@ -310,11 +321,65 @@ export const scheduleAllServiceNotifications = (reminders: TuningReminder[]) => 
   return result;
 };
 
+const cancelAllMorningSummaries = async () => {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    scheduled
+      .filter((notification) => notification.content.data?.type === "morning_summary")
+      .map((notification) => Notifications.cancelScheduledNotificationAsync(notification.identifier))
+  );
+};
+
+let summaryQueue: Promise<unknown> = Promise.resolve();
+
+/**
+ * Replaces every morning summary with these (utils/morningSummary.ts works out
+ * which mornings have something to say, and what). An empty list removes them
+ * all, as when the summary is switched off or at sign out.
+ */
+export const scheduleMorningSummaries = (summaries: PlannedSummary[]) => {
+  const run = async () => {
+    try {
+      await cancelAllMorningSummaries();
+      const now = new Date();
+      const ids = await Promise.all(
+        summaries
+          .filter(({ date }) => date > now)
+          .map(({ date, title, body }) =>
+            Notifications.scheduleNotificationAsync({
+              content: { title, body, data: { type: "morning_summary" }, sound: "default" },
+              trigger: {
+                type: Notifications.SchedulableTriggerInputTypes.DATE,
+                date,
+                channelId: Platform.OS === "android" ? SUMMARY_CHANNEL : undefined,
+              },
+            })
+          )
+      );
+      return ids;
+    } catch (error) {
+      console.error("❌ Error scheduling the morning summary:", error);
+      return [];
+    }
+  };
+  // One at a time, so overlapping calls can't leave duplicates
+  const result = summaryQueue.then(run, run);
+  summaryQueue = result;
+  return result;
+};
+
 // Handle notification response (when user taps on notification)
 export const handleNotificationResponse = (
   response: Notifications.NotificationResponse
 ) => {
   const data = response.notification.request.content.data;
+
+  // The morning summary is about the day: show Today, from wherever the app is
+  if (data?.type === "morning_summary") {
+    store.dispatch(setActiveTab("today") as any);
+    router.navigate("/home");
+    return;
+  }
 
   if ((data?.type === "rental_due" || data?.type === "service_due") && data?.pianoId) {
     router.push(`/detail/${data.pianoId}`);
