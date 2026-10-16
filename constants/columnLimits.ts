@@ -21,6 +21,11 @@ export const COLUMN_LIMITS = {
   rent_payments: {
     customer_name: 255,
   },
+  rental_history: {
+    customer_name: 255,
+    customer_mobile: 50,
+    customer_address: 1000,
+  },
   service_log: {
     note: 1000,
   },

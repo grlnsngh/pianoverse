@@ -320,7 +320,7 @@ describe("Previous renters with the rentals that were kept", () => {
     const renderer = await openDetail();
     const opens = (node: any) =>
       !!node &&
-      node.props.accessibilityHint === "Opens this customer" &&
+      String(node.props.accessibilityHint).startsWith("Opens this customer") &&
       typeof node.props.onPress === "function";
     const buttons = renderer.root.findAll(
       (node: any) => opens(node) && !opens(node.parent)

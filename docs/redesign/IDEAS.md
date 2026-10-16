@@ -32,7 +32,7 @@ The sizes are estimates, not promises. Prices and store rules below come from ge
 | C1 | Enquiries and follow-ups | M | Appwrite table |
 | C2 | Rental agreement | M | **Built as Batches 31 and 31A** (PDF, with letterhead) |
 | C3 | Customer documents (ID, signed agreement) | M | Appwrite, a private bucket |
-| C4 | Fix a wrong history entry | S | JS only |
+| C4 | Fix a wrong history entry | S | **Built as Batch 38** (Edit rental, Delete rental, with Undo) |
 | D1 | Morning summary notification | S | JS only |
 | D2 | Import pianos from a spreadsheet | M | New build |
 | D3 | Dark mode | M | **Built as Batch 29**; starts matching the phone since Batch 32 |

@@ -1130,6 +1130,50 @@ export async function getRentalHistory(creator: string): Promise<RentalHistoryEn
   return entries;
 }
 
+/**
+ * Only the details of a kept rental that were changed (Edit rental). An empty
+ * name, number or address, or no date or rent, takes that detail off the rental.
+ */
+export interface RentalHistoryChanges {
+  customerName?: string | null;
+  customerMobile?: string | null;
+  customerAddress?: string | null;
+  periodStart?: Date | null;
+  periodEnd?: Date | null;
+  price?: number | null;
+}
+
+const historyRow = (changes: RentalHistoryChanges) => {
+  const text = (value: string | null) => value?.trim() || null;
+  const data: Record<string, unknown> = {};
+  if (changes.customerName !== undefined) data.customer_name = text(changes.customerName);
+  if (changes.customerMobile !== undefined) data.customer_mobile = text(changes.customerMobile);
+  if (changes.customerAddress !== undefined) data.customer_address = text(changes.customerAddress);
+  if (changes.periodStart !== undefined) {
+    data.period_start = changes.periodStart ? toStoredDate(changes.periodStart) : null;
+  }
+  if (changes.periodEnd !== undefined) {
+    data.period_end = changes.periodEnd ? toStoredDate(changes.periodEnd) : null;
+  }
+  if (changes.price !== undefined) {
+    data.price = changes.price && changes.price > 0 ? changes.price : null;
+  }
+  return data;
+};
+
+/** Changes a kept rental: only the details in `changes` are sent. */
+export async function updateRentalHistoryEntry(
+  entryId: string,
+  changes: RentalHistoryChanges
+): Promise<RentalHistoryEntry> {
+  return (await databases.updateDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.rentalHistoryCollectionId,
+    entryId,
+    historyRow(changes)
+  )) as unknown as RentalHistoryEntry;
+}
+
 /** Deletes one kept rental, e.g. because marking the piano as returned was undone. */
 export async function deleteRentalHistoryEntry(entryId: string) {
   return databases.deleteDocument(
