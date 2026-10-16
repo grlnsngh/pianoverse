@@ -21,6 +21,7 @@ jest.mock("expo-router", () => ({
 }));
 
 import React from "react";
+import { StyleSheet, Text } from "react-native";
 import { act, ReactTestRenderer } from "react-test-renderer";
 import DetailScreen from "@/app/detail/[id]";
 import { PianoItem } from "@/redux/pianos/types";
@@ -28,6 +29,7 @@ import { fileViewUrl } from "./helpers/fakeAppwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
+  atFontScale,
   createTestStore,
   flushPromises,
   renderWithStore,
@@ -205,5 +207,25 @@ describe("a photo that can't load (the Retry tile)", () => {
 
     act(() => tiles[tiles.length - 1].props.onPress());
     expect(inViewer().length).toBeGreaterThan(0);
+  });
+});
+
+describe("the photo viewer with a big Font size", () => {
+  atFontScale(1.5);
+
+  it("lets its count and its zoom hint grow instead of cutting them, the count up to the photo badge limit", async () => {
+    const renderer = renderDetail(threePhotos());
+    await press(renderer, "Open photo 2");
+
+    const text = (content: string) =>
+      renderer.root.findAllByType(Text).find((node) => node.props.children === content || (Array.isArray(node.props.children) && node.props.children.join("") === content))!;
+    const count = text("2 of 3");
+    expect(StyleSheet.flatten(count.props.style).height).toBeUndefined();
+    expect(count.props.maxFontSizeMultiplier).toBe(1.3);
+    const hint = text("Pinch or double-tap to zoom").parent!;
+    const hintStyle = StyleSheet.flatten(hint.props.style);
+    expect(hintStyle.width).toBeUndefined();
+    expect(hintStyle.height).toBeUndefined();
+    expect(hintStyle.minHeight).toBe(32);
   });
 });

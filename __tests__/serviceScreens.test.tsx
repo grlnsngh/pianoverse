@@ -386,6 +386,17 @@ describe("the service section with a big Font size", () => {
 
       expect(flat(stats.props.style).flexDirection).toBe("column");
     });
+
+    it("lets the rows of the press-and-hold sheet grow with their words", async () => {
+      seedService(subMonths(today, 1), "repair");
+      const renderer = await open(<DetailScreen />);
+
+      await longPress(renderer, "Repair,");
+      const edit = pressable(renderer, "Edit service");
+      const style = flat(edit.props.style({ pressed: false }));
+      expect(style.height).toBeUndefined();
+      expect(style.minHeight).toBe(52);
+    });
   });
 
   it("keeps the numbers on the full service page in three columns at 100%", async () => {

@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Text } from "react-native";
 import { Sheet } from "@/components/ui";
-import { fonts } from "@/constants/theme";
+import { fonts, spacing } from "@/constants/theme";
 import { entryDay, kindOf, type ServiceEntry } from "@/utils/serviceLog";
 import { makeStyles } from "@/lib/ThemeContext";
 
@@ -45,9 +45,11 @@ const ServiceActionsSheet = ({ entry, onClose, onSelect }: ServiceActionsSheetPr
 
 const useStyles = makeStyles((colors) => ({
   row: {
-    height: 52,
+    minHeight: 52,
     justifyContent: "center",
     paddingHorizontal: 20,
+    // With bigger text the row grows, and keeps this room above and below its words
+    paddingVertical: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
   },
