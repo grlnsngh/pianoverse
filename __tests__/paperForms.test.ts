@@ -203,6 +203,18 @@ describe("the HTML the PDFs are made from", () => {
     expect(rows(formHtml("handover", EMPTY_LETTERHEAD, 1))).toBe(11);
   });
 
+  it("puts the owner's piano photo in the handover's scratch box, light and in the form itself", () => {
+    const html = formHtml("handover", EMPTY_LETTERHEAD, 1);
+    const [picture] = html.match(/<img src="data:image\/jpeg;base64,[A-Za-z0-9+/=]+"[^>]*>/) ?? [];
+
+    expect(picture).toBeDefined();
+    expect(picture).toContain('alt=""');
+    expect(picture).toContain('height="170"');
+    // The drawn outline it replaced is gone
+    expect(html).not.toContain('viewBox="0 0 80 60"');
+    expect(html.indexOf("Mark scratches and marks")).toBeLessThan(html.indexOf(picture!));
+  });
+
   it("fills in nothing but the business: every form is written by hand", () => {
     const html = formHtml("rent_card", named, 1);
 

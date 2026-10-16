@@ -310,6 +310,11 @@ Tick `[x]` when done. Add a short note in brackets if something differs from the
   - [x] 36.6 Downloads and deleting [Account, Download expenses: a period's costs as CSV (`convertCostsToCSV`, `exportExpenses`); the delete-account function deletes the account's `expenses` rows (redeployed)]
   - [x] 36.7 Tests, README, privacy pages, checks, commit, push, pull request [`expenses` and `expensesScreens` (new); `incomeScreen` rewritten; `exportData`, `accountScreen`, `appwriteSchema`, `deleteAccountFunction`, `icon`, `addFlow`, `screenStartup`, `pianoForm`, `pianoDetail`, `detailPage`, `rentPayments`, `previousRenters` and `accountReports` changed]
   - [ ] 36.8 Try it on the phone (the owner: see "How to check"); it can go over the air to any runtime 5 build
+- [x] **Batch 37. Handover photo and large-text fixes** (S). After the owner looked at the printed Handover form and asked for the piano picture from his TPS letterhead instead of the drawn outline. **JavaScript only; no build needed**
+  - [x] 37.1 The Handover form's scratch box [the owner's piano photo (from his Canva "TPS 2", sent in the chat) in place of the drawn outline: trimmed, grey and lightened, written into the form itself (`utils/paperForms/handoverPiano.ts`; the same picture as a file in `assets/paper/handover-piano.jpg`)]
+  - [x] 37.2 Large text [the photo viewer's "1 of 4" and its zoom hint grow instead of being cut (the count up to the photo badge limit); the rows of the press-and-hold service sheet grow with their words]
+  - [x] 37.3 Tests, checks, commit, push, pull request [`paperForms`, `photoViewer` and `serviceScreens` changed]
+  - [ ] 37.4 Print a Handover form and check the picture (the owner)
 
 ## Batch notes
 
@@ -619,6 +624,9 @@ Record every choice that is not obvious from the boards. Format: `date, batch, d
 - 2026-10-16, batch 36, **Large text.** Each month's profit goes under the month at a big Font size, the Expenses row puts its total in its line, the Money numbers go one under another, the kinds of expense wrap onto more lines like the kinds of service, and the legend wraps.
 - 2026-10-16, batch 36, **Tests.** New: `expenses` (the kinds, every cost, by kind and month, how each is named, profit by month, what a piano was bought for, its money, Bought for in the form, the live tables, the CSV) and `expensesScreens` (the Expenses screen and opening a piano, recording, the amount asked for, edit and delete with Undo, nothing yet, a missing table, the Money section with and without Bought for, sold and at a loss, Mark as sold's profit, Bought for in the form, sign out, a big Font size). `incomeScreen` rewritten for profit. Changed: `exportData` (the expenses download), `accountScreen` (Download expenses), `appwriteSchema` (seven tables), `deleteAccountFunction` (expenses deleted and counted), `icon`, and the tests that knew the events' Purchase price or that a piano that isn't rented asks for nothing.
 
+- 2026-10-16, batch 37, **The owner's piano photo on the Handover form.** Offered a new line drawing (an upright from the front, both sides and the top), the owner chose the photo from his TPS letterhead, after being told it shows one side only, prints dark at full strength, and is a maker's product photo that every user of the app would print. It is made grey and blended 60% with white, so marks written on it show and it uses little ink, trimmed to the piano, 380 px tall, JPEG at 82: about 10 KB, written into the form as a data address so the PDF needs no file. The Canva connection couldn't export it (exports are off for the account), so the owner sent the file. The canvas board `FormHandover` still shows the old outline; the Monogram strip, whose name sits over the initials, was left as designed.
+- 2026-10-16, batch 37, **Large-text fixes found while looking.** Not in the large-text plan's list: the photo viewer's count had a fixed height and line height and its zoom hint a fixed width and height; the service actions sheet's rows a fixed height (Batch 35). All now grow, with a test at 150%.
+
 ## Session log
 
 Add one entry per session, newest last. Format:
@@ -905,3 +913,9 @@ Add one entry per session, newest last. Format:
 - Checks: typecheck clean. Jest 170 suites, 2769 tests pass (2 new suites; `incomeScreen` rewritten; the rest changed on purpose). Lint 0 errors and 6 warnings (the same as before). `npm run check:appwrite` matches (7 tables, 1 bucket). **Not looked at in a browser or on a phone, or at 150% and 200% on the emulator**: these screens need a signed-in account; the large-text layouts are checked by the tests' styles only.
 - Known issues and follow-ups: (1) **JavaScript only**: it goes into the 1.1.20 build, or over the air to runtime 5 after it. (2) The delete-account function was redeployed with the expenses. (3) Old events pianos show their Purchase price as Bought for until edited; nothing else needs moving.
 - Next: **36.8** (the owner), then whatever the owner picks from `docs/redesign/IDEAS.md`.
+
+### Session 40, 2026-10-16
+- Batch and sub-tasks done: **Batch 37 Handover photo and large-text fixes**: 37.1 to 37.3. **37.4 is yours.**
+- Commit(s): `fix: batch 37 handover photo and large text` on the branch `feature/print-fixes`, made from `feature/profit` (Batch 36) so the plan doesn't conflict; pushed, pull request into `main` after #57.
+- Checks: typecheck clean. Jest 170 suites, 2772 tests pass. Lint 0 errors and 6 warnings (the same). The Handover form was looked at as a picture (rendered with Edge), not printed.
+- Next: merge #57 and then this; build 1.1.20 and try 35.8, 36.8, 37.4 and L5.3 on the phone.

@@ -26,6 +26,7 @@ import {
   receiptMark,
   type LetterheadAssets,
 } from "./letterheads";
+import { HANDOVER_PIANO } from "./handoverPiano";
 
 /**
  * The five forms of the Paper forms kit, as HTML pages (boards FormRentCard,
@@ -252,8 +253,8 @@ const HANDOVER_CHECKS: [string, boolean][] = [
   ["Moved by (name)", false],
 ];
 
-const UPRIGHT_PIANO =
-  '<svg width="224" height="168" viewBox="0 0 80 60" fill="none" stroke="#5C574F" stroke-width="0.45" stroke-linejoin="round"><rect x="8" y="8" width="64" height="6" rx="2"/><rect x="11" y="14" width="58" height="22" rx="1.5"/><rect x="17" y="19" width="46" height="12" rx="1"/><rect x="8" y="36" width="64" height="4" rx="1.5"/><rect x="13" y="40" width="54" height="7"/><path d="M18.4 40v7M23.8 40v7M29.2 40v7M34.6 40v7M40 40v7M45.4 40v7M50.8 40v7M56.2 40v7M61.6 40v7"/><rect x="11" y="47" width="58" height="5"/><rect x="11" y="47" width="5" height="11" rx="1"/><rect x="64" y="47" width="5" height="11" rx="1"/></svg>';
+/** The owner's piano photo, grey and light so marks written on it show (utils/paperForms/handoverPiano.ts). */
+const PIANO_PICTURE = `<img src="${HANDOVER_PIANO.uri}" alt="" width="${Math.round((HANDOVER_PIANO.width * 170) / HANDOVER_PIANO.height)}" height="170" style="display:block">`;
 
 const yesNo = `<span style="display:inline-flex;gap:14px">${checkBox("Yes")}${checkBox("No")}</span>`;
 
@@ -283,7 +284,7 @@ const handover = (letterhead: Letterhead, strip: Strip): string =>
         ""
       )}<tr style="height:56px"><td style="padding:8px 10px;font-size:13px;line-height:18px;color:#1A1814">Notes</td><td></td><td></td></tr></tbody></table>` +
       `<div style="display:flex;gap:24px;margin-top:20px">` +
-      `<div style="width:360px;flex-shrink:0"><div style="font-size:13px;font-weight:700;line-height:18px">Mark scratches and marks</div><div class="sub" style="font-size:12px;line-height:16px">Write H for handover and R for return next to each mark.</div><div style="height:186px;margin-top:8px;border:1px solid #8A857C;border-radius:6px;display:flex;align-items:center;justify-content:center">${UPRIGHT_PIANO}</div></div>` +
+      `<div style="width:360px;flex-shrink:0"><div style="font-size:13px;font-weight:700;line-height:18px">Mark scratches and marks</div><div class="sub" style="font-size:12px;line-height:16px">Write H for handover and R for return next to each mark.</div><div style="height:186px;margin-top:8px;border:1px solid #8A857C;border-radius:6px;display:flex;align-items:center;justify-content:center">${PIANO_PICTURE}</div></div>` +
       `<div style="flex-grow:1;display:flex;flex-direction:column;justify-content:flex-end;gap:28px"><div style="font-size:13px;font-weight:700;line-height:18px;margin-bottom:-18px">Signatures</div>${[
         "Owner, at handover",
         "Customer, at handover",

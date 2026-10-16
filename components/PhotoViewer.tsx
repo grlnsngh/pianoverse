@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/components/ui";
-import { fonts } from "@/constants/theme";
+import { fonts, maxScale } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
 interface PhotoViewerProps {
@@ -182,7 +182,7 @@ const PhotoViewer: React.FC<PhotoViewerProps> = ({
             <Icon name="close" size={24} color={colors.white} strokeWidth={2.2} />
           </Pressable>
           {photos.length > 1 ? (
-            <Text style={styles.count} accessibilityLiveRegion="polite">
+            <Text style={styles.count} accessibilityLiveRegion="polite" maxFontSizeMultiplier={maxScale.badge}>
               {index + 1} of {photos.length}
             </Text>
           ) : null}
@@ -243,31 +243,35 @@ const useStyles = makeStyles((colors) => ({
     top: 0,
     left: 0,
     right: 0,
-    height: 56 + 44,
+    minHeight: 56 + 44,
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
     paddingHorizontal: 8,
   },
   topButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  // As tall as the buttons beside it at 100%; with a big Font size it grows (up to the badge limit) instead of being cut
   count: {
-    height: 44,
-    lineHeight: 44,
+    paddingVertical: 12,
     fontFamily: fonts.semibold,
     fontSize: 15,
+    lineHeight: 20,
     color: colors.white,
   },
   bottom: { position: "absolute", left: 0, right: 0, bottom: 0, alignItems: "center" },
+  // Fits its words: a bigger Font size makes it taller and wider, up to most of the screen, where it wraps
   hint: {
-    width: 200,
-    height: 32,
+    maxWidth: "86%",
+    minHeight: 32,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     marginBottom: 16,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 999,
     backgroundColor: colors.viewerHint,
   },
-  hintText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.white },
+  hintText: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 18, textAlign: "center", color: colors.white },
   strip: { flexGrow: 1, justifyContent: "center", gap: 10, paddingHorizontal: 20 },
   thumb: { width: THUMB, height: THUMB, borderRadius: 10, overflow: "hidden" },
   thumbDim: { opacity: 0.6 },
