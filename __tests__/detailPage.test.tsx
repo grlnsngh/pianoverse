@@ -363,6 +363,20 @@ describe("a rented piano's sections", () => {
     expect(has(renderer, "B-42, Sector 21, Chandigarh")).toBe(true);
   });
 
+  it("says the day the piano is free from, the day after the last day, while the rental is on", async () => {
+    const { renderer } = await open(rented(10));
+
+    expect(has(renderer, "Free from")).toBe(true);
+    expect(has(renderer, "The last day of a rental is still out; the piano is free from the day after.")).toBe(true);
+  });
+
+  it("has no free-from day once the rental has ended and the piano is not back", async () => {
+    const { renderer } = await open(rented(-18));
+
+    expect(has(renderer, "Free from")).toBe(false);
+    expect(has(renderer, "The last day of a rental is still out; the piano is free from the day after.")).toBe(false);
+  });
+
   it("has no Rental section for a rental with nothing recorded about it", async () => {
     const { renderer } = await open(
       rented(10, {

@@ -348,15 +348,30 @@ describe("the rental's period", () => {
 });
 
 describe("the rental's rows", () => {
-  it("shows the rent in bold and the address", () => {
+  it("shows the rent in bold, the address and the day it is free from", () => {
     expect(rentalRows(rented(10, { rental_customer_address: "B-42, Sector 21, Chandigarh" }))).toEqual([
       { label: "Rent", value: "₹4,500", strong: true },
       { label: "Address", value: "B-42, Sector 21, Chandigarh" },
+      { label: "Free from", value: "10 Oct 2026" },
     ]);
   });
 
   it("leaves out what is missing", () => {
-    expect(rentalRows(rented(10, { rental_price: null }))).toEqual([]);
+    expect(rentalRows(rented(10, { rental_price: null }))).toEqual([{ label: "Free from", value: "10 Oct 2026" }]);
+    expect(rentalRows(rented(10, { rental_price: null, rental_period_end: null }))).toEqual([]);
+  });
+
+  it("is free from the day after the last day, including on the last day itself", () => {
+    expect(rentalRows(rented(0, { rental_price: null }))).toEqual([{ label: "Free from", value: "30 Sep 2026" }]);
+  });
+
+  it("gives no day once the rental has ended and the piano is not back", () => {
+    expect(rentalRows(rented(-5, { rental_price: null }))).toEqual([]);
+  });
+
+  it("gives no day for a piano that is not rented out now", () => {
+    expect(rentalRows(rented(10, { rental_price: null, category: "warehouse" }))).toEqual([]);
+    expect(rentalRows(rented(10, { rental_price: null, sold_date: day(-1) as any }))).toEqual([]);
   });
 });
 

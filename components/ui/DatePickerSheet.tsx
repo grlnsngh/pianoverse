@@ -5,7 +5,6 @@ import {
   addMonths,
   endOfMonth,
   format,
-  getDay,
   isAfter,
   isBefore,
   isSameDay,
@@ -17,6 +16,7 @@ import Button from "./Button";
 import Icon from "./Icon";
 import Sheet from "./Sheet";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import { monthRows } from "@/utils/monthGrid";
 
 const DAY = 44;
 const ROW = 46;
@@ -74,15 +74,7 @@ const DatePickerSheet = ({
   const canGoBack = !min || !isBefore(addDays(month, -1), min);
   const canGoForward = !max || !isAfter(addDays(endOfMonth(month), 1), max);
 
-  // Blank cells before the 1st (Monday first), then the days, then blanks to end the last row
-  const leading = (getDay(month) + 6) % 7;
-  const daysInMonth = endOfMonth(month).getDate();
-  const cells: (Date | null)[] = [
-    ...Array.from({ length: leading }, () => null),
-    ...Array.from({ length: daysInMonth }, (_, i) => addDays(month, i)),
-  ];
-  while (cells.length % 7 !== 0) cells.push(null);
-  const rows = Array.from({ length: cells.length / 7 }, (_, i) => cells.slice(i * 7, i * 7 + 7));
+  const rows = monthRows(month);
 
   return (
     <Sheet

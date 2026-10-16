@@ -135,6 +135,30 @@ describe("the header", () => {
     expect(router.push).toHaveBeenCalledWith("/create");
   });
 
+  it("has a calendar button between the pill and the +, which opens Availability", async () => {
+    const { renderer } = await renderHome();
+    expect(has(renderer, "Availability")).toBe(true);
+
+    press(renderer, "Availability");
+
+    expect(router.push).toHaveBeenCalledWith("/availability");
+  });
+
+  it("leaves the calendar button out until there are pianos, and while pianos are being selected", async () => {
+    const empty = await renderHome([]);
+    expect(has(empty.renderer, "Availability")).toBe(false);
+
+    const { renderer } = await renderHome();
+    const card = renderer.root.findAll(
+      (node: any) =>
+        typeof node.props.accessibilityLabel === "string" &&
+        node.props.accessibilityLabel.startsWith("Rameau Upright,") &&
+        typeof node.props.onPress === "function"
+    )[0];
+    act(() => card.props.onLongPress());
+    expect(has(renderer, "Availability")).toBe(false);
+  });
+
   it("opens the filter panel from the round button, and from the sort link", async () => {
     const { renderer } = await renderHome();
     expect(allTexts(renderer.root)).not.toContain("Reset");

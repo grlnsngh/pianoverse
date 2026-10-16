@@ -14,7 +14,7 @@ const dayOf = (value: PianoItem["rental_period_start"]) => {
 };
 
 /** Whether a piano had a rental on it: it is a rental, with a customer or a start date. */
-const hadRental = (piano: PianoItem) =>
+export const hadRental = (piano: PianoItem) =>
   piano.category === PIANO_CATEGORY.RENTABLE &&
   (customerKey(piano.rental_customer_name) !== "" ||
     dayOf(piano.rental_period_start) !== null);

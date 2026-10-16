@@ -158,6 +158,10 @@ const RentalSection = ({
           <InfoRows rows={rows} />
         </View>
       )}
+
+      {rows.some((row) => row.label === "Free from") && (
+        <Text style={styles.freeNote}>The last day of a rental is still out; the piano is free from the day after.</Text>
+      )}
     </View>
   );
 };
@@ -221,6 +225,7 @@ const useStyles = makeStyles((colors) => ({
   dateText: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, color: colors.ink },
   caption: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
   rows: { marginTop: spacing.md - spacing.sm },
+  freeNote: { marginTop: spacing.sm, fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
 }));
 
 export default RentalSection;
