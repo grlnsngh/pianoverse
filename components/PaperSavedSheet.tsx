@@ -12,6 +12,8 @@ type PaperSavedSheetProps = {
   pdf: SavedPdf | null;
   /** "Rent card", for "Rent card is ready" */
   title: string;
+  /** "is" by default; "are" for "Labels are ready" */
+  verb?: "is" | "are";
   onOpen: () => void;
   onPrint: () => void;
   onShare: () => void;
@@ -22,7 +24,7 @@ type PaperSavedSheetProps = {
  * Says the PDF is made and kept on the phone, and offers what to do with it
  * (PaperSaved board): open it, print it on a Wi-Fi printer, or share it.
  */
-const PaperSavedSheet = ({ visible, pdf, title, onOpen, onPrint, onShare, onClose }: PaperSavedSheetProps) => {
+const PaperSavedSheet = ({ visible, pdf, title, verb = "is", onOpen, onPrint, onShare, onClose }: PaperSavedSheetProps) => {
   const colors = useColors();
   const styles = useStyles();
   return (
@@ -32,7 +34,7 @@ const PaperSavedSheet = ({ visible, pdf, title, onOpen, onPrint, onShare, onClos
           <Icon name="check" size={28} color={colors.onBrand} strokeWidth={2.6} />
         </View>
         <Text style={styles.title} accessibilityRole="header">
-          {title} is ready
+          {title} {verb} ready
         </Text>
       </View>
 

@@ -31,9 +31,9 @@ const FAILED: Record<"make" | "open" | "print" | "share", string> = {
  *
  * `make` makes the PDF from what the screen shows now. `form` is what the
  * usage counts call it: each PDF saved, printed or shared is counted
- * (lib/formEvents.ts), quietly and after the fact.
+ * (lib/formEvents.ts), quietly and after the fact. Null counts nothing.
  */
-const usePaperPdf = (make: () => Promise<SavedPdf>, form: FormEventForm) => {
+const usePaperPdf = (make: () => Promise<SavedPdf>, form: FormEventForm | null) => {
   const creator = useSelector((state: RootState) => state.users.user?.accountId);
   const [busy, setBusy] = useState<PaperAction | null>(null);
   const [pdf, setPdf] = useState<SavedPdf | null>(null);
@@ -53,8 +53,10 @@ const usePaperPdf = (make: () => Promise<SavedPdf>, form: FormEventForm) => {
     showToast(FAILED[what], { variant: "error" });
   };
 
-  const count = (action: "saved" | "printed" | "shared", made: SavedPdf) =>
-    recordFormEvent(creator, form, action, made.pages);
+  // Something that isn't one of the paper forms (the QR labels) is not counted
+  const count = (action: "saved" | "printed" | "shared", made: SavedPdf) => {
+    if (form) recordFormEvent(creator, form, action, made.pages);
+  };
 
   const run = async (action: PaperAction) => {
     if (busy) return;
