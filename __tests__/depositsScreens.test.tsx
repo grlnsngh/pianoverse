@@ -28,6 +28,7 @@ import React from "react";
 import { act, ReactTestRenderer } from "react-test-renderer";
 import DetailScreen from "@/app/detail/[id]";
 import EditScreen from "@/app/edit/[id]";
+import * as appwrite from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { a11yProblems, describeProblems } from "./helpers/a11y";
 import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
@@ -368,31 +369,187 @@ describe("the piano's page", () => {
 
 describe("marking a piano as returned while a deposit is held", () => {
   const confirm = async (renderer: ReactTestRenderer) => {
-    await pressText(renderer.root, "Mark as returned");
-    await flushPromises();
     const pressable = labelled(renderer, "Mark as returned").pop()!;
     await act(async () => {
       await pressable.props.onPress();
     });
     await flushPromises();
   };
+  const openSheet = async (piano: PianoItem = withDeposit()) => {
+    const screen = await openDetail(piano);
+    await pressText(screen.renderer.root, "Mark as returned");
+    await flushPromises();
+    return screen.renderer;
+  };
+  const payments = () => [...fakeBackend.payments.values()] as any[];
+  const keepSwitch = (renderer: ReactTestRenderer) =>
+    renderer.root.findAll(
+      (node) => node.props.accessibilityLabel === "Keep for unpaid rent" && typeof node.props.onValueChange === "function"
+    )[0];
+  const seedPaid = () => {
+    for (const day of ["2026-09-02"]) {
+      fakeBackend.payments.set(`p-${day}`, {
+        $id: `p-${day}`,
+        $createdAt: `${day}T09:00:00.000+00:00`,
+        piano_id: "piano-1",
+        creator: testUser.accountId,
+        amount: 4500,
+        paid_on: day,
+        customer_name: "Asha Mehta",
+      });
+    }
+  };
 
-  it("keeps the deposit in the history, not settled, and takes it off the piano", async () => {
-    const { renderer } = await openDetail(withDeposit());
+  it("settles it in the sheet by the owner's own clause: the deposit, the rent owed kept, and the refund that is left", async () => {
+    const renderer = await openSheet();
+
+    expect(has(renderer, "Deposit")).toBe(true);
+    expect(has(renderer, "Held")).toBe(true);
+    expect(has(renderer, "₹9,000")).toBe(true);
+    expect(has(renderer, "Keep for unpaid rent")).toBe(true);
+    expect(has(renderer, "Asha Mehta owes ₹4,500 of rent")).toBe(true);
+    expect(keepSwitch(renderer).props.value).toBe(true);
+    expect(inputValue(renderer.root, "Refund")).toBe("4,500");
+    expect(inputValue(renderer.root, "Damage charges")).toBe("");
+    expect(has(renderer, "The ₹4,500 kept for rent is recorded as a rent payment from the deposit.")).toBe(true);
+  });
+
+  it("records the rent kept as a rent payment from the deposit, and keeps the rest of the settlement with the rental", async () => {
+    const renderer = await openSheet();
 
     await confirm(renderer);
 
+    expect(payments()).toHaveLength(1);
+    expect(payments()[0]).toMatchObject({
+      piano_id: "piano-1",
+      amount: 4500,
+      paid_on: "2026-09-29",
+      note: "From deposit",
+      customer_name: "Asha Mehta",
+    });
     expect(kept()).toHaveLength(1);
-    expect(kept()[0]).toMatchObject({ customer_name: "Asha Mehta", reason: "returned", deposit: 9000 });
+    expect(kept()[0]).toMatchObject({
+      customer_name: "Asha Mehta",
+      reason: "returned",
+      deposit: 9000,
+      deposit_refunded: 4500,
+      deposit_note: "unpaid rent",
+    });
     expect(saved().rental_deposit).toBeNull();
     expect(saved().deposit_received_on).toBeNull();
     expect(saved().rental_customer_name).toBeNull();
   });
 
-  it("takes the deposit back to the piano with Undo, and the kept rental away", async () => {
-    const toasts = captureToastCalls();
-    const { renderer } = await openDetail(withDeposit());
+  it("refunds it all, with no new payment, when the rent is paid up", async () => {
+    seedPaid();
+    const renderer = await openSheet();
+
+    expect(has(renderer, "Keep for unpaid rent")).toBe(false);
+    expect(inputValue(renderer.root, "Refund")).toBe("9,000");
     await confirm(renderer);
+
+    expect(payments()).toHaveLength(1);
+    expect(kept()[0]).toMatchObject({ deposit: 9000, deposit_refunded: 9000 });
+    expect(kept()[0]).not.toHaveProperty("deposit_note");
+  });
+
+  it("refunds it all when keeping the rent is switched off, and still says the rent is owed", async () => {
+    const renderer = await openSheet();
+
+    await act(async () => keepSwitch(renderer).props.onValueChange(false));
+
+    expect(inputValue(renderer.root, "Refund")).toBe("9,000");
+    expect(has(renderer, "Asha Mehta still owes ₹4,500 of rent. Once the piano is returned it no longer shows in Rent due.")).toBe(true);
+    await confirm(renderer);
+    expect(payments()).toEqual([]);
+    expect(kept()[0]).toMatchObject({ deposit: 9000, deposit_refunded: 9000 });
+  });
+
+  it("takes the damage charges out of the refund, kept but not recorded as rent or income", async () => {
+    const renderer = await openSheet();
+
+    typeInto(renderer.root, "Damage charges", "1000");
+
+    expect(inputValue(renderer.root, "Refund")).toBe("3,500");
+    expect(has(renderer, "The ₹1,000 kept for damage is saved with the rental. It isn’t counted as income.")).toBe(true);
+    await confirm(renderer);
+
+    expect(payments()).toHaveLength(1);
+    expect(payments()[0].amount).toBe(4500);
+    expect(kept()[0]).toMatchObject({ deposit: 9000, deposit_refunded: 3500, deposit_note: "unpaid rent and damage" });
+  });
+
+  it("keeps no more than the deposit: the refund can't go below nothing", async () => {
+    const renderer = await openSheet();
+
+    typeInto(renderer.root, "Damage charges", "20000");
+
+    // Nothing to give back: the field is empty, showing its grey 0
+    expect(inputValue(renderer.root, "Refund")).toBe("");
+    await confirm(renderer);
+    expect(payments()[0].amount).toBe(4500);
+    expect(kept()[0]).toMatchObject({ deposit_refunded: 0, deposit_note: "unpaid rent and damage" });
+  });
+
+  it("lets the refund be changed when something else was agreed, and records less rent when it is more", async () => {
+    const renderer = await openSheet();
+
+    typeInto(renderer.root, "Refund", "7000");
+    await confirm(renderer);
+
+    // 2,000 was kept in all, so no more than that can be rent
+    expect(payments()[0].amount).toBe(2000);
+    expect(kept()[0]).toMatchObject({ deposit_refunded: 7000, deposit_note: "unpaid rent" });
+  });
+
+  it("can't refund more than was held", async () => {
+    const renderer = await openSheet();
+
+    typeInto(renderer.root, "Refund", "50000");
+    await confirm(renderer);
+
+    expect(kept()[0]).toMatchObject({ deposit: 9000, deposit_refunded: 9000 });
+    expect(payments()).toEqual([]);
+  });
+
+  it("goes back to the sums when the damage is changed after the refund was typed", async () => {
+    const renderer = await openSheet();
+
+    typeInto(renderer.root, "Refund", "7000");
+    typeInto(renderer.root, "Damage charges", "500");
+
+    expect(inputValue(renderer.root, "Refund")).toBe("4,000");
+  });
+
+  it("starts afresh each time the sheet opens", async () => {
+    const renderer = await openSheet();
+    typeInto(renderer.root, "Damage charges", "1000");
+    await act(async () => keepSwitch(renderer).props.onValueChange(false));
+
+    const sheet = renderer.root.findAll((node) => (node.props as any).title === "Mark as returned" && "visible" in node.props)[0];
+    await act(async () => sheet.props.onClose());
+    await pressText(renderer.root, "Mark as returned");
+    await flushPromises();
+
+    expect(inputValue(renderer.root, "Damage charges")).toBe("");
+    expect(keepSwitch(renderer).props.value).toBe(true);
+  });
+
+  it("shows no deposit when none is held", async () => {
+    const renderer = await openSheet(rental());
+
+    expect(has(renderer, "Held")).toBe(false);
+    expect(has(renderer, "Keep for unpaid rent")).toBe(false);
+    await confirm(renderer);
+    expect(kept()[0]).not.toHaveProperty("deposit");
+    expect(payments()).toEqual([]);
+  });
+
+  it("takes the deposit back to the piano with Undo, and the payment and the kept rental away", async () => {
+    const toasts = captureToastCalls();
+    const renderer = await openSheet();
+    await confirm(renderer);
+    expect(payments()).toHaveLength(1);
     expect(kept()).toHaveLength(1);
 
     const undo = toasts.find((toast) => toast.action?.label === "Undo")!;
@@ -407,13 +564,38 @@ describe("marking a piano as returned while a deposit is held", () => {
       deposit_received_on: "2026-09-01",
     });
     expect(kept()).toEqual([]);
+    expect(payments()).toEqual([]);
   });
 
-  it("keeps a return with no deposit as it was", async () => {
-    const { renderer } = await openDetail(rental());
+  it("changes nothing when the rent kept from the deposit can't be recorded", async () => {
+    const toasts = captureToastCalls();
+    jest.spyOn(appwrite, "createRentPayment").mockRejectedValueOnce(new Error("offline"));
+    const renderer = await openSheet();
 
     await confirm(renderer);
 
-    expect(kept()[0]).not.toHaveProperty("deposit");
+    expect(toasts.map((toast) => toast.variant)).toContain("error");
+    expect(saved()).toMatchObject({ rental_customer_name: "Asha Mehta", rental_deposit: 9000 });
+    expect(kept()).toEqual([]);
+    expect(payments()).toEqual([]);
+  });
+
+  it("takes the payment back when the piano can't be saved after it", async () => {
+    const toasts = captureToastCalls();
+    const renderer = await openSheet();
+    fakeBackend.failNextDocumentUpdate = true;
+
+    await confirm(renderer);
+
+    expect(toasts.map((toast) => toast.variant)).toContain("error");
+    expect(payments()).toEqual([]);
+    expect(saved()).toMatchObject({ rental_customer_name: "Asha Mehta", rental_deposit: 9000 });
+    expect(kept()).toEqual([]);
+  });
+
+  it("is usable: named, a role, big enough", async () => {
+    const renderer = await openSheet();
+
+    expect(describeProblems(a11yProblems(renderer.root))).toEqual([]);
   });
 });

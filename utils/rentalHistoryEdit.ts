@@ -21,6 +21,10 @@ export interface RentalDraft {
   end: Date | null;
   /** The rent that was asked; 0 when none was kept */
   price: number;
+  /** The deposit that was held; 0 when there was none */
+  deposit: number;
+  /** How much of it was given back: null while it isn't settled, 0 when none was */
+  refunded: number | null;
 }
 
 const dayOf = (value: string | null | undefined) => (value ? parseStoredDate(value) : null);
@@ -33,6 +37,8 @@ export const draftOf = (entry: RentalHistoryEntry): RentalDraft => ({
   start: dayOf(entry.period_start),
   end: dayOf(entry.period_end),
   price: typeof entry.price === "number" ? entry.price : 0,
+  deposit: typeof entry.deposit === "number" && entry.deposit > 0 ? entry.deposit : 0,
+  refunded: typeof entry.deposit_refunded === "number" ? entry.deposit_refunded : null,
 });
 
 const sameDay = (a: Date | null, b: Date | null) => (a && b ? isSameDay(a, b) : a === b);
@@ -52,6 +58,19 @@ export const changesOf = (entry: RentalHistoryEntry, draft: RentalDraft): Rental
   if (!sameDay(draft.start, was.start)) changes.periodStart = draft.start;
   if (!sameDay(draft.end, was.end)) changes.periodEnd = draft.end;
   if (draft.price !== was.price) changes.price = draft.price > 0 ? draft.price : null;
+  if (draft.deposit !== was.deposit) {
+    changes.deposit = draft.deposit > 0 ? draft.deposit : null;
+    // No deposit, nothing refunded and nothing to say about it
+    if (draft.deposit <= 0 && (was.refunded !== null || entry.deposit_note)) {
+      changes.depositRefunded = null;
+      changes.depositNote = null;
+    }
+  }
+  if (draft.deposit > 0 && draft.refunded !== was.refunded) {
+    changes.depositRefunded = draft.refunded;
+    // Not settled again: what was said about what was kept no longer applies
+    if (draft.refunded === null && entry.deposit_note) changes.depositNote = null;
+  }
   return changes;
 };
 
@@ -60,8 +79,9 @@ export const hasChanges = (changes: RentalHistoryChanges) => Object.keys(changes
 /**
  * Why the rental can't be saved as entered, or null when it can. The number is
  * optional, but a number that is there must be one (10 digits, or with its own
- * country code), and a rental can't end before it started (on the same day is
- * fine: a piano can come back the day it left).
+ * country code), a rental can't end before it started (on the same day is
+ * fine: a piano can come back the day it left), and no more can be refunded
+ * than the deposit was.
  */
 export const draftProblem = (draft: RentalDraft): string | null => {
   const mobile = draft.mobile.trim();
@@ -70,6 +90,12 @@ export const draftProblem = (draft: RentalDraft): string | null => {
   }
   if (draft.start && draft.end && differenceInCalendarDays(draft.end, draft.start) < 0) {
     return "The end date can’t be before the start date.";
+  }
+  if (draft.refunded !== null && draft.deposit <= 0) {
+    return "Add the deposit, or leave the refund empty.";
+  }
+  if (draft.refunded !== null && draft.refunded > draft.deposit) {
+    return "The refund can’t be more than the deposit.";
   }
   return null;
 };

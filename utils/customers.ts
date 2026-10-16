@@ -2,6 +2,7 @@ import { addDays, format } from "date-fns";
 import type { RentalHistoryEntry, RentPayment } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate } from "@/utils/dates";
+import { settlementLine, type SettlementLine } from "@/utils/depositLines";
 import { formatRupees } from "@/utils/money";
 import { getPianoRentalState } from "@/utils/pianoStatus";
 
@@ -271,12 +272,12 @@ export const pastRentalDetail = (rental: PastRental): string => {
 };
 
 /**
- * The deposit line of a kept rental that held one: "Deposit ₹9,000 · not settled". It isn't settled
- * yet because nothing says how it ended; null for a rental with no deposit.
+ * The deposit line of a kept rental that held one: "Deposit ₹9,000 · not settled", "· refunded in full" or
+ * "· refunded ₹4,500, kept ₹4,500 for unpaid rent". Null for a rental with no deposit.
  */
-export const pastRentalDeposit = (rental: PastRental): string | null =>
+export const pastRentalDeposit = (rental: PastRental): SettlementLine | null =>
   rental.fromHistory && typeof rental.deposit === "number" && rental.deposit > 0
-    ? `Deposit ${formatRupees(rental.deposit)} · not settled`
+    ? settlementLine(rental.deposit, rental.depositRefunded, rental.depositNote)
     : null;
 
 /** The line under a customer in the list: "Kawai K-300 · 3 payments", or the pianos when there are several. */
@@ -314,8 +315,12 @@ export interface PastRental {
   endOn: Date | null;
   /** The rent that was asked, per payment, when it ended */
   price: number | null;
-  /** The deposit that was held when it ended, for a kept rental that had one (not settled yet) */
+  /** The deposit that was held when it ended, for a kept rental that had one */
   deposit?: number | null;
+  /** How much of it was given back: null while it isn't settled */
+  depositRefunded?: number | null;
+  /** Why part was kept */
+  depositNote?: string | null;
   paymentsCount: number;
   total: number;
   firstPaidOn: Date | null;
@@ -379,6 +384,8 @@ export const pastRentals = (
       endOn: entry.period_end ? dayOf(entry.period_end) : closed,
       price: typeof entry.price === "number" ? entry.price : null,
       deposit: typeof entry.deposit === "number" && entry.deposit > 0 ? entry.deposit : null,
+      depositRefunded: typeof entry.deposit_refunded === "number" ? entry.deposit_refunded : null,
+      depositNote: entry.deposit_note ?? null,
       paymentsCount: theirs.length,
       total: theirs.reduce((sum, payment) => sum + payment.amount, 0),
       firstPaidOn: days.length

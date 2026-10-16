@@ -46,6 +46,8 @@ describe("an old rental is kept when", () => {
       periodEnd: "2026-04-12",
       price: 4000,
       deposit: null,
+      depositRefunded: null,
+      depositNote: null,
       closedOn: today,
       reason: "replaced",
     });

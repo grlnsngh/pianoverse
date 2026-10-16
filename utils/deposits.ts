@@ -88,6 +88,64 @@ export const heldSummary = (held: DepositsHeld) => `${rentalsText(held.entries.l
 /** The amount, as the rows write it: "₹9,000". */
 export const depositText = (amount: number) => formatRupees(amount);
 
+// --- The refund, when the piano comes back ---
+
+/** What the person has decided so far in the Mark as returned sheet. */
+export interface RefundInput {
+  /** The deposit held */
+  held: number;
+  /** The rent the renter still owes */
+  rentOwed: number;
+  /** Whether to keep what is owed out of the deposit */
+  keepRent: boolean;
+  /** Charges for damage, kept out of the deposit */
+  damage: number;
+  /** A refund the person typed, when they agreed something else; null to follow the sums */
+  refund: number | null;
+}
+
+/** How a deposit is settled: what goes back and what is kept, and why. */
+export interface Settlement {
+  held: number;
+  refund: number;
+  kept: number;
+  /** Of what is kept, the part for unpaid rent (it is also recorded as a rent payment, "From deposit") */
+  forRent: number;
+  /** Of what is kept, the part for damage (stored with the rental, not counted as income) */
+  forDamage: number;
+  /** "unpaid rent", "damage" or "unpaid rent and damage"; null when nothing is said about it */
+  note: string | null;
+}
+
+const cents = (amount: number) => Math.round(amount * 100) / 100;
+
+/**
+ * What the deposit comes to when the piano comes back, by the owner's own
+ * clause: the deposit less any unpaid rent and any charges for damage. The
+ * refund is that, unless the person typed another one (never more than was
+ * held); what is not refunded is kept. The rent kept is never more than what
+ * was kept, so an agreed refund bigger than the sums records less as rent.
+ */
+export const settleDeposit = (input: RefundInput): Settlement => {
+  const held = Math.max(0, input.held);
+  const rentKept = input.keepRent ? Math.min(Math.max(0, input.rentOwed), held) : 0;
+  const damageKept = Math.min(Math.max(0, input.damage), held - rentKept);
+  const suggested = held - rentKept - damageKept;
+  const refund = input.refund === null ? suggested : Math.min(held, Math.max(0, input.refund));
+  const kept = held - refund;
+  const forRent = Math.min(rentKept, kept);
+  const forDamage = Math.min(damageKept, kept - forRent);
+  const reasons = [forRent > 0 ? "unpaid rent" : "", forDamage > 0 ? "damage" : ""].filter(Boolean);
+  return {
+    held: cents(held),
+    refund: cents(refund),
+    kept: cents(kept),
+    forRent: cents(forRent),
+    forDamage: cents(forDamage),
+    note: reasons.length > 0 ? reasons.join(" and ") : null,
+  };
+};
+
 /**
  * Whether saving this Edit starts a new rental on the piano, carrying the old
  * rental's deposit along untouched: the rental is replaced or ended and the

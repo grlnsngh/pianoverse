@@ -1049,6 +1049,10 @@ export interface RentalHistoryEntry {
   price?: number | null;
   // The deposit that was held for it when it ended; none when there was none
   deposit?: number | null;
+  // How much of it was given back: none (null) while it isn't settled, 0 when none was
+  deposit_refunded?: number | null;
+  // Why part was kept: "unpaid rent", "damage", "unpaid rent and damage"
+  deposit_note?: string | null;
   // The day the rental was replaced or ended
   closed_on: string;
   // "replaced" (a new renter or a new period) or "ended" (no longer rented out)
@@ -1065,8 +1069,12 @@ export interface NewRentalHistory {
   periodStart?: string | null;
   periodEnd?: string | null;
   price?: number | null;
-  /** The deposit that was held for the rental when it ended (not settled yet), when there was one */
+  /** The deposit that was held for the rental when it ended, when there was one */
   deposit?: number | null;
+  /** How much of it was given back: left out while it isn't settled (0 is settled, with nothing given back) */
+  depositRefunded?: number | null;
+  /** Why part was kept ("unpaid rent", "damage"), when part was */
+  depositNote?: string | null;
   closedOn: Date;
   /** Replaced by another rental, ended by taking the customer off, or the piano came back */
   reason: "replaced" | "ended" | "returned";
@@ -1099,7 +1107,13 @@ export async function createRentalHistory(
     ...(entry.periodStart ? { period_start: entry.periodStart } : {}),
     ...(entry.periodEnd ? { period_end: entry.periodEnd } : {}),
     ...(typeof entry.price === "number" ? { price: entry.price } : {}),
-    ...(typeof entry.deposit === "number" && entry.deposit > 0 ? { deposit: entry.deposit } : {}),
+    ...(typeof entry.deposit === "number" && entry.deposit > 0
+      ? {
+          deposit: entry.deposit,
+          ...(typeof entry.depositRefunded === "number" ? { deposit_refunded: entry.depositRefunded } : {}),
+          ...(clean(entry.depositNote) ? { deposit_note: clean(entry.depositNote) } : {}),
+        }
+      : {}),
   };
   return (await databases.createDocument(
     appwriteConfig.databaseId,
@@ -1147,6 +1161,11 @@ export interface RentalHistoryChanges {
   periodStart?: Date | null;
   periodEnd?: Date | null;
   price?: number | null;
+  /** The deposit that was held; none (null) takes it off, and what was refunded with it */
+  deposit?: number | null;
+  /** How much was given back: null is "not settled", 0 is "none given back" */
+  depositRefunded?: number | null;
+  depositNote?: string | null;
 }
 
 const historyRow = (changes: RentalHistoryChanges) => {
@@ -1164,6 +1183,11 @@ const historyRow = (changes: RentalHistoryChanges) => {
   if (changes.price !== undefined) {
     data.price = changes.price && changes.price > 0 ? changes.price : null;
   }
+  if (changes.deposit !== undefined) {
+    data.deposit = changes.deposit && changes.deposit > 0 ? changes.deposit : null;
+  }
+  if (changes.depositRefunded !== undefined) data.deposit_refunded = changes.depositRefunded;
+  if (changes.depositNote !== undefined) data.deposit_note = text(changes.depositNote);
   return data;
 };
 
