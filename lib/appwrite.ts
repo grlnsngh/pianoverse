@@ -248,16 +248,17 @@ export function removedAvatarUrl(username: string): string {
 }
 
 /**
- * Changes the name or the picture saved on the person's user document.
+ * Changes the name, the picture or the UPI ID saved on the person's user
+ * document. An empty UPI ID is saved as null: it takes the ID off.
  *
  * @param {string} userDocumentId - The user document's ID.
- * @param {{ username?: string; avatar?: string }} fields - What to change.
+ * @param {{ username?: string; avatar?: string; upi_id?: string | null }} fields - What to change.
  * @returns {Promise<any>} A promise that resolves to the updated user document.
  * @throws {Error} If Appwrite can't be reached or refuses the change.
  */
 export async function updateUserProfile(
   userDocumentId: string,
-  fields: { username?: string; avatar?: string }
+  fields: { username?: string; avatar?: string; upi_id?: string | null }
 ): Promise<any> {
   return databases.updateDocument(
     appwriteConfig.databaseId,

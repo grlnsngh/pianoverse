@@ -4,6 +4,8 @@ export interface User {
   email: string;
   avatar: string;
   accountId: string;
+  // The owner's own UPI ID, put in rent reminders when they entered one (Edit profile)
+  upi_id?: string | null;
   $id: string;
   $tenant: string;
   $createdAt: string;

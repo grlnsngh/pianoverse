@@ -77,9 +77,10 @@ const payments = [
 const open = async ({
   items = [kawai, weber, yamaha, petrof, warehouse],
   paid = payments,
-}: { items?: any[]; paid?: any[] } = {}) => {
+  user = testUser as any,
+}: { items?: any[]; paid?: any[]; user?: any } = {}) => {
   jest.mocked(getRentPaymentsBetween).mockResolvedValue(paid);
-  const store = createTestStore({ user: testUser, items });
+  const store = createTestStore({ user, items });
   const renderer = await mount(
     <Provider store={store}>
       <PianoDataContext.Provider
@@ -249,6 +250,22 @@ describe("reminding from the Rent due list", () => {
     expect(text).toContain("Hello Asha Mehta,");
     expect(text).toContain("₹4,000 of the rent is due (1 month, since 1 Sep 2026).");
     expect(text).toContain("Please arrange the payment.");
+  });
+
+  it("adds the owner's own UPI ID and how much to pay, when they entered one in their profile", async () => {
+    const { renderer } = await open({ user: { ...testUser, upi_id: "gurleen@oksbi" } });
+
+    await press(renderer, "Remind Karan Malhotra on WhatsApp");
+
+    expect(sentText().text).toContain("\n\nYou can pay ₹18,000 to UPI ID gurleen@oksbi.\n\nThank you.");
+  });
+
+  it("leaves it out when the owner entered none", async () => {
+    const { renderer } = await open({ user: { ...testUser, upi_id: null } });
+
+    await press(renderer, "Remind Karan Malhotra on WhatsApp");
+
+    expect(sentText().text).not.toContain("UPI");
   });
 
   it("says how many months when more are due", async () => {

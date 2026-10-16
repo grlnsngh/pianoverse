@@ -16,11 +16,12 @@ import CameraDeniedSheet from "@/components/CameraDeniedSheet";
 import { Button, Field, Icon, Sheet, Spinner } from "@/components/ui";
 import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
-import { changeProfilePhoto, removeProfilePhoto, renameProfile } from "@/lib/profileEdits";
+import { changeProfilePhoto, removeProfilePhoto, saveProfileDetails } from "@/lib/profileEdits";
 import { initialOf, profilePhoto } from "@/utils/account";
 import { showDialog } from "@/utils/dialog";
 import { PhotoSource, pickProfilePhoto } from "@/utils/photo";
 import { cleanName, nameError } from "@/utils/profile";
+import { cleanUpiId, MAX_UPI_ID, upiIdError } from "@/utils/upi";
 import { showToast } from "@/utils/toast";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
@@ -32,27 +33,34 @@ const goBack = () => {
 };
 
 /**
- * Edit profile, opened from Account: change or remove the profile picture, and
- * change the name. A picture is changed the moment it is chosen (it is
- * uploaded and saved, with a message); the name is saved with Save. The name is
- * the app's: the person's Google account is not changed.
+ * Edit profile, opened from Account: change or remove the profile picture,
+ * change the name, and enter your own UPI ID. A picture is changed the moment
+ * it is chosen (it is uploaded and saved, with a message); the name and the UPI
+ * ID are saved together with Save. The name is the app's: the person's Google
+ * account is not changed. The UPI ID is optional and is the person's own: it is
+ * added to the rent reminders they send, only when they have entered one.
  */
 const EditProfile = () => {
   const colors = useColors();
   const styles = useStyles();
   const { user, setUser } = useGlobalContext();
   const [name, setName] = useState<string>(user?.username ?? "");
+  const [upi, setUpi] = useState<string>(user?.upi_id ?? "");
   const [error, setError] = useState("");
+  const [upiError, setUpiError] = useState("");
   const [busy, setBusy] = useState<"photo" | "name" | null>(null);
   const [choosing, setChoosing] = useState(false);
   const [cameraDenied, setCameraDenied] = useState(false);
   // The picture that couldn't be loaded, so the letter shows instead of an empty circle
   const [brokenPhoto, setBrokenPhoto] = useState<string | null>(null);
   const nameField = useRef<TextInput>(null);
+  const upiField = useRef<TextInput>(null);
 
   const avatar = profilePhoto(user?.avatar);
   const photo = avatar && avatar !== brokenPhoto ? avatar : null;
-  const changed = cleanName(name) !== (user?.username ?? "");
+  const nameChanged = cleanName(name) !== (user?.username ?? "");
+  const upiChanged = cleanUpiId(upi) !== cleanUpiId(user?.upi_id ?? "");
+  const changed = nameChanged || upiChanged;
   const working = busy !== null;
 
   const choose = async (source: PhotoSource) => {
@@ -112,25 +120,48 @@ const EditProfile = () => {
       ],
     });
 
-  const saveName = async () => {
+  const saveDetails = async () => {
     if (!user) return;
     const found = nameError(name);
+    const foundUpi = upiIdError(upi);
     setError(found);
+    setUpiError(foundUpi);
     if (found) {
       nameField.current?.focus();
+      return;
+    }
+    if (foundUpi) {
+      upiField.current?.focus();
       return;
     }
     if (!changed) return;
 
     setBusy("name");
     try {
-      setUser(await renameProfile(user, name));
-      showToast("Name updated", { variant: "success" });
+      setUser(
+        await saveProfileDetails(user, {
+          ...(nameChanged ? { name } : {}),
+          ...(upiChanged ? { upiId: upi } : {}),
+        })
+      );
+      showToast(
+        nameChanged && upiChanged
+          ? "Profile updated"
+          : nameChanged
+            ? "Name updated"
+            : cleanUpiId(upi)
+              ? "UPI ID saved"
+              : "UPI ID removed",
+        { variant: "success" }
+      );
       goBack();
     } catch {
-      showToast("Couldn’t save your name. Check your connection and try again.", {
-        variant: "error",
-      });
+      showToast(
+        `Couldn’t save your ${
+          nameChanged && upiChanged ? "details" : nameChanged ? "name" : "UPI ID"
+        }. Check your connection and try again.`,
+        { variant: "error" }
+      );
     } finally {
       setBusy(null);
     }
@@ -225,10 +256,34 @@ const EditProfile = () => {
             autoComplete="name"
             textContentType="name"
             returnKeyType="done"
-            onSubmitEditing={saveName}
+            onSubmitEditing={saveDetails}
           />
           <Text style={styles.hint}>
             This is the name Pianoverse shows on Account. Your Google account isn’t changed.
+          </Text>
+
+          <Field
+            ref={upiField}
+            label="UPI ID (optional)"
+            value={upi}
+            onChangeText={(text) => {
+              setUpi(text);
+              if (upiError) setUpiError("");
+            }}
+            onBlur={() => setUpiError(upiIdError(upi))}
+            error={upiError}
+            disabled={working}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="email-address"
+            maxLength={MAX_UPI_ID}
+            returnKeyType="done"
+            onSubmitEditing={saveDetails}
+            style={styles.upi}
+          />
+          <Text style={styles.hint}>
+            Your own, like name@bank. It goes at the end of a rent reminder when rent is due, so the renter knows where
+            to pay. Leave it empty to leave it out.
           </Text>
 
           <Button
@@ -236,7 +291,7 @@ const EditProfile = () => {
             loading={busy === "name"}
             loadingTitle="Saving"
             disabled={!changed || busy === "photo"}
-            onPress={saveName}
+            onPress={saveDetails}
             style={styles.save}
           />
         </ScrollView>
@@ -307,6 +362,7 @@ const useStyles = makeStyles((colors) => ({
   },
   photoButton: { paddingHorizontal: spacing.lg },
   hint: { ...type.caption, marginTop: spacing.sm, fontFamily: fonts.regular, color: colors.ink2 },
+  upi: { marginTop: spacing.xl },
   save: { marginTop: spacing.xxl },
   option: {
     minHeight: 52,

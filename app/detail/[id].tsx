@@ -66,6 +66,7 @@ import {
   receiptNumber,
 } from "@/utils/reminders";
 import { rentBalance } from "@/utils/rentDue";
+import { reminderUpiId } from "@/utils/upi";
 import { buildShareMessage } from "@/utils/share";
 import { entriesFor } from "@/utils/serviceLog";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
@@ -90,6 +91,8 @@ const DetailScreen = () => {
   const colors = useColors();
   const { id } = useLocalSearchParams();
   const pianosList = useSelector((state: RootState) => state.pianos.items);
+  // The owner's own UPI ID (Edit profile), added to a rent reminder when they have one
+  const upiId = reminderUpiId(useSelector((state: RootState) => state.users.user));
   const { status: pianoLoad } = usePianoData();
   const [isDeleted, setIsDeleted] = useState(false);
   const [showSoldSheet, setShowSoldSheet] = useState(false);
@@ -208,10 +211,10 @@ const DetailScreen = () => {
     if (!piano) return;
     sendMessage(
       piano.rental_customer_mobile?.trim() || null,
-      buildReminderMessage(piano, undefined, balance),
+      buildReminderMessage(piano, undefined, balance, upiId),
       `${piano.title} rental`,
     );
-  }, [piano, balance]);
+  }, [piano, balance, upiId]);
 
   // A payment's receipt: to the renter who paid it, or the share sheet
   const sendReceipt = useCallback(

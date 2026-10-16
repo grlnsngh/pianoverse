@@ -456,3 +456,147 @@ describe("removing the picture", () => {
     ]);
   });
 });
+
+describe("your own UPI ID", () => {
+  const UPI = "UPI ID (optional)";
+  const field = (renderer: any) => inputLabelled(renderer.root, UPI);
+
+  it("is an optional field after the name, empty until you enter one, with what it is for", async () => {
+    const renderer = await open();
+
+    expect(field(renderer).props.value).toBe("");
+    expect(has(renderer, "Your own, like name@bank. It goes at the end of a rent reminder when rent is due, so the renter knows where to pay. Leave it empty to leave it out.")).toBe(true);
+    // An address's keyboard has the @, and nothing is capitalised or corrected
+    expect(field(renderer).props.keyboardType).toBe("email-address");
+    expect(field(renderer).props.autoCapitalize).toBe("none");
+    expect(field(renderer).props.autoCorrect).toBe(false);
+    expect(field(renderer).props.maxLength).toBe(100);
+    const texts = allTexts(renderer.root);
+    expect(texts.indexOf("Name")).toBeLessThan(texts.indexOf(UPI));
+  });
+
+  it("shows the one you already saved, and Save waits until something differs", async () => {
+    signedUp({ upi_id: "gurleen@oksbi" });
+    const renderer = await open();
+
+    expect(field(renderer).props.value).toBe("gurleen@oksbi");
+    expect(saveDisabled(renderer)).toBe(true);
+    typeInto(renderer.root, UPI, " gurleen@oksbi ");
+    expect(saveDisabled(renderer)).toBe(true);
+    typeInto(renderer.root, UPI, "gurleen@ybl");
+    expect(saveDisabled(renderer)).toBe(false);
+  });
+
+  it("is saved without its spaces, the person told, and the screen left", async () => {
+    const toasts = captureToastCalls();
+    const renderer = await open();
+
+    typeInto(renderer.root, UPI, "  Gurleen@oksbi ");
+    await pressLabel(renderer.root, "Save");
+
+    expect(saved().upi_id).toBe("Gurleen@oksbi");
+    expect(saved().username).toBe("grlnsngh");
+    expect(mockContext.setUser).toHaveBeenCalledWith(expect.objectContaining({ upi_id: "Gurleen@oksbi" }));
+    expect(toasts.map((toast) => [toast.message, toast.variant])).toEqual([["UPI ID saved", "success"]]);
+    expect(router.back).toHaveBeenCalled();
+  });
+
+  it("is saved from the keyboard's Done too", async () => {
+    const renderer = await open();
+    typeInto(renderer.root, UPI, "gurleen@oksbi");
+
+    await act(async () => {
+      await field(renderer).props.onSubmitEditing();
+    });
+    await flushPromises();
+
+    expect(saved().upi_id).toBe("gurleen@oksbi");
+  });
+
+  it("is taken off by emptying the field", async () => {
+    const toasts = captureToastCalls();
+    signedUp({ upi_id: "gurleen@oksbi" });
+    const renderer = await open();
+
+    typeInto(renderer.root, UPI, "");
+    await pressLabel(renderer.root, "Save");
+
+    expect(saved().upi_id).toBeNull();
+    expect(toasts.map((toast) => toast.message)).toEqual(["UPI ID removed"]);
+  });
+
+  it("is saved with the name in one go, and says the profile was updated", async () => {
+    const toasts = captureToastCalls();
+    const renderer = await open();
+
+    typeInto(renderer.root, "Name", "Gurleen Singh");
+    typeInto(renderer.root, UPI, "gurleen@oksbi");
+    await pressLabel(renderer.root, "Save");
+
+    expect(saved()).toMatchObject({ username: "Gurleen Singh", upi_id: "gurleen@oksbi" });
+    expect(toasts.map((toast) => toast.message)).toEqual(["Profile updated"]);
+  });
+
+  it("changing only the name leaves the UPI ID as it was", async () => {
+    signedUp({ upi_id: "gurleen@oksbi" });
+    const renderer = await open();
+
+    typeInto(renderer.root, "Name", "Gurleen Singh");
+    await pressLabel(renderer.root, "Save");
+
+    expect(saved()).toMatchObject({ username: "Gurleen Singh", upi_id: "gurleen@oksbi" });
+  });
+
+  it("says what is wrong when it is left, not while it is being typed, and doesn't save one that can't be", async () => {
+    const renderer = await open();
+
+    typeInto(renderer.root, UPI, "gurleen");
+    expect(has(renderer, "Enter a UPI ID like name@bank.")).toBe(false);
+    await act(async () => {
+      field(renderer).props.onBlur({});
+    });
+    expect(has(renderer, "Enter a UPI ID like name@bank.")).toBe(true);
+
+    await act(async () => {
+      await field(renderer).props.onSubmitEditing();
+    });
+    expect(saved().upi_id).toBeUndefined();
+    expect(router.back).not.toHaveBeenCalled();
+
+    typeInto(renderer.root, UPI, "gurleen@oksbi");
+    expect(has(renderer, "Enter a UPI ID like name@bank.")).toBe(false);
+  });
+
+  it("isn't saved when the name next to it can't be either", async () => {
+    const renderer = await open();
+    typeInto(renderer.root, "Name", "Al");
+    typeInto(renderer.root, UPI, "gurleen@oksbi");
+
+    await pressLabel(renderer.root, "Save");
+
+    expect(saved().upi_id).toBeUndefined();
+    expect(has(renderer, "Name must be at least 3 characters.")).toBe(true);
+  });
+
+  it("stays, with what was typed and a message, when it can't be saved", async () => {
+    const toasts = captureToastCalls();
+    const renderer = await open();
+    typeInto(renderer.root, UPI, "gurleen@oksbi");
+    fakeBackend.failNextDocumentUpdate = true;
+
+    await pressLabel(renderer.root, "Save");
+
+    expect(saved().upi_id).toBeUndefined();
+    expect(mockContext.setUser).not.toHaveBeenCalled();
+    expect(toasts.map((toast) => [toast.message, toast.variant])).toEqual([
+      ["Couldn’t save your UPI ID. Check your connection and try again.", "error"],
+    ]);
+    expect(field(renderer).props.value).toBe("gurleen@oksbi");
+  });
+
+  it("is usable with the field there: everything named and big enough to press", async () => {
+    const renderer = await open();
+
+    expect(describeProblems(a11yProblems(renderer.root))).toEqual([]);
+  });
+});
