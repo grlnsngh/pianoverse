@@ -14,13 +14,14 @@ jest.mock("@/lib/appwrite", () => ({
 }));
 
 import React from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import Customers from "@/app/customers";
 import Customer from "@/app/customer/[key]";
 import { getRentalHistory, getRentPaymentsBetween } from "@/lib/appwrite";
 import { makePiano, testUser } from "./helpers/fixtures";
 import { mount } from "./helpers/ui";
-import { allTexts, createTestStore, flushPromises } from "./helpers/render";
+import { allTexts, createTestStore, flushPromises, TEST_METRICS } from "./helpers/render";
 
 /** The Customers screens with the rentals that were kept. Today is 29 September 2026. */
 
@@ -67,7 +68,11 @@ const kept = (id: string, extra: Record<string, unknown> = {}) =>
 
 const open = async (element: React.ReactElement, items = [kawai]) => {
   const store = createTestStore({ user: testUser, items });
-  const renderer = await mount(<Provider store={store}>{element}</Provider>);
+  const renderer = await mount(
+    <Provider store={store}>
+      <SafeAreaProvider initialMetrics={TEST_METRICS}>{element}</SafeAreaProvider>
+    </Provider>
+  );
   await flushPromises();
   return renderer;
 };

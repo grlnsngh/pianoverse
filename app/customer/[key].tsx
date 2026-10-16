@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import RefreshBand, {
   HIDDEN_REFRESH_INDICATOR,
 } from "@/components/RefreshBand";
+import useRentalSheets from "@/components/useRentalSheets";
 import { Icon, Spinner, StateView } from "@/components/ui";
 import { amountTextProps, fonts, maxScale, spacing, type } from "@/constants/theme";
 import useCurrentDay from "@/lib/useCurrentDay";
@@ -121,6 +122,14 @@ const Customer = () => {
   const { loaded, failed, payments, reload } = useOwnerPayments(null);
   const history = useOwnerRentalHistory();
   const reloadHistory = history.reload;
+  const titles = new Map(
+    pianos.map((piano) => [piano.$id, piano.title || "Untitled piano"])
+  );
+  // Fixing a wrong entry in their history: the sheets for a kept rental
+  const rentalSheets = useRentalSheets(
+    history,
+    (entry) => titles.get(entry.piano_id) ?? (entry.piano_title?.trim() || "a piano")
+  );
   useCurrentDay();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -150,9 +159,6 @@ const Customer = () => {
     history.entries
   ).customers.find((candidate) => candidate.key === key);
   const theirs = customer ? paymentsOfCustomer(payments, key) : [];
-  const titles = new Map(
-    pianos.map((piano) => [piano.$id, piano.title || "Untitled piano"])
-  );
   const renting = customer
     ? customer.pianos.filter((entry) => entry.renting)
     : [];
@@ -337,13 +343,23 @@ const Customer = () => {
                       : "";
                   const detail = [range, price].filter(Boolean).join(" · ");
                   return (
-                    <View
+                    <Pressable
                       key={rental.$id}
-                      accessible
+                      onLongPress={() => rentalSheets.hold(rental)}
+                      accessibilityRole="button"
                       accessibilityLabel={[title, detail]
                         .filter(Boolean)
                         .join(", ")}
-                      style={styles.paymentRow}
+                      accessibilityHint="Press and hold to edit or delete it"
+                      accessibilityActions={[
+                        { name: "edit", label: "Edit rental" },
+                        { name: "delete", label: "Delete rental" },
+                      ]}
+                      onAccessibilityAction={(event) => {
+                        if (event.nativeEvent.actionName === "edit") rentalSheets.edit(rental);
+                        if (event.nativeEvent.actionName === "delete") rentalSheets.confirmDelete(rental);
+                      }}
+                      style={({ pressed }) => [styles.paymentRow, pressed && styles.pressed]}
                     >
                       <View style={styles.rowTexts}>
                         <Text style={styles.rowTitle} numberOfLines={1}>
@@ -355,9 +371,10 @@ const Customer = () => {
                           </Text>
                         )}
                       </View>
-                    </View>
+                    </Pressable>
                   );
                 })}
+                <Text style={styles.hint}>Press and hold a rental to edit or delete it.</Text>
               </>
             )}
 
@@ -390,6 +407,8 @@ const Customer = () => {
           </>
         )}
       </ScrollView>
+
+      {rentalSheets.sheets}
     </SafeAreaView>
   );
 };
@@ -492,6 +511,13 @@ const useStyles = makeStyles((colors) => ({
     ...type.secondary,
     paddingHorizontal: spacing.screen,
     paddingBottom: spacing.sm,
+    color: colors.ink2,
+  },
+  hint: {
+    ...type.caption,
+    paddingHorizontal: spacing.screen,
+    paddingTop: spacing.md,
+    fontFamily: fonts.regular,
     color: colors.ink2,
   },
 }));

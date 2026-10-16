@@ -315,6 +315,13 @@ Tick `[x]` when done. Add a short note in brackets if something differs from the
   - [x] 37.2 Large text [the photo viewer's "1 of 4" and its zoom hint grow instead of being cut (the count up to the photo badge limit); the rows of the press-and-hold service sheet grow with their words]
   - [x] 37.3 Tests, checks, commit, push, pull request [`paperForms`, `photoViewer` and `serviceScreens` changed]
   - [ ] 37.4 Print a Handover form and check the picture (the owner)
+- [x] **Batch 38. Fix a wrong past rental (C4)** (S). The owner asked for it from the ideas list (the second of the four suggested after Batch 37). **JavaScript only; no Appwrite change and no build needed**
+  - [x] 38.1 Appwrite call [`updateRentalHistoryEntry` in `lib/appwrite.ts`: only the details changed are sent, an emptied one is sent as null; the table, its columns and its permissions are as they were]
+  - [x] 38.2 The rules [`utils/rentalHistoryEdit.ts`: what the Edit rental sheet starts from, what differs (names compared with their spaces cleaned, a date as the same when it is the same day, no rent when 0), what can't be saved (a number that isn't one; an end before the start), what a kept rental is called]
+  - [x] 38.3 Change and delete [`lib/useOwnerRentalHistory.ts` gets `change` and `remove`, each with the message and Undo the payments have, and every screen that shows the history loads it again; `components/EditRentalSheet.tsx`, `RentalActionsSheet.tsx` and `useRentalSheets.tsx`]
+  - [x] 38.4 Where it is [a kept rental on a piano's Previous renters and on a customer's Rental history is pressed and held (a screen reader has Edit rental and Delete rental as actions); a rental known only from payments isn't; `PastRentersSection`, `app/detail/[id].tsx`, `app/customer/[key].tsx`]
+  - [x] 38.5 Tests, README, checks, commit, push, pull request [`rentalHistoryEdit` and `historyFixScreens` (new); `customersScreen`, `keptRentalsScreen` and `previousRenters` changed]
+  - [ ] 38.6 Try it on the phone (the owner: see "How to check"); it can go over the air to any runtime 5 build
 
 ## Batch notes
 
@@ -627,6 +634,13 @@ Record every choice that is not obvious from the boards. Format: `date, batch, d
 - 2026-10-16, batch 37, **The owner's piano photo on the Handover form.** Offered a new line drawing (an upright from the front, both sides and the top), the owner chose the photo from his TPS letterhead, after being told it shows one side only, prints dark at full strength, and is a maker's product photo that every user of the app would print. It is made grey and blended 60% with white, so marks written on it show and it uses little ink, trimmed to the piano, 380 px tall, JPEG at 82: about 10 KB, written into the form as a data address so the PDF needs no file. The Canva connection couldn't export it (exports are off for the account), so the owner sent the file. The canvas board `FormHandover` still shows the old outline; the Monogram strip, whose name sits over the initials, was left as designed.
 - 2026-10-16, batch 37, **Large-text fixes found while looking.** Not in the large-text plan's list: the photo viewer's count had a fixed height and line height and its zoom hint a fixed width and height; the service actions sheet's rows a fixed height (Batch 35). All now grow, with a test at 150%.
 
+- 2026-10-16, batch 38, **Press and hold, like the services and expenses.** A kept rental is fixed the way a service (Batch 35) and a business expense (Batch 36) are: press and hold for Edit rental and Delete rental, each with Undo, so there is no new button on a screen that is already full. It was built from those patterns without a new canvas page, since nothing on the screen is new but a sheet of the same rows as the other edit sheets; say if you want it drawn.
+- 2026-10-16, batch 38, **What can be changed.** The customer's name, number and address, the start and end dates and the rent. Not the day the rental was kept or why (they say what happened to it, not what was agreed). A date a rental has can be changed, not taken off; one it was kept without can be set. The number may be left empty, but one that is there must be 10 digits or have its own country code. An end can't be before its start (the same day is fine: a piano can come back the day it left).
+- 2026-10-16, batch 38, **Payments follow the name and the dates.** A kept rental shows the payments of the person who rented it between its start and a month after it ended, so changing the name or the dates can move payments to or from it. The sheet says so; the payments themselves are never changed. Someone shown only from a piano's payments isn't a kept rental: they are fixed in the payments (their names).
+- 2026-10-16, batch 38, **Delete asks, and keeps the payments.** "Delete this rental?" names the rental and the piano and says what the customer paid stays recorded. Undo keeps it again as it was (a new row with the same details, the same day kept and the same reason, even when it had none).
+- 2026-10-16, batch 38, **No Appwrite change.** Every column was already there and optional, and rows made by the app have their creator's permissions (read, update, delete), so they can be changed like a payment. Emptying a detail sends null.
+- 2026-10-16, batch 38, **Tests.** New: `rentalHistoryEdit` (the starting point, what differs, what can't be saved, what a rental is called) and `historyFixScreens` (the menu and its hint, tapping still opens the customer, editing with only what changed and Undo, a date chosen in the calendar and Save changes waiting for a change, an emptied detail, a number and a date asked for, a failed save keeping the sheet open, delete with asking and Undo, cancelling, the screen reader's actions, a rental with no name, someone known only from payments, the customer's page, a big Font size). Changed: `customersScreen`, `keptRentalsScreen` (they now draw inside a safe area, since the page has sheets) and `previousRenters` (the hint says how to fix it).
+
 ## Session log
 
 Add one entry per session, newest last. Format:
@@ -919,3 +933,10 @@ Add one entry per session, newest last. Format:
 - Commit(s): `fix: batch 37 handover photo and large text` on the branch `feature/print-fixes`, made from `feature/profit` (Batch 36) so the plan doesn't conflict; pushed, pull request into `main` after #57.
 - Checks: typecheck clean. Jest 170 suites, 2772 tests pass. Lint 0 errors and 6 warnings (the same). The Handover form was looked at as a picture (rendered with Edge), not printed.
 - Next: merge #57 and then this; build 1.1.20 and try 35.8, 36.8, 37.4 and L5.3 on the phone.
+
+### Session 41, 2026-10-16
+- Batch and sub-tasks done: **Batch 38 Fix a wrong past rental (C4)**: 38.1 to 38.5. **38.6 is yours.**
+- Commit(s): `feature: batch 38 fix a wrong past rental` on the branch `feature/history-fix`, pushed, pull request into `main` (not merged).
+- Checks: typecheck clean. Jest 172 suites, 2799 tests pass. Lint 0 errors and 6 warnings (the same). `npm run check:appwrite` not needed (no Appwrite change). **Not looked at on a phone**: it needs a signed-in account with a kept rental.
+- Known issues and follow-ups: (1) The owner said not to worry about making a new build now (one user, not in production), so the 1.1.20 build waits; this goes into it or over the air. (2) No new canvas page (see Decisions).
+- Next: whatever the owner picks from `docs/redesign/IDEAS.md` (UPI in reminders, handover photos, the morning summary were the others suggested).

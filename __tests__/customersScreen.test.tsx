@@ -16,6 +16,7 @@ jest.mock("@/lib/appwrite", () => ({
 import React from "react";
 import { Linking, RefreshControl } from "react-native";
 import { act } from "react-test-renderer";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import { router } from "expo-router";
 import Customers from "@/app/customers";
@@ -31,6 +32,7 @@ import {
   flushPromises,
   pressLabel,
   pressText,
+  TEST_METRICS,
 } from "./helpers/render";
 
 /**
@@ -111,7 +113,11 @@ const open = async (
 ) => {
   jest.mocked(getRentPaymentsBetween).mockResolvedValue(paid);
   const store = createTestStore({ user, items });
-  const renderer = await mount(<Provider store={store}>{element}</Provider>);
+  const renderer = await mount(
+    <Provider store={store}>
+      <SafeAreaProvider initialMetrics={TEST_METRICS}>{element}</SafeAreaProvider>
+    </Provider>
+  );
   await flushPromises();
   return renderer;
 };
@@ -335,7 +341,9 @@ describe("a customer's page", () => {
     const store = createTestStore({ user: testUser, items: pianos });
     const renderer = await mount(
       <Provider store={store}>
-        <Customer />
+        <SafeAreaProvider initialMetrics={TEST_METRICS}>
+          <Customer />
+        </SafeAreaProvider>
       </Provider>
     );
     await flushPromises();

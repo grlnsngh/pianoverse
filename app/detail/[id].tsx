@@ -21,6 +21,7 @@ import PianoActionsSheet from "@/components/PianoActionsSheet";
 import PianoMoneySection from "@/components/PianoMoneySection";
 import RecordPaymentSheet from "@/components/RecordPaymentSheet";
 import RentalSection from "@/components/RentalSection";
+import useRentalSheets from "@/components/useRentalSheets";
 import ServiceSection from "@/components/ServiceSection";
 import StickyActionBar from "@/components/StickyActionBar";
 import { Button, ScreenEntrance, useSkeletonDelay } from "@/components/ui";
@@ -106,6 +107,12 @@ const DetailScreen = () => {
   );
   const rentable = piano?.category === PIANO_CATEGORY.RENTABLE;
   const rentalHistory = useOwnerRentalHistory(rentable);
+  // Fixing a wrong entry in the piano's history: the sheets for a kept rental
+  const rentalSheets = useRentalSheets(rentalHistory, () => piano?.title || "this piano");
+  const keptRental = useCallback(
+    (rental: { id: string }) => rentalHistory.entries.find((entry) => entry.$id === rental.id),
+    [rentalHistory.entries],
+  );
   // Loaded for every piano: its Money section counts the rent it earned while it was rented
   const rentPayments = useRentPayments(typeof id === "string" ? id : "");
   const serviceLog = useServiceLog();
@@ -406,7 +413,22 @@ const DetailScreen = () => {
             {previous.length > 0 && (
               <>
                 <Divider />
-                <PastRentersSection rentals={previous} onOpen={openCustomer} />
+                <PastRentersSection
+                  rentals={previous}
+                  onOpen={openCustomer}
+                  onHold={(rental) => {
+                    const entry = keptRental(rental);
+                    if (entry) rentalSheets.hold(entry);
+                  }}
+                  onEdit={(rental) => {
+                    const entry = keptRental(rental);
+                    if (entry) rentalSheets.edit(entry);
+                  }}
+                  onDelete={(rental) => {
+                    const entry = keptRental(rental);
+                    if (entry) rentalSheets.confirmDelete(entry);
+                  }}
+                />
               </>
             )}
 
@@ -482,6 +504,7 @@ const DetailScreen = () => {
         onClose={() => setShowReturnedSheet(false)}
         owing={balance}
       />
+      {rentable && rentalSheets.sheets}
       {rentable && (
         <EditPaymentSheet
           payment={editingPayment}

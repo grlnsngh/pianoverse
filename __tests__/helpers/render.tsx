@@ -52,7 +52,7 @@ export type TestStore = ReturnType<typeof createTestStore>;
 
 const mountedRenderers = new Set<ReactTestRenderer>();
 
-const TEST_METRICS = {
+export const TEST_METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
