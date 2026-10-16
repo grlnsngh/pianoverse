@@ -140,17 +140,47 @@ describe("FormRow on a page", () => {
 describe("FormRow in a sheet at 150%", () => {
   atFontScale(1.5);
 
-  it("lets the label and the value wrap and share the row, the value still on the right", async () => {
+  it("keeps the label's words together and lets the value wrap, still on the right", async () => {
     const renderer = await mount(
       <Group inSheet>
-        <FormRow testID="row" label="Customer name" value="Meera Kapoor" />
+        <FormRow testID="row" label="Paid on" value="Today, 15 Oct 2026" onPress={() => {}} />
       </Group>
     );
 
-    expect(textNode(renderer, "Customer name").props.numberOfLines).toBeUndefined();
-    expect(textStyle(renderer, "Customer name")).toMatchObject({ flexShrink: 1 });
-    expect(textStyle(renderer, "Meera Kapoor")).toMatchObject({ textAlign: "right", flexShrink: 1 });
+    expect(textNode(renderer, "Paid on").props.numberOfLines).toBeUndefined();
+    // The label never shrinks (so "Paid on" is not broken in two), up to half the row
+    expect(textStyle(renderer, "Paid on")).toMatchObject({ flexShrink: 0, maxWidth: "50%" });
+    expect(textStyle(renderer, "Today, 15 Oct 2026")).toMatchObject({ textAlign: "right", flexShrink: 1 });
     expect(flat(hostByTestId(renderer.root, "row").props.style).minHeight).toBe(52);
+  });
+
+  it("puts the label above a text field, so its hint is read in full and not cut", async () => {
+    const renderer = await mount(
+      <Group inSheet>
+        <FormRow label="Note" placeholder="Cash, UPI, cheque no." input={{ value: "", onChangeText: () => {} }} />
+      </Group>
+    );
+    const input = renderer.root.findByType(TextInput);
+
+    expect(textStyle(renderer, "Note").width).toBeUndefined();
+    expect(textStyle(renderer, "Note").maxWidth).toBeUndefined();
+    expect(flat(input.props.style).textAlign).toBe("left");
+    // The label and the field are in one stack, the label first
+    const stacks = renderer.root.findAll((node) => (node.type as unknown) === "View" && flat(node.props.style ?? {}).gap === 2);
+    expect(stacks).toHaveLength(1);
+  });
+});
+
+describe("FormRow in a sheet at 100%", () => {
+  it("keeps a text field beside its label, the hint at the right, as drawn", async () => {
+    const renderer = await mount(
+      <Group inSheet>
+        <FormRow label="Note" placeholder="Cash, UPI, cheque no." input={{ value: "", onChangeText: () => {} }} />
+      </Group>
+    );
+
+    expect(flat(renderer.root.findByType(TextInput).props.style).textAlign).toBe("right");
+    expect(renderer.root.findAll((node) => (node.type as unknown) === "View" && flat(node.props.style ?? {}).gap === 2)).toHaveLength(0);
   });
 });
 

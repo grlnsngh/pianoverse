@@ -39,6 +39,7 @@ const withInsets = (children: React.ReactNode, bottom = 34) => (
     {children}
   </SafeAreaProvider>
 );
+const texts = (renderer: Mounted) => renderer.root.findAllByType(Text);
 const textNode = (renderer: Mounted, content: string) =>
   renderer.root.findAllByType(Text).find((text) => textContent(text) === content)!;
 const hiddenCopies = (renderer: Mounted, content: string) =>
@@ -354,6 +355,8 @@ describe("the search pill", () => {
 
 describe("the badge on a photo", () => {
   const open = () => mount(<Badge onPhoto tone="late" label="Overdue · 18 days" />);
+  // The number and its unit are held together, so a second line starts at "18 days"
+  const NBSP = String.fromCharCode(160);
 
   it("limits how big its words grow, and sits at the corner as drawn at 100%", async () => {
     const renderer = await open();
@@ -369,11 +372,20 @@ describe("the badge on a photo", () => {
 
     it("keeps clear of the category circle at the other corner, its words taking a second line", async () => {
       const renderer = await open();
-      const text = textNode(renderer, "Overdue · 18 days");
+      const text = textNode(renderer, `Overdue · 18${NBSP}days`);
 
       expect(text.props.numberOfLines).toBe(2);
       expect(flat(text.parent!.props.style)).toMatchObject({ maxWidth: "65%", position: "absolute", left: 8 });
       expect(flat(text.props.style).flexShrink).toBe(1);
+    });
+
+    it("can't break between the number and its unit (\"18 / days\"), and is still read out whole", async () => {
+      const renderer = await open();
+
+      expect(texts(renderer).some((text) => textContent(text) === `Overdue · 18${NBSP}days`)).toBe(true);
+      expect(texts(renderer).some((text) => textContent(text) === "Overdue · 18 days")).toBe(false);
+      const view = renderer.root.find((node) => (node.type as unknown) === "View" && node.props.accessibilityLabel === "Overdue · 18 days");
+      expect(view).toBeTruthy();
     });
   });
 });

@@ -14,6 +14,7 @@ import Today from "@/app/(tabs)/today";
 import CustomerRow from "@/components/CustomerRow";
 import { InfoRows } from "@/components/DetailParts";
 import { LetterheadThumbnail } from "@/components/FormThumbnail";
+import LetterheadRow from "@/components/LetterheadRow";
 import IncomeChart from "@/components/IncomeChart";
 import MakePickerSheet, { indexFits } from "@/components/MakePickerSheet";
 import PianoCard from "@/components/PianoCard";
@@ -25,7 +26,7 @@ import { PianoDataContext } from "@/lib/PianoDataContext";
 import type { Customer } from "@/utils/customers";
 import { toStoredDate } from "@/utils/dates";
 import { getPianoDisplay } from "@/utils/pianoDisplay";
-import { DEFAULT_DESIGN } from "@/utils/letterhead";
+import { DEFAULT_DESIGN, EMPTY_LETTERHEAD, designSummary } from "@/utils/letterhead";
 import { makePiano, testUser } from "./helpers/fixtures";
 import { mount, textContent } from "./helpers/ui";
 import { atFontScale, createTestStore } from "./helpers/render";
@@ -313,10 +314,11 @@ describe("the Welcome screen", () => {
   describe("at 150%", () => {
     atFontScale(1.5);
 
-    it("gives room back from the orange top to the words and buttons", async () => {
+    it("keeps the orange top as tall as at 100%, since the keyboard drawn in it needs that room to leave the name clear, and scrolls instead", async () => {
       const renderer = await open();
 
-      expect(flat(hero(renderer).props.style).height).toBeCloseTo(1334 * 0.3);
+      expect(flat(hero(renderer).props.style).height).toBe(468 + 47 > 1334 * 0.52 ? 1334 * 0.52 : 468 + 47);
+      expect(renderer.root.findAllByType(ScrollView)).toHaveLength(1);
       expect(hasText(renderer, "Sign in")).toBe(true);
       expect(hasText(renderer, "Create account")).toBe(true);
     });
@@ -330,5 +332,27 @@ describe("the letterhead drawings", () => {
     );
 
     expect(textNode(renderer, "TP").props.allowFontScaling).toBe(false);
+  });
+});
+
+describe("the letterhead row on the paper forms", () => {
+  const design = { ...DEFAULT_DESIGN, style: "make" as const };
+  const open = () => mount(<LetterheadRow design={design} details={EMPTY_LETTERHEAD} hint="On agreements and rent cards" />);
+  const summary = designSummary(design, EMPTY_LETTERHEAD);
+
+  it("shows what the letterhead is on one line at 100%", async () => {
+    const renderer = await open();
+
+    expect(textNode(renderer, summary).props.numberOfLines).toBe(1);
+  });
+
+  describe("at 150%", () => {
+    atFontScale(1.5);
+
+    it("lets it take two lines, so it isn't cut to \"Monogram · add…\"", async () => {
+      const renderer = await open();
+
+      expect(textNode(renderer, summary).props.numberOfLines).toBe(2);
+    });
   });
 });

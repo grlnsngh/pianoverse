@@ -642,3 +642,26 @@ describe("the counts under the profile", () => {
     });
   });
 });
+
+describe("the rows of Account", () => {
+  const styleOf = (node: any) => {
+    const style = node.props.style;
+    return require("react-native").StyleSheet.flatten(typeof style === "function" ? style({ pressed: false }) : style);
+  };
+  const row = (renderer: any, labelStart: string) =>
+    renderer.root.find((node: any) => node.props.accessibilityLabel?.startsWith(labelStart) && node.props.onPress);
+
+  it("are at least 64 high, with room above and below so that text which wraps never touches the line between rows", async () => {
+    const { renderer } = await renderAccount([makePiano()]);
+
+    expect(styleOf(row(renderer, "Income."))).toMatchObject({ minHeight: 64, paddingVertical: 12 });
+    expect(styleOf(row(renderer, "Income.")).height).toBeUndefined();
+  });
+
+  it("keep Sign out at least 56 high, with the same room", async () => {
+    const { renderer } = await renderAccount([makePiano()]);
+
+    expect(styleOf(row(renderer, "Sign out"))).toMatchObject({ minHeight: 56, paddingVertical: 12 });
+    expect(styleOf(row(renderer, "Sign out")).height).toBeUndefined();
+  });
+});

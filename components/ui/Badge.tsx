@@ -32,6 +32,8 @@ const Badge = ({ tone, label, onPhoto = false, style, testID }: BadgeProps) => {
   // On a photo with a big Font size the pill keeps clear of the category circle in
   // the opposite corner, and its words take a second line rather than run past it
   const squeezed = onPhoto && large;
+  // A second line should start at the number, not between it and its unit ("18 / days")
+  const shown = squeezed ? label.replace(/(\d) (?=\S)/g, "$1\u00a0") : label;
   return (
     <View
       accessible
@@ -55,7 +57,7 @@ const Badge = ({ tone, label, onPhoto = false, style, testID }: BadgeProps) => {
           { color: tone === "late" ? colors.white : colors.ink },
         ]}
       >
-        {label}
+        {shown}
       </Text>
     </View>
   );

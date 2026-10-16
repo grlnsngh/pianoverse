@@ -159,15 +159,15 @@ Tick `[x]` when done. Rules: work on a branch `feature/large-text` off `main`; k
   - [x] L4.4 Make picker: A to Z index limit 1.2, hidden when it doesn't fit the sheet (F22) [`indexFits`: 8 + letters x (13 x the Font size, up to 1.2, + 3) must fit the list's measured height; the make rows and headings stay a fixed height on purpose, since the jump to a letter adds them up: a make is one line, a heading takes the `section` limit]
   - [x] L4.5 Account counts become a list in big-text mode (F25)
   - [x] L4.6 Income chart bars fit their columns (F23, D6) [a bar is `width: 100%` up to 28, in a column that may shrink]
-  - [x] L4.7 Welcome scrolls; the orange top gets shorter in big-text mode (F24) [from 125% the orange top is 30% of the screen instead of 52%]
+  - [x] L4.7 Welcome scrolls; the orange top gets shorter in big-text mode (F24) [the shortening was taken out again in Batch L5: on the emulator the keys of the drawn keyboard rose behind the name "Pianoverse". Welcome now only scrolls, and its orange top is as tall as at 100%]
   - [x] L4.8 Service on a piano's page: the two buttons get `minHeight` and stack in big-text mode; the service history numbers become a list like Today's (F31, F37)
   - [x] L4.9 Letterhead screens: design cards grow with their name and wrap by word; thumbnail initials don't scale; the upload step circles get a `minWidth` and `minHeight` (F34, F35, F39)
   - [x] L4.10 Empty Pianos: the "Prefer paper? Print forms" link uses the button's own `minHeight`, not a fixed height, and may take two lines (F36) [done in Batch L2, with the button]
   - [x] L4.11 Tests, typecheck, lint, commit [`largeTextScreens.test.tsx` (19 tests) and new cases in `accountScreen` and `serviceScreens`; 12 of the new ones fail without the change. 168 suites, 2684 tests]
-- [ ] **Batch L5. Check on a phone** (S)
-  - [ ] L5.1 On the emulator, go through every screen in section 7 at 100%, 130%, 150% and 200%, and at the largest Display size; fix what is left
-  - [ ] L5.2 Check at 100% that every screen still matches its board
-  - [ ] L5.3 Ship as an over-the-air update, then check on the dad's Galaxy S24 FE at his own settings (Q1); if the Pianos grid still looks wrong there, revisit Q2
+- [ ] **Batch L5. Check on a phone** (S) [the emulator part was done 2026-10-15 on Android 15; the phone part is the owner's]
+  - [~] L5.1 On the emulator, go through every screen in section 7 at 100%, 130%, 150% and 200%, and at the largest Display size; fix what is left [done at 150% and 200% for the screens listed under "What L5 looked at" below; not done at 130%, 180% or the largest Screen zoom, on an Android 13 image, or for the screens under "Not looked at"]
+  - [ ] L5.2 Check at 100% that every screen still matches its board [only Welcome was looked at at 100%; the rest is covered by the tests, which pass with the sizes of the boards]
+  - [ ] L5.3 Ship as an over-the-air update, then check on the dad's Galaxy S24 FE at his own settings (Q1); if the Pianos grid still looks wrong there, revisit Q2 [not done: needs the owner's go-ahead to publish, and his phone]
   - [ ] L5.4 Session log, commit
 
 ## 7. How to check
@@ -212,6 +212,14 @@ Every later session:
 Continue the large-text work. Read docs/large-text/PLAN.md (Progress, Decisions, Session log and Owner questions). Run git status and git log --oneline -10 and check they match the Session log. Do the next unticked batch, ticking sub-tasks as you go. Typecheck, tests and lint must pass before the commit. Then add a Session log entry, commit, give me the "how to check" list and the prompt for the next session, and show every open owner question in full. Do not start the following batch.
 ```
 
+## What L5 looked at (2026-10-15, Android 15 emulator, 1080 x 2400 at 420 dpi)
+
+**At 150%:** Welcome; the controls (text fields, form rows on a page and in a sheet, segmented choices, buttons, the amount field, the copies row); Pianos (search pill, category tabs, grid cards, list rows, a customer row); the sticky bar and a toast over it; Today; Account; a rented, overdue piano's page; the Paper forms list; the Rent card form with its page preview; Letterhead and its details; Add piano, step 1; a piano's service history.
+
+**At 200%:** Welcome; Pianos (grid cards and badges); Account; a piano's page; the Record payment sheet; the date picker; Add piano, step 1; the Make picker with its index.
+
+**Not looked at:** 130%, 180% and the largest Screen zoom; a narrow (360 wide) screen; Android 13 (linear scaling); Today, controls, bars and Paper forms at 200%; Sign in and Sign up; Letterhead make, upload and printed; the rental agreement; Extend rental, Mark as sold, Mark returned and Edit payment; the piano's ⋯ menu; dialogs; the select-mode header; Filters and Sort by; the Income chart; the customers list and a customer's page; the Welcome screen on a short phone; real data (long names, big amounts).
+
 ## Decisions
 
 - 2026-10-14, owner answers. The target phone is a Samsung Galaxy S24 FE on Android 14 or later, so non-linear scaling is what matters most: the label, row, button and tab problems (F2, F3, F4, F5, F7, F8, F9, F14, F15, F16) show at 150% on it, while the big-number ones (F6, F18, F23) show only near 200%. All findings are still fixed, since other people may be on older phones. Q2 was left to us: two columns stay, with two-line titles in big-text mode, to be looked at again on the phone in L5. Q3 and Q4 take option (a).
@@ -234,6 +242,9 @@ Continue the large-text work. Read docs/large-text/PLAN.md (Progress, Decisions,
 - 2026-10-15, batch L4, **The make picker's rows keep a fixed height.** The jump to a letter adds up the headings and rows (`headingOffset`), so they must have known heights. A make is one line now (`numberOfLines` 1), which fits the row at any Font size; a make that is too long ends in a dot instead of overflowing.
 - 2026-10-15, batch L4, **One list for every row of three counts.** Today, Account and a piano's service history show "In stock / On rent / Sold this month"-style columns; from 125% each becomes a line with the number at the right (`flexDirection: row-reverse`, so the order of the words for a screen reader is unchanged).
 - 2026-10-15, batch L4, **The Welcome screen scrolls.** It is a `ScrollView` whose content is at least the screen, so at 100% the buttons stay at the bottom as drawn and with a big Font size nothing is pushed off the screen.
+
+- 2026-10-15, batch L5, **What the emulator showed that the code review and the tests didn't.** (1) Welcome: shrinking the orange top (L4) let the drawn keys rise behind the name, so the shortening was removed. (2) Account's rows had no vertical padding, so with wrapped text their titles touched the lines between rows: `dataRow` and Sign out now have `paddingVertical` 12 with the same minimum heights. (3) The photo badge broke between the number and its unit ("Overdue · 18 / days"): from 125% the space after a digit is a non-breaking one. (4) A sheet's "Paid on" broke in two and the Note field's hint was cut at 200%: in a sheet the label now keeps its words together (up to half the row) and the value wraps, and a text field in a sheet gets its label above it, as on a page. (5) The letterhead row's title was cut ("Monogram · add…"): two lines from 125%. Tests: the code is checked against styles, and these five were about what Android's text engine does with them.
+- 2026-10-15, batch L5, **How it was looked at.** A development build made in WSL (`eas build --profile development --local`), installed on an Android 15 emulator profile made for the purpose (`Pixel_8_Android_15`, a copy of the Android 13 one pointing at the Android 15 image), Metro on this PC and `adb reverse tcp:8081 tcp:8081`, `adb shell settings put system font_scale 1.5` (and `2.0`). Sign-in is not possible there without the owner's real credentials, so a scratch screen (not kept) seeded the redux store with six made-up pianos and opened the real screens; Today, Pianos and Account were drawn with those, and the piano page, Paper forms, Letterhead and Add piano were the real routes. The development build also created a `development` update channel on the EAS project.
 
 (more added as batches go)
 
@@ -266,3 +277,7 @@ Batch L3 (headers, bars and badges): sheet, Add flow, Back and select-mode title
 ### Session 6, 2026-10-15
 
 Batch L4 (screens): Today, Account and service counts as lists; two-line rows and shelf cards; the Pianos card and row (price on its own line); the piano page details and actions; the make picker index; the Income chart; Welcome; the service buttons; the letterhead cards, thumbnails and steps. Batch L3 was merged first (PR #53). Next: Batch L5 (check on a phone), which needs the owner's phone or an emulator.
+
+### Session 7, 2026-10-15
+
+Batch L5, the emulator part: a development build on an Android 15 emulator, the screens listed above at 150% and 200%, and five fixes the pass showed (Welcome's orange top, Account's row padding, the badge's line break, the sheets' label and field layout, the letterhead row's title). Batch L4 was merged first (PR #54). Not done: the over-the-air update and the check on the dad's phone, which need the owner.
