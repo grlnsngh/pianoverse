@@ -18,27 +18,27 @@ Tick `[x]` when done.
 ## Batches
 
 - [x] **Batch S1. Research and plan** (S). This file and [RESEARCH.md](RESEARCH.md): GitHub Pages and Releases, installing an APK and the developer-verification change coming in 2026–2027, the Play badge's rules, how phones treat text size on the web, WCAG reflow and resize, and what makes a site look generated.
-- [ ] **Batch S2. Real screenshots** (S)
-  - [ ] S2.1 The emulator signed in to the owner's account with the demo data; Android's demo status bar; Font size 100%
-  - [ ] S2.2 The screens: Today, Pianos, a rented piano's page, Record payment or Rent due, Income, Deposits held, the availability calendar, Paper forms with the letterhead, a QR label, the service log
-  - [ ] S2.3 Cropped to the app (no navigation bar), saved as WebP at 360 and 720 px wide in `web/screens/`, each with its words for a screen reader
-  - [ ] S2.4 `scripts/site/screenshots.md`: how to take them again after the app changes
-- [x] **Batch S3. The landing page** (M) [written; waits for the screenshots of S2]
+- [x] **Batch S2. Real screenshots** (S)
+  - [x] S2.1 The emulator signed in to the owner's account with the demo data; Android's demo status bar; Font size 100%
+  - [x] S2.2 The screens: Today, Pianos, a rented piano's page, Record payment or Rent due, Income, Deposits held, the availability calendar, Paper forms with the letterhead, a QR label, the service log
+  - [x] S2.3 Cropped to the app (no navigation bar), saved as WebP at 360 and 720 px wide in `web/screens/`, each with its words for a screen reader
+  - [x] S2.4 How to take them again after the app changes: [SCREENSHOTS.md](SCREENSHOTS.md), with `scripts/site/emu.py` and `scripts/site/make-screens.py`
+- [x] **Batch S3. The landing page** (M)
   - [x] S3.1 Top: the mark, the name, and a Download link
   - [x] S3.2 First screen: what it is and for whom, **Download for Android** (to the download page) with the version and size, and the Today screen beside it
   - [x] S3.3 What it does, one task at a time, each with its screenshot and one or two plain sentences: rent and reminders, a piano's page, money and income, deposits, the calendar, tuning and service, paper forms and the letterhead, QR labels
   - [x] S3.4 Free, private, and how updates arrive; how to install from outside the Play Store in three lines (more on the download page)
   - [x] S3.5 Questions: forgot password (the old page's three steps), which phones, iPhone, staff, deleting your data, contact
-  - [ ] S3.6 Footer on every page: Download, Privacy policy, Delete your account, the email; Open Graph picture (1200 × 630) for links shared on WhatsApp
-- [ ] **Batch S4. The download page** (S)
+  - [x] S3.6 Footer on every page: Download, Privacy policy, Delete your account, the email; Open Graph picture (1200 × 630) for links shared on WhatsApp
+- [x] **Batch S4. The download page** (S) [the release itself, S4.4, waits for the owner]
   - [x] S4.1 The button to the APK (Releases), version, size, Android 7.0 or later, the date
   - [x] S4.2 Installing, step by step, in the words the phone uses, for most phones and for Samsung; what Play Protect may say; how to update; how to remove it
   - [x] S4.3 "Coming to Google Play" and the place where the badge will go
   - [ ] S4.4 The first release with `pianoverse.apk` (**only with the owner's yes**)
-- [ ] **Batch S5. Checked on every size** (S)
-  - [ ] S5.1 Every page drawn in Chrome at 320, 360, 390, 768, 1280 and 1440 px, each at 100%, 150% and 200% text, and with the WCAG text-spacing style; fix whatever breaks
-  - [ ] S5.2 Tests: the new pages in `__tests__/webPages.test.ts` (files exist, no inline styles or scripts, zoom allowed, text-scale meta, images with words and sizes, only the app's colours, sizes in rem on the new parts)
-  - [ ] S5.3 README, `docs/redesign/WEB.md`, the phone check in `docs/redesign/QUESTIONS.md`
+- [x] **Batch S5. Checked on every size** (S)
+  - [x] S5.1 Every page drawn in Chrome at 320, 360, 390, 768, 1280 and 1440 px, each at 100%, 150% and 200% text, and with the WCAG text-spacing style; fix whatever breaks
+  - [x] S5.2 Tests: the new pages in `__tests__/webPages.test.ts` (files exist, no inline styles or scripts, zoom allowed, text-scale meta, images with words and sizes, only the app's colours, sizes in rem on the new parts)
+  - [x] S5.3 README, `docs/redesign/WEB.md`, the phone check in `docs/redesign/QUESTIONS.md`
 
 ## Switching to the Play Store (when the listing is live)
 
@@ -58,3 +58,6 @@ Tick `[x]` when done.
 - S1 done. The emulator (Pixel 8, Android 15) has the app, updated to 1.1.20; it was signed out, and signing in needs the owner (S2).
 - S3 and S4 written. Checked in Chrome at 320, 360, 390 and 1280 px, at 100%, 150% and 200% text (phone widths in frames, since a headless window can't be narrower than about 500 px). Found and fixed: the name in the top bar cut off at 200% on 320 px, the headline then smaller than the section titles, the small titles smaller than the body text, the screenshots beside the pairs shrinking to thumbnails, the download box running off the screen, and the button's words in the link colour. The two columns now come from container queries in rem, so a big text size on a wide screen falls back to one column too.
 - The old pages (privacy, delete account, reset password) had their type in px: at 200% their titles were smaller than their text and the email address ran off the screen. Their sizes are in rem now, the fields and buttons have minimum heights, and long addresses wrap.
+- S2: the owner signed in on the emulator (signing in to the live account is left to him). The app updated itself over the air to Batches 47 and 48 after two restarts. At the owner's word his two old test pianos ("New" and "john") were deleted in the app, so they don't show in the Today screenshot. Ten screens taken and cropped to the app, WebP at 360 and 720 px (604 KB in all); the link-preview picture drawn from Today and Pianos.
+- S5: every page drawn again with the real screenshots, at 360 and 1440 px and at 150% text. 72 web tests pass.
+- Waiting for the owner: the first release with `pianoverse.apk` (S4.4). Until it exists the download button gives a GitHub "not found" page, so the release is made before this is merged.
