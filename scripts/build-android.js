@@ -106,6 +106,7 @@ const run = ({
   log(
     `  git add app.json last-build.json && git commit -m "chore: version ${app.expo.version} (versionCode ${app.expo.android.versionCode}), the build installed on the owner's phone"`
   );
+  log("To give it to everyone (a GitHub release, and the version on the website): npm run publish:apk");
   return 0;
 };
 

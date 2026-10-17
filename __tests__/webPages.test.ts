@@ -311,10 +311,21 @@ describe("the landing and download pages (docs/website/PLAN.md)", () => {
     expect(app.expo.android.package).toBe("com.grlnsngh.pianoverse");
   });
 
-  it("say the version, the size and the Android needed, the same as the build", () => {
+  it("say the version, size and date of the APK that is published, from web/release.json", () => {
+    // npm run publish:apk writes release.json and fills in these spans (scripts/publish-apk.js)
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { releaseWords } = require("../scripts/publish-apk");
+    const release = JSON.parse(read("web/release.json"));
+    const words = releaseWords(release);
+    expect(release.tag).toBe(`v${release.version}`);
+    for (const page of SITE_PAGES) {
+      const spans = [...read(page).matchAll(/<span data-release="(\w+)">([^<]*)<\/span>/g)];
+      expect(spans.length).toBeGreaterThanOrEqual(2);
+      for (const [, key, shown] of spans) expect(shown).toBe(words[key]);
+    }
+    // It is never ahead of the app: a release is of a version that was built
     const app = JSON.parse(read("app.json"));
-    expect(read("index.html")).toContain(`Version ${app.expo.version},`);
-    expect(read("download.html")).toContain(`<dd>${app.expo.version},`);
+    expect(release.versionCode).toBeLessThanOrEqual(app.expo.android.versionCode);
   });
 
   it("make up nothing: no ratings, download counts or quotes", () => {

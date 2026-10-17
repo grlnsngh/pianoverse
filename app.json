@@ -74,7 +74,8 @@
           "project": "pianoverse",
           "url": "https://sentry.io/"
         }
-      ]
+      ],
+      "./plugins/with-apk-packaging"
     ],
     "experiments": {
       "typedRoutes": true

@@ -41,6 +41,13 @@ const nativePackages = () =>
     );
 
 /** What app.json says about the native app: all but what a build or an update can change alone. */
+/**
+ * Plugins that only change how the APK is packed (which processors' code it
+ * carries, whether its libraries are compressed), not the native code the
+ * JavaScript calls, so a build with or without them takes the same updates.
+ */
+const BUILD_ONLY_PLUGINS = ["./plugins/with-apk-packaging"];
+
 const nativeConfig = () => {
   const config = { ...app };
   for (const key of ["version", "runtimeVersion", "updates", "extra", "web"]) {
@@ -48,6 +55,9 @@ const nativeConfig = () => {
   }
   config.android = { ...config.android };
   delete config.android.versionCode;
+  config.plugins = (config.plugins ?? []).filter(
+    (plugin: unknown) => !(typeof plugin === "string" && BUILD_ONLY_PLUGINS.includes(plugin))
+  );
   return config;
 };
 
@@ -454,5 +464,43 @@ describe("the update setup", () => {
     for (const name of ["development", "preview", "production"]) {
       expect(profiles[name].channel).toBe(name);
     }
+  });
+});
+
+describe("the APK's packing (plugins/with-apk-packaging.js)", () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { packagingProperties, applyProperties } = require("../plugins/with-apk-packaging");
+
+  it("is a build-only plugin in app.json, and changes nothing the JavaScript runs on", () => {
+    expect(app.plugins).toContain("./plugins/with-apk-packaging");
+    expect(BUILD_ONLY_PLUGINS).toEqual(["./plugins/with-apk-packaging"]);
+  });
+
+  it("packs the website's APK with only the phones' code and its libraries compressed, and leaves the store's bundle alone", () => {
+    expect(packagingProperties("preview")).toEqual({
+      reactNativeArchitectures: "arm64-v8a,armeabi-v7a",
+      "expo.useLegacyPackaging": "true",
+    });
+    expect(packagingProperties("production")).toEqual({});
+    expect(packagingProperties(undefined)).toEqual({});
+  });
+
+  it("replaces the template's settings instead of adding a second line for them", () => {
+    const template = [
+      { type: "comment", value: "Use this property to specify which architecture you want to build." },
+      { type: "property", key: "reactNativeArchitectures", value: "armeabi-v7a,arm64-v8a,x86,x86_64" },
+      { type: "property", key: "expo.useLegacyPackaging", value: "false" },
+      { type: "property", key: "hermesEnabled", value: "true" },
+    ];
+    const result = applyProperties(template, packagingProperties("preview"));
+
+    expect(result.filter((entry: { key?: string }) => entry.key === "reactNativeArchitectures")).toEqual([
+      { type: "property", key: "reactNativeArchitectures", value: "arm64-v8a,armeabi-v7a" },
+    ]);
+    expect(result.filter((entry: { key?: string }) => entry.key === "expo.useLegacyPackaging")).toEqual([
+      { type: "property", key: "expo.useLegacyPackaging", value: "true" },
+    ]);
+    expect(result).toContainEqual({ type: "property", key: "hermesEnabled", value: "true" });
+    expect(applyProperties(template, packagingProperties("production"))).toEqual(template);
   });
 });

@@ -6,6 +6,8 @@
     "start": "expo start",
     "plus": "node ./scripts/increment-version.js",
     "build:android": "node ./scripts/build-android.js",
+    "publish:apk": "node ./scripts/publish-apk.js",
+    "release:android": "node ./scripts/release-android.js",
     "check:appwrite": "node ./scripts/check-appwrite.js",
     "update": "eas update --channel preview --environment preview",
     "update:production": "eas update --channel production --environment production",
