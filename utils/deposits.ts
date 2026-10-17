@@ -5,7 +5,10 @@ import { dayText } from "@/utils/availability";
 import { parseStoredDate, toStoredDate } from "@/utils/dates";
 import { formatRupees } from "@/utils/money";
 import { isSold } from "@/utils/pianoStatus";
+import type { Settlement } from "@/utils/depositLines";
 import { hadRental } from "@/utils/rentalHistory";
+
+export type { Settlement } from "@/utils/depositLines";
 
 // Security deposits (canvas page "Security deposits"). A deposit is part of the
 // rental, like its rent: two fields on the piano (`rental_deposit`, and the day
@@ -102,19 +105,6 @@ export interface RefundInput {
   damage: number;
   /** A refund the person typed, when they agreed something else; null to follow the sums */
   refund: number | null;
-}
-
-/** How a deposit is settled: what goes back and what is kept, and why. */
-export interface Settlement {
-  held: number;
-  refund: number;
-  kept: number;
-  /** Of what is kept, the part for unpaid rent (it is also recorded as a rent payment, "From deposit") */
-  forRent: number;
-  /** Of what is kept, the part for damage (stored with the rental, not counted as income) */
-  forDamage: number;
-  /** "unpaid rent", "damage" or "unpaid rent and damage"; null when nothing is said about it */
-  note: string | null;
 }
 
 const cents = (amount: number) => Math.round(amount * 100) / 100;

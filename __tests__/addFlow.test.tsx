@@ -549,6 +549,23 @@ describe("the review, publishing and published screens", () => {
       ].forEach((text) => expect(texts).toContain(text));
     });
 
+    it("says the deposit that was entered, and the day it was received, so it can be checked before adding", () => {
+      const { renderer } = renderReview({ rentalDeposit: 9000, depositReceivedOn: new Date(2026, 8, 29) });
+
+      const texts = allTexts(renderer.root);
+      expect(texts).toContain("Deposit");
+      expect(texts).toContain("₹9,000, received 29 Sep 2026");
+    });
+
+    it("has no Deposit line when none was entered, and none for another kind of piano", () => {
+      expect(allTexts(renderReview().renderer.root)).not.toContain("Deposit");
+      expect(
+        allTexts(
+          renderReview({ category: "warehouse", rentalDeposit: 9000, warehouseStoredSinceDate: new Date(2026, 1, 1) }).renderer.root
+        )
+      ).not.toContain("Deposit");
+    });
+
     it.each([
       [
         "events",

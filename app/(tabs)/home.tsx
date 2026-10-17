@@ -594,6 +594,8 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    // With a big Font size the count and the three buttons don't fit one line: the buttons go to the next
+    flexWrap: "wrap",
     paddingTop: 4,
     paddingBottom: 4,
     paddingLeft: spacing.screen,
@@ -605,7 +607,8 @@ const useStyles = makeStyles((colors) => ({
     lineHeight: 20,
     color: colors.ink2,
   },
-  countActions: { flexDirection: "row", alignItems: "center" },
+  // Stays at the right, on the same line as the count or under it
+  countActions: { flexDirection: "row", alignItems: "center", marginLeft: "auto" },
   sort: {
     height: spacing.minTarget,
     flexDirection: "row",

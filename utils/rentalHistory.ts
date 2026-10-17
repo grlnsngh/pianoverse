@@ -3,7 +3,7 @@ import { PIANO_CATEGORY } from "@/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate, toStoredDate } from "@/utils/dates";
 import { customerKey } from "@/utils/customers";
-import type { Settlement } from "@/utils/deposits";
+import type { Settlement } from "@/utils/depositLines";
 
 // When a piano's rental is over, the details on the piano are about to be
 // written over by the next one. These rules say when that is, and what to keep.

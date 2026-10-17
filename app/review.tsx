@@ -68,6 +68,16 @@ const categoryRows = (form: PianoFormState): { title: string; rows: Row[] } => {
             tabular: true,
           },
           { label: "Rent", value: formatRupees(form.rentalPrice), strong: true, tabular: true },
+          // Optional, so only when one was entered
+          ...(form.rentalDeposit > 0
+            ? [
+                {
+                  label: "Deposit",
+                  value: `${formatRupees(form.rentalDeposit)}, received ${day(form.depositReceivedOn)}`,
+                  tabular: true,
+                },
+              ]
+            : []),
         ],
       };
     case PIANO_CATEGORY.EVENTS:
