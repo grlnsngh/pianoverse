@@ -145,9 +145,9 @@ describe("what is really printed", () => {
   it("says in one line what the letterhead is", () => {
     expect(designSummary(DEFAULT_DESIGN, tps)).toBe("Monogram · The Piano Services");
     expect(designSummary({ ...DEFAULT_DESIGN, template: "band" }, EMPTY_LETTERHEAD)).toBe("Band · add your business name");
-    expect(designSummary({ ...DEFAULT_DESIGN, style: "none" }, tps)).toBe("None · just the document");
-    expect(designSummary({ ...DEFAULT_DESIGN, style: "printed" }, tps)).toBe("My printed paper · top 45 mm left empty");
-    expect(designSummary({ ...DEFAULT_DESIGN, style: "upload" }, tps)).toBe("Upload mine · no image yet");
+    expect(designSummary({ ...DEFAULT_DESIGN, style: "none" }, tps)).toBe("No letterhead · just the document");
+    expect(designSummary({ ...DEFAULT_DESIGN, style: "printed" }, tps)).toBe("Printed letterhead paper · 45 mm left empty at the top");
+    expect(designSummary({ ...DEFAULT_DESIGN, style: "upload" }, tps)).toBe("My own letterhead image · none chosen yet");
   });
 });
 

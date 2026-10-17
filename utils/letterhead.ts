@@ -302,11 +302,11 @@ export const mmToPx = (mm: number): number => Math.round((mm * 96) / 25.4);
 export const designSummary = (design: LetterheadDesign, details: Letterhead): string => {
   switch (design.style) {
     case "none":
-      return "None · just the document";
+      return "No letterhead · just the document";
     case "printed":
-      return `My printed paper · top ${design.printed.top} mm left empty`;
+      return `Printed letterhead paper · ${design.printed.top} mm left empty at the top`;
     case "upload":
-      return design.upload.image ? "Your own letterhead image" : "Upload mine · no image yet";
+      return design.upload.image ? "My own letterhead image" : "My own letterhead image · none chosen yet";
     default: {
       const name = LETTERHEAD_TEMPLATES.find((template) => template.id === design.template)?.name;
       return details.business ? `${name} · ${details.business}` : `${name} · add your business name`;

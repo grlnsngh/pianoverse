@@ -19,10 +19,12 @@ const PREVIEW_WIDTH = 250;
 const agreementFirstPage: PageMaker = (details, design, assets) => agreementPages("hotel", details, design, assets)[0];
 
 /**
- * My printed paper (LetterheadPrinted board), opened from the Letterhead
- * screen: for a pad that already has the letterhead printed on it. The top
- * and bottom are left empty, as much as the sliders say; the real page shows
- * them hatched. A test page prints the agreement's first page to hold over the pad.
+ * Printed letterhead paper (LetterheadPrinted board), opened from the
+ * Letterhead screen: for a pad that already has the letterhead printed on it.
+ * The top and bottom are left empty, as much as the sliders say; the real page
+ * shows them hatched. A test page prints the agreement's first page to hold
+ * over the pad. Opening it changes nothing until Use printed paper or a
+ * slider is touched (Batch 48).
  */
 const LetterheadPrinted = () => {
   const colors = useColors();
@@ -47,12 +49,19 @@ const LetterheadPrinted = () => {
 
   return (
     <SafeAreaView edges={["top"]} style={styles.page}>
-      <BackBar title="My printed paper" fallback="/letterhead" />
+      <BackBar title="Printed letterhead paper" fallback="/letterhead" />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.lead}>
           For your own letterhead pad: nothing is printed in the grey areas, so your pad’s letterhead shows there.
         </Text>
 
+        {design.style !== "printed" && (
+          <Button
+            title="Use printed paper"
+            onPress={() => updateDesign({ style: "printed" })}
+            style={styles.section}
+          />
+        )}
         <View style={styles.previewArea}>
           <PaperPreview
             html={html}

@@ -35,8 +35,10 @@ const STEPS = [
  * screen: the business's letterhead as an image from their photos (made in
  * Canva, or a scan), the whole page or its top strip, where the writing may
  * go and how strongly it prints, shown on the real page. An image that is
- * only a picture or a logo can be moved to Make one instead, where it sits
- * beside the details at the top of the page (Batch 47).
+ * only a picture or a logo can be moved to the made letterhead's picture
+ * instead, where it sits beside the details at the top of the page (Batch
+ * 47). Opening it changes nothing: choosing an image, or Use this letterhead
+ * for one chosen before, makes it the letterhead (Batch 48).
  */
 const LetterheadUpload = () => {
   const colors = useColors();
@@ -78,8 +80,11 @@ const LetterheadUpload = () => {
       upload: { ...upload, image: null },
     });
     showToast("Your picture is at the top right now", { variant: "success" });
-    router.replace("/letterhead-make");
+    if (router.canGoBack()) router.back();
+    else router.replace("/letterhead");
   };
+
+  const inUse = design.style === "upload";
 
   // Where the writing goes, drawn over the page
   const scale = PREVIEW_WIDTH / PAGE_WIDTH;
@@ -119,6 +124,13 @@ const LetterheadUpload = () => {
 
         {upload.image ? (
           <>
+            {!inUse && (
+              <Button
+                title="Use this letterhead"
+                onPress={() => updateDesign({ style: "upload" })}
+                style={styles.section}
+              />
+            )}
             <View style={styles.previewArea}>
               <PaperPreview
                 html={html}

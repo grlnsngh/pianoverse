@@ -21,10 +21,10 @@ const PLACES = [
   { value: "behind", label: "Behind text" },
 ] as const;
 
-const SOURCES: { source: PictureSource; title: string; sub: string }[] = [
-  { source: "piano", title: "Grand piano", sub: "A grand piano in colour, ready to use" },
-  { source: "own", title: "Your own picture", sub: "A photo or a logo from your phone" },
-  { source: "none", title: "No picture", sub: "Just your details" },
+const SOURCES: { source: PictureSource; title: string; hint: string }[] = [
+  { source: "piano", title: "Grand piano", hint: "A grand piano in colour" },
+  { source: "own", title: "My picture", hint: "A photo or a logo from your phone" },
+  { source: "none", title: "None", hint: "No picture" },
 ];
 
 type PictureSettingsProps = {
@@ -33,11 +33,12 @@ type PictureSettingsProps = {
 };
 
 /**
- * The picture of a made letterhead (Batch 47), on the Make a letterhead
- * screen: the grand piano that comes with the app, the person's own picture
- * or none; where it goes (beside the letterhead at the right or the left, or
- * faint behind the writing); how big; and how strongly it prints. Each change
- * shows at once on the page above.
+ * The picture of a made letterhead (Batch 47), on the Letterhead screen: the
+ * grand piano that comes with the app, the person's own picture or none, as
+ * three tiles side by side (they wrap with a big Font size); where it goes
+ * (beside the letterhead at the right or the left, or faint behind the
+ * writing); how big; and how strongly it prints. Each change shows at once on
+ * the page above.
  */
 const PictureSettings = ({ picture, onChange }: PictureSettingsProps) => {
   const colors = useColors();
@@ -86,58 +87,51 @@ const PictureSettings = ({ picture, onChange }: PictureSettingsProps) => {
 
   return (
     <>
-      <View style={styles.panel} accessibilityRole="radiogroup" accessibilityLabel="Picture">
-        {SOURCES.map((option, index) => {
+      <View style={styles.tiles} accessibilityRole="radiogroup" accessibilityLabel="Picture">
+        {SOURCES.map((option) => {
           const chosen = picture.source === option.source;
+          const busy = option.source === "own" && picking;
           return (
-            <View key={option.source} style={index > 0 && styles.divided}>
-              <Pressable
-                onPress={() => choose(option.source)}
-                disabled={picking}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: chosen, busy: option.source === "own" && picking }}
-                accessibilityLabel={`${option.title}. ${option.sub}`}
-                style={({ pressed }) => [styles.option, pressed && styles.pressed]}
-              >
-                <View style={[styles.radio, chosen && styles.radioOn]}>{chosen && <View style={styles.radioDot} />}</View>
-                <View style={styles.thumb}>
-                  {option.source === "piano" ? (
-                    <Image source={{ uri: LETTERHEAD_PIANO.uri }} style={styles.thumbImage} contentFit="contain" />
-                  ) : option.source === "own" && picture.image ? (
-                    <Image source={{ uri: letterheadImageUri(picture.image) }} style={styles.thumbImage} contentFit="contain" />
-                  ) : option.source === "own" && picking ? (
-                    <Spinner size={18} decorative />
-                  ) : (
-                    <Icon name={option.source === "own" ? "image" : "close"} size={20} color={colors.ink2} strokeWidth={1.9} />
-                  )}
-                </View>
-                <View style={styles.optionText}>
-                  <Text style={styles.optionTitle}>{option.title}</Text>
-                  <Text style={styles.optionSub}>{option.sub}</Text>
-                </View>
-              </Pressable>
-              {option.source === "own" && chosen && picture.image && (
-                <View style={styles.change}>
-                  <Text style={styles.changeText}>Your picture</Text>
-                  <Pressable
-                    onPress={chooseOwn}
-                    disabled={picking}
-                    accessibilityRole="button"
-                    accessibilityLabel="Change your picture"
-                    style={styles.changeButton}
-                  >
-                    {picking ? (
-                      <Spinner size={18} accessibilityLabel="Choosing a picture" />
-                    ) : (
-                      <Text style={styles.changeButtonText}>Change</Text>
-                    )}
-                  </Pressable>
-                </View>
-              )}
-            </View>
+            <Pressable
+              key={option.source}
+              onPress={() => choose(option.source)}
+              disabled={picking}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: chosen, busy }}
+              accessibilityLabel={`${option.title}. ${option.hint}`}
+              style={({ pressed }) => [styles.tile, chosen && styles.tileOn, pressed && styles.pressed]}
+            >
+              <View style={styles.thumb}>
+                {option.source === "piano" ? (
+                  <Image source={{ uri: LETTERHEAD_PIANO.uri }} style={styles.thumbImage} contentFit="contain" />
+                ) : option.source === "own" && picture.image ? (
+                  <Image source={{ uri: letterheadImageUri(picture.image) }} style={styles.thumbImage} contentFit="contain" />
+                ) : busy ? (
+                  <Spinner size={18} decorative />
+                ) : (
+                  <Icon name={option.source === "own" ? "image" : "close"} size={22} color={colors.ink2} strokeWidth={1.9} />
+                )}
+              </View>
+              <Text style={[styles.tileName, chosen && styles.tileNameOn]}>{option.title}</Text>
+            </Pressable>
           );
         })}
       </View>
+      {picture.source === "own" && picture.image && (
+        <Pressable
+          onPress={chooseOwn}
+          disabled={picking}
+          accessibilityRole="button"
+          accessibilityLabel="Change your picture"
+          style={styles.change}
+        >
+          {picking ? (
+            <Spinner size={18} accessibilityLabel="Choosing a picture" />
+          ) : (
+            <Text style={styles.changeText}>Change my picture</Text>
+          )}
+        </Pressable>
+      )}
 
       {shown && (
         <>
@@ -184,32 +178,27 @@ const PictureSettings = ({ picture, onChange }: PictureSettingsProps) => {
 };
 
 const useStyles = makeStyles((colors) => ({
-  panel: { borderRadius: radii.panel, backgroundColor: colors.surface, overflow: "hidden" },
-  divided: { borderTopWidth: 1, borderTopColor: colors.hairline },
-  pressed: { backgroundColor: colors.fillPressed },
-  option: {
-    minHeight: 68,
-    flexDirection: "row",
+  // Three side by side, as wide as each other; with a big Font size they wrap
+  tiles: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  tile: {
+    flexGrow: 1,
+    flexBasis: 90,
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 10,
-    paddingHorizontal: spacing.lg,
-  },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    gap: 6,
+    paddingTop: spacing.sm,
+    paddingBottom: 10,
+    paddingHorizontal: 6,
+    borderRadius: radii.control,
     borderWidth: 2,
-    borderColor: colors.chevron,
-    alignItems: "center",
-    justifyContent: "center",
+    borderColor: "transparent",
+    backgroundColor: colors.surface,
   },
-  radioOn: { borderColor: colors.ink, backgroundColor: colors.ink },
-  radioDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.onInk },
+  tileOn: { borderColor: colors.ink },
+  pressed: { backgroundColor: colors.fillPressed },
   // White like the paper, whatever the theme: the picture is shown as it prints
   thumb: {
-    width: 48,
-    height: 48,
+    width: 56,
+    height: 56,
     borderRadius: radii.input,
     alignItems: "center",
     justifyContent: "center",
@@ -218,26 +207,11 @@ const useStyles = makeStyles((colors) => ({
     borderColor: colors.hairline,
     overflow: "hidden",
   },
-  thumbImage: { width: 42, height: 42 },
-  optionText: { flex: 1, minWidth: 0 },
-  optionTitle: { ...type.rowTitle, color: colors.ink },
-  optionSub: { ...type.caption, fontFamily: fonts.regular, color: colors.ink2 },
-  change: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "space-between",
-    columnGap: spacing.md,
-    marginLeft: 50,
-    marginRight: spacing.lg,
-    marginBottom: spacing.md,
-    paddingLeft: spacing.md,
-    borderRadius: radii.input,
-    backgroundColor: colors.grouped,
-  },
-  changeText: { flexShrink: 1, ...type.caption, fontFamily: fonts.regular, color: colors.inkBody },
-  changeButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: spacing.md },
-  changeButtonText: { fontFamily: fonts.bold, fontSize: 15, lineHeight: 20, color: colors.brandText },
+  thumbImage: { width: 50, height: 50 },
+  tileName: { ...type.caption, textAlign: "center", color: colors.ink },
+  tileNameOn: { fontFamily: fonts.bold },
+  change: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", paddingHorizontal: spacing.lg },
+  changeText: { fontFamily: fonts.bold, fontSize: 15, lineHeight: 20, color: colors.brandText },
   label: {
     marginTop: spacing.lg,
     marginLeft: spacing.lg,
