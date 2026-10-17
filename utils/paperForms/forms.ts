@@ -32,11 +32,12 @@ import { HANDOVER_PIANO } from "./handoverPiano";
  * The five forms of the Paper forms kit, as HTML pages (boards FormRentCard,
  * FormReceipts, FormPianoRegister, FormRentalRegister and FormHandover). Every
  * form is blank, to be filled in by hand: the only thing printed on it is the
- * business. With a letterhead (letterheads.ts) the rent card, receipts and
- * handover form carry the small one at the top (board LhRentCard and
- * LhCompact); without one they have lines with the business name and phone.
- * The registers are the business's own records and stay plain. To change a
- * form's wording or columns, change it here; an over-the-air update carries it.
+ * business. With a letterhead (letterheads.ts) every form carries the small
+ * one at the top, its picture included (boards LhRentCard and LhCompact; the
+ * registers since Batch 47, when the owner asked for the piano picture on
+ * every form); without one they have lines with the business name and phone.
+ * To change a form's wording or columns, change it here; an over-the-air
+ * update carries it.
  */
 
 type Strip = { html: string; pad: number } | null;
@@ -199,12 +200,17 @@ const receipts = (letterhead: Letterhead, mark: string | null): string =>
     "tight"
   );
 
-const pianoRegister = (letterhead: Letterhead): string =>
-  page(
-    formHeader("Piano register", "Every piano you own, one line each.", [
-      businessLine(letterhead),
-      labelledLine("Year") + labelledLine("Page", "", 60),
-    ]) +
+/** The top of a register: the small letterhead over the title, or the title with a line for the business. */
+const registerTop = (strip: Strip, title: string, subtitle: string, letterhead: Letterhead) => {
+  const yearAndPage = labelledLine("Year") + labelledLine("Page", "", 60);
+  return strip
+    ? `${strip.html}<div style="margin-top:16px">${formHeader(title, subtitle, [yearAndPage])}</div>`
+    : formHeader(title, subtitle, [businessLine(letterhead), yearAndPage]);
+};
+
+const pianoRegister = (letterhead: Letterhead, strip: Strip): string =>
+  formPage(
+    registerTop(strip, "Piano register", "Every piano you own, one line each.", letterhead) +
       `<div class="note"><b>Category:</b> R rentable · E events · S on sale · W warehouse. When a piano is sold, write “Sold” and the date under Where now.</div>` +
       `<table class="tbl" style="margin-top:10px">${headerCells([
         ["No.", 38],
@@ -216,15 +222,13 @@ const pianoRegister = (letterhead: Letterhead): string =>
         ["Where now", 110],
         ["Notes"],
       ])}<tbody>${numberedRows(22, 36, 8)}</tbody></table>`,
-    "Piano register"
+    "Piano register",
+    strip
   );
 
-const rentalRegister = (letterhead: Letterhead): string =>
-  page(
-    formHeader("Rental register", "Every rental, in the order they start.", [
-      businessLine(letterhead),
-      labelledLine("Year") + labelledLine("Page", "", 60),
-    ]) +
+const rentalRegister = (letterhead: Letterhead, strip: Strip): string =>
+  formPage(
+    registerTop(strip, "Rental register", "Every rental, in the order they start.", letterhead) +
       `<div class="note">Keep each rental’s payments on its rent card. Write the card number under No.</div>` +
       `<table class="tbl" style="margin-top:10px">${headerCells([
         ["No.", 38],
@@ -236,7 +240,8 @@ const rentalRegister = (letterhead: Letterhead): string =>
         ["Deposit, ₹", 80, "num"],
         ["Returned"],
       ])}<tbody>${numberedRows(20, 40, 8)}</tbody></table>`,
-    "Rental register"
+    "Rental register",
+    strip
   );
 
 /** The checks on a handover, and whether each is a yes or no (the rest are written in). */
@@ -310,8 +315,8 @@ export const formPages = (
   const pageOf: Record<PaperFormId, () => string> = {
     rent_card: () => rentCard(letterhead, strip),
     receipts: () => receipts(letterhead, receiptMark(design, letterhead, assets)),
-    piano_register: () => pianoRegister(letterhead),
-    rental_register: () => rentalRegister(letterhead),
+    piano_register: () => pianoRegister(letterhead, strip),
+    rental_register: () => rentalRegister(letterhead, strip),
     handover: () => handover(letterhead, strip),
   };
   return repeatPages([pageOf[id]()], clampCount(count));

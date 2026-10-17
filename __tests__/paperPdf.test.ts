@@ -78,6 +78,7 @@ import {
 import { labelContent, labelsFor } from "@/utils/qrLabels";
 import { makePiano } from "./helpers/fixtures";
 import { DEFAULT_DESIGN, EMPTY_LETTERHEAD, type LetterheadDesign } from "@/utils/letterhead";
+import { LETTERHEAD_PIANO } from "@/utils/paperForms/letterheadPiano";
 
 /** Making a paper form's PDF on the phone, keeping it, and opening, printing or sharing it. */
 
@@ -250,9 +251,35 @@ describe("the letterhead in the PDF", () => {
     expect(await loadLetterheadAssets(upload)).toEqual({
       logo: null,
       image: "data:image/jpeg;base64,B64(file:///docs/letterhead/letterhead-1.jpg)",
+      picture: null,
     });
-    // The logo file isn't there
-    expect(await loadLetterheadAssets({ ...DEFAULT_DESIGN, logo })).toEqual({ logo: null, image: null });
+    // The logo file isn't there; the grand piano comes with the app
+    expect(await loadLetterheadAssets({ ...DEFAULT_DESIGN, logo })).toEqual({
+      logo: null,
+      image: null,
+      picture: LETTERHEAD_PIANO.uri,
+    });
+  });
+
+  it("reads the person's own picture from the phone, and goes without it when it has gone missing", async () => {
+    const own: LetterheadDesign = {
+      ...DEFAULT_DESIGN,
+      picture: { ...DEFAULT_DESIGN.picture, source: "own", image: { file: "picture-1.jpg", width: 800, height: 600 } },
+    };
+    expect((await loadLetterheadAssets(own)).picture).toBeNull();
+
+    mockExisting.add("file:///docs/letterhead/picture-1.jpg");
+    expect((await loadLetterheadAssets(own)).picture).toBe("data:image/jpeg;base64,B64(file:///docs/letterhead/picture-1.jpg)");
+    expect((await loadLetterheadAssets({ ...own, picture: { ...own.picture, source: "none" } })).picture).toBeNull();
+  });
+
+  it("puts the grand piano in an agreement once, however many pages show it", async () => {
+    await saveAgreement("hotel", letterhead, 2, DEFAULT_DESIGN);
+
+    const html = printToFile.mock.calls[0][0].html;
+    expect(html.split(LETTERHEAD_PIANO.uri)).toHaveLength(2);
+    // Big on page 1 and small on page 2, of both copies
+    expect(html.match(/class="lh-pic"/g)).toHaveLength(4);
   });
 
   it("makes a test page for a printed pad: the agreement's first page alone", async () => {

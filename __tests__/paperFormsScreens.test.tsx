@@ -137,7 +137,7 @@ describe("the Paper forms screen", () => {
     expect(texts.indexOf("The full kit")).toBeLessThan(texts.indexOf("Your letterhead"));
     expect(texts.indexOf("Your letterhead")).toBeLessThan(texts.indexOf("One form at a time"));
     expect(texts).toContain("Monogram · add your business name");
-    expect(texts).toContain("On agreements, rent cards, receipts and handover forms");
+    expect(texts).toContain("On every form and agreement");
     expect(texts.indexOf("Handover and return")).toBeLessThan(texts.indexOf("Good to know"));
   });
 
@@ -162,7 +162,7 @@ describe("the Paper forms screen", () => {
     const renderer = await render(<PaperForms />);
 
     expect(letterheadRow(renderer).props.accessibilityLabel).toBe(
-      "Letterhead: Monogram · Tune and Play. On agreements, rent cards, receipts and handover forms"
+      "Letterhead: Monogram · Tune and Play. On every form and agreement"
     );
     await act(async () => letterheadRow(renderer).props.onPress());
 
@@ -257,7 +257,7 @@ describe("a form's screen", () => {
   it("tells each form where its letterhead goes", async () => {
     const hints = {
       receipts: "The small version goes on each receipt",
-      piano_register: "Registers stay plain: the business name only",
+      piano_register: "The small version goes on this form",
       handover: "The small version goes on this form",
     };
     for (const [id, hint] of Object.entries(hints)) {

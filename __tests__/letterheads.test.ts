@@ -1,4 +1,6 @@
 import { DEFAULT_DESIGN, EMPTY_LETTERHEAD, LETTERHEAD_TEMPLATES, type LetterheadDesign } from "@/utils/letterhead";
+import { agreementPages } from "@/utils/paperForms/agreements";
+import { LETTERHEAD_PIANO } from "@/utils/paperForms/letterheadPiano";
 import {
   fontsForDesign,
   formStrip,
@@ -30,8 +32,20 @@ const image = { logo: null, image: "data:image/jpeg;base64,PAGE" };
 const withUpload = (kind: "page" | "strip"): LetterheadDesign => ({
   ...DEFAULT_DESIGN,
   style: "upload",
-  upload: { image: { file: "letterhead-1.jpg", width: 1240, height: kind === "page" ? 1754 : 300 }, kind, top: 54, bottom: 18 },
+  upload: {
+    image: { file: "letterhead-1.jpg", width: 1240, height: kind === "page" ? 1754 : 300 },
+    kind,
+    top: 54,
+    bottom: 18,
+    strength: 100,
+  },
 });
+const piano = { logo: null, image: null, picture: LETTERHEAD_PIANO.uri };
+const withPicture = (template: LetterheadDesign["template"], picture: Partial<LetterheadDesign["picture"]> = {}) =>
+  make(template, { picture: { ...DEFAULT_DESIGN.picture, ...picture } });
+/** The picture's box in some HTML: its width and height in px. */
+const picBoxes = (html: string) =>
+  [...html.matchAll(/class="lh-pic" style="width:(\d+)px;height:(\d+)px/g)].map((m) => [Number(m[1]), Number(m[2])]);
 
 describe("the five designs", () => {
   it("print every detail, escaped, in each design", () => {
@@ -103,6 +117,116 @@ describe("the five designs", () => {
   });
 });
 
+describe("the picture (Batch 47)", () => {
+  it("puts the grand piano at the top right of Monogram, beside the header, as on TPS 2", () => {
+    const frame = letterheadFrame(make("monogram"), tps, piano);
+
+    // 168 px tall, as wide as the photo's shape allows, level with the top of the header
+    expect(frame.firstLayers).toContain('class="lh-pic" style="width:142px;height:168px;flex-shrink:0;position:absolute;right:48px;top:26px"');
+    // The details stop short of it
+    expect(frame.firstLayers).toContain("left:48px;right:214px;top:26px;height:196px");
+    expect(frame.firstTop).toBe(240);
+    // Small in the strip of the pages after, and the initials still behind every page
+    expect(picBoxes(frame.restStrip)).toEqual([[44, 52]]);
+    expect(frame.restLayers).toContain("font-size:300px");
+  });
+
+  it("draws the picture in every design, at its side, without going over the writing", () => {
+    for (const { id } of LETTERHEAD_TEMPLATES) {
+      for (const place of ["right", "left"] as const) {
+        const frame = letterheadFrame(withPicture(id, { place }), tps, piano);
+
+        expect(picBoxes(frame.firstLayers)).toHaveLength(1);
+        expect(picBoxes(frame.restStrip)).toHaveLength(1);
+        const [[, height]] = picBoxes(frame.firstLayers);
+        // The writing starts below the picture
+        expect(frame.firstTop).toBeGreaterThan(height + 26);
+      }
+    }
+  });
+
+  it("keeps every agreement on two pages at any size the slider allows", () => {
+    for (const { id } of LETTERHEAD_TEMPLATES) {
+      for (const size of [60, 100, 130]) {
+        for (const place of ["right", "left", "behind"] as const) {
+          const design = withPicture(id, { size, place });
+          expect([id, size, place, agreementPages("hotel", tps, design, piano).length]).toEqual([id, size, place, 2]);
+          expect([id, size, place, agreementPages("private", tps, design, piano).length]).toEqual([id, size, place, 2]);
+        }
+      }
+    }
+  });
+
+  it("grows and shrinks the picture with its size, keeping its shape, and pales it with its strength", () => {
+    const [[w60, h60]] = picBoxes(letterheadFrame(withPicture("modern", { size: 60 }), tps, piano).firstLayers);
+    const [[w130, h130]] = picBoxes(letterheadFrame(withPicture("modern", { size: 130 }), tps, piano).firstLayers);
+
+    expect(h60).toBe(62);
+    expect(h130).toBe(135);
+    expect(w130 / h130).toBeCloseTo(w60 / h60, 1);
+    expect(letterheadFrame(withPicture("modern", { strength: 40 }), tps, piano).firstLayers).toContain("opacity:0.4");
+    expect(letterheadFrame(withPicture("modern"), tps, piano).firstLayers).not.toContain("opacity");
+  });
+
+  it("puts a wide picture, such as a logo banner, no wider than its room", () => {
+    const wide = make("monogram", {
+      picture: { ...DEFAULT_DESIGN.picture, source: "own", image: { file: "picture-1.png", width: 1000, height: 200 } },
+    });
+
+    expect(picBoxes(letterheadFrame(wide, tps, { ...piano, picture: "data:image/png;base64,WIDE" }).firstLayers)).toEqual([[260, 52]]);
+  });
+
+  it("puts a picture behind the writing faint on every page, instead of Monogram's initials", () => {
+    const frame = letterheadFrame(withPicture("monogram", { place: "behind", strength: 15 }), tps, piano);
+
+    for (const layers of [frame.firstLayers, frame.restLayers]) {
+      expect(layers).toContain("mix-blend-mode:multiply");
+      expect(layers).toContain("opacity:0.15");
+      expect(layers).not.toContain("font-size:300px");
+    }
+    // Nothing beside the header or in the strip
+    expect(picBoxes(frame.firstLayers)).toHaveLength(0);
+    expect(picBoxes(frame.restStrip)).toHaveLength(0);
+    expect(frame.firstTop).toBe(240);
+  });
+
+  it("draws nothing when there is no picture, or its image couldn't be read", () => {
+    expect(letterheadFrame(withPicture("monogram", { source: "none" }), tps, piano).firstLayers).not.toContain("lh-pic");
+    expect(letterheadFrame(withPicture("monogram"), tps, NO_ASSETS).firstLayers).not.toContain("lh-pic");
+    // The person's own picture before one is chosen
+    expect(letterheadFrame(withPicture("monogram", { source: "own" }), tps, piano).firstLayers).not.toContain("lh-pic");
+    expect(letterheadFrame({ ...withPicture("monogram"), style: "printed" }, tps, piano).firstLayers).toBe("");
+  });
+
+  it("splits Classic's contacts and lets its tagline take two lines beside a big picture, so nothing is cut off", () => {
+    const frame = letterheadFrame(withPicture("classic", { size: 130 }), tps, piano);
+
+    expect(frame.firstLayers).toContain(">Mob. 98110 20513  ·  tps@example.com</div>");
+    expect(frame.firstLayers).toContain(">GST No. 07AAMFT8696F1ZF  ·  PAN AAMFT8696F</div>");
+  });
+
+  it("sets the picture on a white card inside Band's coloured band", () => {
+    const frame = letterheadFrame(withPicture("band"), tps, piano);
+
+    expect(frame.firstLayers).toContain('padding:8px;border-radius:10px;background:#FFFFFF"><div class="lh-pic"');
+    expect(frame.restStrip).toContain('padding:4px;border-radius:6px;background:#FFFFFF"><div class="lh-pic"');
+  });
+
+  it("puts the small picture on the forms and on each receipt", () => {
+    expect(picBoxes(formStrip(withPicture("monogram"), tps, piano)?.html ?? "")).toEqual([[44, 52]]);
+    expect(picBoxes(receiptMark(withPicture("monogram"), tps, piano) ?? "")).toEqual([[22, 26]]);
+    expect(receiptMark(withPicture("monogram", { place: "behind" }), tps, piano)).not.toContain("lh-pic");
+    expect(formStrip(withPicture("monogram", { place: "behind" }), tps, piano)?.html).toContain("mix-blend-mode:multiply");
+  });
+
+  it("writes the picture into the document once, as a CSS class", () => {
+    const css = letterheadCss(piano);
+
+    expect(css.split(LETTERHEAD_PIANO.uri)).toHaveLength(2);
+    expect(css).toContain(".lh-pic{background:url(");
+  });
+});
+
 describe("the other choices", () => {
   it("prints the business's own image on every page, its whole page or its top strip", () => {
     const page = letterheadFrame(withUpload("page"), tps, image);
@@ -118,6 +242,20 @@ describe("the other choices", () => {
     // 1240 x 300 across the page's 794 px
     expect(strip.firstLayers).toContain("height:192px");
     expect(strip.footBottom).toBe(30);
+  });
+
+  it("never stretches the image out of shape, and pales it with its strength", () => {
+    const square: LetterheadDesign = {
+      ...withUpload("page"),
+      upload: { ...withUpload("page").upload, image: { file: "letterhead-2.jpg", width: 750, height: 750 }, strength: 30 },
+    };
+    const frame = letterheadFrame(square, tps, image);
+
+    // As wide as the page, as tall as its own shape makes it, from the top
+    expect(frame.firstLayers).toContain("background-size:100% auto;background-position:top center");
+    expect(frame.firstLayers).not.toContain("100% 100%");
+    expect(frame.firstLayers).toContain("opacity:0.3");
+    expect(letterheadFrame(withUpload("page"), tps, image).firstLayers).not.toContain("opacity");
   });
 
   it("leaves the top and bottom empty for a printed pad", () => {

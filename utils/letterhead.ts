@@ -133,6 +133,30 @@ export const colourById = (id: string): LetterheadColour =>
 /** An image kept on the phone for the letterhead: its file in the letterhead folder and its size in pixels. */
 export type LetterheadImage = { file: string; width: number; height: number };
 
+/** What the letterhead's picture is: the grand piano that comes with the app, the person's own, or none. */
+export type PictureSource = "piano" | "own" | "none";
+
+/** Where the picture goes: beside the letterhead at the right or the left, or faint behind the writing. */
+export type PicturePlace = "right" | "left" | "behind";
+
+export const PICTURE_PLACES: readonly PicturePlace[] = ["right", "left", "behind"];
+
+/**
+ * The picture of a made letterhead (like the grand piano at the top right of
+ * the owner's TPS letterhead): on page 1 of the agreements at its full size,
+ * small on the other forms.
+ */
+export type LetterheadPicture = {
+  source: PictureSource;
+  /** The person's own picture, kept on the phone (for "own") */
+  image: LetterheadImage | null;
+  place: PicturePlace;
+  /** How big, in per cent of the design's own size for it */
+  size: number;
+  /** How strongly it prints, in per cent: 100 is as it is, less is paler */
+  strength: number;
+};
+
 export type LetterheadDesign = {
   style: LetterheadStyle;
   template: LetterheadTemplate;
@@ -140,6 +164,7 @@ export type LetterheadDesign = {
   /** Details in a serif (Lora) rather than the app's own sans serif */
   elegant: boolean;
   logo: LetterheadImage | null;
+  picture: LetterheadPicture;
   upload: {
     image: LetterheadImage | null;
     /** A whole A4 page (header, footer, watermark) or just the top strip */
@@ -147,6 +172,8 @@ export type LetterheadDesign = {
     /** Where the text may start and must stop, in millimetres from the top and bottom edge */
     top: number;
     bottom: number;
+    /** How strongly it prints, in per cent */
+    strength: number;
   };
   printed: { top: number; bottom: number };
 };
@@ -157,13 +184,33 @@ export const SPACE_LIMITS = {
   upload: { top: [10, 90], bottom: [10, 60] },
 } as const;
 
+/**
+ * What a picture's size and strength may be, in per cent. At 130% every
+ * design's agreement still fits on two pages (Monogram's goes on to a third
+ * from about 140%).
+ */
+export const PICTURE_LIMITS = { size: [60, 130], strength: [10, 100] } as const;
+
+/** How strongly a picture behind the writing prints at first: faint, so the words stay easy to read. */
+export const BEHIND_STRENGTH = 15;
+
+/** The grand piano at the top right, as on the owner's TPS letterhead. */
+export const DEFAULT_PICTURE: LetterheadPicture = {
+  source: "piano",
+  image: null,
+  place: "right",
+  size: 100,
+  strength: 100,
+};
+
 export const DEFAULT_DESIGN: LetterheadDesign = {
   style: "make",
   template: "monogram",
   colour: "copper",
   elegant: true,
   logo: null,
-  upload: { image: null, kind: "page", top: 54, bottom: 18 },
+  picture: DEFAULT_PICTURE,
+  upload: { image: null, kind: "page", top: 54, bottom: 18, strength: 100 },
   printed: { top: 45, bottom: 15 },
 };
 
@@ -181,6 +228,19 @@ const cleanImage = (input: unknown): LetterheadImage | null => {
   return { file, width: Math.round(width), height: Math.round(height) };
 };
 
+/** A picture from whatever was stored; a design saved before pictures existed gets the grand piano. */
+const cleanPicture = (input: unknown): LetterheadPicture => {
+  if (!input || typeof input !== "object") return DEFAULT_PICTURE;
+  const { source, image, place, size, strength } = input as Record<string, any>;
+  return {
+    source: ["piano", "own", "none"].includes(source) ? source : DEFAULT_PICTURE.source,
+    image: cleanImage(image),
+    place: PICTURE_PLACES.includes(place) ? place : DEFAULT_PICTURE.place,
+    size: clampMm(size, PICTURE_LIMITS.size, DEFAULT_PICTURE.size),
+    strength: clampMm(strength, PICTURE_LIMITS.strength, DEFAULT_PICTURE.strength),
+  };
+};
+
 /** A design from whatever was stored: every part present and allowed, anything else the default. */
 export const cleanDesign = (input: unknown): LetterheadDesign => {
   const source = input && typeof input === "object" ? (input as Record<string, any>) : {};
@@ -196,11 +256,13 @@ export const cleanDesign = (input: unknown): LetterheadDesign => {
       : DEFAULT_DESIGN.colour,
     elegant: typeof source.elegant === "boolean" ? source.elegant : DEFAULT_DESIGN.elegant,
     logo: cleanImage(source.logo),
+    picture: cleanPicture(source.picture),
     upload: {
       image: cleanImage(upload.image),
       kind: upload.kind === "strip" ? "strip" : "page",
       top: clampMm(upload.top, SPACE_LIMITS.upload.top, DEFAULT_DESIGN.upload.top),
       bottom: clampMm(upload.bottom, SPACE_LIMITS.upload.bottom, DEFAULT_DESIGN.upload.bottom),
+      strength: clampMm(upload.strength, PICTURE_LIMITS.strength, DEFAULT_DESIGN.upload.strength),
     },
     printed: {
       top: clampMm(printed.top, SPACE_LIMITS.printed.top, DEFAULT_DESIGN.printed.top),
@@ -220,6 +282,17 @@ export const effectiveStyle = (design: LetterheadDesign, details: Letterhead): P
   if (design.style === "make") return details.business ? "make" : "lines";
   if (design.style === "upload") return design.upload.image ? "upload" : "none";
   return design.style;
+};
+
+/**
+ * The picture a design really prints, or null: only a made letterhead has
+ * one, and the person's own picture only once it has been chosen.
+ */
+export const printedPicture = (design: LetterheadDesign): LetterheadPicture | null => {
+  if (design.style !== "make") return null;
+  const { picture } = design;
+  if (picture.source === "none" || (picture.source === "own" && !picture.image)) return null;
+  return picture;
 };
 
 /** Millimetres as CSS pixels at 96 to the inch. */

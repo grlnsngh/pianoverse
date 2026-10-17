@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import BackBar from "@/components/BackBar";
 import { LetterheadThumbnail } from "@/components/FormThumbnail";
 import PaperPreview from "@/components/PaperPreview";
+import PictureSettings from "@/components/PictureSettings";
 import { Icon, Segmented, Spinner } from "@/components/ui";
 import { fonts, radii, spacing, type } from "@/constants/theme";
 import { deleteLetterheadImage, letterheadImageUri, pickLetterheadImage } from "@/lib/letterheadImages";
@@ -16,6 +17,7 @@ import {
   initialsOf,
   LETTERHEAD_COLOURS,
   LETTERHEAD_TEMPLATES,
+  printedPicture,
   type LetterheadDesign,
 } from "@/utils/letterhead";
 import { agreementPages } from "@/utils/paperForms/agreements";
@@ -33,8 +35,9 @@ const LETTERING = [
 
 /**
  * Make a letterhead (LetterheadMake board), opened from the Letterhead
- * screen: one of five designs, a colour, the logo (or the initials), and the
- * lettering, with the top of the real page above. Saved as it changes.
+ * screen: one of five designs, a colour, the picture (Batch 47), the logo (or
+ * the initials), and the lettering, with the top of the real page above (all
+ * of it when the picture is behind the writing). Saved as it changes.
  */
 const LetterheadMake = () => {
   const colors = useColors();
@@ -46,6 +49,8 @@ const LetterheadMake = () => {
   const made = useMemo<LetterheadDesign>(() => ({ ...design, style: "make" }), [design]);
   const html = usePreviewHtml(made, details, previewWidth, agreementFirstPage);
   const initials = initialsOf(details.business);
+  // A picture behind the writing is in the middle of the page, so the whole page is shown
+  const behind = printedPicture(made)?.place === "behind";
 
   const chooseLogo = async () => {
     setPicking(true);
@@ -76,10 +81,12 @@ const LetterheadMake = () => {
           <PaperPreview
             html={html}
             width={previewWidth}
-            visibleHeight={TOP_OF_PAGE}
-            accessibilityLabel="The top of a page with your letterhead"
+            visibleHeight={behind ? undefined : TOP_OF_PAGE}
+            accessibilityLabel={behind ? "A page with your letterhead" : "The top of a page with your letterhead"}
           />
-          <Text style={styles.previewNote}>The top of an A4 page, as it will print</Text>
+          <Text style={styles.previewNote}>
+            {behind ? "An A4 page, as it will print" : "The top of an A4 page, as it will print"}
+          </Text>
         </View>
 
         <Text style={styles.groupTitle} accessibilityRole="header">
@@ -126,6 +133,11 @@ const LetterheadMake = () => {
             );
           })}
         </View>
+
+        <Text style={styles.groupTitle} accessibilityRole="header">
+          Picture
+        </Text>
+        <PictureSettings picture={design.picture} onChange={(picture) => updateDesign({ picture, style: "make" })} />
 
         <Text style={styles.groupTitle} accessibilityRole="header">
           Logo

@@ -35,7 +35,7 @@ const OPTIONS: Option[] = [
   {
     style: "make",
     title: "Make one",
-    sub: "Pick a design, add your logo and details",
+    sub: "Pick a design, a picture, your logo and details",
     edit: () => ({ label: "Edit", href: "/letterhead-make" }),
   },
   {
@@ -137,9 +137,8 @@ const LetterheadScreen = () => {
         </Text>
         <View style={styles.panel}>
           {[
-            ["Rental agreements", "The full letterhead on page 1, the small one after"],
-            ["Rent card, receipts, handover", "The small letterhead, so customers see who it’s from"],
-            ["Piano and rental registers", "Kept plain: they’re your own records"],
+            ["Rental agreements", "The full letterhead and its picture on page 1, the small one after"],
+            ["Every other form", "Rent card, receipts, handover and registers get the small one, picture included"],
           ].map(([title, sub], index) => (
             <View key={title} style={[styles.used, index > 0 && styles.divided]}>
               <Text style={styles.usedTitle}>{title}</Text>

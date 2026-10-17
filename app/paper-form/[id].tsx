@@ -35,8 +35,8 @@ const pageMakerFor = (id: PaperFormId): PageMaker => {
 const LETTERHEAD_HINT: Record<PaperFormId, string> = {
   rent_card: "The small version goes on this form",
   receipts: "The small version goes on each receipt",
-  piano_register: "Registers stay plain: the business name only",
-  rental_register: "Registers stay plain: the business name only",
+  piano_register: "The small version goes on this form",
+  rental_register: "The small version goes on this form",
   handover: "The small version goes on this form",
 };
 

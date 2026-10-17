@@ -163,7 +163,7 @@ describe("filling the pages", () => {
     const tall: LetterheadDesign = {
       ...DEFAULT_DESIGN,
       style: "upload",
-      upload: { image: { file: "letterhead-1.jpg", width: 1240, height: 1754 }, kind: "page", top: 90, bottom: 60 },
+      upload: { image: { file: "letterhead-1.jpg", width: 1240, height: 1754 }, kind: "page", top: 90, bottom: 60, strength: 100 },
     };
     const pages = agreementPages("hotel", tps, tall, { logo: null, image: "data:image/jpeg;base64,X" });
 

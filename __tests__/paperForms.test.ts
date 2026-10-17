@@ -150,17 +150,32 @@ describe("the HTML the PDFs are made from", () => {
     expect(blank).toContain('<span class="lbl">Phone</span><span class="rule"></span>');
   });
 
-  it("with a letterhead, puts the small one at the top of the rent card and handover, and not on the registers", () => {
-    for (const id of ["rent_card", "handover"] as const) {
+  it("with a letterhead, puts the small one at the top of every form, the registers too", () => {
+    for (const id of ["rent_card", "handover", "piano_register", "rental_register"] as const) {
       const html = formHtml(id, named, 1, "", DEFAULT_DESIGN);
 
       expect(html).toContain("TUNE &amp; PLAY &lt;PIANOS&gt;");
       expect(html).not.toContain('<span class="lbl">Business</span>');
       expect(html).toContain('<section style="padding-top:28px" class="page');
     }
-    expect(formHtml("piano_register", named, 1, "", DEFAULT_DESIGN)).toContain(
-      '<span class="lbl">Business</span><span class="rule">Tune &amp; Play &lt;Pianos&gt;</span>'
-    );
+    // A register keeps its year and page lines under the letterhead
+    expect(formHtml("rental_register", named, 1, "", DEFAULT_DESIGN)).toContain('<span class="lbl">Year</span>');
+  });
+
+  it("puts the letterhead's picture, small, on every form and receipt, and behind the writing when it goes there", () => {
+    const assets = { logo: null, image: null, picture: "data:image/jpeg;base64,PIANO" };
+    for (const id of ["rent_card", "handover", "piano_register", "rental_register"] as const) {
+      expect(formHtml(id, named, 1, "", DEFAULT_DESIGN, assets).match(/class="lh-pic"/g)).toHaveLength(1);
+    }
+    expect(formHtml("receipts", named, 1, "", DEFAULT_DESIGN, assets).match(/class="lh-pic"/g)).toHaveLength(3);
+    expect(formHtml("rent_card", named, 1, "", DEFAULT_DESIGN, assets)).toContain(".lh-pic{background:url(data:image/jpeg;base64,PIANO)");
+
+    const behind = { ...DEFAULT_DESIGN, picture: { ...DEFAULT_DESIGN.picture, place: "behind" as const, strength: 15 } };
+    const card = formHtml("rent_card", named, 1, "", behind, assets);
+    expect(card).toContain("mix-blend-mode:multiply");
+    expect(card).toContain("opacity:0.15");
+    // Behind the writing, a receipt has no picture of its own
+    expect(formHtml("receipts", named, 1, "", behind, assets)).not.toContain('class="lh-pic"');
   });
 
   it("puts the business on every receipt, three receipts and two cut lines to a page", () => {

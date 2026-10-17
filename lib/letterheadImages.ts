@@ -5,19 +5,34 @@ import type { LetterheadImage } from "@/utils/letterhead";
 
 /**
  * The letterhead's images (canvas boards LetterheadMake and LetterheadUpload):
- * a logo, and the business's own letterhead. Picked from the phone's photos,
+ * a logo, a picture, and the business's own letterhead. Picked from the phone's photos,
  * made a sensible size, and kept in the app's own folder; nothing is uploaded.
  * A PDF carries them as data, so the file is read again each time one is made.
  */
 
-/** What an image is for: a logo keeps its clear background (PNG); a letterhead is a photo of a page (JPEG). */
-export type LetterheadImageKind = "logo" | "letterhead";
+/**
+ * What an image is for: a logo keeps its clear background (PNG); a letterhead
+ * is a photo of a page (JPEG); a picture stays what it was, a photo (JPEG) or
+ * a drawing with a clear background (PNG).
+ */
+export type LetterheadImageKind = "logo" | "picture" | "letterhead";
 
-const SIZES: Record<LetterheadImageKind, { width: number; format: ImageManipulator.SaveFormat; extension: string }> = {
+type Size = { width: number; format: ImageManipulator.SaveFormat; extension: string };
+
+const PNG = { format: ImageManipulator.SaveFormat.PNG, extension: "png" };
+const JPEG = { format: ImageManipulator.SaveFormat.JPEG, extension: "jpg" };
+
+const SIZES: Record<Exclude<LetterheadImageKind, "picture">, Size> = {
   // Printed at most about 130 px wide: 600 is sharp on paper
-  logo: { width: 600, format: ImageManipulator.SaveFormat.PNG, extension: "png" },
+  logo: { width: 600, ...PNG },
   // A whole A4 page at 150 dots to the inch
-  letterhead: { width: 1240, format: ImageManipulator.SaveFormat.JPEG, extension: "jpg" },
+  letterhead: { width: 1240, ...JPEG },
+};
+
+/** A picture is printed at most about 340 px wide: 800 is sharp on paper. */
+const pictureSize = (asset: ImagePicker.ImagePickerAsset): Size => {
+  const png = asset.mimeType === "image/png" || /\.png$/i.test(asset.fileName ?? asset.uri);
+  return { width: 800, ...(png ? PNG : JPEG) };
 };
 
 const folder = () => new Directory(Paths.document, "letterhead");
@@ -38,11 +53,11 @@ export const pickLetterheadImage = async (kind: LetterheadImageKind): Promise<Le
   });
   if (result.canceled || !result.assets?.length) return null;
   const asset = result.assets[0];
-  const size = SIZES[kind];
+  const size = kind === "picture" ? pictureSize(asset) : SIZES[kind];
   const resized = await ImageManipulator.manipulateAsync(
     asset.uri,
     asset.width > size.width ? [{ resize: { width: size.width } }] : [],
-    { compress: kind === "logo" ? 1 : 0.85, format: size.format }
+    { compress: size.format === ImageManipulator.SaveFormat.PNG ? 1 : 0.85, format: size.format }
   );
   const directory = folder();
   if (!directory.exists) directory.create({ intermediates: true, idempotent: true });

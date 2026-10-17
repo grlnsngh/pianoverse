@@ -114,7 +114,7 @@ const PaperForms = () => {
         <LetterheadRow
           design={design}
           details={details}
-          hint="On agreements, rent cards, receipts and handover forms"
+          hint="On every form and agreement"
         />
 
         <Text style={styles.groupTitle} accessibilityRole="header">

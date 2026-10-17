@@ -75,6 +75,8 @@ describe("how screens get their colours", () => {
       // A label is paper too: black on white in any theme
       "components/LabelPreview.tsx",
       "components/PaperPreview.tsx",
+      // The picture shown on white, as it prints
+      "components/PictureSettings.tsx",
       "components/SelectionMark.tsx",
       "components/WelcomeScreen.tsx",
       "components/ui/Button.tsx",
