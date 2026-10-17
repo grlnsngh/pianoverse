@@ -4,6 +4,19 @@ import { formatRupees } from "@/utils/money";
 // and a customer's rental history). Kept apart from the rest of the deposit
 // rules so the customers' code can use it without importing them.
 
+/** How a deposit is settled: what goes back and what is kept, and why. */
+export interface Settlement {
+  held: number;
+  refund: number;
+  kept: number;
+  /** Of what is kept, the part for unpaid rent (it is also recorded as a rent payment, "From deposit") */
+  forRent: number;
+  /** Of what is kept, the part for damage (stored with the rental, not counted as income) */
+  forDamage: number;
+  /** "unpaid rent", "damage" or "unpaid rent and damage"; null when nothing is said about it */
+  note: string | null;
+}
+
 const cents = (amount: number) => Math.round(amount * 100) / 100;
 
 /** What the line under a kept rental says about its deposit, and whether it is settled. */
