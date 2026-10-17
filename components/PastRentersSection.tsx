@@ -45,7 +45,7 @@ const PastRentersSection = ({ rentals, onOpen, onHold, onEdit, onDelete }: PastR
           const total = rental.paymentsCount > 0 ? formatRupees(rental.total) : "";
           const open = () => onOpen(rental.key);
           const holdable = fixable && rental.fromHistory;
-          const label = [rental.name, detail, deposit, total].filter(Boolean).join(", ");
+          const label = [rental.name, detail, deposit?.text, total].filter(Boolean).join(", ");
           const holdProps = holdable
             ? {
                 onLongPress: () => onHold?.(rental),
@@ -72,8 +72,8 @@ const PastRentersSection = ({ rentals, onOpen, onHold, onEdit, onDelete }: PastR
                 )}
                 {!!deposit && (
                   <View style={styles.depositLine}>
-                    <View style={styles.depositDot} />
-                    <Text style={styles.deposit}>{deposit}</Text>
+                    {!deposit.settled && <View style={styles.depositDot} />}
+                    <Text style={deposit.settled ? styles.depositSettled : styles.deposit}>{deposit.text}</Text>
                   </View>
                 )}
               </View>
@@ -133,10 +133,11 @@ const useStyles = makeStyles((colors) => ({
   texts: { flex: 1, minWidth: 0 },
   name: { fontFamily: fonts.medium, fontSize: 16, lineHeight: 22, color: colors.ink },
   detail: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
-  // A deposit that wasn't settled: an orange dot, so it isn't forgotten
+  // A deposit that wasn't settled: an orange dot and words, so it isn't forgotten. One that was is quiet.
   depositLine: { flexDirection: "row", alignItems: "center", gap: 6 },
   depositDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.brand },
   deposit: { flexShrink: 1, fontFamily: fonts.medium, fontSize: 13, lineHeight: 18, color: colors.brandText },
+  depositSettled: { flexShrink: 1, fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
   total: { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22, color: colors.ink, fontVariant: ["tabular-nums"] },
   hint: { ...type.caption, marginTop: spacing.md, fontFamily: fonts.regular, color: colors.ink2 },
 }));

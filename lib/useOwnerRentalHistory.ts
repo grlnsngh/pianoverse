@@ -42,6 +42,11 @@ const before = (entry: RentalHistoryEntry, changes: RentalHistoryChanges): Renta
     ? { periodEnd: entry.period_end ? parseStoredDate(entry.period_end) : null }
     : {}),
   ...(changes.price !== undefined ? { price: entry.price ?? null } : {}),
+  ...(changes.deposit !== undefined ? { deposit: entry.deposit ?? null } : {}),
+  ...(changes.depositRefunded !== undefined
+    ? { depositRefunded: typeof entry.deposit_refunded === "number" ? entry.deposit_refunded : null }
+    : {}),
+  ...(changes.depositNote !== undefined ? { depositNote: entry.deposit_note ?? null } : {}),
 });
 
 /** A kept rental as a new one to keep, as it was: what Undo on "Rental deleted" puts back. */
@@ -56,6 +61,8 @@ const asNew = (entry: RentalHistoryEntry): NewRentalHistory => ({
   periodEnd: entry.period_end,
   price: entry.price,
   deposit: entry.deposit ?? null,
+  depositRefunded: typeof entry.deposit_refunded === "number" ? entry.deposit_refunded : null,
+  depositNote: entry.deposit_note ?? null,
   closedOn: parseStoredDate(entry.closed_on) ?? new Date(),
   // Kept as it was, even when it was kept without one
   reason: (entry.reason ?? undefined) as NewRentalHistory["reason"],

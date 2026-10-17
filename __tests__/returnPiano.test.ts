@@ -196,13 +196,36 @@ describe("the rental that is kept", () => {
       periodEnd: "2026-09-15",
       price: 4000,
       deposit: null,
+      depositRefunded: null,
+      depositNote: null,
       closedOn: returnedOn,
       reason: "returned",
     });
   });
 
   it("carries the deposit that was held, not settled yet", () => {
-    expect(rentalReturned(rented({ rental_deposit: 8000 }), returnedOn)).toMatchObject({ reason: "returned", deposit: 8000 });
+    expect(rentalReturned(rented({ rental_deposit: 8000 }), returnedOn)).toMatchObject({
+      reason: "returned",
+      deposit: 8000,
+      depositRefunded: null,
+      depositNote: null,
+    });
+  });
+
+  it("carries how the deposit was settled: what was refunded, and why part was kept", () => {
+    const settlement = { held: 8000, refund: 3500, kept: 4500, forRent: 4500, forDamage: 0, note: "unpaid rent" };
+
+    expect(rentalReturned(rented({ rental_deposit: 8000 }), returnedOn, settlement)).toMatchObject({
+      deposit: 8000,
+      depositRefunded: 3500,
+      depositNote: "unpaid rent",
+    });
+  });
+
+  it("carries a settlement of nothing refunded as 0, not as not settled", () => {
+    const settlement = { held: 8000, refund: 0, kept: 8000, forRent: 0, forDamage: 0, note: null };
+
+    expect(rentalReturned(rented({ rental_deposit: 8000 }), returnedOn, settlement)).toMatchObject({ depositRefunded: 0 });
   });
 
   it("ends the day it came back when that is before the agreed end", () => {

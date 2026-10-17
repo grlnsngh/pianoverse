@@ -145,6 +145,46 @@ describe("the rental_history table", () => {
     expect(kept()[0]).not.toHaveProperty("price");
   });
 
+  it("keeps the deposit that was held, with what was refunded and why part was kept", async () => {
+    await appwrite.createRentalHistory(entry({ deposit: 9000, depositRefunded: 4500, depositNote: " unpaid rent " }));
+
+    expect(kept()[0]).toMatchObject({ deposit: 9000, deposit_refunded: 4500, deposit_note: "unpaid rent" });
+  });
+
+  it("keeps a refund of 0 as settled, and no refund at all as not settled", async () => {
+    await appwrite.createRentalHistory(entry({ deposit: 9000, depositRefunded: 0 }));
+    await appwrite.createRentalHistory(entry({ deposit: 9000, depositRefunded: null }));
+
+    expect(kept()[0]).toMatchObject({ deposit: 9000, deposit_refunded: 0 });
+    expect(kept()[1]).toMatchObject({ deposit: 9000 });
+    expect(kept()[1]).not.toHaveProperty("deposit_refunded");
+    expect(kept()[1]).not.toHaveProperty("deposit_note");
+  });
+
+  it("keeps nothing about a deposit for a rental that had none, whatever else is said", async () => {
+    await appwrite.createRentalHistory(entry({ deposit: null, depositRefunded: 100, depositNote: "damage" }));
+    await appwrite.createRentalHistory(entry({ deposit: 0 }));
+
+    for (const row of kept()) {
+      expect(row).not.toHaveProperty("deposit");
+      expect(row).not.toHaveProperty("deposit_refunded");
+      expect(row).not.toHaveProperty("deposit_note");
+    }
+  });
+
+  it("changes a kept rental's deposit, what was refunded and the reason, and only what is asked", async () => {
+    const row = await appwrite.createRentalHistory(entry({ deposit: 9000 }));
+
+    await appwrite.updateRentalHistoryEntry(row.$id, { depositRefunded: 0 });
+    expect(fakeBackend.history.get(row.$id)).toMatchObject({ deposit: 9000, deposit_refunded: 0, price: 4000 });
+
+    await appwrite.updateRentalHistoryEntry(row.$id, { deposit: 10000, depositNote: " damage " });
+    expect(fakeBackend.history.get(row.$id)).toMatchObject({ deposit: 10000, deposit_refunded: 0, deposit_note: "damage" });
+
+    await appwrite.updateRentalHistoryEntry(row.$id, { deposit: null, depositRefunded: null, depositNote: null });
+    expect(fakeBackend.history.get(row.$id)).toMatchObject({ deposit: null, deposit_refunded: null, deposit_note: null });
+  });
+
   it("lists an owner's kept rentals, not another owner's, and every page of them", async () => {
     for (let i = 0; i < 130; i++) {
       fakeBackend.history.set(`h-${i}`, {

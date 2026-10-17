@@ -3,6 +3,7 @@ import { PIANO_CATEGORY } from "@/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate, toStoredDate } from "@/utils/dates";
 import { customerKey } from "@/utils/customers";
+import type { Settlement } from "@/utils/deposits";
 
 // When a piano's rental is over, the details on the piano are about to be
 // written over by the next one. These rules say when that is, and what to keep.
@@ -24,7 +25,8 @@ const entryOf = (
   piano: PianoItem,
   closedOn: Date,
   reason: NewRentalHistory["reason"],
-  periodEnd: string | null
+  periodEnd: string | null,
+  settlement: Settlement | null = null
 ): NewRentalHistory => ({
   pianoId: piano.$id,
   pianoTitle: piano.title,
@@ -35,8 +37,10 @@ const entryOf = (
   periodStart: dayOf(piano.rental_period_start),
   periodEnd,
   price: typeof piano.rental_price === "number" ? piano.rental_price : null,
-  // A deposit still held goes with the rental, not settled until it is told how it ended
+  // A deposit still held goes with the rental: not settled, until it is told how it ended
   deposit: typeof piano.rental_deposit === "number" && piano.rental_deposit > 0 ? piano.rental_deposit : null,
+  depositRefunded: settlement ? settlement.refund : null,
+  depositNote: settlement ? settlement.note : null,
   closedOn,
   reason,
 });
@@ -76,11 +80,17 @@ export const rentalToArchive = (
  * The rental to keep when a piano is marked as returned, or null when it had
  * none. It ends on the day the piano came back when that is before the end that
  * was agreed (it came back early); a piano that came back on or after the agreed
- * end keeps that end, and one with no agreed end ends the day it came back.
+ * end keeps that end, and one with no agreed end ends the day it came back. A
+ * deposit that was held goes with it, settled the way the person said (what was
+ * refunded, and why part was kept), or not settled when nothing was said.
  */
-export const rentalReturned = (piano: PianoItem, returnedOn: Date): NewRentalHistory | null => {
+export const rentalReturned = (
+  piano: PianoItem,
+  returnedOn: Date,
+  settlement: Settlement | null = null
+): NewRentalHistory | null => {
   if (!hadRental(piano)) return null;
   const agreed = dayOf(piano.rental_period_end);
   const back = toStoredDate(returnedOn);
-  return entryOf(piano, returnedOn, "returned", agreed && agreed <= back ? agreed : back);
+  return entryOf(piano, returnedOn, "returned", agreed && agreed <= back ? agreed : back, settlement);
 };
