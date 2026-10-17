@@ -95,7 +95,6 @@ function RootContent() {
                   <Stack.Screen name="paper-agreement" options={{ headerShown: false }} />
                   {/* The letterhead the paper forms are printed on, and its screens */}
                   <Stack.Screen name="letterhead" options={{ headerShown: false }} />
-                  <Stack.Screen name="letterhead-make" options={{ headerShown: false }} />
                   <Stack.Screen name="letterhead-details" options={{ headerShown: false }} />
                   <Stack.Screen name="letterhead-upload" options={{ headerShown: false }} />
                   <Stack.Screen name="letterhead-printed" options={{ headerShown: false }} />

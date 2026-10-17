@@ -389,6 +389,12 @@ Tick `[x]` when done. Add a short note in brackets if something differs from the
   - [x] 47.5 Upload mine fixed [the image is never stretched out of shape (it was drawn at 100% x 100% of the page); a **Visibility** slider; **Use it as a picture** moves an image that is only a picture to Make one's picture at the top right]
   - [x] 47.6 The screens [`components/PictureSettings.tsx` on Make a letterhead: Grand piano, Your own picture, No picture; Right, Left, Behind text; Size and Visibility; the whole page in the preview when the picture is behind; the wording on Letterhead, Paper forms and each form; an `image` icon; large text: the rows wrap, the choices stack, the slider labels wrap]
   - [x] 47.7 Tests and checks [every design and side, the sizes, behind, strips and receipts, a wide picture, the upload not stretched, every agreement on two pages at every size and place, the screens; every page printed in desktop Chrome]
+- [x] **Batch 48. Monogram's details under the piano, and one Letterhead screen (paper forms)** (S). The owner saw Batch 47 on his phone and asked for the piano a little smaller, the GST and PAN under the piano instead of beside it, and a simpler flow: "the flow is not very easy to understand". **JavaScript only: over the air to 1.1.20.**
+  - [x] 48.1 Monogram [the piano 136 px tall at 100% (was 168); the details in two columns: what the business is, the address and the mobile on the left; GST, PAN and e-mail on the right, under the piano when it is at the right (under it on the left when it is at the left); the rule and the writing move down only as far as they need; every agreement still two pages]
+  - [x] 48.2 One Letterhead screen [`app/letterhead.tsx` is the editor itself: the top of the real page, then Your details, Design and colour, Picture, and More options (logo and lettering, closed at first); `app/letterhead-make.tsx` is gone, and with it the radio list with an Edit button in a box]
+  - [x] 48.3 The other kinds in plain words [a list at the end: My own letterhead image, Printed letterhead paper (screens that change nothing until Use this letterhead or Use printed paper, a new image or a slider), No letterhead (at once); while one of them is used, a card says In use, what it does, Change it, and Make a letterhead instead]
+  - [x] 48.4 The picture as three tiles [Grand piano, My picture, None, side by side and wrapping with a big Font size, instead of three tall rows]
+  - [x] 48.5 Tests and checks [the screen tests rewritten for one screen; Monogram's columns; the summaries' words; the screen looked at in the browser at 390 wide, made and in use]
 
 ## Batch notes
 
@@ -1138,3 +1144,8 @@ Add one entry per session, newest last. Format:
 - Looked over: every form and agreement printed in Chrome with each design, picture place and size. Found and fixed: (1) no picture except on the handover form; (2) Upload mine stretched any image that isn't A4 to the page (`background-size:100% 100%`); (3) no way to place an image or make it lighter; (4) a picture used as a logo printed at most 88 px tall in the corner; (5) the registers had no letterhead; (6) Classic beside a picture would have cut its contact line and tagline. Monogram's agreement goes on to a third page from a picture of about 140%, so the size stops at 130%, where every design stays on two pages.
 - Not done: a drawn (vector) piano as a second built-in picture, in case the owner wants one that is surely free to use on the Play Store (the photo looks like a maker's product photo, as on the handover form since Batch 37); the small strip of Monogram still shows the initials rather than a logo.
 - Checks: typecheck clean. Jest 187 suites, 3252 tests pass. Lint 0 errors and 6 warnings (the same).
+
+### Session 53, 2026-10-17
+- The owner merged #72 and the update went over the air ("Letterhead picture", runtime 5, preview channel); he saw it on his phone.
+- He asked for the piano a little smaller, GST and PAN under the piano, and a simpler Letterhead flow: Batch 48. The two screens (choose a kind, then Make one behind an Edit button) are one; the other kinds are a list at the end in plain words; the logo and lettering wait under More options; the picture is three tiles.
+- Checks: typecheck clean. Jest 187 suites, 3256 tests pass. Lint 0 errors and 6 warnings (the same).

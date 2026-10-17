@@ -38,7 +38,6 @@ import { act } from "react-test-renderer";
 import { router } from "expo-router";
 import LetterheadScreen from "@/app/letterhead";
 import LetterheadDetails from "@/app/letterhead-details";
-import LetterheadMake from "@/app/letterhead-make";
 import LetterheadPrinted from "@/app/letterhead-printed";
 import LetterheadUpload from "@/app/letterhead-upload";
 import { clearLetterheadImages, deleteLetterheadImage, pickLetterheadImage } from "@/lib/letterheadImages";
@@ -124,48 +123,99 @@ const step = (renderer: any, label: string, actionName: "increment" | "decrement
 };
 
 describe("the Letterhead screen", () => {
-  it("shows the real page, the four styles with the chosen one, the details and where it is used", async () => {
+  it("shows the top of the real page, then your details, the design, the picture and the other kinds", async () => {
     await saved({});
     const renderer = await render(<LetterheadScreen />);
     const texts = allTexts(renderer.root);
 
     expect(texts).toContain("Letterhead");
-    expect(texts).toContain("The real page, as it will print");
-    expect(texts).toContain("Rental agreement, page 1");
-    for (const title of ["None", "My printed paper", "Make one", "Upload mine"]) expect(texts).toContain(title);
-    expect(isChecked(renderer, "radio", "Make one. Pick a design, a picture, your logo and details")).toBe(true);
-    expect(isChecked(renderer, "radio", "None. Just the document. Clean and simple.")).toBe(false);
-    expect(texts).toContain("Monogram · The Piano Services");
-    expect(texts).toContain("The Piano Services");
-    expect(texts).toContain("98110 20513");
-    expect(texts).toContain("Every other form");
-    expect(texts).toContain("Rent card, receipts, handover and registers get the small one, picture included");
-    expect(texts).toContain("Kept on this phone. Nothing is uploaded.");
+    expect(texts).toContain("The top of an A4 page, as it will print");
+    expect(texts).toContain("Full size on page 1 of the agreements, small on every other form");
+    // In the order they matter
+    const order = ["Your details", "The Piano Services", "Design", "Picture", "More options", "Other kinds of letterhead"];
+    expect(order.map((text) => texts.indexOf(text))).toEqual([...order.map((text) => texts.indexOf(text))].sort((a, b) => a - b));
+    for (const name of ["Monogram", "Classic", "Modern", "Band", "Minimal"]) expect(texts).toContain(name);
+    expect(isChecked(renderer, "radio", "Monogram design")).toBe(true);
+    expect(isChecked(renderer, "radio", "Copper")).toBe(true);
+    for (const kind of ["My own letterhead image", "Printed letterhead paper", "No letterhead"]) expect(texts).toContain(kind);
+    expect(texts).not.toContain("In use");
+    // The logo and lettering wait under More options
+    expect(texts).not.toContain("No logo");
+    expect(texts).toContain("Saved as you go, on this phone. Nothing is uploaded.");
     expect(previewPage(renderer)).toContain("THE PIANO SERVICES");
   });
 
-  it("keeps the style chosen, and offers the next step for it", async () => {
+  it("keeps the design, colour and lettering chosen, and saves them", async () => {
+    await saved({});
     const renderer = await render(<LetterheadScreen />);
 
-    await pressLabel(renderer.root, "My printed paper. Leaves space for your letterhead pad");
-    expect(getLetterheadState().design.style).toBe("printed");
-    expect(allTexts(renderer.root)).toContain("My printed paper · top 45 mm left empty");
-    await pressLabel(renderer.root, "Adjust");
-    expect(router.push).toHaveBeenLastCalledWith("/letterhead-printed");
+    await pressLabel(renderer.root, "Band design");
+    await pressLabel(renderer.root, "Navy");
+    await pressLabel(renderer.root, "More options: logo and lettering");
+    await act(async () => byRole(renderer, "tab", "Clean").props.onPress());
+    await flushPromises();
 
-    await pressLabel(renderer.root, "Upload mine. Your own letterhead image, from Canva or a scan");
-    expect(allTexts(renderer.root)).toContain("Upload mine · no image yet");
-    await pressLabel(renderer.root, "Choose image");
+    expect(getLetterheadState().design).toMatchObject({ style: "make", template: "band", colour: "navy", elegant: false });
+    expect(isChecked(renderer, "radio", "Band design")).toBe(true);
+    expect(await loadLetterheadDesign()).toMatchObject({ template: "band", colour: "navy", elegant: false });
+  });
+
+  it("opens and closes More options, with the logo and the lettering", async () => {
+    await saved({});
+    const renderer = await render(<LetterheadScreen />);
+
+    await pressLabel(renderer.root, "More options: logo and lettering");
+    expect(byRole(renderer, "button", "More options: logo and lettering").props.accessibilityState).toEqual({ expanded: true });
+    expect(allTexts(renderer.root)).toEqual(expect.arrayContaining(["Logo", "No logo", "TPS", "Lettering of your details"]));
+    expect(byRole(renderer, "tab", "Elegant").props.accessibilityState).toEqual({ selected: true });
+
+    await pressLabel(renderer.root, "More options: logo and lettering");
+    expect(allTexts(renderer.root)).not.toContain("No logo");
+  });
+
+  it("opens the screens for your own image and printed paper, and uses no letterhead at once", async () => {
+    const renderer = await render(<LetterheadScreen />);
+
+    await pressLabel(renderer.root, "My own letterhead image. A page or top strip made in Canva, or a scan");
     expect(router.push).toHaveBeenLastCalledWith("/letterhead-upload");
+    await pressLabel(renderer.root, "Printed letterhead paper. Leaves space for the letterhead on your pad");
+    expect(router.push).toHaveBeenLastCalledWith("/letterhead-printed");
+    // Only opening them changes nothing
+    expect(getLetterheadState().design.style).toBe("make");
 
-    await pressLabel(renderer.root, "Make one. Pick a design, a picture, your logo and details");
-    await pressLabel(renderer.root, "Edit");
-    expect(router.push).toHaveBeenLastCalledWith("/letterhead-make");
-
-    await pressLabel(renderer.root, "None. Just the document. Clean and simple.");
-    expect(renderer.root.findAll((node: any) => node.props.accessibilityLabel === "Edit")).toHaveLength(0);
+    await pressLabel(renderer.root, "No letterhead. Just the document");
+    expect(getLetterheadState().design.style).toBe("none");
     await flushPromises();
     expect((await loadLetterheadDesign()).style).toBe("none");
+  });
+
+  it("says which other kind is in use, offers to change it, and goes back to making one", async () => {
+    await saved({ style: "printed" });
+    const renderer = await render(<LetterheadScreen />);
+    const texts = allTexts(renderer.root);
+
+    expect(texts).toEqual(expect.arrayContaining(["In use", "Printed letterhead paper"]));
+    expect(texts).toContain("45 mm left empty at the top and 15 mm at the bottom");
+    expect(texts).toContain("An A4 page, as it will print");
+    // Nothing to make while another kind is used
+    expect(texts).not.toContain("Design");
+    expect(texts).toContain("Your details");
+    expect(byRole(renderer, "button", "Printed letterhead paper. Leaves space for the letterhead on your pad. In use")).toBeTruthy();
+
+    await pressLabel(renderer.root, "Change it");
+    expect(router.push).toHaveBeenLastCalledWith("/letterhead-printed");
+
+    await pressLabel(renderer.root, "Make a letterhead instead");
+    expect(getLetterheadState().design.style).toBe("make");
+    expect(allTexts(renderer.root)).toContain("Design");
+  });
+
+  it("says when no letterhead is used, with nothing to change", async () => {
+    await saved({ style: "none" });
+    const renderer = await render(<LetterheadScreen />);
+
+    expect(allTexts(renderer.root)).toContain("Just the document, with your business name on a line at the top");
+    expect(renderer.root.findAll((node: any) => node.props.accessibilityLabel === "Change it")).toHaveLength(0);
   });
 
   it("opens the details, asking for the business name when there is none", async () => {
@@ -218,39 +268,9 @@ describe("your details", () => {
 });
 
 describe("making a letterhead", () => {
-  it("shows the top of the page and the design, colour, logo and lettering chosen", async () => {
-    await saved({});
-    const renderer = await render(<LetterheadMake />);
-    const texts = allTexts(renderer.root);
-
-    expect(texts).toContain("Make a letterhead");
-    expect(texts).toContain("The top of an A4 page, as it will print");
-    for (const name of ["Monogram", "Classic", "Modern", "Band", "Minimal"]) expect(texts).toContain(name);
-    expect(isChecked(renderer, "radio", "Monogram design")).toBe(true);
-    expect(isChecked(renderer, "radio", "Copper")).toBe(true);
-    expect(texts).toContain("No logo");
-    expect(texts).toContain("TPS");
-    expect(byRole(renderer, "tab", "Elegant").props.accessibilityState).toEqual({ selected: true });
-    expect(previewPage(renderer)).toContain("THE PIANO SERVICES");
-  });
-
-  it("keeps the design, colour and lettering chosen, and makes Make one the style", async () => {
-    await saved({ style: "none" });
-    const renderer = await render(<LetterheadMake />);
-
-    await pressLabel(renderer.root, "Band design");
-    await pressLabel(renderer.root, "Navy");
-    await act(async () => byRole(renderer, "tab", "Clean").props.onPress());
-    await flushPromises();
-
-    expect(getLetterheadState().design).toMatchObject({ style: "make", template: "band", colour: "navy", elegant: false });
-    expect(isChecked(renderer, "radio", "Band design")).toBe(true);
-    expect(await loadLetterheadDesign()).toMatchObject({ template: "band", colour: "navy", elegant: false });
-  });
-
-  it("draws a design already in the preview, even when another style is chosen", async () => {
-    await saved({ style: "none", template: "band", colour: "navy" });
-    const renderer = await render(<LetterheadMake />);
+  it("draws the design chosen in the preview", async () => {
+    await saved({ template: "band", colour: "navy" });
+    const renderer = await render(<LetterheadScreen />);
 
     expect(previewPage(renderer)).toContain("background:#1F3A5F");
   });
@@ -258,8 +278,9 @@ describe("making a letterhead", () => {
   it("adds a logo from the photos, changes it, and removes it", async () => {
     await saved({});
     (pickLetterheadImage as jest.Mock).mockResolvedValueOnce(logo);
-    const renderer = await render(<LetterheadMake />);
+    const renderer = await render(<LetterheadScreen />);
 
+    await pressLabel(renderer.root, "More options: logo and lettering");
     await pressLabel(renderer.root, "Add a logo");
     expect(pickLetterheadImage).toHaveBeenCalledWith("logo");
     expect(getLetterheadState().design.logo).toEqual(logo);
@@ -280,8 +301,9 @@ describe("making a letterhead", () => {
   it("changes nothing when no photo is picked, and says so when one can't be used", async () => {
     const toasts = captureToastCalls();
     (pickLetterheadImage as jest.Mock).mockResolvedValueOnce(null);
-    const renderer = await render(<LetterheadMake />);
+    const renderer = await render(<LetterheadScreen />);
 
+    await pressLabel(renderer.root, "More options: logo and lettering");
     await pressLabel(renderer.root, "Add a logo");
     expect(getLetterheadState().design.logo).toBeNull();
     expect(toasts).toEqual([]);
@@ -295,7 +317,7 @@ describe("making a letterhead", () => {
   });
 
   it("opens the details", async () => {
-    const renderer = await render(<LetterheadMake />);
+    const renderer = await render(<LetterheadScreen />);
 
     await pressLabel(renderer.root, "Your details. Add your business name");
 
@@ -304,26 +326,26 @@ describe("making a letterhead", () => {
 });
 
 describe("the letterhead's picture", () => {
-  const GRAND = "Grand piano. A grand piano in colour, ready to use";
-  const OWN = "Your own picture. A photo or a logo from your phone";
-  const NONE = "No picture. Just your details";
+  const GRAND = "Grand piano. A grand piano in colour";
+  const OWN = "My picture. A photo or a logo from your phone";
+  const NONE = "None. No picture";
   const own = { file: "picture-1.jpg", width: 800, height: 600 };
 
   it("has the grand piano at the top right of the page at first, as on TPS 2", async () => {
     await saved({});
-    const renderer = await render(<LetterheadMake />);
+    const renderer = await render(<LetterheadScreen />);
     const texts = allTexts(renderer.root);
 
     expect(texts).toContain("Picture");
     expect(isChecked(renderer, "radio", GRAND)).toBe(true);
     expect(byRole(renderer, "tab", "Right").props.accessibilityState).toEqual({ selected: true });
     expect(texts).toContain("Big on page 1 of the agreements, beside your letterhead. Every other form gets a small one.");
-    expect(previewPage(renderer)).toContain('class="lh-pic" style="width:142px;height:168px;flex-shrink:0;position:absolute;right:48px;top:26px"');
+    expect(previewPage(renderer)).toContain('class="lh-pic" style="width:115px;height:136px;flex-shrink:0;position:absolute;right:48px;top:26px"');
   });
 
   it("moves the picture to the left or behind the writing, and sizes and fades it", async () => {
     await saved({});
-    const renderer = await render(<LetterheadMake />);
+    const renderer = await render(<LetterheadScreen />);
 
     await act(async () => byRole(renderer, "tab", "Left").props.onPress());
     expect(getLetterheadState().design.picture.place).toBe("left");
@@ -352,7 +374,7 @@ describe("the letterhead's picture", () => {
 
   it("stops the size where the agreement still fits on two pages", async () => {
     await saved({ picture: { ...DEFAULT_DESIGN.picture, size: 125 } });
-    const renderer = await render(<LetterheadMake />);
+    const renderer = await render(<LetterheadScreen />);
 
     step(renderer, "Size of the picture", "increment", 3);
 
@@ -362,7 +384,7 @@ describe("the letterhead's picture", () => {
   it("chooses the person's own picture from their photos, changes it, and keeps it to go back to", async () => {
     await saved({});
     (pickLetterheadImage as jest.Mock).mockResolvedValueOnce(own);
-    const renderer = await render(<LetterheadMake />);
+    const renderer = await render(<LetterheadScreen />);
 
     await pressLabel(renderer.root, OWN);
     expect(pickLetterheadImage).toHaveBeenCalledWith("picture");
@@ -389,7 +411,7 @@ describe("the letterhead's picture", () => {
   it("keeps the grand piano when no photo is picked, and says so when one can't be used", async () => {
     const toasts = captureToastCalls();
     (pickLetterheadImage as jest.Mock).mockResolvedValueOnce(null);
-    const renderer = await render(<LetterheadMake />);
+    const renderer = await render(<LetterheadScreen />);
 
     await pressLabel(renderer.root, OWN);
     expect(getLetterheadState().design.picture.source).toBe("piano");
@@ -481,8 +503,19 @@ describe("uploading a letterhead", () => {
     });
     // It moved: the same file, not deleted
     expect(deleteLetterheadImage).not.toHaveBeenCalled();
-    expect(router.replace).toHaveBeenCalledWith("/letterhead-make");
+    // Back to the Letterhead screen, which shows it
+    expect(router.back).toHaveBeenCalled();
     expect(toasts).toEqual([expect.objectContaining({ message: "Your picture is at the top right now", variant: "success" })]);
+  });
+
+  it("uses an image chosen before only when asked", async () => {
+    await saved({ style: "make", upload: { ...DEFAULT_DESIGN.upload, image: page } });
+    const renderer = await render(<LetterheadUpload />);
+
+    expect(getLetterheadState().design.style).toBe("make");
+    await pressLabel(renderer.root, "Use this letterhead");
+    expect(getLetterheadState().design.style).toBe("upload");
+    expect(renderer.root.findAll((node: any) => node.props.accessibilityLabel === "Use this letterhead")).toHaveLength(0);
   });
 
   it("replaces the image with another, deleting the old one", async () => {
@@ -503,7 +536,7 @@ describe("printing on a letterhead pad", () => {
     const renderer = await render(<LetterheadPrinted />);
     const texts = allTexts(renderer.root);
 
-    expect(texts).toContain("My printed paper");
+    expect(texts).toContain("Printed letterhead paper");
     expect(texts).toContain("45 mm");
     expect(texts).toContain("15 mm");
     expect(previewPage(renderer)).toContain('style="padding-top:170px"');
@@ -515,6 +548,16 @@ describe("printing on a letterhead pad", () => {
     expect(getLetterheadState().design).toMatchObject({ style: "printed", printed: { top: 40, bottom: 16 } });
     expect(allTexts(renderer.root)).toContain("40 mm");
     expect((await loadLetterheadDesign()).printed).toEqual({ top: 40, bottom: 16 });
+  });
+
+  it("uses printed paper only when asked, or when a space is moved", async () => {
+    await saved({});
+    const renderer = await render(<LetterheadPrinted />);
+
+    expect(getLetterheadState().design.style).toBe("make");
+    await pressLabel(renderer.root, "Use printed paper");
+    expect(getLetterheadState().design.style).toBe("printed");
+    expect(renderer.root.findAll((node: any) => node.props.accessibilityLabel === "Use printed paper")).toHaveLength(0);
   });
 
   it("prints a test page with the spaces on screen", async () => {

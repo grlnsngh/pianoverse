@@ -485,7 +485,7 @@ describe("the rental agreement's screen", () => {
     await saveLetterheadDesign({ ...DEFAULT_DESIGN, style: "none" });
     const renderer = await render(<PaperAgreement />);
 
-    expect(allTexts(renderer.root)).toContain("None · just the document");
+    expect(allTexts(renderer.root)).toContain("No letterhead · just the document");
     await act(async () => letterheadRow(renderer).props.onPress());
     expect(router.push).toHaveBeenCalledWith("/letterhead");
   });

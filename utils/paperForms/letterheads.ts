@@ -97,7 +97,7 @@ const pictureOf = (design: LetterheadDesign, assets: LetterheadAssets): Pic | nu
 const PIC_GAP = 24;
 
 /** How tall each design's picture is on page 1 at 100%, to sit beside its header. */
-const PIC_HEIGHT: Record<LetterheadTemplate, number> = { monogram: 168, classic: 140, modern: 104, band: 96, minimal: 76 };
+const PIC_HEIGHT: Record<LetterheadTemplate, number> = { monogram: 136, classic: 140, modern: 104, band: 96, minimal: 76 };
 
 /** A picture's box at most `height` px tall and `maxWidth` wide, keeping its shape. */
 const picBox = (pic: Pic, height: number, maxWidth: number) => {
@@ -175,7 +175,15 @@ const monogram = ({ d, c, elegant, assets, pic, watermark }: TemplateInput): Tem
   const right = 48 + (pic?.place === "right" ? reserve : 0);
   const nameRight = assets.logo ? 150 : 0;
   const size = fit(d.business, 34, 698 - reserve - nameRight, 0.72, 18);
-  const lineTop = Math.max(222, box ? 26 + box.h + 12 : 0);
+  // The details in two columns: what the business is and how to reach it on the
+  // left; its GST, PAN and e-mail on the right, under the picture when it is there
+  const leftLines = [d.tagline, d.address, d.phone && `Mob.: ${d.phone}`];
+  const rightLines = [d.gst && `GST No. ${d.gst}`, d.pan && `PAN No. ${d.pan}`, d.email && `E-mail: ${d.email}`];
+  const height = (items: (string | false)[]) => items.filter(Boolean).length * 18;
+  const under = pic?.place === "left" ? height(leftLines) : height(rightLines);
+  const rowBottom = Math.max(214, box ? 26 + box.h + 8 + under : 0);
+  const rowHeight = Math.max(height(leftLines), height(rightLines));
+  const lineTop = rowBottom + 8;
   const mark = watermark
     ? `<div class="lh-layer" style="right:-14px;bottom:52px;font-family:${DISPLAY};font-size:300px;line-height:1;letter-spacing:-0.02em;color:${c.tint};opacity:0.4">${initials}</div>`
     : "";
@@ -184,10 +192,11 @@ const monogram = ({ d, c, elegant, assets, pic, watermark }: TemplateInput): Tem
     `<div style="position:absolute;left:-4px;top:0;font-family:${DISPLAY};font-size:118px;line-height:1;letter-spacing:0.01em;color:${c.tint}">${initials}</div>` +
     `<div style="position:absolute;left:4px;right:${nameRight}px;top:60px;font-size:${size}px;font-weight:600;line-height:40px;letter-spacing:0.06em;color:#2B2622;white-space:nowrap;overflow:hidden">${name}</div>` +
     (assets.logo ? `<div class="lh-logo" style="position:absolute;right:0;top:4px;width:132px;height:88px"></div>` : "") +
-    `<div style="position:absolute;left:4px;right:0;top:116px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;font-family:${font};font-size:12.5px;line-height:18px;color:#4A443D">` +
-    `<div style="min-width:0">${lines([d.tagline, d.address, d.gst && `GST No. ${d.gst}`, d.phone && `Mob.: ${d.phone}`])}</div>` +
-    `<div style="flex-shrink:0;text-align:right">${lines([d.pan && `PAN No. ${d.pan}`, d.email && `E-mail: ${d.email}`])}</div>` +
-    `</div></div>` +
+    `</div>` +
+    `<div style="position:absolute;left:52px;right:48px;top:${rowBottom - rowHeight}px;height:${rowHeight}px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;font-family:${font};font-size:12.5px;line-height:18px;color:#4A443D">` +
+    `<div style="min-width:0">${lines(leftLines)}</div>` +
+    `<div style="flex-shrink:0;text-align:right">${lines(rightLines)}</div>` +
+    `</div>` +
     (box && pic ? picDiv(pic, box.w, box.h, `position:absolute;${pic.place}:48px;top:26px`) : "") +
     `<div style="position:absolute;left:48px;right:48px;top:${lineTop}px;height:1px;background:${c.tint}"></div>`;
   const overlap = Math.round(initialsOf(d.business).length * 10);

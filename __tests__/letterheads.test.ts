@@ -118,14 +118,23 @@ describe("the five designs", () => {
 });
 
 describe("the picture (Batch 47)", () => {
-  it("puts the grand piano at the top right of Monogram, beside the header, as on TPS 2", () => {
+  it("puts the grand piano at the top right of Monogram, with the GST, PAN and e-mail under it, as on TPS 2", () => {
     const frame = letterheadFrame(make("monogram"), tps, piano);
 
-    // 168 px tall, as wide as the photo's shape allows, level with the top of the header
-    expect(frame.firstLayers).toContain('class="lh-pic" style="width:142px;height:168px;flex-shrink:0;position:absolute;right:48px;top:26px"');
-    // The details stop short of it
-    expect(frame.firstLayers).toContain("left:48px;right:214px;top:26px;height:196px");
-    expect(frame.firstTop).toBe(240);
+    // 136 px tall, as wide as the photo's shape allows, level with the top of the header
+    expect(frame.firstLayers).toContain('class="lh-pic" style="width:115px;height:136px;flex-shrink:0;position:absolute;right:48px;top:26px"');
+    // The name stops short of it
+    expect(frame.firstLayers).toContain("left:48px;right:187px;top:26px;height:196px");
+    // Two columns under the name: what the business is on the left, its numbers on the right, under the piano
+    const columns = frame.firstLayers.match(/<div style="min-width:0">(.*?)<\/div><\/div><div style="flex-shrink:0;text-align:right">(.*?)<\/div><\/div><\/div>/);
+    expect(columns?.[1]).toContain("Mob.: 98110 20513");
+    expect(columns?.[1]).not.toContain("GST");
+    expect(columns?.[2]).toContain("GST No. 07AAMFT8696F1ZF");
+    expect(columns?.[2]).toContain("PAN No. AAMFT8696F");
+    expect(columns?.[2]).toContain("E-mail: tps@example.com");
+    // The numbers start below the piano (26 + 136 + 8)
+    expect(frame.firstLayers).toContain("left:52px;right:48px;top:170px;height:54px");
+    expect(frame.firstTop).toBe(250);
     // Small in the strip of the pages after, and the initials still behind every page
     expect(picBoxes(frame.restStrip)).toEqual([[44, 52]]);
     expect(frame.restLayers).toContain("font-size:300px");
