@@ -30,15 +30,21 @@ Tick `[x]` when done.
   - [x] S3.4 Free, private, and how updates arrive; how to install from outside the Play Store in three lines (more on the download page)
   - [x] S3.5 Questions: forgot password (the old page's three steps), which phones, iPhone, staff, deleting your data, contact
   - [x] S3.6 Footer on every page: Download, Privacy policy, Delete your account, the email; Open Graph picture (1200 × 630) for links shared on WhatsApp
-- [x] **Batch S4. The download page** (S) [the release itself, S4.4, waits for the owner]
+- [x] **Batch S4. The download page** (S)
   - [x] S4.1 The button to the APK (Releases), version, size, Android 7.0 or later, the date
   - [x] S4.2 Installing, step by step, in the words the phone uses, for most phones and for Samsung; what Play Protect may say; how to update; how to remove it
   - [x] S4.3 "Coming to Google Play" and the place where the badge will go
-  - [ ] S4.4 The first release with `pianoverse.apk` (**only with the owner's yes**)
+  - [x] S4.4 The first release with `pianoverse.apk` [v1.1.20, published 2026-10-17 with the owner's yes]
 - [x] **Batch S5. Checked on every size** (S)
   - [x] S5.1 Every page drawn in Chrome at 320, 360, 390, 768, 1280 and 1440 px, each at 100%, 150% and 200% text, and with the WCAG text-spacing style; fix whatever breaks
   - [x] S5.2 Tests: the new pages in `__tests__/webPages.test.ts` (files exist, no inline styles or scripts, zoom allowed, text-scale meta, images with words and sizes, only the app's colours, sizes in rem on the new parts)
   - [x] S5.3 README, `docs/redesign/WEB.md`, the phone check in `docs/redesign/QUESTIONS.md`
+
+- [x] **Batch S6. Publishing in one command, and a smaller APK** (S). The owner asked for every new version to reach the website by itself, and for the 147 MB APK to be made smaller.
+  - [x] S6.1 `npm run publish:apk` [the newest APK as `pianoverse.apk` in the release `v<version>`; `web/release.json` and the `data-release` spans on the pages filled in; a pull request to `main`, merged; the rule in `CLAUDE.md`]
+  - [x] S6.2 `npm run release:android` [builds (in WSL on Windows) and then publishes]
+  - [x] S6.3 A smaller APK [`plugins/with-apk-packaging.js`: only the phones' code (arm64 and 32-bit ARM; the emulators' x86 was 63 MB) and compressed native libraries (49 MB to 19); a build-only plugin, so runtime 5 and its updates are unchanged]
+  - [x] S6.4 The tests [`publishApk` (new), `webPages` (the site's version is the published release's), `runtimeVersion` (build-only plugins), `buildScripts`]
 
 ## Switching to the Play Store (when the listing is live)
 
@@ -61,3 +67,4 @@ Tick `[x]` when done.
 - S2: the owner signed in on the emulator (signing in to the live account is left to him). The app updated itself over the air to Batches 47 and 48 after two restarts. At the owner's word his two old test pianos ("New" and "john") were deleted in the app, so they don't show in the Today screenshot. Ten screens taken and cropped to the app, WebP at 360 and 720 px (604 KB in all); the link-preview picture drawn from Today and Pianos.
 - S5: every page drawn again with the real screenshots, at 360 and 1440 px and at 150% text. 72 web tests pass.
 - Waiting for the owner: the first release with `pianoverse.apk` (S4.4). Until it exists the download button gives a GitHub "not found" page, so the release is made before this is merged.
+- S4.4 and S6: v1.1.20 published as a GitHub release (the download link gives the 147 MB APK). The size: 63 MB of the APK was x86 code for computer emulators and 49 MB uncompressed native libraries. A trial build with only the phones' code was 83.7 MB but couldn't start on the x86 emulator (its loader looked for x86 libraries inside the APK); compressing the libraries fixes that and brings it to about 53 MB. Minifying the Java code (22.5 MB) was tried through environment variables, which can't carry Gradle settings with dots, and is left for later with a careful test of every screen.
