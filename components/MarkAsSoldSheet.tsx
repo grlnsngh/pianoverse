@@ -1,13 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Text, View } from "react-native";
 import { format, isToday } from "date-fns";
+import { useDispatch } from "react-redux";
 import { AmountInput, Button, DatePickerSheet, FormRow, Group, Sheet } from "@/components/ui";
 import { COLUMN_LIMITS } from "@/constants/columnLimits";
 import { fonts, maxScale, radii, type } from "@/constants/theme";
+import { deleteRentalHistoryEntry } from "@/lib/appwrite";
+import saveOldRental from "@/lib/saveOldRental";
 import useUpdatePiano from "@/lib/useUpdatePiano";
+import { paymentsChanged } from "@/redux/payments/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { toStoredDate } from "@/utils/dates";
+import { depositAmount, heldDeposit } from "@/utils/deposits";
 import { formatRupees } from "@/utils/money";
+import { rentalSoldWithDeposit } from "@/utils/rentalHistory";
+import { restoredDeposit } from "@/utils/returnPiano";
 import { profitIfSold, type PianoMoney } from "@/utils/pianoMoney";
 import { makeStyles } from "@/lib/ThemeContext";
 
@@ -36,6 +43,7 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
   onClose,
 }) => {
   const styles = useStyles();
+  const dispatch = useDispatch();
   const updatePiano = useUpdatePiano();
   const [buyerName, setBuyerName] = useState("");
   const [buyerAddress, setBuyerAddress] = useState("");
@@ -54,6 +62,9 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
     setChoosingDay(false);
   }, [visible]);
 
+  // What is held for the rental that is on the piano, when it is sold with it still there
+  const holding = heldDeposit(piano) ? depositAmount(piano) : 0;
+
   const handleSave = async () => {
     if (!buyerName.trim()) {
       Alert.alert("Missing Details", "Please enter the buyer's name.");
@@ -65,6 +76,9 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
     }
 
     setSaving(true);
+    // A deposit still held for the rental is kept in its history, not settled, and comes off the piano
+    const entry = holding > 0 ? rentalSoldWithDeposit(piano, saleDate) : null;
+    let keptId: string | null = null;
     const saved = await updatePiano(
       piano,
       {
@@ -72,15 +86,37 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
         sold_to_address: buyerAddress.trim() || null,
         sold_price: price,
         sold_date: toStoredDate(saleDate),
+        ...(entry ? { rental_deposit: null, deposit_received_on: null } : {}),
       },
       `Marked ${piano.title} as sold`,
       {
         undo: {
-          fields: { sold_date: null, sold_price: null, sold_to_name: null, sold_to_address: null },
+          fields: {
+            sold_date: null,
+            sold_price: null,
+            sold_to_name: null,
+            sold_to_address: null,
+            ...(entry ? restoredDeposit(piano) : {}),
+          },
           message: `${piano.title} is back in stock`,
+        },
+        onUndo: async () => {
+          if (!keptId) return;
+          await deleteRentalHistoryEntry(keptId).catch((error) =>
+            console.warn("Could not take back the kept rental:", error)
+          );
+          keptId = null;
+          dispatch(paymentsChanged() as any);
         },
       }
     );
+    if (saved && entry) {
+      await saveOldRental(entry, (kept) => {
+        keptId = kept.$id;
+        // The screens that show history load it again
+        dispatch(paymentsChanged() as any);
+      });
+    }
     setSaving(false);
     if (saved) onClose();
   };
@@ -131,6 +167,13 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
 
       {money && <SaleProfit money={money} price={price} />}
 
+      {holding > 0 && (
+        <Text style={styles.note}>
+          {`The ${formatRupees(holding)} deposit is kept in ${
+            piano.rental_customer_name?.trim() ? `${piano.rental_customer_name.trim()}’s` : "the"
+          } rental history as not settled. Settle it there with Edit rental.`}
+        </Text>
+      )}
       <Text style={styles.note}>
         The piano leaves your stock and is marked Sold. You can undo this later from its page.
       </Text>

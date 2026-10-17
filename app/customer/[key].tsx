@@ -30,6 +30,8 @@ import {
   rangeText,
 } from "@/utils/customers";
 import { parseStoredDate } from "@/utils/dates";
+import { settlementLine } from "@/utils/depositLines";
+import { sinceText } from "@/utils/deposits";
 import { formatRupees } from "@/utils/money";
 import { statusLine } from "@/utils/pianoDetail";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
@@ -289,6 +291,29 @@ const Customer = () => {
                 : "No payments yet"}
             </Text>
 
+            {customer.deposits.map((deposit) => (
+              <Pressable
+                key={deposit.pianoId}
+                onPress={() => openPiano(deposit.pianoId)}
+                accessibilityRole="button"
+                accessibilityLabel={`Deposit held ${formatRupees(deposit.amount)}, ${[deposit.title, sinceText(deposit.since)]
+                  .filter(Boolean)
+                  .join(", ")}. Refundable.`}
+                accessibilityHint="Opens this piano"
+                style={({ pressed }) => [styles.deposit, pressed && styles.pressed]}
+              >
+                <View style={styles.depositIcon}>
+                  <Icon name="shield" size={20} color={colors.ink} strokeWidth={1.8} />
+                </View>
+                <View style={styles.rowTexts}>
+                  <Text style={styles.depositTitle}>{`Deposit held ${formatRupees(deposit.amount)}`}</Text>
+                  <Text style={styles.depositSub}>
+                    {[deposit.title, sinceText(deposit.since)].filter(Boolean).join(", ")}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+
             {renting.length > 0 && (
               <>
                 <SectionTitle>Renting now</SectionTitle>
@@ -342,12 +367,16 @@ const Customer = () => {
                       ? `${formatRupees(rental.price)} rent`
                       : "";
                   const detail = [range, price].filter(Boolean).join(" · ");
+                  const deposit =
+                    typeof rental.deposit === "number" && rental.deposit > 0
+                      ? settlementLine(rental.deposit, rental.deposit_refunded, rental.deposit_note)
+                      : null;
                   return (
                     <Pressable
                       key={rental.$id}
                       onLongPress={() => rentalSheets.hold(rental)}
                       accessibilityRole="button"
-                      accessibilityLabel={[title, detail]
+                      accessibilityLabel={[title, detail, deposit?.text]
                         .filter(Boolean)
                         .join(", ")}
                       accessibilityHint="Press and hold to edit or delete it"
@@ -369,6 +398,9 @@ const Customer = () => {
                           <Text style={styles.rowDetail} numberOfLines={2}>
                             {detail}
                           </Text>
+                        )}
+                        {!!deposit && (
+                          <Text style={deposit.settled ? styles.rowDetail : styles.depositOpen}>{deposit.text}</Text>
                         )}
                       </View>
                     </Pressable>
@@ -415,6 +447,30 @@ const Customer = () => {
 
 const useStyles = makeStyles((colors) => ({
   page: { flex: 1, backgroundColor: colors.page },
+  // The deposit held for what they have now: a quiet card, like the one on the piano's page
+  deposit: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginTop: spacing.lg,
+    marginHorizontal: spacing.screen,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: 14,
+    backgroundColor: colors.grouped,
+  },
+  depositIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  depositTitle: { fontFamily: fonts.semibold, fontSize: 15, lineHeight: 20, color: colors.ink },
+  depositSub: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink2 },
+  // A deposit that wasn't settled, in orange so it isn't forgotten
+  depositOpen: { fontFamily: fonts.medium, fontSize: 13, lineHeight: 18, color: colors.brandText },
   bar: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   back: {
     width: 44,

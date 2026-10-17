@@ -99,6 +99,7 @@ export const CUSTOMER_HEADERS = [
   "Total paid",
   "Last payment",
   "Earlier rentals",
+  "Deposit held",
 ];
 
 /**
@@ -119,5 +120,7 @@ export const convertCustomersToCSV = (customers: Customer[]): string =>
       customer.total,
       customer.lastPaidOn ? toStoredDate(customer.lastPaidOn) : "",
       customer.rentals.length,
+      // A refundable deposit held for the rental they have now: not rent, so not in Total paid
+      customer.deposits.reduce((sum, deposit) => sum + deposit.amount, 0) || "",
     ])
   );

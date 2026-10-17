@@ -6,6 +6,7 @@ import * as IntentLauncher from "expo-intent-launcher";
 import { Alert, Platform } from "react-native";
 import { differenceInCalendarDays, startOfToday } from "date-fns";
 import { parseStoredDate } from "./dates";
+import { heldDeposit } from "./deposits";
 import { purchasePriceOf } from "./pianoMoney";
 import { isSold } from "./pianoStatus";
 
@@ -86,6 +87,8 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
     "Rental Status",
     "Days Until Due",
     "Monthly Rent",
+    "Deposit Held",
+    "Deposit Received On",
 
     // Warehouse Information
     "Warehouse Storage Date",
@@ -183,6 +186,9 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
           ? formatPrice(piano.rental_price)
           : ""
       ),
+      // A refundable deposit held for the rental: not rent, and not income
+      escapeCSVField(heldDeposit(piano) ? formatPrice(heldDeposit(piano)!.amount) : ""),
+      escapeCSVField(heldDeposit(piano)?.since ? formatDate(heldDeposit(piano)!.since!) : ""),
 
       // Warehouse Information (only for warehouse pianos)
       escapeCSVField(

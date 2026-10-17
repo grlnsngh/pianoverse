@@ -12,6 +12,8 @@ export interface UpdateOptions {
    * that saves these fields, with `message` as its own confirmation.
    */
   undo?: { fields: PianoFieldsUpdate; message: string };
+  /** Runs after the change has been taken back, to undo what went with it (a rental that was kept) */
+  onUndo?: () => void | Promise<void>;
   /**
    * Put a Retry button on the toast that says it couldn't save. Leave it off
    * when the person can just press the button again (a sheet that is still open).
@@ -70,7 +72,10 @@ const useUpdatePiano = () => {
               action: {
                 label: "Undo",
                 onPress: () => {
-                  update(updated, undo.fields, undo.message);
+                  void (async () => {
+                    const undone = await update(updated, undo.fields, undo.message);
+                    if (undone) await options.onUndo?.();
+                  })();
                 },
               },
             }

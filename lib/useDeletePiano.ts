@@ -4,7 +4,9 @@ import { cancelRentalNotification } from "@/services/notifications";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { removePianoItems } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
+import { depositAmount, heldDeposit } from "@/utils/deposits";
 import { showDialog } from "@/utils/dialog";
+import { formatRupees } from "@/utils/money";
 import { showToast } from "@/utils/toast";
 
 /**
@@ -36,10 +38,15 @@ const useDeletePiano = () => {
         showToast(`Deleted ${item.title} successfully`, { variant: "success" });
       };
 
+      // A deposit still held for its rental goes with the piano, so say so before it does
+      const held = heldDeposit(item);
+      const holding = held
+        ? ` ${held.who ? `${held.who}’s` : "The"} ${formatRupees(depositAmount(item))} deposit is still held: it is removed too, so settle it first.`
+        : "";
+
       showDialog({
         title: `Delete ${item.title}?`,
-        message:
-          "This removes the piano, its photos and its payments. This can’t be undone.",
+        message: `This removes the piano, its photos and its payments.${holding} This can’t be undone.`,
         actions: [
           { label: "Delete", tone: "destructive", onPress: deletePiano },
           { label: "Cancel", onPress: () => {} },
