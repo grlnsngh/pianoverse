@@ -55,6 +55,7 @@ const asNew = (entry: RentalHistoryEntry): NewRentalHistory => ({
   periodStart: entry.period_start,
   periodEnd: entry.period_end,
   price: entry.price,
+  deposit: entry.deposit ?? null,
   closedOn: parseStoredDate(entry.closed_on) ?? new Date(),
   // Kept as it was, even when it was kept without one
   reason: (entry.reason ?? undefined) as NewRentalHistory["reason"],

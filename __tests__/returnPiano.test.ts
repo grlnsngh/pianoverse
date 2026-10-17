@@ -85,6 +85,9 @@ describe("what comes off the piano", () => {
       rental_period_start: null,
       rental_period_end: null,
       rental_price: null,
+      // The deposit goes with the rental
+      rental_deposit: null,
+      deposit_received_on: null,
     });
   });
 
@@ -113,7 +116,17 @@ describe("what puts it back (Undo)", () => {
       rental_period_start: "2026-08-01",
       rental_period_end: "2026-12-01",
       rental_price: 4000,
+      rental_deposit: null,
+      deposit_received_on: null,
     });
+  });
+
+  it("puts the deposit back with the day it was received", () => {
+    expect(restoredRental(rented({ rental_deposit: 8000, deposit_received_on: "2026-08-01T00:00:00.000+00:00" }))).toMatchObject({
+      rental_deposit: 8000,
+      deposit_received_on: "2026-08-01",
+    });
+    expect(restoredRental(rented({ rental_deposit: 0 }))).toMatchObject({ rental_deposit: null });
   });
 
   it("reads the days from any shape Appwrite gave them in", () => {
@@ -144,6 +157,17 @@ describe("what puts it back (Undo)", () => {
     });
   });
 
+  it("takes the deposit off the piano too, and Undo puts it back", () => {
+    const original = rented({ rental_deposit: 8000, deposit_received_on: "2026-08-01" });
+    const cleared = { ...original, ...clearedRental() } as any;
+    expect(cleared).toMatchObject({ rental_deposit: null, deposit_received_on: null });
+
+    expect({ ...cleared, ...restoredRental(original) }).toMatchObject({
+      rental_deposit: 8000,
+      deposit_received_on: "2026-08-01",
+    });
+  });
+
   it("undoes clearedRental: clearing and then restoring gives the rental back", () => {
     const original = rented();
     const cleared = { ...original, ...clearedRental() } as any;
@@ -171,9 +195,14 @@ describe("the rental that is kept", () => {
       periodStart: "2026-08-01",
       periodEnd: "2026-09-15",
       price: 4000,
+      deposit: null,
       closedOn: returnedOn,
       reason: "returned",
     });
+  });
+
+  it("carries the deposit that was held, not settled yet", () => {
+    expect(rentalReturned(rented({ rental_deposit: 8000 }), returnedOn)).toMatchObject({ reason: "returned", deposit: 8000 });
   });
 
   it("ends the day it came back when that is before the agreed end", () => {

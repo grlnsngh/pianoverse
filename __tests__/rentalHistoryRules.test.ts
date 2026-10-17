@@ -45,9 +45,30 @@ describe("an old rental is kept when", () => {
       periodStart: "2026-01-12",
       periodEnd: "2026-04-12",
       price: 4000,
+      deposit: null,
       closedOn: today,
       reason: "replaced",
     });
+  });
+
+  it("the old rental had a deposit: it is kept with it, not settled", () => {
+    const entry = rentalToArchive(
+      rented({ rental_deposit: 8000, deposit_received_on: "2026-01-12" }),
+      rented({ rental_customer_name: "Ravi Kumar", rental_period_start: "2026-05-01", rental_period_end: "2026-08-01" }),
+      today
+    );
+
+    expect(entry).toMatchObject({ reason: "replaced", deposit: 8000 });
+  });
+
+  it("the customer is taken off, with the deposit kept the same way", () => {
+    const entry = rentalToArchive(
+      rented({ rental_deposit: 6500 }),
+      rented({ category: "warehouse", rental_customer_name: null }),
+      today
+    );
+
+    expect(entry).toMatchObject({ reason: "ended", deposit: 6500 });
   });
 
   it("the same person starts a new period", () => {

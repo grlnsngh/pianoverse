@@ -42,6 +42,9 @@ export interface PianoItem {
   rental_period_end?: Date | null;
   rental_period_start?: Date | null;
   rental_price?: number | null;
+  // The refundable deposit held for the rental, and the day it was received (none: no deposit)
+  rental_deposit?: number | null;
+  deposit_received_on?: Date | null;
   sold_date?: Date | null;
   sold_price?: number | null;
   sold_to_address?: string | null;
@@ -78,6 +81,8 @@ export interface PianoItemFormStateType {
   rental_period_end?: string | null; // Changed to string
   rental_period_start?: string | null; // Changed to string
   rental_price?: number | null;
+  rental_deposit?: number | null;
+  deposit_received_on?: string | null; // Changed to string
   sold_date?: string | null; // Changed to string
   sold_price?: number | null;
   sold_to_address?: string | null;

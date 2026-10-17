@@ -1047,6 +1047,8 @@ export interface RentalHistoryEntry {
   period_start?: string | null;
   period_end?: string | null;
   price?: number | null;
+  // The deposit that was held for it when it ended; none when there was none
+  deposit?: number | null;
   // The day the rental was replaced or ended
   closed_on: string;
   // "replaced" (a new renter or a new period) or "ended" (no longer rented out)
@@ -1063,6 +1065,8 @@ export interface NewRentalHistory {
   periodStart?: string | null;
   periodEnd?: string | null;
   price?: number | null;
+  /** The deposit that was held for the rental when it ended (not settled yet), when there was one */
+  deposit?: number | null;
   closedOn: Date;
   /** Replaced by another rental, ended by taking the customer off, or the piano came back */
   reason: "replaced" | "ended" | "returned";
@@ -1095,6 +1099,7 @@ export async function createRentalHistory(
     ...(entry.periodStart ? { period_start: entry.periodStart } : {}),
     ...(entry.periodEnd ? { period_end: entry.periodEnd } : {}),
     ...(typeof entry.price === "number" ? { price: entry.price } : {}),
+    ...(typeof entry.deposit === "number" && entry.deposit > 0 ? { deposit: entry.deposit } : {}),
   };
   return (await databases.createDocument(
     appwriteConfig.databaseId,

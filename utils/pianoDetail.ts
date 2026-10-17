@@ -3,6 +3,7 @@ import type { RentPayment } from "@/lib/appwrite";
 import { PIANO_CATEGORY } from "@/constants/Piano";
 import { PianoItem } from "@/redux/pianos/types";
 import { freeFromDay } from "@/utils/availability";
+import { depositAmount, heldDeposit } from "@/utils/deposits";
 import { getRemainingPeriod, parseStoredDate, StoredDate } from "@/utils/dates";
 import { formatRupees } from "@/utils/money";
 import { getPianoDisplay } from "@/utils/pianoDisplay";
@@ -288,12 +289,13 @@ export const rentalPeriod = (piano: PianoItem): RentalPeriod => {
 };
 
 /**
- * The rows under the rental's bar: what it costs, where the piano is, and the
- * day it is free from (the day after the rental ends; none once it has ended
- * and the piano isn't back, or with no end date).
+ * The rows under the rental's bar: what it costs, the deposit held for it,
+ * where the piano is, and the day it is free from (the day after the rental
+ * ends; none once it has ended and the piano isn't back, or with no end date).
  */
 export const rentalRows = (piano: PianoItem): DetailRow[] => [
   ...row("Rent", positive(piano.rental_price) ? formatRupees(piano.rental_price!) : null, true),
+  ...row("Deposit", heldDeposit(piano) ? formatRupees(depositAmount(piano)) : null, true),
   ...row("Address", clean(piano.rental_customer_address)),
   ...row("Free from", formatDay(freeFromDay(piano))),
 ];
