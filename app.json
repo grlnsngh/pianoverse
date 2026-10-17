@@ -2,7 +2,7 @@
   "expo": {
     "name": "pianoverse",
     "slug": "pianoverse",
-    "version": "1.1.19",
+    "version": "1.1.20",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": [
@@ -20,7 +20,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.grlnsngh.pianoverse",
-      "versionCode": 30,
+      "versionCode": 31,
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW"
       ]
