@@ -26,6 +26,15 @@ import {
 } from "@/utils/paperForms/catalog";
 import { formHtml, kitHtml } from "@/utils/paperForms/forms";
 import { paperDocument } from "@/utils/paperForms/html";
+import {
+  LABEL_TEST_FILE,
+  LABELS_FILE,
+  labelsDocument,
+  sheetsFor,
+  testSheetDocument,
+  type LabelContent,
+  type LabelSizeId,
+} from "@/utils/qrLabels";
 import { fontsForDesign, letterheadCss, type LetterheadAssets } from "@/utils/paperForms/letterheads";
 
 /**
@@ -182,6 +191,26 @@ export const savePaperKit = async (
   return savePdf(kitHtml(letterhead, fontCss, design, assets), FULL_KIT.fileName, FULL_KIT.pages);
 };
 
+/**
+ * Makes the sheets of QR labels, one page per A4 sticker sheet, and keeps the PDF in the app's documents.
+ *
+ * @throws {Error} If the PDF can't be made or kept; the screen tells the person.
+ */
+export const savePianoLabels = async (labels: readonly LabelContent[], size: LabelSizeId): Promise<SavedPdf> => {
+  const fontCss = await loadFontCss();
+  return savePdf(labelsDocument(labels, size, fontCss), LABELS_FILE, sheetsFor(labels.length, size));
+};
+
+/**
+ * A test sheet for the labels: every place a label goes as a box, to print on plain paper and hold against the stickers.
+ *
+ * @throws {Error} If the PDF can't be made or kept; the screen tells the person.
+ */
+export const saveLabelTestSheet = async (size: LabelSizeId, sample: LabelContent): Promise<SavedPdf> => {
+  const fontCss = await loadFontCss();
+  return savePdf(testSheetDocument(size, sample, fontCss), LABEL_TEST_FILE, 1);
+};
+
 const TEST_PAGE_FILE = "Letterhead test page.pdf";
 
 /**
@@ -207,6 +236,8 @@ export const forgetPaperPdfs = () => {
     ...AGREEMENT_KINDS.map((kind) => AGREEMENTS[kind].fileName),
     FULL_KIT.fileName,
     TEST_PAGE_FILE,
+    LABELS_FILE,
+    LABEL_TEST_FILE,
   ];
   for (const name of names) {
     try {

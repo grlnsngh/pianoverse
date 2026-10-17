@@ -70,9 +70,13 @@ import {
   saveAgreement,
   savePaperForm,
   savePaperKit,
+  saveLabelTestSheet,
+  savePianoLabels,
   saveTestPage,
   sharePdf,
 } from "@/lib/paperPdf";
+import { labelContent, labelsFor } from "@/utils/qrLabels";
+import { makePiano } from "./helpers/fixtures";
 import { DEFAULT_DESIGN, EMPTY_LETTERHEAD, type LetterheadDesign } from "@/utils/letterhead";
 
 /** Making a paper form's PDF on the phone, keeping it, and opening, printing or sharing it. */
@@ -264,17 +268,82 @@ describe("the letterhead in the PDF", () => {
   });
 });
 
+describe("QR labels in the PDF", () => {
+  const withPhone = { ...EMPTY_LETTERHEAD, business: "Tune and Play", phone: "98140 12345" };
+  const pianos = [
+    makePiano({ $id: "a", title: "Samick SU-118", make: "Samick" }),
+    makePiano({ $id: "b", title: "Weber W-121", make: "Weber" }),
+  ];
+
+  it("makes the labels as one page per sheet and keeps them as Piano labels.pdf", async () => {
+    printToFile.mockResolvedValueOnce({ uri: "file:///cache/Print/l.pdf", numberOfPages: 0 });
+    // 26 labels fill a sheet of 24 and two on the next
+    const twenty = labelsFor(pianos, withPhone, true, 10);
+    expect(twenty).toHaveLength(20);
+
+    const pdf = await savePianoLabels([...twenty, ...twenty.slice(0, 6)], "large");
+
+    const html = printToFile.mock.calls[0][0].html;
+    expect(html).toContain("<title>Piano labels</title>");
+    expect(html.match(/<section /g)).toHaveLength(2);
+    expect(html.match(/class="lb lg"/g)).toHaveLength(26);
+    expect(html).toContain("@font-face");
+    expect(mockMoves[0]).toMatchObject({ to: "file:///docs/Piano labels.pdf" });
+    expect(pdf).toEqual({ uri: "file:///docs/Piano labels.pdf", fileName: "Piano labels.pdf", pages: 2 });
+  });
+
+  it("is made on A4 with no margins and without growing the text, like every PDF", async () => {
+    await savePianoLabels(labelsFor(pianos, withPhone, true, 1), "small");
+
+    expect(printToFile.mock.calls[0][0]).toMatchObject({
+      width: 595,
+      height: 842,
+      margins: { top: 0, right: 0, bottom: 0, left: 0 },
+      textZoom: 100,
+    });
+    expect(printToFile.mock.calls[0][0].html).toContain('class="lb sm"');
+  });
+
+  it("makes a test sheet of boxes with one label in it, kept as Label test sheet.pdf", async () => {
+    printToFile.mockResolvedValueOnce({ uri: "file:///cache/Print/t.pdf", numberOfPages: 1 });
+
+    const pdf = await saveLabelTestSheet("small", labelContent(pianos[0], withPhone, true));
+
+    const html = printToFile.mock.calls[0][0].html;
+    expect(html.match(/class="slot"/g)).toHaveLength(65);
+    expect(html.match(/class="lb sm"/g)).toHaveLength(1);
+    expect(pdf).toEqual({ uri: "file:///docs/Label test sheet.pdf", fileName: "Label test sheet.pdf", pages: 1 });
+  });
+
+  it("tells the person when it can't be made, and keeps nothing", async () => {
+    printToFile.mockRejectedValueOnce(new Error("WebView gone"));
+
+    await expect(savePianoLabels(labelsFor(pianos, withPhone, true, 1), "large")).rejects.toThrow("WebView gone");
+    expect(mockMoves).toEqual([]);
+  });
+});
+
 describe("forgetting the PDFs", () => {
   it("deletes every PDF the app kept, which carry the letterhead, and nothing else", () => {
-    for (const name of ["Rent card.pdf", "Rental agreement (private).pdf", "Paper forms kit.pdf", "Letterhead test page.pdf", "Someone else.pdf"]) {
+    for (const name of [
+      "Rent card.pdf",
+      "Rental agreement (private).pdf",
+      "Paper forms kit.pdf",
+      "Letterhead test page.pdf",
+      "Piano labels.pdf",
+      "Label test sheet.pdf",
+      "Someone else.pdf",
+    ]) {
       mockExisting.add(`file:///docs/${name}`);
     }
 
     forgetPaperPdfs();
 
     expect(mockDeleted.sort()).toEqual([
+      "file:///docs/Label test sheet.pdf",
       "file:///docs/Letterhead test page.pdf",
       "file:///docs/Paper forms kit.pdf",
+      "file:///docs/Piano labels.pdf",
       "file:///docs/Rent card.pdf",
       "file:///docs/Rental agreement (private).pdf",
     ]);

@@ -72,6 +72,8 @@ describe("how screens get their colours", () => {
       // Paper is black on white whatever the theme: the drawings of the forms and the printed forms
       "components/FormThumbnail.tsx",
       "components/GoogleButton.tsx",
+      // A label is paper too: black on white in any theme
+      "components/LabelPreview.tsx",
       "components/PaperPreview.tsx",
       "components/SelectionMark.tsx",
       "components/WelcomeScreen.tsx",
@@ -84,6 +86,7 @@ describe("how screens get their colours", () => {
       "utils/paperForms/forms.ts",
       "utils/paperForms/html.ts",
       "utils/paperForms/letterheads.ts",
+      "utils/qrLabels.ts",
     ]);
   });
 });

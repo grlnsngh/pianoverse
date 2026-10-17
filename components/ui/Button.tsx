@@ -49,7 +49,7 @@ const quietSpinner = (colors: Palette) => ({ arc: colors.ink, track: `${colors.i
 
 const lookOf = (
   variant: ButtonVariant,
-  tone: "ink" | "brand",
+  tone: "ink" | "brand" | "late",
   colors: Palette
 ): Look => {
   switch (variant) {
@@ -85,7 +85,7 @@ const lookOf = (
       return {
         fill: "transparent",
         pressedFill: "transparent",
-        label: tone === "brand" ? colors.brandText : colors.ink,
+        label: tone === "brand" ? colors.brandText : tone === "late" ? colors.late : colors.ink,
         radius: radii.control,
         labelStyle: type.buttonQuiet,
         spinner: quietSpinner(colors),
@@ -108,8 +108,8 @@ export type ButtonProps = {
   /** Primary is the one main action of a screen. Default primary. */
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** Colour of a text button's label */
-  tone?: "ink" | "brand";
+  /** Colour of a text button's label: `late` is red, for a quiet Delete */
+  tone?: "ink" | "brand" | "late";
   /** Shows a spinner and stops presses. The button keeps its width. */
   loading?: boolean;
   /** Label while loading, such as "Saving". Defaults to `title`. */

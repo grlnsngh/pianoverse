@@ -10,6 +10,7 @@ import {
 } from "@/redux/pianos/actions";
 import { deleteMultiplePianoEntries } from "@/lib/appwrite";
 import { cancelRentalNotification } from "@/services/notifications";
+import PrintLabelsSheet from "@/components/PrintLabelsSheet";
 import { Button, Dialog } from "@/components/ui";
 import { spacing } from "@/constants/theme";
 import { showToast } from "@/utils/toast";
@@ -23,9 +24,9 @@ const pianos = (count: number) =>
   `${count} ${count === 1 ? "piano" : "pianos"}`;
 
 /**
- * The red Delete bar at the bottom of the Pianos tab while choosing pianos. It
- * takes the place of the tab bar. It asks before it deletes, and names how
- * many.
+ * The bar at the bottom of the Pianos tab while choosing pianos, in place of
+ * the tab bar: the orange Print labels (QR labels for the pianos chosen) and,
+ * under it, the red Delete, which asks before it deletes and names how many.
  */
 const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
   const styles = useStyles();
@@ -36,6 +37,7 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
   );
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [printing, setPrinting] = useState(false);
 
   const handleBulkDelete = () => {
     if (selectedItems.length === 0) return;
@@ -91,15 +93,24 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
           { paddingBottom: Math.max(insets.bottom - 6, spacing.lg) },
         ]}
       >
+        <Button title="Print labels" disabled={count === 0} onPress={() => setPrinting(true)} />
         <Button
           title={deleteLabel}
-          variant="destructive"
+          variant="text"
+          tone="late"
+          size="compact"
           disabled={count === 0}
           loading={isDeleting}
           loadingTitle="Deleting"
           onPress={handleBulkDelete}
         />
       </View>
+
+      <PrintLabelsSheet
+        visible={printing}
+        pianos={filteredItems.filter((item) => selectedItems.includes(item.$id))}
+        onClose={() => setPrinting(false)}
+      />
 
       <Dialog
         visible={showDeleteModal}
@@ -126,6 +137,7 @@ const useStyles = makeStyles((colors) => ({
   bar: {
     paddingTop: spacing.md,
     paddingHorizontal: spacing.screen,
+    gap: 4,
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
     backgroundColor: colors.page,
