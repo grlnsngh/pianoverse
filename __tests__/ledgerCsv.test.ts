@@ -202,6 +202,7 @@ const customer = (extra: Partial<Customer> = {}): Customer => ({
   mobile: "9876543210",
   renting: true,
   rentals: [],
+  deposits: [],
   ...extra,
 });
 
@@ -218,6 +219,7 @@ describe("the customers as CSV", () => {
       "Total paid",
       "Last payment",
       "Earlier rentals",
+      "Deposit held",
     ]);
     expect(rows).toHaveLength(3);
   });
@@ -225,7 +227,23 @@ describe("the customers as CSV", () => {
   it("has the name, number, whether they have a piano, their pianos, payments, total, last day and earlier rentals", () => {
     const [, row] = parse(convertCustomersToCSV([customer({ rentals: [{} as any, {} as any] })]));
 
-    expect(row).toEqual(["Asha Mehta", "9876543210", "Yes", "Kawai K-300", "3", "12000", "2026-09-03", "2"]);
+    expect(row).toEqual(["Asha Mehta", "9876543210", "Yes", "Kawai K-300", "3", "12000", "2026-09-03", "2", ""]);
+  });
+
+  it("has the deposit held for the rental they have now, which isn't part of what they paid", () => {
+    const [, row] = parse(
+      convertCustomersToCSV([
+        customer({
+          deposits: [
+            { pianoId: "kawai", title: "Kawai K-300", amount: 9000, since: new Date(2026, 8, 1) },
+            { pianoId: "weber", title: "Weber W-121", amount: 5000, since: null },
+          ],
+        }),
+      ])
+    );
+
+    expect(row[5]).toBe("12000");
+    expect(row[8]).toBe("14000");
   });
 
   it("says No for someone who doesn't have a piano now", () => {
@@ -254,7 +272,7 @@ describe("the customers as CSV", () => {
       convertCustomersToCSV([customer({ mobile: null, lastPaidOn: null, paymentsCount: 0, total: 0, pianos: [] })])
     );
 
-    expect(row).toEqual(["Asha Mehta", "", "Yes", "", "0", "0", "", "0"]);
+    expect(row).toEqual(["Asha Mehta", "", "Yes", "", "0", "0", "", "0", ""]);
   });
 
   it("is in the order it was given, which is the Customers screen's", () => {
@@ -274,7 +292,7 @@ describe("the customers as CSV", () => {
 
   it("is only the header when there are no customers", () => {
     expect(convertCustomersToCSV([])).toBe(
-      "Customer,Mobile,Renting now,Pianos,Payments,Total paid,Last payment,Earlier rentals"
+      "Customer,Mobile,Renting now,Pianos,Payments,Total paid,Last payment,Earlier rentals,Deposit held"
     );
   });
 });

@@ -193,6 +193,7 @@ describe("a customer in the list", () => {
     mobile: null,
     renting: true,
     rentals: [],
+    deposits: [],
   };
   const open = () => mount(<CustomerRow customer={customer} onOpen={() => {}} />);
 

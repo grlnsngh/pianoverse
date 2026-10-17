@@ -86,6 +86,29 @@ describe("the CSV export", () => {
     });
   });
 
+  it("has the deposit held for the rental, and the day it was received, which isn't rent", () => {
+    const [row] = exportOf([{ ...rental, rental_deposit: 9000, deposit_received_on: "2026-09-01" as any }]);
+
+    expect(row).toMatchObject({
+      "Monthly Rent": "₹4,000",
+      "Deposit Held": "₹9,000",
+      "Deposit Received On": expect.stringContaining("2026"),
+    });
+  });
+
+  it("leaves the deposit empty for a rental with none, a sold piano and a piano that isn't a rental", () => {
+    const rows = exportOf([
+      rental,
+      { ...rental, rental_deposit: 9000, sold_date: "2026-09-05" as any },
+      makePiano({ $id: "warehouse", category: "warehouse", rental_deposit: 9000 } as any),
+    ]);
+
+    for (const row of rows) {
+      expect(row["Deposit Held"]).toBe("");
+      expect(row["Deposit Received On"]).toBe("");
+    }
+  });
+
   it("keeps every row the same width as the headers", () => {
     const [headers, ...rows] = parse(
       convertPianosToCSV([

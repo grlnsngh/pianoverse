@@ -344,9 +344,9 @@ describe("downloading customers", () => {
     await exportCustomers(ACCOUNT, pianos);
 
     expect(written().lines).toEqual([
-      "Customer,Mobile,Renting now,Pianos,Payments,Total paid,Last payment,Earlier rentals",
-      "Asha Mehta,9876543210,Yes,Kawai K-300,2,8000,2026-09-03,0",
-      "Ravi Kumar,,No,Weber W-121,1,1500,2026-09-10,0",
+      "Customer,Mobile,Renting now,Pianos,Payments,Total paid,Last payment,Earlier rentals,Deposit held",
+      "Asha Mehta,9876543210,Yes,Kawai K-300,2,8000,2026-09-03,0,",
+      "Ravi Kumar,,No,Weber W-121,1,1500,2026-09-10,0,",
     ]);
   });
 
@@ -365,7 +365,7 @@ describe("downloading customers", () => {
 
     await exportCustomers(ACCOUNT, pianos);
 
-    expect(written().lines[1]).toBe("Asha Mehta,9876543210,Yes,Kawai K-300,2,7000,2026-09-03,0");
+    expect(written().lines[1]).toBe("Asha Mehta,9876543210,Yes,Kawai K-300,2,7000,2026-09-03,0,");
   });
 
   it("has someone who only appears in a kept rental, and counts the rentals kept", async () => {
@@ -376,7 +376,7 @@ describe("downloading customers", () => {
     await exportCustomers(ACCOUNT, pianos);
 
     const priya = written().lines.find((line) => line.startsWith("Priya Nair"));
-    expect(priya).toBe("Priya Nair,,No,Weber W-121,0,0,,2");
+    expect(priya).toBe("Priya Nair,,No,Weber W-121,0,0,,2,");
   });
 
   it("is still written without the kept rentals when they can't be loaded", async () => {
@@ -411,7 +411,7 @@ describe("downloading customers", () => {
   it("has a customer who has a piano but no payments yet", async () => {
     await exportCustomers(ACCOUNT, pianos);
 
-    expect(written().lines[1]).toBe("Asha Mehta,9876543210,Yes,Kawai K-300,0,0,,0");
+    expect(written().lines[1]).toBe("Asha Mehta,9876543210,Yes,Kawai K-300,0,0,,0,");
   });
 
   it("says why when the payments can't be loaded", async () => {

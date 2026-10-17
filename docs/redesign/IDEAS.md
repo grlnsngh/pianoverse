@@ -20,7 +20,7 @@ The sizes are estimates, not promises. Prices and store rules below come from ge
 | M1 | UPI details in reminders | S | **Built as Batch 39** (own UPI ID in Edit profile; only added when entered) |
 | M2 | Expenses and profit | M | **Built as Batch 36** (business expenses; service costs count too) |
 | M3 | Purchase price and profit per piano | S | **Built as Batch 36** (Bought for, Money section, Mark as sold) |
-| M4 | Security deposits | M | **Built as Batches 43 and 44** (note it, see what is held, refund it when the piano comes back; five Appwrite columns); the customer page and downloads are Batch 45 |
+| M4 | Security deposits | M | **Built as Batches 43 to 45** (note it, see what is held, refund it when the piano comes back, the customer page, downloads, and the sold and delete questions; five Appwrite columns) |
 | M5 | Rent exceptions | M | Your terms first; maybe a column |
 | M6 | Keep what was owed on a return | S | Appwrite column |
 | M7 | Income per piano | S | **Built as Batch 36** (the Money section) |

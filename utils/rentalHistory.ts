@@ -77,6 +77,20 @@ export const rentalToArchive = (
 };
 
 /**
+ * The rental to keep when a piano with a deposit still held is sold, or null
+ * when no deposit is held. It ends on the day of the sale, or on the agreed end
+ * when that was earlier, and carries the deposit not settled, to be settled
+ * later from its history. (A sale with no deposit keeps nothing: the sold
+ * piano keeps its rental details, as it always did.)
+ */
+export const rentalSoldWithDeposit = (piano: PianoItem, soldOn: Date): NewRentalHistory | null => {
+  if (!hadRental(piano) || !(typeof piano.rental_deposit === "number" && piano.rental_deposit > 0)) return null;
+  const agreed = dayOf(piano.rental_period_end);
+  const sold = toStoredDate(soldOn);
+  return entryOf(piano, soldOn, "ended", agreed && agreed <= sold ? agreed : sold);
+};
+
+/**
  * The rental to keep when a piano is marked as returned, or null when it had
  * none. It ends on the day the piano came back when that is before the end that
  * was agreed (it came back early); a piano that came back on or after the agreed

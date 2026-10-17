@@ -1,6 +1,6 @@
 import { needsAttention, rentedOut, stockCounts } from "@/utils/today";
-import { rentalReturned } from "@/utils/rentalHistory";
-import { clearedRental, hasRentalToReturn, restoredRental } from "@/utils/returnPiano";
+import { rentalReturned, rentalSoldWithDeposit } from "@/utils/rentalHistory";
+import { clearedRental, hasRentalToReturn, restoredDeposit, restoredRental } from "@/utils/returnPiano";
 import { makePiano } from "./helpers/fixtures";
 
 /** Marking a piano as returned: when there is a rental to return, what comes off, what is kept. Today is 29 September 2026. */
@@ -265,5 +265,62 @@ describe("the rental that is kept", () => {
 
   it("is nothing for a piano that isn't a rental", () => {
     expect(rentalReturned(rented({ category: "warehouse" }), returnedOn)).toBeNull();
+  });
+});
+
+describe("what puts a deposit back", () => {
+  it("is the amount and the day it was received, as they are saved", () => {
+    expect(restoredDeposit(rented({ rental_deposit: 8000, deposit_received_on: "2026-08-01T00:00:00.000+00:00" }))).toEqual({
+      rental_deposit: 8000,
+      deposit_received_on: "2026-08-01",
+    });
+  });
+
+  it("is nothing for a rental with no deposit", () => {
+    expect(restoredDeposit(rented())).toEqual({ rental_deposit: null, deposit_received_on: null });
+    expect(restoredDeposit(rented({ rental_deposit: 0 }))).toEqual({ rental_deposit: null, deposit_received_on: null });
+  });
+});
+
+describe("the rental that is kept when a piano is sold with a deposit held", () => {
+  const soldOn = new Date(2026, 8, 29);
+
+  it("is nothing when no deposit is held, so a sale keeps its details on the piano as it always did", () => {
+    expect(rentalSoldWithDeposit(rented(), soldOn)).toBeNull();
+    expect(rentalSoldWithDeposit(rented({ rental_deposit: 0 }), soldOn)).toBeNull();
+  });
+
+  it("is nothing for a piano with no rental on it", () => {
+    expect(
+      rentalSoldWithDeposit(
+        rented({ rental_deposit: 8000, rental_customer_name: null, rental_period_start: null }),
+        soldOn
+      )
+    ).toBeNull();
+  });
+
+  it("carries the rental and its deposit, not settled, ended on the day of the sale", () => {
+    expect(rentalSoldWithDeposit(rented({ rental_deposit: 8000 }), soldOn)).toEqual({
+      pianoId: "kawai",
+      pianoTitle: "Kawai K-300",
+      creator: "account-1",
+      customerName: "Asha Mehta",
+      customerMobile: "9876543210",
+      customerAddress: "12 MG Road",
+      periodStart: "2026-08-01",
+      periodEnd: "2026-09-29",
+      price: 4000,
+      deposit: 8000,
+      depositRefunded: null,
+      depositNote: null,
+      closedOn: soldOn,
+      reason: "ended",
+    });
+  });
+
+  it("ends on the agreed end when that was before the sale", () => {
+    expect(
+      rentalSoldWithDeposit(rented({ rental_deposit: 8000, rental_period_end: "2026-09-10" }), soldOn)?.periodEnd
+    ).toBe("2026-09-10");
   });
 });

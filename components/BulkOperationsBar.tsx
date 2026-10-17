@@ -13,6 +13,8 @@ import { cancelRentalNotification } from "@/services/notifications";
 import PrintLabelsSheet from "@/components/PrintLabelsSheet";
 import { Button, Dialog } from "@/components/ui";
 import { spacing } from "@/constants/theme";
+import { depositsHeld } from "@/utils/deposits";
+import { formatRupees } from "@/utils/money";
 import { showToast } from "@/utils/toast";
 import { makeStyles } from "@/lib/ThemeContext";
 
@@ -82,6 +84,8 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
   }
 
   const count = selectedItems.length;
+  // Deposits still held for the rentals on the pianos chosen go with them
+  const holding = depositsHeld(filteredItems.filter((item) => selectedItems.includes(item.$id)));
   const deleteLabel = count > 0 ? `Delete ${pianos(count)}` : "Delete pianos";
 
   return (
@@ -119,7 +123,13 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
           count === 1
             ? "Its photos and payments are"
             : "Their photos and payments are"
-        } removed too. This can’t be undone.`}
+        } removed too.${
+          holding.entries.length > 0
+            ? ` ${formatRupees(holding.total)} of deposits still held for ${
+                holding.entries.length === 1 ? "its rental is" : `${holding.entries.length} of the rentals are`
+              } removed too, so settle ${holding.entries.length === 1 ? "it" : "them"} first.`
+            : ""
+        } This can’t be undone.`}
         actions={[
           {
             label: deleteLabel,

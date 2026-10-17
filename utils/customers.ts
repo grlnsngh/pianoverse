@@ -2,9 +2,10 @@ import { addDays, format } from "date-fns";
 import type { RentalHistoryEntry, RentPayment } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
 import { parseStoredDate } from "@/utils/dates";
+import { PIANO_CATEGORY } from "@/constants/Piano";
 import { settlementLine, type SettlementLine } from "@/utils/depositLines";
 import { formatRupees } from "@/utils/money";
-import { getPianoRentalState } from "@/utils/pianoStatus";
+import { getPianoRentalState, isSold } from "@/utils/pianoStatus";
 
 // Who has rented what, worked out from what is already recorded: the name saved
 // with each rent payment (Q15), and the customer on a piano that is rented out
@@ -31,6 +32,15 @@ export interface CustomerPiano {
   renting: boolean;
 }
 
+/** A deposit held for a customer's rental that is on a piano now. */
+export interface CustomerDeposit {
+  pianoId: string;
+  title: string;
+  amount: number;
+  /** The day it was received, or null when that isn't known */
+  since: Date | null;
+}
+
 export interface Customer {
   key: string;
   /** As it was written the last time */
@@ -44,6 +54,8 @@ export interface Customer {
   renting: boolean;
   /** Their past rentals that were kept, the one that ended last first */
   rentals: RentalHistoryEntry[];
+  /** The deposits held for the rentals they have now, the one held longest first */
+  deposits: CustomerDeposit[];
 }
 
 const dayOf = (value: string) => parseStoredDate(value);
@@ -87,6 +99,7 @@ export const buildCustomers = (
         mobile: null,
         renting: false,
         rentals: [],
+        deposits: [],
       };
       byKey.set(key, customer);
     }
@@ -145,6 +158,19 @@ export const buildCustomers = (
     if (mobile && !customer.mobile) customer.mobile = mobile;
   }
 
+  // A deposit is held for a rental that is on a piano now, whoever the rental is for, running or not
+  for (const piano of pianos) {
+    const key = customerKey(piano.rental_customer_name);
+    const amount = typeof piano.rental_deposit === "number" ? piano.rental_deposit : 0;
+    if (!key || amount <= 0 || piano.category !== PIANO_CATEGORY.RENTABLE || isSold(piano)) continue;
+    customerFor(key, nameOf(piano.rental_customer_name)).deposits.push({
+      pianoId: piano.$id,
+      title: piano.title || "Untitled piano",
+      amount,
+      since: parseStoredDate(piano.deposit_received_on),
+    });
+  }
+
   for (const entry of history) {
     const key = customerKey(entry.customer_name);
     if (!key) continue;
@@ -154,6 +180,11 @@ export const buildCustomers = (
   }
   for (const customer of byKey.values()) {
     customer.rentals.sort((a, b) => b.closed_on.localeCompare(a.closed_on));
+    customer.deposits.sort(
+      (a, b) =>
+        (a.since?.getTime() ?? Number.MAX_SAFE_INTEGER) - (b.since?.getTime() ?? Number.MAX_SAFE_INTEGER) ||
+        a.title.localeCompare(b.title)
+    );
   }
 
   const customers = [...byKey.values()].sort(

@@ -58,6 +58,7 @@ import {
   statusLine,
   titlePrice,
 } from "@/utils/pianoDetail";
+import { heldDeposit } from "@/utils/deposits";
 import { showDialog } from "@/utils/dialog";
 import {
   buildReceiptMessage,
@@ -269,8 +270,20 @@ const DetailScreen = () => {
         return setShowReturnedSheet(true);
       case "edit":
         return router.push(`/edit/${id}`);
-      case "markSold":
-        return setShowSoldSheet(true);
+      case "markSold": {
+        // A deposit still held for the rental is settled by returning the piano; selling it keeps it, not settled
+        const held = piano ? heldDeposit(piano) : null;
+        if (!held) return setShowSoldSheet(true);
+        return showDialog({
+          title: "A deposit is still held",
+          message: `${held.who ? `${held.who}’s` : "The"} ${formatRupees(held.amount)} deposit hasn’t been settled. Mark the piano as returned first to refund it, or sell it and settle the deposit later from its history.`,
+          actions: [
+            { label: "Mark as returned", emphasis: true, onPress: () => setShowReturnedSheet(true) },
+            { label: "Sell anyway", onPress: () => setShowSoldSheet(true) },
+            { label: "Cancel", onPress: () => {} },
+          ],
+        });
+      }
       case "undoSale":
         return handleUndoSale();
       case "delete":
