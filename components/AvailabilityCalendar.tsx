@@ -91,7 +91,11 @@ const AvailabilityCalendar = ({ month, selected, endDays, onSelect, onMonthChang
                 style={styles.cell}
               >
                 <View style={[styles.day, chosen && styles.chosen, !chosen && isToday && styles.today]}>
-                  <Text style={[styles.dayText, chosen && styles.chosenText, !chosen && isToday && styles.todayText]}>
+                  {/* The day sits in a circle of its own size, so a big Font size may only grow it a little (like the weekdays) */}
+                  <Text
+                    style={[styles.dayText, chosen && styles.chosenText, !chosen && isToday && styles.todayText]}
+                    maxFontSizeMultiplier={maxScale.count}
+                  >
                     {day.getDate()}
                   </Text>
                 </View>

@@ -7,7 +7,7 @@ import { paymentsChanged } from "@/redux/payments/actions";
 import { updatePianoItem } from "@/redux/pianos/actions";
 import { PianoItem } from "@/redux/pianos/types";
 import { scheduleRentalDueNotification } from "@/services/notifications";
-import type { Settlement } from "@/utils/deposits";
+import type { Settlement } from "@/utils/depositLines";
 import { rentalReturned } from "@/utils/rentalHistory";
 import { clearedRental, restoredRental } from "@/utils/returnPiano";
 import { showToast } from "@/utils/toast";

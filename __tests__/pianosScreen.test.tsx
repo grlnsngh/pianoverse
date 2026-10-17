@@ -144,6 +144,19 @@ describe("the header", () => {
     expect(router.push).toHaveBeenCalledWith("/availability");
   });
 
+  it("lets the count and the three buttons under the tabs wrap, so a big Font size on a narrow phone never pushes one off the screen", async () => {
+    const { renderer } = await renderHome();
+    const scan = renderer.root.findAll(
+      (node: any) => node.props.accessibilityLabel === "Scan a label" && typeof node.props.onPress === "function"
+    )[0];
+    // The buttons' row is the scan button's parent, and its own row is the one that wraps
+    const buttons = scan.parent!.parent!;
+    const row = buttons.parent!;
+
+    expect(StyleSheet.flatten(row.props.style)).toMatchObject({ flexDirection: "row", flexWrap: "wrap" });
+    expect(StyleSheet.flatten(buttons.props.style)).toMatchObject({ marginLeft: "auto" });
+  });
+
   it("has a Scan a label button beside the layout switch, which opens the scanner", async () => {
     const { renderer } = await renderHome();
     expect(has(renderer, "Scan a label")).toBe(true);
