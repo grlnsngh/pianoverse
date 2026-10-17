@@ -28,7 +28,7 @@ The sizes are estimates, not promises. Prices and store rules below come from ge
 | P1 | Tuning and service log | M | **Built as Batch 35** (per-piano interval, Today, 9:00 reminder, WhatsApp) |
 | P2 | Condition photos at handover and return | M | Appwrite table |
 | P3 | Availability calendar | M | **Built as Batch 41** (free or out on a day, Back soon, Free from on the piano page; from the dates we have, no bookings yet) |
-| P4 | QR labels, scan to open a piano | M | **Printing built as Batch 42** (JS only); the scanner is Batch 46 (new build) |
+| P4 | QR labels, scan to open a piano | M | **Built as Batches 42 and 46** (printing: JS only; the scanner: `expo-camera`, in the 1.1.20 build) |
 | C1 | Enquiries and follow-ups | M | Appwrite table |
 | C2 | Rental agreement | M | **Built as Batches 31 and 31A** (PDF, with letterhead) |
 | C3 | Customer documents (ID, signed agreement) | M | Appwrite, a private bucket |
@@ -141,7 +141,7 @@ One month calendar of event dates and rental starts and ends, to see what is boo
 
 ### P4. QR labels, scan to open a piano (M)
 
-**Printing is built as Batch 42** (sheets of 24 and 65, a test sheet, business name and phone from the Letterhead); scanning inside the app is Batch 46.
+**Built as Batch 42** (printing: sheets of 24 and 65, a test sheet, business name and phone from the Letterhead) **and Batch 46** (the scanner, `expo-camera`, in the 1.1.20 build).
 
 Print a QR label for each piano (from the piano's ID or B-number); scanning it with the app opens that piano. The QR drawing can use `react-native-svg` (installed). **Scanning needs a camera-scanning native package** (`expo-camera`), so this is a new build (`runtimeVersion` 4).
 

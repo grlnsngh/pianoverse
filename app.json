@@ -54,6 +54,14 @@
         }
       ],
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Pianoverse uses the camera to scan the labels on your pianos.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
         "expo-local-authentication",
         {
           "faceIDPermission": "Pianoverse uses Face ID to unlock the app."

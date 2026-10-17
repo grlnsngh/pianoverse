@@ -144,6 +144,30 @@ describe("the header", () => {
     expect(router.push).toHaveBeenCalledWith("/availability");
   });
 
+  it("has a Scan a label button beside the layout switch, which opens the scanner", async () => {
+    const { renderer } = await renderHome();
+    expect(has(renderer, "Scan a label")).toBe(true);
+
+    press(renderer, "Scan a label");
+
+    expect(router.push).toHaveBeenCalledWith("/scan");
+  });
+
+  it("leaves the scan button out until there are pianos, and while pianos are being selected", async () => {
+    const empty = await renderHome([]);
+    expect(has(empty.renderer, "Scan a label")).toBe(false);
+
+    const { renderer } = await renderHome();
+    const card = renderer.root.findAll(
+      (node: any) =>
+        typeof node.props.accessibilityLabel === "string" &&
+        node.props.accessibilityLabel.startsWith("Rameau Upright,") &&
+        typeof node.props.onPress === "function"
+    )[0];
+    act(() => card.props.onLongPress());
+    expect(has(renderer, "Scan a label")).toBe(false);
+  });
+
   it("leaves the calendar button out until there are pianos, and while pianos are being selected", async () => {
     const empty = await renderHome([]);
     expect(has(empty.renderer, "Availability")).toBe(false);

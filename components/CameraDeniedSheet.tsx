@@ -9,6 +9,8 @@ type CameraDeniedSheetProps = {
   onClose: () => void;
   /** The other way to add a photo: the sheet closes and the gallery opens */
   onChooseFromGallery: () => void;
+  /** What the other button says; "Choose from gallery" by default, "Not now" where there is no gallery */
+  secondaryLabel?: string;
   /** What it says about why the camera is wanted; by default it is about piano photos */
   message?: string;
 };
@@ -21,6 +23,7 @@ const CameraDeniedSheet = ({
   visible,
   onClose,
   onChooseFromGallery,
+  secondaryLabel = "Choose from gallery",
   message = "Allow camera access in Settings to take photos of your pianos. You can also choose photos from your gallery.",
 }: CameraDeniedSheetProps) => {
   const colors = useColors();
@@ -41,7 +44,7 @@ const CameraDeniedSheet = ({
             }}
           />
           <Button
-            title="Choose from gallery"
+            title={secondaryLabel}
             variant="secondary"
             onPress={onChooseFromGallery}
           />

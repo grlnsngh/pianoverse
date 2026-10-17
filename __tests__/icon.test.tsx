@@ -19,7 +19,7 @@ const pathsOf = (renderer: ReactTestRenderer) =>
 const names = Object.keys(ICONS) as IconName[];
 
 describe("Icon set", () => {
-  it("has every icon in the spec, and the ones later features added (lock, chart, moon, the paper forms' printer, document and minus, the service kinds and a calendar, the kinds of expense and a receipt)", () => {
+  it("has every icon in the spec, and the ones later features added (lock, chart, moon, the paper forms' printer, document and minus, the service kinds and a calendar, the kinds of expense and a receipt, and the QR scanner's scan and torch)", () => {
     expect(names.sort()).toEqual(
       [
         "search",
@@ -69,6 +69,8 @@ describe("Icon set", () => {
         "shop",
         "megaphone",
         "receipt",
+        "scan",
+        "bulb",
       ].sort()
     );
   });

@@ -37,6 +37,7 @@ jest.mock("@/lib/exportData", () => ({
 }));
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setPendingPianoLink, takePendingPianoLink } from "@/lib/pendingPianoLink";
 import React from "react";
 import { act } from "react-test-renderer";
 import { addDays, format, subDays } from "date-fns";
@@ -577,6 +578,19 @@ describe("signing out", () => {
 
     expect(router.replace).toHaveBeenCalledWith("/");
     expect(await loadLetterhead()).toEqual(EMPTY_LETTERHEAD);
+  });
+
+  it("forgets a piano a label opened the app for, so it never opens for the next person", async () => {
+    setPendingPianoLink("piano-1");
+    const { renderer } = await openSheet();
+
+    await act(async () => {
+      sheet(renderer).props.onConfirm();
+    });
+    await flushPromises();
+
+    expect(router.replace).toHaveBeenCalledWith("/");
+    expect(takePendingPianoLink()).toBeNull();
   });
 
   it("forgets the paper forms' usage counts not sent yet, so none go out under the next person", async () => {

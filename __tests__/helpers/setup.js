@@ -76,3 +76,7 @@ jest.mock("@sentry/react-native", () => ({
   const window = Dimensions.get("window");
   Dimensions.set({ window: { ...window, fontScale: 1 }, screen: { ...window, fontScale: 1 } });
 }
+
+// The camera of the QR scanner (native). By default it is a plain view and the
+// phone says yes to the camera; a test changes that with fakeCamera
+jest.mock("expo-camera", () => require("./fakeCamera").createFakeCameraModule());

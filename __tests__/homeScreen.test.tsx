@@ -28,6 +28,7 @@ import { FlatList } from "react-native";
 import { act } from "react-test-renderer";
 import Home from "@/app/(tabs)/home";
 import { DEFAULT_FILTERS } from "@/constants/Piano";
+import { clearPendingPianoLink, setPendingPianoLink } from "@/lib/pendingPianoLink";
 import { scheduleAllRentalNotifications } from "@/services/notifications";
 import { getUserPianoEntries } from "@/lib/appwrite";
 import { setPianoFilters, setPianoListItems } from "@/redux/pianos/actions";
@@ -67,6 +68,7 @@ const pullToRefresh = async (renderer: ReturnType<typeof renderWithStore>) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  clearPendingPianoLink();
   jest.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -80,6 +82,55 @@ it("shows the user's pianos once they are loaded", async () => {
   const { renderer } = await renderHome();
 
   expect(rows(renderer)).toEqual(["row:Kawai K-300", "row:Yamaha U1"]);
+});
+
+describe("a piano named by a label scanned with the phone's own camera", () => {
+  it("opens once the pianos have loaded, and only once", async () => {
+    setPendingPianoLink("kawai");
+    jest.mocked(getUserPianoEntries).mockResolvedValue([kawai, yamaha] as any);
+
+    await renderHome();
+
+    const { router } = require("expo-router");
+    expect(router.push).toHaveBeenCalledWith("/detail/kawai");
+    expect(router.push).toHaveBeenCalledTimes(1);
+  });
+
+  it("waits while the pianos are still loading", async () => {
+    setPendingPianoLink("kawai");
+    let finish!: (items: any[]) => void;
+    jest.mocked(getUserPianoEntries).mockReturnValue(new Promise((resolve) => (finish = resolve)) as any);
+
+    const store = createTestStore();
+    renderWithStore(<Home />, store);
+    await flushPromises();
+    const { router } = require("expo-router");
+    expect(router.push).not.toHaveBeenCalled();
+
+    await act(async () => finish([kawai]));
+    await flushPromises();
+    expect(router.push).toHaveBeenCalledWith("/detail/kawai");
+  });
+
+  it("is not opened when the pianos can't be loaded, and waits for a load that works", async () => {
+    setPendingPianoLink("kawai");
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+    jest.mocked(getUserPianoEntries).mockRejectedValue(new Error("offline"));
+
+    await renderHome();
+
+    const { router } = require("expo-router");
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when no label was scanned", async () => {
+    jest.mocked(getUserPianoEntries).mockResolvedValue([kawai] as any);
+
+    await renderHome();
+
+    const { router } = require("expo-router");
+    expect(router.push).not.toHaveBeenCalled();
+  });
 });
 
 it("schedules rental reminders for the loaded pianos", async () => {

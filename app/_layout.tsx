@@ -84,6 +84,8 @@ function RootContent() {
                   <Stack.Screen name="availability" options={{ headerShown: false }} />
                   {/* Deposits held for the rentals on the pianos, from the Income screen */}
                   <Stack.Screen name="deposits" options={{ headerShown: false }} />
+                  {/* Scan a label on a piano, from the Pianos tab (a camera screen with its own close button) */}
+                  <Stack.Screen name="scan" options={{ headerShown: false, animation: "fade" }} />
                   {/* The customers, opened from Account or a piano's Previous renters, draw their own back button */}
                   <Stack.Screen name="customers" options={{ headerShown: false }} />
                   <Stack.Screen name="customer/[key]" options={{ headerShown: false }} />
