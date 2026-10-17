@@ -3,13 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Pianoverse · Every piano, every rental, in one place</title>
-  <meta name="description" content="Pianoverse keeps track of every piano in your stock and every rental: who has each piano, and when the next payment is due.">
+  <!-- Chrome on Android follows the phone's Font size only when the page asks (see docs/website/RESEARCH.md) -->
+  <meta name="text-scale" content="scale">
+  <title>Pianoverse · The app for renting and selling pianos</title>
+  <meta name="description" content="Pianoverse is a free Android app for businesses that rent and sell pianos: every piano, every renter and every rupee of rent in one place, with reminders, deposits, tuning and paper forms.">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#FF9C01">
-  <meta property="og:title" content="Pianoverse">
-  <meta property="og:description" content="Every piano, every rental, in one place.">
-  <meta property="og:image" content="web/mark.png">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Pianoverse · The app for renting and selling pianos">
+  <meta property="og:description" content="Every piano, every renter and every rupee of rent in one place. Free, for Android.">
+  <meta property="og:image" content="https://grlnsngh.github.io/pianoverse/web/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://grlnsngh.github.io/pianoverse/">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="icon" href="web/mark.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="web/mark.png">
@@ -18,77 +24,239 @@
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="web/site.css">
 </head>
-<body>
-  <header class="bar">
-    <a class="brand" href="./" aria-label="Pianoverse home">
-      <img class="brand-mark" src="web/mark.png" width="40" height="40" alt="">
-      <span class="brand-name">Pianoverse</span>
-    </a>
+<body class="site">
+  <a class="skip" href="#main">Skip to the page</a>
+
+  <header class="top">
+    <div class="top-in">
+      <a class="brand" href="./" aria-label="Pianoverse home">
+        <img class="brand-mark" src="web/mark.svg" width="40" height="40" alt="">
+        <span class="brand-name">Pianoverse</span>
+      </a>
+      <nav class="top-nav" aria-label="Main">
+        <a class="top-link" href="#what">What it does</a>
+        <!-- PLAY STORE: when the listing is live, this can go straight to Google Play -->
+        <a class="btn btn-small" href="download.html">Download</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="page">
-    <section class="hero">
-      <div class="hero-copy">
-        <h1 class="display">Every piano, every rental, in one place.</h1>
-        <p class="lead">Know who has each piano and never miss a payment.</p>
-      </div>
-
-      <div class="hero-art" aria-hidden="true">
-        <svg viewBox="0 140 390 328" preserveAspectRatio="xMidYMin slice" focusable="false">
-          <rect x="0" y="146" width="390" height="14" fill="#E88A00"/>
-          <rect x="-22" y="160" width="56" height="330" rx="10" fill="#FFF1D6"/>
-          <rect x="40" y="160" width="56" height="330" rx="10" fill="#FFF1D6"/>
-          <rect x="102" y="160" width="56" height="330" rx="10" fill="#FFF1D6"/>
-          <rect x="164" y="172" width="56" height="330" rx="10" fill="#FFD98A"/>
-          <rect x="226" y="160" width="56" height="330" rx="10" fill="#FFF1D6"/>
-          <rect x="288" y="160" width="56" height="330" rx="10" fill="#FFF1D6"/>
-          <rect x="350" y="160" width="56" height="330" rx="10" fill="#FFF1D6"/>
-          <rect x="20" y="160" width="34" height="236" rx="8" fill="#1A1814"/>
-          <rect x="82" y="160" width="34" height="236" rx="8" fill="#1A1814"/>
-          <rect x="206" y="160" width="34" height="236" rx="8" fill="#1A1814"/>
-          <rect x="268" y="160" width="34" height="236" rx="8" fill="#1A1814"/>
-          <rect x="330" y="160" width="34" height="236" rx="8" fill="#1A1814"/>
-          <rect x="25" y="166" width="6" height="196" rx="3" fill="#FFFFFF" fill-opacity="0.1"/>
-          <rect x="87" y="166" width="6" height="196" rx="3" fill="#FFFFFF" fill-opacity="0.1"/>
-          <rect x="211" y="166" width="6" height="196" rx="3" fill="#FFFFFF" fill-opacity="0.1"/>
-          <rect x="273" y="166" width="6" height="196" rx="3" fill="#FFFFFF" fill-opacity="0.1"/>
-          <rect x="335" y="166" width="6" height="196" rx="3" fill="#FFFFFF" fill-opacity="0.1"/>
-        </svg>
+  <main id="main">
+    <section class="intro" aria-labelledby="intro-title">
+      <div class="wrap intro-in">
+        <div class="intro-copy">
+          <p class="kicker">For businesses that rent and sell pianos</p>
+          <h1 class="headline" id="intro-title">Every piano, every rental, in one place.</h1>
+          <p class="intro-lead">Pianoverse keeps your pianos, the people who rent them and the rent they pay in one list on your phone. Each morning it tells you who owes what, which rentals end this week and which pianos need tuning.</p>
+          <div class="get">
+            <!-- PLAY STORE: replace with Google's badge linking to the listing; keep the APK as a small link -->
+            <a class="btn btn-big" href="download.html">Download for Android</a>
+            <p class="get-note">Free. Version 1.1.20, 147 MB, for Android 7.0 or later.</p>
+          </div>
+        </div>
+        <div class="intro-shots">
+          <figure class="shot shot-lead">
+            <img src="web/screens/today-720.webp" srcset="web/screens/today-360.webp 360w, web/screens/today-720.webp 720w" sizes="(min-width: 60em) 20rem, 16rem" width="720" height="1470" alt="The Today screen: rent received this month, three counts of pianos, a list of rents that are due with the renters’ names and amounts, and tunings due this week.">
+          </figure>
+          <figure class="shot shot-behind">
+            <img src="web/screens/pianos-720.webp" srcset="web/screens/pianos-360.webp 360w, web/screens/pianos-720.webp 720w" sizes="(min-width: 60em) 16rem, 13rem" width="720" height="1470" alt="The Pianos screen: a list of pianos with their photos, who has each one and until when." loading="lazy">
+          </figure>
+        </div>
       </div>
     </section>
 
-    <section class="help" aria-labelledby="help-title">
-      <h2 class="section" id="help-title">Forgot your password?</h2>
-      <ol class="steps">
-        <li>
-          <span class="step-n" aria-hidden="true">1</span>
-          <div>
-            <strong>Ask for a link</strong>
-            <p>In the app, choose Sign in, then Forgot password, and enter your email.</p>
+    <section class="facts" aria-label="In short">
+      <ul class="wrap facts-list">
+        <li><strong>Made with a piano rental business.</strong> Built around how a family firm in India rents pianos to homes, schools and hotels.</li>
+        <li><strong>Free, no ads.</strong> No subscription and nothing to buy inside the app.</li>
+        <li><strong>Yours alone.</strong> Your pianos and customers are seen only when you sign in to your account.</li>
+      </ul>
+    </section>
+
+    <section class="what" id="what" aria-labelledby="what-title">
+      <div class="wrap">
+        <h2 class="section-title" id="what-title">What it does</h2>
+        <p class="section-lead">One job at a time, the way the day goes.</p>
+
+        <article class="task">
+          <div class="task-copy">
+            <p class="task-tag">Rent</p>
+            <h3 class="task-title">Know who owes rent, and since when.</h3>
+            <p>Today lists every rent that has fallen due, oldest first, with the renter’s name and the amount: Meera Kapoor, ₹7,000, two months. Record a payment in two taps, or send a polite reminder on WhatsApp with your UPI ID already in it.</p>
           </div>
-        </li>
-        <li>
-          <span class="step-n" aria-hidden="true">2</span>
-          <div>
-            <strong>Open it from your email</strong>
-            <p>It comes from Pianoverse. Check your spam folder if you can’t find it.</p>
+          <figure class="shot">
+            <img src="web/screens/rent-720.webp" srcset="web/screens/rent-360.webp 360w, web/screens/rent-720.webp 720w" sizes="(min-width: 60em) 18rem, 15rem" width="720" height="1470" alt="A rented piano’s rent: what is due, since when, and buttons to record a payment and send a reminder." loading="lazy">
+          </figure>
+        </article>
+
+        <article class="task task-flip">
+          <div class="task-copy">
+            <p class="task-tag">Each piano</p>
+            <h3 class="task-title">Everything about one piano on one page.</h3>
+            <p>Its photos, who has it and until when, the deposit, what it cost and what it has earned, and when it was last tuned. Extend the rental, mark it returned or sell it from the same page.</p>
           </div>
-        </li>
-        <li>
-          <span class="step-n" aria-hidden="true">3</span>
-          <div>
-            <strong>Choose a new password</strong>
-            <p>Use at least 8 characters, then sign in to the app with it.</p>
+          <figure class="shot">
+            <img src="web/screens/piano-720.webp" srcset="web/screens/piano-360.webp 360w, web/screens/piano-720.webp 720w" sizes="(min-width: 60em) 18rem, 15rem" width="720" height="1470" alt="A piano’s page: its photo, the renter and the rental’s dates, the rent and the deposit." loading="lazy">
+          </figure>
+        </article>
+
+        <article class="task">
+          <div class="task-copy">
+            <p class="task-tag">Money</p>
+            <h3 class="task-title">What came in this month, and what went out.</h3>
+            <p>Rent received by month and by piano, the shop’s own costs, and what each piano has made after its price. Download it all as a spreadsheet for your accountant.</p>
           </div>
-        </li>
-      </ol>
-      <p class="help-note">For your safety, each link works once and stops working after a while. You can always ask for a new one.</p>
+          <figure class="shot">
+            <img src="web/screens/income-720.webp" srcset="web/screens/income-360.webp 360w, web/screens/income-720.webp 720w" sizes="(min-width: 60em) 18rem, 15rem" width="720" height="1470" alt="The Income screen: rent received this month, a chart of the last months, and the expenses." loading="lazy">
+          </figure>
+        </article>
+
+        <div class="pairs">
+          <article class="pair">
+            <div class="pair-in">
+            <figure class="shot">
+              <img src="web/screens/deposits-720.webp" srcset="web/screens/deposits-360.webp 360w, web/screens/deposits-720.webp 720w" sizes="(min-width: 48em) 14rem, 15rem" width="720" height="1470" alt="Deposits held: each renter’s deposit and the day it was received, with the total." loading="lazy">
+            </figure>
+            <div class="pair-copy">
+              <p class="task-tag">Deposits</p>
+              <h3 class="pair-title">The deposits you hold, and what to give back.</h3>
+              <p>Note the deposit when a piano goes out. When it comes back, Pianoverse works out the refund, less any rent unpaid or damage, and keeps a record.</p>
+            </div>
+            </div>
+          </article>
+          <article class="pair">
+            <div class="pair-in">
+            <figure class="shot">
+              <img src="web/screens/calendar-720.webp" srcset="web/screens/calendar-360.webp 360w, web/screens/calendar-720.webp 720w" sizes="(min-width: 48em) 14rem, 15rem" width="720" height="1470" alt="The availability calendar: a month with the days marked, and which pianos are free or out on the chosen day." loading="lazy">
+            </figure>
+            <div class="pair-copy">
+              <p class="task-tag">Calendar</p>
+              <h3 class="pair-title">Which pianos are free on a given day.</h3>
+              <p>Pick a day to see which pianos are out, which are free, and which come back soon, before you promise one to a customer.</p>
+            </div>
+            </div>
+          </article>
+          <article class="pair">
+            <div class="pair-in">
+            <figure class="shot">
+              <img src="web/screens/service-720.webp" srcset="web/screens/service-360.webp 360w, web/screens/service-720.webp 720w" sizes="(min-width: 48em) 14rem, 15rem" width="720" height="1470" alt="A piano’s service log: tunings, a repair and a move, with their dates and costs, and when the next tuning is due." loading="lazy">
+            </figure>
+            <div class="pair-copy">
+              <p class="task-tag">Tuning</p>
+              <h3 class="pair-title">Tunings and repairs, with a reminder.</h3>
+              <p>Each piano has its own tuning interval. Today shows what is due this week, and your phone reminds you at 9:00 in the morning.</p>
+            </div>
+            </div>
+          </article>
+          <article class="pair">
+            <div class="pair-in">
+            <figure class="shot">
+              <img src="web/screens/paper-720.webp" srcset="web/screens/paper-360.webp 360w, web/screens/paper-720.webp 720w" sizes="(min-width: 48em) 14rem, 15rem" width="720" height="1470" alt="Paper forms: the rental agreement printed on a letterhead with the business name, details and a grand piano picture." loading="lazy">
+            </figure>
+            <div class="pair-copy">
+              <p class="task-tag">Paper</p>
+              <h3 class="pair-title">Forms and agreements on your letterhead.</h3>
+              <p>Rent cards, receipts, a handover checklist and a two-page rental agreement with your own terms, printed on your letterhead. For days when pen and paper is easier.</p>
+            </div>
+            </div>
+          </article>
+        </div>
+
+        <article class="task task-flip task-small">
+          <div class="task-copy">
+            <p class="task-tag">Labels</p>
+            <h3 class="task-title">A label inside every piano.</h3>
+            <p>Print QR stickers on ordinary label sheets, stick one inside each lid, and scan it with the app to open that piano straight away.</p>
+          </div>
+          <figure class="shot">
+            <img src="web/screens/labels-720.webp" srcset="web/screens/labels-360.webp 360w, web/screens/labels-720.webp 720w" sizes="(min-width: 60em) 15rem, 15rem" width="720" height="1470" alt="Print labels: a QR label with the piano’s name and the business’s phone number." loading="lazy">
+          </figure>
+        </article>
+      </div>
+    </section>
+
+    <section class="know" aria-labelledby="know-title">
+      <div class="wrap">
+        <h2 class="section-title" id="know-title">Good to know</h2>
+        <dl class="know-list">
+          <div>
+            <dt>Big text is fine</dt>
+            <dd>Every screen is built and checked with the phone’s Font size at 150% and more.</dd>
+          </div>
+          <div>
+            <dt>Updates arrive by themselves</dt>
+            <dd>Small updates come when you open the app. You are only asked to install a new version for bigger changes.</dd>
+          </div>
+          <div>
+            <dt>Your data</dt>
+            <dd>Stored with Appwrite and shown only to your account. Read the <a href="privacy.html">privacy policy</a>, or <a href="delete-account.html">delete your account</a> at any time.</dd>
+          </div>
+          <div>
+            <dt>Android only, for now</dt>
+            <dd>It runs on Android 7.0 or later. An iPhone version may come later.</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="band-title">
+      <div class="wrap band-in">
+        <div>
+          <h2 class="band-title" id="band-title">Get Pianoverse</h2>
+          <p class="band-lead">It isn’t on the Play Store yet. The download page shows how to install it, step by step, and what your phone will ask.</p>
+        </div>
+        <!-- PLAY STORE: replace with Google's badge linking to the listing -->
+        <a class="btn btn-big btn-ink" href="download.html">Download for Android</a>
+      </div>
+    </section>
+
+    <section class="faq" aria-labelledby="faq-title">
+      <div class="wrap faq-in">
+        <h2 class="section-title" id="faq-title">Questions</h2>
+        <div class="faq-list">
+          <details>
+            <summary>Is it on the Google Play Store?</summary>
+            <p>Not yet. Until it is, you install it from the <a href="download.html">download page</a>. When it reaches the Play Store, this page will link there.</p>
+          </details>
+          <details>
+            <summary>Can my staff use it too?</summary>
+            <p>Today each account sees only its own pianos, so a business uses one account. Accounts for staff that share the same pianos are planned.</p>
+          </details>
+          <details>
+            <summary>I forgot my password</summary>
+            <ol class="faq-steps">
+              <li>In the app, choose Sign in, then Forgot password, and enter your email.</li>
+              <li>Open the email from Pianoverse. Check your spam folder if you can’t find it.</li>
+              <li>Choose a new password of at least 8 characters, then sign in with it.</li>
+            </ol>
+            <p>Each link works once and stops working after a while. You can always ask for a new one.</p>
+          </details>
+          <details>
+            <summary>How do I delete my account and my data?</summary>
+            <p>From the app’s Account tab, or by email. The <a href="delete-account.html">delete-account page</a> has both ways.</p>
+          </details>
+          <details>
+            <summary>Who makes Pianoverse?</summary>
+            <p>Gurleen Singh, together with a family business that rents and sells pianos. Write to <a href="mailto:pianoverse.app.dev@gmail.com">pianoverse.app.dev@gmail.com</a> with questions or ideas.</p>
+          </details>
+        </div>
+      </div>
     </section>
   </main>
 
-  <footer class="foot">
-    Questions? <a href="mailto:pianoverse.app.dev@gmail.com">pianoverse.app.dev@gmail.com</a>
-    <span class="foot-links"><a href="privacy.html">Privacy policy</a> · <a href="delete-account.html">Delete your account</a></span>
+  <footer class="site-foot">
+    <div class="wrap site-foot-in">
+      <a class="brand brand-small" href="./" aria-label="Pianoverse home">
+        <img class="brand-mark" src="web/mark.svg" width="32" height="32" alt="">
+        <span class="brand-name">Pianoverse</span>
+      </a>
+      <ul class="site-foot-links">
+        <li><a href="download.html">Download</a></li>
+        <li><a href="privacy.html">Privacy policy</a></li>
+        <li><a href="delete-account.html">Delete your account</a></li>
+        <li><a href="mailto:pianoverse.app.dev@gmail.com">pianoverse.app.dev@gmail.com</a></li>
+      </ul>
+    </div>
   </footer>
 </body>
 </html>

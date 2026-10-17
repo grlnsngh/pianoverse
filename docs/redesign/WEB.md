@@ -1,5 +1,7 @@
 # Everything that opens in a browser, and the reset email
 
+> **2026-10-17:** the landing page was rebuilt and a download page added (screenshots, features, the APK, later the Play Store). The research, plan and checks are in [../website/](../website/PLAN.md); what follows is the Batch 14 history.
+
 The redesign is for the phone app, but people also meet Pianoverse in a browser and in their inbox. This file lists every one of those places, what was wrong with them, and what Batch 14 did about it. The decisions are also in [PLAN.md](PLAN.md); questions are in [QUESTIONS.md](QUESTIONS.md).
 
 ## 1. The list
@@ -7,6 +9,7 @@ The redesign is for the phone app, but people also meet Pianoverse in a browser 
 | # | What | Where | Who sees it |
 | --- | --- | --- | --- |
 | 1 | **Landing page** (`index.html`) | https://grlnsngh.github.io/pianoverse/ | Anyone with the address; the "Back to Pianoverse" link from the reset page |
+| 1b | **Download page** (`download.html`, 2026) | https://grlnsngh.github.io/pianoverse/download.html | Anyone getting the app; the landing page's Download buttons |
 | 2 | **Reset password page** (`reset-password.html`) | https://grlnsngh.github.io/pianoverse/reset-password.html?userId=…&secret=… | A person who tapped the link in the reset email, on a phone or a computer |
 | 3 | **The reset email** ("Reset password") | Sent by Appwrite when someone taps **Forgot password?** in the app | The person's inbox |
 | 4 | **The app itself in a browser** | `npm run web` (Expo web, static output); not deployed anywhere | Only you, while developing |

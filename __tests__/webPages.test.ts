@@ -10,15 +10,19 @@ import {
 import { lightColors as colors, motion } from "@/constants/theme";
 
 /**
- * The pages that open in a browser (the landing page, the reset page, the
- * privacy policy and the delete-account page, served by GitHub Pages) look like the app: same colours, same motion, and
- * only files that exist. docs/redesign/WEB.md lists them.
+ * The pages that open in a browser (the landing page, the download page, the
+ * reset page, the privacy policy and the delete-account page, served by
+ * GitHub Pages) look like the app: same colours, same motion, and only files
+ * that exist. docs/redesign/WEB.md lists them; docs/website/PLAN.md is the
+ * 2026 rebuild of the landing and download pages.
  */
 
 const root = path.join(__dirname, "..");
 const read = (file: string) => fs.readFileSync(path.join(root, file), "utf8");
 
-const PAGES = ["index.html", "reset-password.html", "privacy.html", "delete-account.html"];
+const PAGES = ["index.html", "download.html", "reset-password.html", "privacy.html", "delete-account.html"];
+/** The 2026 pages, built for big text from the start */
+const SITE_PAGES = ["index.html", "download.html"];
 const css = read("web/site.css");
 
 const cssVariables = () => {
@@ -108,8 +112,12 @@ describe("the web pages", () => {
   it.each(PAGES)("%s only points at files that exist", (page) => {
     const html = read(page);
     const references = [...html.matchAll(/\b(?:src|href)="([^"]+)"/g)]
-      .map((m) => m[1])
-      .filter((value) => !/^(https?:|mailto:|pianoverse:|#|\.\/$)/.test(value));
+      .map((m) => m[1].split("#")[0])
+      .filter((value) => value && !/^(https?:|mailto:|pianoverse:|\.\/$)/.test(value));
+    // Each picture in a srcset too
+    for (const set of html.matchAll(/\bsrcset="([^"]+)"/g)) {
+      references.push(...set[1].split(",").map((part) => part.trim().split(/\s+/)[0]));
+    }
 
     expect(references.length).toBeGreaterThan(0);
     for (const reference of references) {
@@ -236,5 +244,93 @@ describe("the web pages", () => {
       expect(html).toMatch(/<meta name="description" content="[^"]{20,}">/);
       expect(html).toContain('name="viewport"');
     }
+  });
+});
+
+describe("the landing and download pages (docs/website/PLAN.md)", () => {
+  /** The part of the stylesheet written for them, from 2026 */
+  const siteCss = css.slice(css.indexOf("The site: the landing page and the download page"));
+
+  it("never stop a person from zooming in", () => {
+    for (const page of PAGES) {
+      const viewport = read(page).match(/<meta name="viewport" content="([^"]+)">/)?.[1] ?? "";
+      expect(viewport).toContain("width=device-width");
+      expect(viewport).not.toMatch(/user-scalable\s*=\s*(no|0)|maximum-scale/);
+    }
+  });
+
+  it("ask Chrome on Android to follow the phone's Font size, and leave the root text size to the browser", () => {
+    for (const page of SITE_PAGES) expect(read(page)).toContain('<meta name="text-scale" content="scale">');
+    // A fixed size on the root would stop every rem from growing
+    expect(css).not.toMatch(/(^|\n)html\s*\{[^}]*font-size:\s*\d+px/);
+    expect(css).toMatch(/body\s*\{[^}]*font-size:\s*1rem/);
+  });
+
+  it("size their words, spaces and boxes in rem, with no fixed height on anything that holds text", () => {
+    // 1px borders are fine; nothing else in the site's part is in px
+    const px = [...siteCss.matchAll(/([a-z-]+):[^;{}]*\b(\d+(?:\.\d+)?)px/g)]
+      .filter((m) => !/^border/.test(m[1]))
+      .map((m) => m[0]);
+    expect(px).toEqual([]);
+    // A fixed height only on pictures (the logo, the screenshots), which hold no words
+    const fixed = [...siteCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter((rule) => /(^|[\s;])height:\s*\d/.test(rule[2]) && !/brand-mark|\.shot/.test(rule[1]))
+      .map((rule) => rule[1].trim());
+    expect(fixed).toEqual([]);
+  });
+
+  it("fall back to one column when there is no room at the text size in use (container queries in rem)", () => {
+    for (const box of [".intro", ".what", ".pair", ".faq", ".dl"]) {
+      expect(siteCss).toMatch(new RegExp(`\\${box} \\{[^}]*container-type: inline-size`));
+    }
+    expect(siteCss).toMatch(/@container \(min-width: \d+rem\)/);
+  });
+
+  it("give every picture words for a screen reader (or mark it as decoration) and its size", () => {
+    for (const page of SITE_PAGES) {
+      for (const img of read(page).matchAll(/<img\b[^>]*>/g)) {
+        expect(img[0]).toMatch(/\balt="[^"]*"/);
+        expect(img[0]).toMatch(/\bwidth="\d+"/);
+        expect(img[0]).toMatch(/\bheight="\d+"/);
+      }
+    }
+    // Every screenshot says what it shows
+    const shots = [...read("index.html").matchAll(/<img src="web\/screens\/[^"]+"[^>]*alt="([^"]*)"/g)];
+    expect(shots.length).toBeGreaterThanOrEqual(10);
+    for (const shot of shots) expect(shot[1].length).toBeGreaterThan(30);
+  });
+
+  it("lead to the download page, which gives the newest APK from GitHub Releases and marks where the Play Store goes", () => {
+    expect(read("index.html")).toContain('href="download.html"');
+    const download = read("download.html");
+    expect(download).toContain('href="https://github.com/grlnsngh/pianoverse/releases/latest/download/pianoverse.apk"');
+    expect(download).toContain("PLAY STORE:");
+    expect(download).toContain("play.google.com/store/apps/details?id=com.grlnsngh.pianoverse");
+    // The package the Play Store link names is the app's own
+    const app = JSON.parse(read("app.json"));
+    expect(app.expo.android.package).toBe("com.grlnsngh.pianoverse");
+  });
+
+  it("say the version, the size and the Android needed, the same as the build", () => {
+    const app = JSON.parse(read("app.json"));
+    expect(read("index.html")).toContain(`Version ${app.expo.version},`);
+    expect(read("download.html")).toContain(`<dd>${app.expo.version},`);
+  });
+
+  it("make up nothing: no ratings, download counts or quotes", () => {
+    for (const page of SITE_PAGES) {
+      const html = read(page);
+      expect(html).not.toMatch(/★|\b\d[\d,.]*\+?\s*(downloads|users|reviews)\b|rated \d/i);
+      expect(html).not.toMatch(/<blockquote/);
+    }
+  });
+
+  it("have a picture for links shared on WhatsApp and elsewhere", () => {
+    for (const page of SITE_PAGES) {
+      expect(read(page)).toContain('content="https://grlnsngh.github.io/pianoverse/web/og.png"');
+    }
+    const png = fs.readFileSync(path.join(root, "web/og.png"));
+    expect(png.readUInt32BE(16)).toBe(1200);
+    expect(png.readUInt32BE(20)).toBe(630);
   });
 });
