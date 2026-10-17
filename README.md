@@ -127,6 +127,8 @@ npm run check:appwrite
 
 It needs the Appwrite CLI signed in (`appwrite login`) and only reads. It lists anything missing or different in plain words (a table under another ID, a column that was never added, permissions opened up) and fails if there is any. The tests use the same file: their stand-in for Appwrite refuses a table, a column, a type or a length the live project doesn't have, so a mismatch shows up in `npm test` too. After changing a table on purpose, change the app with it and refresh the file with `appwrite pull tables --config-file appwrite/project.json --force` (and `pull buckets` for the bucket).
 
+**Demo data for testing** (`scripts/demo/`): 16 made-up pianos of every kind with pictures, rent payments, past renters with deposits, tunings and expenses, loaded into one account so the app can be seen full without typing anything in. `node scripts/demo/demo-data.js plan` shows what it makes; `seed --account-id <user ID> --users-row <its row in the users table>` makes it (after `python scripts/demo/demo-images.py scripts/demo/demo-img` has drawn the pictures); `remove` with the same two flags deletes exactly it again, since every ID starts with `demo_`. It needs the Appwrite CLI signed in, and it writes to the live project, so remove it before the account is used for real.
+
 The tables below are explained for people; the file is the exact truth. Besides the `users` and `pianos` tables, the app needs a `rent_payments` table (ID `rent_payments`):
 
 | Column     | Type              |
