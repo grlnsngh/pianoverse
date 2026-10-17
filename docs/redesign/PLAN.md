@@ -1113,3 +1113,7 @@ Add one entry per session, newest last. Format:
 - Checks: typecheck clean. Jest 187 suites, 3224 tests pass. Lint 0 errors and 6 warnings (the same). No Appwrite change. One new native package (`expo-camera`) and its plugin, in runtime 5.
 - Known issues and follow-ups: (1) **Needs the 1.1.20 build to run** (a native package), and was not tried on a phone: the camera, the torch and the frame are only checked with a fake camera. (2) How well a printed label reads is the open question from Batch 42. (3) The build has not been made: the owner said there is no hurry.
 - Next: the owner's call: the 1.1.20 build, then everything on `docs/redesign/QUESTIONS.md` in one go, or more features.
+
+### Session 51, 2026-10-17
+- The four Expo packages that were a patch behind are updated with `npx expo install --fix`, before the 1.1.20 build: `expo` 57.0.28 to 57.0.30, `expo-linking` 57.0.12 to 57.0.13, `expo-notifications` 57.0.22 to 57.0.23, `expo-router` 57.0.26 to 57.0.28. Runtime 5 is still unbuilt, so its recorded list in `runtimeVersion.test.ts` is changed in place (no new runtime).
+- Checks: `expo-doctor` passes 21 of 21, `expo install --check` says the dependencies are up to date, the Android bundle builds, typecheck clean, Jest 187 suites, 3224 tests pass, lint 0 errors and 6 warnings (the same).
