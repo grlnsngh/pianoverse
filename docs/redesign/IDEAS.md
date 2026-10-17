@@ -27,7 +27,7 @@ The sizes are estimates, not promises. Prices and store rules below come from ge
 | M8 | Online payments (a payment gateway) | L | Gateway account, server code, Appwrite |
 | P1 | Tuning and service log | M | **Built as Batch 35** (per-piano interval, Today, 9:00 reminder, WhatsApp) |
 | P2 | Condition photos at handover and return | M | Appwrite table |
-| P3 | Availability calendar | M | JS only |
+| P3 | Availability calendar | M | **Built as Batch 41** (free or out on a day, Back soon, Free from on the piano page; from the dates we have, no bookings yet) |
 | P4 | QR labels, scan to open a piano | M | New build |
 | C1 | Enquiries and follow-ups | M | Appwrite table |
 | C2 | Rental agreement | M | **Built as Batches 31 and 31A** (PDF, with letterhead) |
@@ -136,6 +136,8 @@ Photos of the piano when it goes out and when it comes back: proof in a damage d
 ### P3. Availability calendar (M)
 
 One month calendar of event dates and rental starts and ends, to see what is booked when. Built from dates already saved, so JS only. Useful if you take event bookings.
+
+**Built as Batch 41**, from the dates the app already has (see `RESEARCH-deposits-qr-calendar.md`): which pianos are free or out on a day, Back soon, and Free from on the piano's page. There are still no bookings (promising a piano for later) and no event hire dates; they would be a bigger step after the owner has used it.
 
 ### P4. QR labels, scan to open a piano (M)
 

@@ -36,7 +36,7 @@ export const statusToneColor = (tone: StatusTone, colors: Palette): string =>
 const DAYS_BEFORE_MONTHS = 60;
 
 /** "18 days", or "2 months" from 60 days on. Past spans count by their length. */
-const formatSpan = (period: Period) => {
+export const formatSpan = (period: Period) => {
   const days = Math.abs(period.days);
   if (days < DAYS_BEFORE_MONTHS) return pluralize(days, "day");
   return pluralize(Math.max(1, Math.abs(period.months)), "month");

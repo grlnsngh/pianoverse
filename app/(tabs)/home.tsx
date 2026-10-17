@@ -219,6 +219,7 @@ const Home = () => {
   // (The typed routes are generated when the dev server starts, so a new
   // route such as /search isn't known to them until then)
   const openSearch = useCallback(() => router.push("/search" as Href), []);
+  const openAvailability = useCallback(() => router.push("/availability" as Href), []);
   const openPiano = useCallback(
     (id: string) => router.push(`/detail/${id}`),
     [],
@@ -410,6 +411,18 @@ const Home = () => {
               }
               filterCount={activeFilterCount}
             />
+            {/* Which pianos are free on a day: nothing to ask until there are pianos */}
+            {hasPianos && (
+              <Pressable
+                onPress={openAvailability}
+                accessibilityRole="button"
+                accessibilityLabel="Availability"
+                accessibilityHint="Which pianos are free on a day"
+                style={({ pressed }) => [styles.calendar, pressed && styles.calendarPressed]}
+              >
+                <Icon name="calendar" size={22} color={colors.ink} strokeWidth={1.9} />
+              </Pressable>
+            )}
             <AddButton onPress={openAdd} />
           </View>
 
@@ -538,6 +551,17 @@ const useStyles = makeStyles((colors) => ({
     paddingHorizontal: spacing.screen,
   },
   pill: { flex: 1, minWidth: 0 },
+  calendar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: colors.controlBorder,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  calendarPressed: { backgroundColor: colors.grouped },
   tabs: { marginTop: spacing.sm },
   // Full width, as on the PianosOffline board
   offline: {
