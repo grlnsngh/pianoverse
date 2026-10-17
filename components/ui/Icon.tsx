@@ -120,6 +120,17 @@ export const ICONS = {
   shop: [{ d: "M3 10l9-6 9 6v10H3zM9 20v-6h6v6" }],
   megaphone: [{ d: "M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12" }],
   receipt: [{ d: "M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4" }],
+  // From the QR labels boards: scanning a label, and the torch
+  scan: [
+    {
+      d: "M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M8 8h3v3H8zM13 8h3v3h-3zM8 13h3v3H8zM13.5 13.5H16v2.5",
+    },
+  ],
+  bulb: [
+    {
+      d: "M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2v.1h5V16c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z",
+    },
+  ],
 } as const satisfies Record<string, readonly Shape[]>;
 
 export type IconName = keyof typeof ICONS;

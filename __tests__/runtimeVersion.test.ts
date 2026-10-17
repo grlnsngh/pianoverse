@@ -316,13 +316,15 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
   // expo already had inside it) reads the font files the PDFs are set in.
   // The letterhead added react-native-webview (the real-page preview) before
   // any build of runtime 5 was made, so it joined runtime 5 rather than 6, and
-  // so did Sentry's crash reports (Batch 34) and its plugin
+  // so did Sentry's crash reports (Batch 34) and its plugin, and the QR scanner's
+  // camera (expo-camera, Batch 46) and its plugin
   "5": {
     packages: [
       "@react-native-async-storage/async-storage@2.2.0",
       "@sentry/react-native@7.11.0",
       "expo@57.0.28",
       "expo-asset@57.0.20",
+      "expo-camera@57.0.6",
       "expo-constants@57.0.22",
       "expo-dev-client@57.0.20",
       "expo-file-system@57.0.7",
@@ -385,6 +387,14 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
             cameraPermission:
               "Pianoverse uses the camera so you can take pictures of your pianos.",
             microphonePermission: false,
+          },
+        ],
+        [
+          "expo-camera",
+          {
+            cameraPermission: "Pianoverse uses the camera to scan the labels on your pianos.",
+            microphonePermission: false,
+            recordAudioAndroid: false,
           },
         ],
         [

@@ -67,6 +67,7 @@ import BulkOperationsBar from "@/components/BulkOperationsBar";
 import SelectionHeader from "@/components/SelectionHeader";
 import { scheduleAllRentalNotifications } from "@/services/notifications";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
+import { takePendingPianoLink, usePendingPianoLink } from "@/lib/pendingPianoLink";
 
 const CATEGORY_TABS: readonly IconTabItem<CategoryTab>[] = [
   { key: "all", label: "All", icon: "categoryAll" },
@@ -220,6 +221,7 @@ const Home = () => {
   // route such as /search isn't known to them until then)
   const openSearch = useCallback(() => router.push("/search" as Href), []);
   const openAvailability = useCallback(() => router.push("/availability" as Href), []);
+  const openScanner = useCallback(() => router.push("/scan" as Href), []);
   const openPiano = useCallback(
     (id: string) => router.push(`/detail/${id}`),
     [],
@@ -341,6 +343,15 @@ const Home = () => {
     // reminders for pianos that were deleted or are no longer rented.
     scheduleAllRentalNotifications(items);
   }, [items, isLoading, loadError, user]);
+
+  // A label scanned with the phone's own camera opened the app: now that the pianos have
+  // loaded (which only a signed-in person gets), open the piano it names
+  const pendingPiano = usePendingPianoLink();
+  useEffect(() => {
+    if (!pendingPiano || isLoading || loadError || !user) return;
+    const pianoId = takePendingPianoLink();
+    if (pianoId) router.push(`/detail/${pianoId}`);
+  }, [pendingPiano, isLoading, loadError, user]);
 
   // Re-apply sorting and filters whenever the stored items or the filters
   // change (including pianos deleted from other screens)
@@ -473,6 +484,15 @@ const Home = () => {
                     color={colors.ink}
                     strokeWidth={2.4}
                   />
+                </Pressable>
+                <Pressable
+                  onPress={openScanner}
+                  accessibilityRole="button"
+                  accessibilityLabel="Scan a label"
+                  accessibilityHint="Opens a piano from the label on it"
+                  style={styles.layoutToggle}
+                >
+                  <Icon name="scan" size={22} color={colors.ink} strokeWidth={1.9} />
                 </Pressable>
                 <Pressable
                   onPress={toggleLayout}

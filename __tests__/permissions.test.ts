@@ -15,6 +15,14 @@ describe("the Android permissions", () => {
     expect(plugin("expo-image-picker").microphonePermission).toBe(false);
   });
 
+  it("leave out the microphone and recording sound for the label scanner too: it only reads codes", () => {
+    expect(plugin("expo-camera")).toMatchObject({ microphonePermission: false, recordAudioAndroid: false });
+  });
+
+  it("say why the camera is wanted to scan labels, in the words the phone shows", () => {
+    expect(plugin("expo-camera").cameraPermission).toBe("Pianoverse uses the camera to scan the labels on your pianos.");
+  });
+
   it("leave out drawing over other apps, which only React Native's tools in a development build use", () => {
     expect(expo.android.blockedPermissions).toContain("android.permission.SYSTEM_ALERT_WINDOW");
   });

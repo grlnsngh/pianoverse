@@ -1,6 +1,7 @@
 import qrcode from "qrcode-generator";
 import { PianoItem } from "@/redux/pianos/types";
 import type { Letterhead } from "@/utils/letterhead";
+import { PIANO_LINK_PREFIX } from "@/utils/qrScan";
 import { escapeHtml, paperDocument } from "@/utils/paperForms/html";
 
 // QR labels for the pianos (canvas page "QR labels"): a sticker for each piano
@@ -8,7 +9,7 @@ import { escapeHtml, paperDocument } from "@/utils/paperForms/html";
 // is found. Everything here draws or measures; lib/paperPdf.ts makes the PDF.
 
 /** The address a label's code holds: only the signed-in owner's own app can open it. */
-export const pianoLink = (pianoId: string) => `pianoverse://detail/${pianoId}`;
+export const pianoLink = (pianoId: string) => `${PIANO_LINK_PREFIX}${pianoId}`;
 
 // --- The code ---
 

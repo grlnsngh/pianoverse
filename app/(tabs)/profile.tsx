@@ -24,6 +24,7 @@ import { forgetLetterhead } from "@/lib/letterheadStore";
 import { forgetExpenses } from "@/lib/expensesStore";
 import { forgetServiceLog } from "@/lib/serviceLogStore";
 import { forgetPaperPdfs } from "@/lib/paperPdf";
+import { clearPendingPianoLink } from "@/lib/pendingPianoLink";
 import { clearPianoCache } from "@/lib/pianoCache";
 import useSavedAt from "@/lib/useSavedAt";
 import { setActiveTab } from "@/redux/navigation/actions";
@@ -265,6 +266,8 @@ const Profile = () => {
     await forgetServiceLog();
     forgetExpenses();
     forgetPaperPdfs();
+    // A label scanned just before signing out must not open for the next person
+    clearPendingPianoLink();
     dispatch(resetPianoState() as any);
     dispatch(setActiveTab("pianos") as any);
     setUser(null);
