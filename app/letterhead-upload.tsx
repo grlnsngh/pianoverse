@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -9,7 +10,7 @@ import { deleteLetterheadImage, pickLetterheadImage } from "@/lib/letterheadImag
 import useLetterhead from "@/lib/useLetterhead";
 import usePreviewHtml, { type PageMaker } from "@/lib/usePreviewHtml";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
-import { mmToPx, SPACE_LIMITS, type LetterheadDesign } from "@/utils/letterhead";
+import { mmToPx, PICTURE_LIMITS, SPACE_LIMITS, type LetterheadDesign } from "@/utils/letterhead";
 import { agreementPages } from "@/utils/paperForms/agreements";
 import { PAGE_HEIGHT, PAGE_WIDTH } from "@/utils/paperForms/html";
 import { showToast } from "@/utils/toast";
@@ -32,8 +33,10 @@ const STEPS = [
 /**
  * Your own letterhead (LetterheadUpload board), opened from the Letterhead
  * screen: the business's letterhead as an image from their photos (made in
- * Canva, or a scan), the whole page or its top strip, and where the writing
- * may go, shown on the real page.
+ * Canva, or a scan), the whole page or its top strip, where the writing may
+ * go and how strongly it prints, shown on the real page. An image that is
+ * only a picture or a logo can be moved to Make one instead, where it sits
+ * beside the details at the top of the page (Batch 47).
  */
 const LetterheadUpload = () => {
   const colors = useColors();
@@ -62,6 +65,21 @@ const LetterheadUpload = () => {
 
   const setSpace = (patch: Partial<LetterheadDesign["upload"]>) =>
     updateDesign({ style: "upload", upload: { ...upload, ...patch } });
+
+  // Only a picture or a logo: it goes beside the details at the top right in Make one
+  const useAsPicture = () => {
+    if (!upload.image) return;
+    if (design.picture.image && design.picture.image.file !== upload.image.file) {
+      deleteLetterheadImage(design.picture.image);
+    }
+    updateDesign({
+      style: "make",
+      picture: { source: "own", image: upload.image, place: "right", size: 100, strength: 100 },
+      upload: { ...upload, image: null },
+    });
+    showToast("Your picture is at the top right now", { variant: "success" });
+    router.replace("/letterhead-make");
+  };
 
   // Where the writing goes, drawn over the page
   const scale = PREVIEW_WIDTH / PAGE_WIDTH;
@@ -148,6 +166,34 @@ const LetterheadUpload = () => {
                   />
                 </>
               )}
+              <View style={[styles.sliderHead, styles.sliderGap]}>
+                <Text style={styles.sliderTitle}>Visibility</Text>
+                <Text style={styles.sliderValue}>{upload.strength}%</Text>
+              </View>
+              <Slider
+                value={upload.strength}
+                min={PICTURE_LIMITS.strength[0]}
+                max={PICTURE_LIMITS.strength[1]}
+                step={5}
+                onChange={(value) => setSpace({ strength: value })}
+                accessibilityLabel="How strongly your letterhead prints"
+                unit="per cent"
+              />
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Only a picture or a logo?</Text>
+              <Text style={styles.cardText}>
+                Put it at the top right instead, beside your business details, at the size you choose. Your writing
+                won’t go over it.
+              </Text>
+              <Button
+                title="Use it as a picture"
+                variant="secondary"
+                size="compact"
+                onPress={useAsPicture}
+                style={styles.cardButton}
+              />
             </View>
 
             <Button
@@ -191,11 +237,15 @@ const useStyles = makeStyles((colors) => ({
   },
   stepNumberText: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink },
   stepText: { flex: 1, ...type.secondary, color: colors.inkBody },
+  // Not `stepText`: that one shares a row with its number, so it flexes
+  cardText: { marginTop: 6, ...type.secondary, color: colors.inkBody },
+  cardButton: { marginTop: spacing.md },
   previewArea: { alignItems: "center", paddingTop: spacing.lg },
   previewNote: { marginTop: 10, ...type.caption, fontFamily: fonts.regular, color: colors.ink2 },
   section: { marginTop: spacing.lg },
   sliders: { marginTop: spacing.lg },
-  sliderHead: { flexDirection: "row", justifyContent: "space-between" },
+  // A big Font size puts the value under its name rather than squeezing them
+  sliderHead: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", columnGap: spacing.md },
   sliderGap: { marginTop: spacing.md },
   sliderTitle: { fontFamily: fonts.semibold, fontSize: 15, lineHeight: 21, color: colors.ink },
   sliderValue: { fontFamily: fonts.medium, fontSize: 15, lineHeight: 21, color: colors.inkBody, fontVariant: ["tabular-nums"] },

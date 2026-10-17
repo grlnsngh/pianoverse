@@ -11,7 +11,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Platform } from "react-native";
 import { letterheadImageData } from "@/lib/letterheadImages";
-import { DEFAULT_DESIGN, type Letterhead, type LetterheadDesign } from "@/utils/letterhead";
+import { DEFAULT_DESIGN, printedPicture, type Letterhead, type LetterheadDesign } from "@/utils/letterhead";
 import { agreementHtml, agreementPages } from "@/utils/paperForms/agreements";
 import {
   AGREEMENT_KINDS,
@@ -35,7 +35,12 @@ import {
   type LabelContent,
   type LabelSizeId,
 } from "@/utils/qrLabels";
-import { fontsForDesign, letterheadCss, type LetterheadAssets } from "@/utils/paperForms/letterheads";
+import {
+  builtInPicture,
+  fontsForDesign,
+  letterheadCss,
+  type LetterheadAssets,
+} from "@/utils/paperForms/letterheads";
 
 /**
  * Paper forms as PDF files, made on the phone: the form's HTML
@@ -105,13 +110,19 @@ export const resetFontCssForTests = () => {
   faces.clear();
 };
 
-/** The letterhead's images, read from the phone, for a PDF or a preview. */
+/**
+ * The letterhead's images, read from the phone, for a PDF or a preview: the
+ * logo, the uploaded letterhead, and the picture (the grand piano comes with
+ * the app; the person's own is read from the phone).
+ */
 export const loadLetterheadAssets = async (design: LetterheadDesign): Promise<LetterheadAssets> => {
-  const [logo, image] = await Promise.all([
+  const picture = printedPicture(design);
+  const [logo, image, own] = await Promise.all([
     design.style === "make" ? letterheadImageData(design.logo) : Promise.resolve(null),
     design.style === "upload" ? letterheadImageData(design.upload.image) : Promise.resolve(null),
+    picture?.source === "own" ? letterheadImageData(picture.image) : Promise.resolve(null),
   ]);
-  return { logo, image };
+  return { logo, image, picture: builtInPicture(design) ?? own };
 };
 
 /** Everything a document needs besides its pages: the fonts and the letterhead's images. */

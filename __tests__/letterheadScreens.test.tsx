@@ -9,7 +9,15 @@ jest.mock("expo-router", () => ({
 }));
 jest.mock("@/lib/formEvents", () => ({ recordFormEvent: jest.fn() }));
 jest.mock("@/lib/paperPdf", () => ({
-  loadPaperParts: jest.fn(async () => ({ fontCss: "", assets: { logo: null, image: null } })),
+  // The grand piano comes with the app, so a made letterhead has it without reading the phone
+  loadPaperParts: jest.fn(async (design: any) => ({
+    fontCss: "",
+    assets: {
+      logo: null,
+      image: null,
+      picture: design?.style === "make" && design.picture?.source === "piano" ? "data:image/jpeg;base64,PIANO" : null,
+    },
+  })),
   saveTestPage: jest.fn(),
   openPdf: jest.fn(async () => undefined),
   printPdf: jest.fn(async () => undefined),
@@ -125,13 +133,13 @@ describe("the Letterhead screen", () => {
     expect(texts).toContain("The real page, as it will print");
     expect(texts).toContain("Rental agreement, page 1");
     for (const title of ["None", "My printed paper", "Make one", "Upload mine"]) expect(texts).toContain(title);
-    expect(isChecked(renderer, "radio", "Make one. Pick a design, add your logo and details")).toBe(true);
+    expect(isChecked(renderer, "radio", "Make one. Pick a design, a picture, your logo and details")).toBe(true);
     expect(isChecked(renderer, "radio", "None. Just the document. Clean and simple.")).toBe(false);
     expect(texts).toContain("Monogram · The Piano Services");
     expect(texts).toContain("The Piano Services");
     expect(texts).toContain("98110 20513");
-    expect(texts).toContain("Rent card, receipts, handover");
-    expect(texts).toContain("Kept plain: they’re your own records");
+    expect(texts).toContain("Every other form");
+    expect(texts).toContain("Rent card, receipts, handover and registers get the small one, picture included");
     expect(texts).toContain("Kept on this phone. Nothing is uploaded.");
     expect(previewPage(renderer)).toContain("THE PIANO SERVICES");
   });
@@ -150,7 +158,7 @@ describe("the Letterhead screen", () => {
     await pressLabel(renderer.root, "Choose image");
     expect(router.push).toHaveBeenLastCalledWith("/letterhead-upload");
 
-    await pressLabel(renderer.root, "Make one. Pick a design, add your logo and details");
+    await pressLabel(renderer.root, "Make one. Pick a design, a picture, your logo and details");
     await pressLabel(renderer.root, "Edit");
     expect(router.push).toHaveBeenLastCalledWith("/letterhead-make");
 
@@ -295,6 +303,106 @@ describe("making a letterhead", () => {
   });
 });
 
+describe("the letterhead's picture", () => {
+  const GRAND = "Grand piano. A grand piano in colour, ready to use";
+  const OWN = "Your own picture. A photo or a logo from your phone";
+  const NONE = "No picture. Just your details";
+  const own = { file: "picture-1.jpg", width: 800, height: 600 };
+
+  it("has the grand piano at the top right of the page at first, as on TPS 2", async () => {
+    await saved({});
+    const renderer = await render(<LetterheadMake />);
+    const texts = allTexts(renderer.root);
+
+    expect(texts).toContain("Picture");
+    expect(isChecked(renderer, "radio", GRAND)).toBe(true);
+    expect(byRole(renderer, "tab", "Right").props.accessibilityState).toEqual({ selected: true });
+    expect(texts).toContain("Big on page 1 of the agreements, beside your letterhead. Every other form gets a small one.");
+    expect(previewPage(renderer)).toContain('class="lh-pic" style="width:142px;height:168px;flex-shrink:0;position:absolute;right:48px;top:26px"');
+  });
+
+  it("moves the picture to the left or behind the writing, and sizes and fades it", async () => {
+    await saved({});
+    const renderer = await render(<LetterheadMake />);
+
+    await act(async () => byRole(renderer, "tab", "Left").props.onPress());
+    expect(getLetterheadState().design.picture.place).toBe("left");
+
+    step(renderer, "Size of the picture", "increment", 2);
+    step(renderer, "How strongly the picture prints", "decrement", 3);
+    expect(getLetterheadState().design.picture).toMatchObject({ size: 110, strength: 85 });
+    expect(allTexts(renderer.root)).toEqual(expect.arrayContaining(["110%", "85%"]));
+
+    // Behind the writing it starts faint, and the whole page is shown
+    await act(async () => byRole(renderer, "tab", "Behind text").props.onPress());
+    // The preview is drawn again once the change has settled
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+    expect(getLetterheadState().design.picture).toMatchObject({ place: "behind", strength: 15 });
+    expect(allTexts(renderer.root)).toContain("An A4 page, as it will print");
+    expect(previewPage(renderer)).toContain("mix-blend-mode:multiply");
+
+    // Beside the letterhead again, at full strength
+    await act(async () => byRole(renderer, "tab", "Right").props.onPress());
+    expect(getLetterheadState().design.picture).toMatchObject({ place: "right", strength: 100 });
+    await flushPromises();
+    expect((await loadLetterheadDesign()).picture).toMatchObject({ place: "right", size: 110, strength: 100 });
+  });
+
+  it("stops the size where the agreement still fits on two pages", async () => {
+    await saved({ picture: { ...DEFAULT_DESIGN.picture, size: 125 } });
+    const renderer = await render(<LetterheadMake />);
+
+    step(renderer, "Size of the picture", "increment", 3);
+
+    expect(getLetterheadState().design.picture.size).toBe(130);
+  });
+
+  it("chooses the person's own picture from their photos, changes it, and keeps it to go back to", async () => {
+    await saved({});
+    (pickLetterheadImage as jest.Mock).mockResolvedValueOnce(own);
+    const renderer = await render(<LetterheadMake />);
+
+    await pressLabel(renderer.root, OWN);
+    expect(pickLetterheadImage).toHaveBeenCalledWith("picture");
+    expect(getLetterheadState().design.picture).toMatchObject({ source: "own", image: own });
+    expect(isChecked(renderer, "radio", OWN)).toBe(true);
+
+    const second = { ...own, file: "picture-2.jpg" };
+    (pickLetterheadImage as jest.Mock).mockResolvedValueOnce(second);
+    await pressLabel(renderer.root, "Change your picture");
+    expect(deleteLetterheadImage).toHaveBeenLastCalledWith(own);
+    expect(getLetterheadState().design.picture.image).toEqual(second);
+
+    // No picture: the settings go, the picture is kept for later
+    await pressLabel(renderer.root, NONE);
+    expect(getLetterheadState().design.picture).toMatchObject({ source: "none", image: second });
+    expect(renderer.root.findAll((node: any) => node.props.accessibilityLabel === "Size of the picture")).toHaveLength(0);
+
+    (pickLetterheadImage as jest.Mock).mockClear();
+    await pressLabel(renderer.root, OWN);
+    expect(pickLetterheadImage).not.toHaveBeenCalled();
+    expect(getLetterheadState().design.picture.source).toBe("own");
+  });
+
+  it("keeps the grand piano when no photo is picked, and says so when one can't be used", async () => {
+    const toasts = captureToastCalls();
+    (pickLetterheadImage as jest.Mock).mockResolvedValueOnce(null);
+    const renderer = await render(<LetterheadMake />);
+
+    await pressLabel(renderer.root, OWN);
+    expect(getLetterheadState().design.picture.source).toBe("piano");
+
+    (pickLetterheadImage as jest.Mock).mockRejectedValueOnce(new Error("Unsupported image"));
+    await pressLabel(renderer.root, OWN);
+    expect(getLetterheadState().design.picture.source).toBe("piano");
+    expect(toasts).toEqual([
+      expect.objectContaining({ message: "Couldn’t add that picture. Try another.", variant: "error" }),
+    ]);
+  });
+});
+
 describe("uploading a letterhead", () => {
   it("explains the steps and asks for the image first", async () => {
     const renderer = await render(<LetterheadUpload />);
@@ -344,6 +452,37 @@ describe("uploading a letterhead", () => {
     step(renderer, "Space at the bottom", "decrement", 3);
 
     expect(getLetterheadState().design.upload).toMatchObject({ top: 90, bottom: 10 });
+  });
+
+  it("makes the letterhead paler with Visibility", async () => {
+    await saved({ style: "upload", upload: { ...DEFAULT_DESIGN.upload, image: page } });
+    const renderer = await render(<LetterheadUpload />);
+
+    step(renderer, "How strongly your letterhead prints", "decrement", 4);
+    await flushPromises();
+
+    expect(getLetterheadState().design.upload.strength).toBe(80);
+    expect(allTexts(renderer.root)).toContain("80%");
+  });
+
+  it("moves an image that is only a picture to Make one, at the top right", async () => {
+    const toasts = captureToastCalls();
+    const photo = { file: "letterhead-3.jpg", width: 750, height: 750 };
+    await saved({ style: "upload", upload: { ...DEFAULT_DESIGN.upload, image: photo } });
+    const renderer = await render(<LetterheadUpload />);
+
+    expect(allTexts(renderer.root)).toContain("Only a picture or a logo?");
+    await pressLabel(renderer.root, "Use it as a picture");
+
+    expect(getLetterheadState().design).toMatchObject({
+      style: "make",
+      picture: { source: "own", image: photo, place: "right", size: 100, strength: 100 },
+      upload: { image: null },
+    });
+    // It moved: the same file, not deleted
+    expect(deleteLetterheadImage).not.toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalledWith("/letterhead-make");
+    expect(toasts).toEqual([expect.objectContaining({ message: "Your picture is at the top right now", variant: "success" })]);
   });
 
   it("replaces the image with another, deleting the old one", async () => {
