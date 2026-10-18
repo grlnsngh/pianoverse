@@ -1,8 +1,9 @@
-import { Image, ImageContentFit } from "expo-image";
+import { ImageContentFit } from "expo-image";
 import React, { useState } from "react";
 import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import Svg, { Ellipse, G, Path, Rect } from "react-native-svg";
 import { fonts, PianoPalette, pianoPalettes, pianoPalettesDark, Scheme } from "@/constants/theme";
+import AuthedImage from "./AuthedImage";
 import Icon from "./Icon";
 import { makeStyles, useColors, useTheme } from "@/lib/ThemeContext";
 
@@ -138,9 +139,11 @@ const PianoPhoto = ({
         accessibilityLabel={accessibilityLabel}
       >
         {showPhoto ? (
-          <Image
+          <AuthedImage
             key={attempt}
-            source={{ uri }}
+            uri={uri}
+            // The drawing shows for the moment the photo's token takes to arrive
+            fallback={<PianoIllustration palette={palette} />}
             style={StyleSheet.absoluteFill}
             contentFit={contentFit}
             onError={() => setFailedUri(uri)}

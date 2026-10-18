@@ -28,6 +28,9 @@
     "setupFiles": [
       "<rootDir>/__tests__/helpers/setup.js"
     ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/__tests__/helpers/photoToken.js"
+    ],
     "testTimeout": 30000,
     "transform": {
       "\\.(png|jpg|jpeg|gif|webp)$": "<rootDir>/__tests__/helpers/assetTransformer.js"

@@ -1,4 +1,3 @@
-import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -13,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CameraDeniedSheet from "@/components/CameraDeniedSheet";
-import { Button, Field, Icon, Sheet, Spinner } from "@/components/ui";
+import { AuthedImage, Button, Field, Icon, Sheet, Spinner } from "@/components/ui";
 import { fonts, maxScale, spacing, type } from "@/constants/theme";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { changeProfilePhoto, removeProfilePhoto, saveProfileDetails } from "@/lib/profileEdits";
@@ -200,8 +199,10 @@ const EditProfile = () => {
           <View style={styles.photoBlock}>
             <View style={styles.avatar}>
               {photo ? (
-                <Image
-                  source={{ uri: photo }}
+                <AuthedImage
+                  uri={photo}
+                  // The initial shows for the moment the photo's token takes to arrive
+                  fallback={<Text style={styles.initial}>{initialOf(name.trim() || user?.username, user?.email)}</Text>}
                   style={styles.photo}
                   contentFit="cover"
                   accessibilityElementsHidden
