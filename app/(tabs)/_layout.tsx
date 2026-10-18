@@ -44,7 +44,7 @@ const TabsLayout = () => {
   // Start on the first tab after signing in or opening the app
   useEffect(() => {
     dispatch(setActiveTab(INITIAL_TAB) as any);
-  }, []);
+  }, [dispatch]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.page }}>

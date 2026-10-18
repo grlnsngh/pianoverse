@@ -205,8 +205,14 @@ const monogram = ({ d, c, elegant, assets, pic, watermark }: TemplateInput): Tem
   const strip =
     `<div style="display:flex;align-items:center;gap:24px;height:52px">` +
     (pic?.place === "left" ? smallPic : "") +
-    `<div style="flex:1;display:flex;align-items:center;min-width:0"><span style="font-family:${DISPLAY};font-size:42px;line-height:1;color:${c.tint}">${initials}</span>` +
-    `<span style="margin-left:-${overlap}px;font-size:15px;font-weight:600;line-height:20px;letter-spacing:0.08em;color:#2B2622;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</span></div>` +
+    `<div style="flex:1;display:flex;align-items:center;min-width:0">` +
+    // The logo when there is one, beside the name; otherwise the big initials with the name over them
+    (assets.logo
+      ? `<div class="lh-logo" style="width:64px;height:40px;flex-shrink:0;background-position:left center"></div>` +
+        `<span style="margin-left:12px;font-size:15px;font-weight:600;line-height:20px;letter-spacing:0.08em;color:#2B2622;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</span>`
+      : `<span style="font-family:${DISPLAY};font-size:42px;line-height:1;color:${c.tint}">${initials}</span>` +
+        `<span style="margin-left:-${overlap}px;font-size:15px;font-weight:600;line-height:20px;letter-spacing:0.08em;color:#2B2622;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</span>`) +
+    `</div>` +
     `<div style="flex-shrink:0;text-align:right;font-family:${font};font-size:11.5px;line-height:16px;color:#4A443D">${lines([d.phone && `Mob. ${d.phone}`, d.email])}</div>` +
     (pic?.place === "right" ? smallPic : "") +
     `</div><div style="height:1px;margin-top:8px;background:${c.tint}"></div>`;

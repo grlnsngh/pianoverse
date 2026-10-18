@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Alert, Text, View } from "react-native";
 import { format, isToday } from "date-fns";
 import { useDispatch } from "react-redux";
@@ -52,12 +52,15 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
   const [saving, setSaving] = useState(false);
   const [choosingDay, setChoosingDay] = useState(false);
 
-  // Start afresh each time, suggesting the asking price of a piano on sale
+  // Start afresh each time it opens (not when the piano changes while it is open),
+  // suggesting the asking price of a piano on sale
+  const askingPrice = useRef(piano.on_sale_price);
+  askingPrice.current = piano.on_sale_price;
   useEffect(() => {
     if (!visible) return;
     setBuyerName("");
     setBuyerAddress("");
-    setPrice(piano.on_sale_price ?? 0);
+    setPrice(askingPrice.current ?? 0);
     setSaleDate(new Date());
     setChoosingDay(false);
   }, [visible]);

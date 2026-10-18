@@ -34,7 +34,7 @@ const useAppwrite = (fn: () => Promise<any>) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const refetch = useCallback(() => {
     hasFetchedRef.current = false;

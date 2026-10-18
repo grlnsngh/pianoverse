@@ -331,6 +331,41 @@ describe("Needs attention", () => {
     expect(router.push).toHaveBeenCalledWith("/detail/weber");
   });
 
+  it("gives a rental that has ended Mark returned and Extend, which open its page with that step started", async () => {
+    const { renderer } = await open();
+
+    // The two that ended have them; the one that only ends soon doesn't
+    const returned = renderer.root.findAll(
+      (node: any) => typeof node.type === "string" && /^Mark .* as returned$/.test(node.props.accessibilityLabel ?? "")
+    );
+    expect(returned.map((node: any) => node.props.accessibilityLabel)).toEqual([
+      "Mark Young Chang U-121 as returned",
+      "Mark Weber W-121 as returned",
+    ]);
+    expect(byLabel(renderer, "Extend the rental of Weber W-121")).toBeDefined();
+    expect(
+      renderer.root.findAll((node: any) => node.props.accessibilityLabel === "Extend the rental of Schimmel W114")
+    ).toHaveLength(0);
+
+    byLabel(renderer, "Mark Weber W-121 as returned").props.onPress();
+    expect(router.push).toHaveBeenLastCalledWith({ pathname: "/detail/[id]", params: { id: "weber", then: "return" } });
+    byLabel(renderer, "Extend the rental of Weber W-121").props.onPress();
+    expect(router.push).toHaveBeenLastCalledWith({ pathname: "/detail/[id]", params: { id: "weber", then: "extend" } });
+  });
+
+  it("makes the buttons big enough to press, and lets them wrap when the text is big", async () => {
+    const { renderer } = await open();
+    // The view the button draws, and the row the buttons sit in
+    const [button] = renderer.root.findAll(
+      (node: any) => typeof node.type === "string" && node.props.accessibilityLabel === "Extend the rental of Weber W-121"
+    );
+
+    expect(flat(button.props.style).minHeight).toBe(44);
+    let row: any = button.parent;
+    while (row && !(typeof row.type === "string" && flat(row.props.style)?.flexWrap)) row = row.parent;
+    expect(flat(row.props.style)).toMatchObject({ flexDirection: "row", flexWrap: "wrap" });
+  });
+
   it("leaves out a rental with no customer name from the name line only", async () => {
     const nameless = rental("nameless", "Yamaha C3", "", "2026-09-01", "2026-09-20");
     const { renderer } = await open({ items: [nameless] });

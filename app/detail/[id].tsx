@@ -90,7 +90,7 @@ const goBack = () => {
 const DetailScreen = () => {
   const styles = useStyles();
   const colors = useColors();
-  const { id } = useLocalSearchParams();
+  const { id, then } = useLocalSearchParams();
   const pianosList = useSelector((state: RootState) => state.pianos.items);
   // The owner's own UPI ID (Edit profile), added to a rent reminder when they have one
   const upiId = reminderUpiId(useSelector((state: RootState) => state.users.user));
@@ -120,6 +120,17 @@ const DetailScreen = () => {
   // Loaded for every piano: its Money section counts the rent it earned while it was rented
   const rentPayments = useRentPayments(typeof id === "string" ? id : "");
   const serviceLog = useServiceLog();
+
+  // Opened from Today's Mark returned or Extend: that sheet comes up as soon as the piano
+  // is here, once, and only for a piano that still has its rental on it
+  const startedFromToday = useRef(false);
+  useEffect(() => {
+    if (startedFromToday.current || !piano || !piano.rental_period_end) return;
+    if (then === "return") setShowReturnedSheet(true);
+    else if (then === "extend") setShowExtendSheet(true);
+    else return;
+    startedFromToday.current = true;
+  }, [piano, then]);
 
   // The pianos are still on their way (a link opened before the list loaded)
   const waiting = !piano && !isDeleted && pianoLoad === "loading";

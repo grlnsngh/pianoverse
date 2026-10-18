@@ -395,6 +395,11 @@ Tick `[x]` when done. Add a short note in brackets if something differs from the
   - [x] 48.3 The other kinds in plain words [a list at the end: My own letterhead image, Printed letterhead paper (screens that change nothing until Use this letterhead or Use printed paper, a new image or a slider), No letterhead (at once); while one of them is used, a card says In use, what it does, Change it, and Make a letterhead instead]
   - [x] 48.4 The picture as three tiles [Grand piano, My picture, None, side by side and wrapping with a big Font size, instead of three tall rows]
   - [x] 48.5 Tests and checks [the screen tests rewritten for one screen; Monogram's columns; the summaries' words; the screen looked at in the browser at 390 wide, made and in use]
+- [x] **Batch 49. Four small fixes (F1 to F4)** (S). The owner chose them from the list of what to do next. **JavaScript and scripts only: F2 to F4 go over the air; F1 is about the builds.**
+  - [x] 49.1 F1: a release keeps the number of the test build it follows [`scripts/build-android.js` records the build's profile, commit and whether it held uncommitted changes in `last-build.json`; a `preview` build right after a clean `test` build of the same version, with nothing but `app.json` and `last-build.json` changed since (checked with git, reading line endings the Windows way so WSL agrees), builds the same number]
+  - [x] 49.2 F2: an ended rental on Today has **Mark returned** and **Extend** [`components/AttentionRow.tsx`; each opens the piano with that sheet up (`then=return` or `then=extend`, read once by `app/detail/[id].tsx`, only while the rental is on the piano); the buttons wrap with big text and are 44 high]
+  - [x] 49.3 F3: Monogram's small letterhead shows the logo when there is one, in place of the initials
+  - [x] 49.4 F4: the six old lint warnings [the hooks name what they use; Mark as sold reads the asking price from a ref, so the sheet still starts afresh only when it opens]
 
 ## Batch notes
 
@@ -1149,3 +1154,6 @@ Add one entry per session, newest last. Format:
 - The owner merged #72 and the update went over the air ("Letterhead picture", runtime 5, preview channel); he saw it on his phone.
 - He asked for the piano a little smaller, GST and PAN under the piano, and a simpler Letterhead flow: Batch 48. The two screens (choose a kind, then Make one behind an Edit button) are one; the other kinds are a list at the end in plain words; the logo and lettering wait under More options; the picture is three tiles.
 - Checks: typecheck clean. Jest 187 suites, 3256 tests pass. Lint 0 errors and 6 warnings (the same).
+
+### Session 54, 2026-10-17
+- Batch 49 (F1 to F4). Sentry had no errors from the installed builds in the last 7 days. Lint is at 0 warnings for the first time.
