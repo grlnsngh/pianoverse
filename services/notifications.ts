@@ -118,36 +118,106 @@ const reminderBody = (title: string, daysBefore: number) => {
   return `"${title}" rental ${when}. Please arrange return or extension.`;
 };
 
-// Schedule a rental's reminders (none if it is no longer rented or the due
-// date has passed). Existing reminders must already be cancelled.
-const scheduleRentalReminders = async (pianoItem: any) => {
-  const dueDate = parseStoredDate(pianoItem.rental_period_end);
-  // A sold piano's rental is over
-  if (pianoItem.category !== "rentable" || !dueDate || pianoItem.sold_date)
-    return [];
+// Android lets an app have at most 500 alarms waiting, and every scheduled
+// notification is one. With many pianos the reminders alone could pass that
+// (five for each rental), and whatever was set after them, such as the morning
+// summary, would silently fail. So each kind keeps only its soonest, together
+// well under the limit (300 + 150 + 7 summaries); the later ones are set as they
+// come closer, since the app puts the reminders in place every time it opens.
+export const MAX_RENTAL_REMINDERS = 300;
+export const MAX_TUNING_REMINDERS = 150;
 
-  return Promise.all(
-    getRentalReminderTimes(dueDate).map(({ daysBefore, date }) =>
-      Notifications.scheduleNotificationAsync({
-        content: {
-          title: reminderTitle(daysBefore),
-          body: reminderBody(pianoItem.title, daysBefore),
-          data: {
-            pianoId: pianoItem.$id,
-            type: "rental_due",
-            dueDate: pianoItem.rental_period_end,
-          },
-          sound: "default",
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date,
-          channelId: Platform.OS === "android" ? "rental-reminders" : undefined,
-        },
-      })
-    )
-  );
+/** A notification to have in place: what it says, when, and on which Android channel. */
+interface Planned {
+  content: Notifications.NotificationContentInput;
+  date: Date;
+  channelId?: string;
+}
+
+/** A short fingerprint of a text (FNV-1a), for identifiers. */
+const fingerprint = (text: string) => {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(36);
 };
+
+/** The identifier of a planned notification: the same words at the same time always get the same one. */
+export const plannedId = (type: string, plan: Planned) =>
+  `${type}-${plan.date.getTime().toString(36)}-${fingerprint(JSON.stringify(plan.content) + (plan.channelId ?? ""))}`;
+
+const schedulePlanned = (type: string, plan: Planned) =>
+  Notifications.scheduleNotificationAsync({
+    identifier: plannedId(type, plan),
+    content: plan.content,
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: plan.date,
+      channelId: plan.channelId,
+    },
+  });
+
+/** The soonest first, at most `max`. */
+const soonest = (plans: Planned[], max: number) =>
+  [...plans].sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, max);
+
+/**
+ * Makes the scheduled notifications of one kind exactly these, touching only
+ * what differs: one already scheduled with the same identifier (the same words
+ * at the same time) stays, the others of that kind are cancelled, and the
+ * missing ones are added. Opening the app with nothing changed then costs one
+ * look at what is scheduled, instead of cancelling and setting every reminder
+ * again (hundreds, with many pianos). One that fails to be set doesn't stop the
+ * others. Resolves with the identifiers of what is in place.
+ */
+const syncScheduled = async (type: string, plans: Planned[]): Promise<string[]> => {
+  const wanted = new Map(plans.map((plan) => [plannedId(type, plan), plan]));
+  const scheduled = (await Notifications.getAllScheduledNotificationsAsync()).filter(
+    (notification) => notification.content.data?.type === type
+  );
+  const present = new Set(scheduled.map((notification) => notification.identifier));
+  await Promise.allSettled(
+    scheduled
+      .filter((notification) => !wanted.has(notification.identifier))
+      .map((notification) => Notifications.cancelScheduledNotificationAsync(notification.identifier))
+  );
+  const missing = [...wanted].filter(([id]) => !present.has(id));
+  const added = await Promise.allSettled(missing.map(([, plan]) => schedulePlanned(type, plan)));
+  const failed = new Set<string>();
+  added.forEach((result, index) => {
+    if (result.status === "fulfilled") return;
+    failed.add(missing[index][0]);
+    console.error(`❌ A ${type} notification couldn't be set:`, result.reason);
+  });
+  return [...wanted.keys()].filter((id) => !failed.has(id));
+};
+
+/** A rental's reminders still ahead (none for a piano that isn't rented out or is sold). */
+const rentalPlans = (pianoItem: any): Planned[] => {
+  const dueDate = parseStoredDate(pianoItem?.rental_period_end);
+  if (pianoItem?.category !== "rentable" || !dueDate || pianoItem.sold_date) return [];
+  return getRentalReminderTimes(dueDate).map(({ daysBefore, date }) => ({
+    content: {
+      title: reminderTitle(daysBefore),
+      body: reminderBody(pianoItem.title, daysBefore),
+      data: {
+        pianoId: pianoItem.$id,
+        type: "rental_due",
+        dueDate: pianoItem.rental_period_end,
+      },
+      sound: "default",
+    },
+    date,
+    channelId: Platform.OS === "android" ? "rental-reminders" : undefined,
+  }));
+};
+
+// Schedule a rental's reminders, each with its own identifier (so the next full
+// rescheduling knows them). Existing reminders must already be cancelled.
+const scheduleRentalReminders = (pianoItem: any) =>
+  Promise.all(rentalPlans(pianoItem).map((plan) => schedulePlanned("rental_due", plan)));
 
 // Replace a piano's rental reminders with ones for its current due date
 // (none if it is no longer rented or the due date has passed)
@@ -194,20 +264,6 @@ export const cancelRentalNotification = async (pianoId: string) => {
   }
 };
 
-const cancelAllRentalNotifications = async () => {
-  const scheduledNotifications =
-    await Notifications.getAllScheduledNotificationsAsync();
-  await Promise.all(
-    scheduledNotifications
-      .filter(
-        (notification) => notification.content.data?.type === "rental_due"
-      )
-      .map((notification) =>
-        Notifications.cancelScheduledNotificationAsync(notification.identifier)
-      )
-  );
-};
-
 let schedulingQueue: Promise<unknown> = Promise.resolve();
 
 // Replace all rental reminders with ones for these pianos. Reminders for
@@ -215,31 +271,20 @@ let schedulingQueue: Promise<unknown> = Promise.resolve();
 export const scheduleAllRentalNotifications = (pianoItems: any[]) => {
   const run = async () => {
     try {
-      await cancelAllRentalNotifications();
-
       const rentals = (Array.isArray(pianoItems) ? pianoItems : []).filter(
         (item) =>
           item?.category === "rentable" &&
           item.rental_period_end &&
           !item.sold_date
       );
-      // All rental reminders were just cancelled, so skip the per-piano
-      // cancel (one native lookup per piano)
-      const results = await Promise.all(
-        rentals.map((item) =>
-          scheduleRentalReminders(item).catch((error) => {
-            console.error(
-              `❌ Error scheduling reminders for ${item.title}:`,
-              error
-            );
-            return [];
-          })
-        )
+      // One look at what is scheduled for all of them, and only what changed is touched
+      const notificationIds = await syncScheduled(
+        "rental_due",
+        soonest(rentals.flatMap(rentalPlans), MAX_RENTAL_REMINDERS)
       );
-      const notificationIds = results.flat();
 
       console.log(
-        `✅ Scheduled ${notificationIds.length} reminder(s) for ${rentals.length} rental(s)`
+        `✅ ${notificationIds.length} reminder(s) in place for ${rentals.length} rental(s)`
       );
       return notificationIds;
     } catch (error) {
@@ -270,15 +315,6 @@ export const getServiceReminderTime = (due: Date, now = new Date()) => {
   return date > now ? date : null;
 };
 
-const cancelAllServiceNotifications = async () => {
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  await Promise.all(
-    scheduled
-      .filter((notification) => notification.content.data?.type === "service_due")
-      .map((notification) => Notifications.cancelScheduledNotificationAsync(notification.identifier))
-  );
-};
-
 let serviceQueue: Promise<unknown> = Promise.resolve();
 
 /**
@@ -289,27 +325,23 @@ let serviceQueue: Promise<unknown> = Promise.resolve();
 export const scheduleAllServiceNotifications = (reminders: TuningReminder[]) => {
   const run = async () => {
     try {
-      await cancelAllServiceNotifications();
-      const ids = await Promise.all(
-        reminders.map(async ({ pianoId, title, who, due }) => {
-          const date = getServiceReminderTime(due);
-          if (!date) return null;
-          return Notifications.scheduleNotificationAsync({
+      const plans = reminders.flatMap(({ pianoId, title, who, due }): Planned[] => {
+        const date = getServiceReminderTime(due);
+        if (!date) return [];
+        return [
+          {
             content: {
               title: "Tuning due today",
               body: who ? `${title}, rented to ${who}.` : `${title}.`,
               data: { pianoId, type: "service_due" },
               sound: "default",
             },
-            trigger: {
-              type: Notifications.SchedulableTriggerInputTypes.DATE,
-              date,
-              channelId: Platform.OS === "android" ? "rental-reminders" : undefined,
-            },
-          });
-        })
-      );
-      return ids.filter((id): id is string => !!id);
+            date,
+            channelId: Platform.OS === "android" ? "rental-reminders" : undefined,
+          },
+        ];
+      });
+      return await syncScheduled("service_due", soonest(plans, MAX_TUNING_REMINDERS));
     } catch (error) {
       console.error("❌ Error scheduling tuning reminders:", error);
       return [];
@@ -319,15 +351,6 @@ export const scheduleAllServiceNotifications = (reminders: TuningReminder[]) => 
   const result = serviceQueue.then(run, run);
   serviceQueue = result;
   return result;
-};
-
-const cancelAllMorningSummaries = async () => {
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  await Promise.all(
-    scheduled
-      .filter((notification) => notification.content.data?.type === "morning_summary")
-      .map((notification) => Notifications.cancelScheduledNotificationAsync(notification.identifier))
-  );
 };
 
 let summaryQueue: Promise<unknown> = Promise.resolve();
@@ -340,23 +363,17 @@ let summaryQueue: Promise<unknown> = Promise.resolve();
 export const scheduleMorningSummaries = (summaries: PlannedSummary[]) => {
   const run = async () => {
     try {
-      await cancelAllMorningSummaries();
       const now = new Date();
-      const ids = await Promise.all(
+      return await syncScheduled(
+        "morning_summary",
         summaries
           .filter(({ date }) => date > now)
-          .map(({ date, title, body }) =>
-            Notifications.scheduleNotificationAsync({
-              content: { title, body, data: { type: "morning_summary" }, sound: "default" },
-              trigger: {
-                type: Notifications.SchedulableTriggerInputTypes.DATE,
-                date,
-                channelId: Platform.OS === "android" ? SUMMARY_CHANNEL : undefined,
-              },
-            })
-          )
+          .map(({ date, title, body }) => ({
+            content: { title, body, data: { type: "morning_summary" }, sound: "default" },
+            date,
+            channelId: Platform.OS === "android" ? SUMMARY_CHANNEL : undefined,
+          }))
       );
-      return ids;
     } catch (error) {
       console.error("❌ Error scheduling the morning summary:", error);
       return [];
