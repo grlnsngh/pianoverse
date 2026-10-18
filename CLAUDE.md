@@ -2,6 +2,12 @@
 
 Expo / React Native app. Plans and decisions live in `docs/`: [docs/redesign/PLAN.md](docs/redesign/PLAN.md) for feature batches, [docs/large-text/PLAN.md](docs/large-text/PLAN.md) for large text.
 
+## Publishing a new APK: the website follows
+
+The owner's rule (2026-10-17): whenever a new version is given out, the website must give that APK and say its version. So a new APK for everyone is made with **`npm run release:android`** (build, then publish), or an APK already built and tried is published with **`npm run publish:apk`**: it uploads `pianoverse.apk` to the GitHub release `v<version>`, fills in `web/release.json` and the `data-release` spans in `index.html` and `download.html`, and merges that to `main`. Don't edit those version, size and date words by hand.
+
+**Two kinds of APK** (the owner's choice): the website always gets the **small** one (EAS profile `preview`: only the phones' code, native libraries compressed, about 53 MB; `plugins/with-apk-packaging.js`), made by `release:android`. Anything for testing, on phones or the emulators, is the **full** one (profile `test`: every processor's code, runs on the emulators natively), which is what plain `npm run build:android` makes. `publish:apk` refuses a full build. Both take the same over-the-air updates (channel `preview`). Details are in the README ("Giving a new version to everyone") and `docs/website/PLAN.md`.
+
 ## Large text: every screen must work with the phone's text made bigger
 
 The owner's father uses the app on a Samsung Galaxy S24 FE with Font size turned up (about 150%), and other people may go to 200% or use a large Screen zoom (Display size). The boards are drawn at 100% text, so copying their sizes exactly breaks the app at larger sizes. This is not optional polish: build every new screen, sheet, row and component for it from the start, and don't hand in UI work that only works at 100%.

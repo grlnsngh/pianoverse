@@ -141,7 +141,7 @@ describe("npm run build:android", () => {
 
     expect(code).toBe(0);
     expect(readApp().expo).toMatchObject({ version: "1.1.17", android: { versionCode: 28 } });
-    expect(calls).toEqual([["build", "-p", "android", "--profile", "preview", "--local"]]);
+    expect(calls).toEqual([["build", "-p", "android", "--profile", "test", "--local"]]);
     expect(text).toContain("Building 1.1.17 (versionCode 28): it hasn't been built yet, so the version stays.");
   });
 
@@ -269,11 +269,11 @@ describe("npm run build:android", () => {
       const { calls } = build(["--bump", "--clear-cache"]);
 
       expect(calls).toEqual([
-        ["build", "-p", "android", "--profile", "preview", "--local", "--clear-cache"],
+        ["build", "-p", "android", "--profile", "test", "--local", "--clear-cache"],
       ]);
     });
 
-    it("builds the profile it is given instead of preview", () => {
+    it("builds the profile it is given instead of the full test build", () => {
       for (const given of [["--profile", "production"], ["--profile=production"], ["-e", "production"]]) {
         setUp(app("1.1.17", 28), { versionCode: 26 });
 

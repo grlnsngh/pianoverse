@@ -10,12 +10,18 @@ const {
 
 // npm run build:android
 //
-// Makes the Android build on this computer (`eas build -p android --profile
-// preview --local`), raising the version first when that is needed: if
+// Makes an Android build to try on this computer (`eas build -p android
+// --profile test --local`), raising the version first when that is needed: if
 // `last-build.json` says this versionCode was already built, the version and
 // versionCode go up by one, because Android only installs an APK with a higher
 // versionCode than the one on the phone. When the build works, it writes down
 // what was built in `last-build.json`.
+//
+// The "test" build is the full one: it carries the code of every kind of
+// processor, so it runs on the emulators as well as on phones. The website's
+// APK is the small "preview" build, made by `npm run release:android`, which
+// carries only the phones' code (plugins/with-apk-packaging.js). Both take the
+// same over-the-air updates.
 //
 //   npm run build:android                  bump if needed, then build
 //   npm run build:android -- --bump        bump even if it isn't needed
@@ -83,7 +89,7 @@ const run = ({
     "build",
     "-p",
     "android",
-    ...(hasProfile ? [] : ["--profile", "preview"]),
+    ...(hasProfile ? [] : ["--profile", "test"]),
     "--local",
     ...rest,
   ]);
@@ -106,6 +112,7 @@ const run = ({
   log(
     `  git add app.json last-build.json && git commit -m "chore: version ${app.expo.version} (versionCode ${app.expo.android.versionCode}), the build installed on the owner's phone"`
   );
+  log("To give it to everyone (a GitHub release, and the version on the website): npm run publish:apk");
   return 0;
 };
 
