@@ -275,12 +275,29 @@ const command = (args) =>
     ? ["node", [appwriteScript(), ...args, "-f", "-j"]]
     : ["appwrite", [...args, "-f", "-j"]];
 const cli = (args) => spawnSync(...command(args), { encoding: "utf8" });
-/** The same, without waiting: resolves with the exit status. */
+/**
+ * Whether a CLI call worked. The CLI can end with status 0 after printing
+ * "Error: ...", so its words are read too.
+ */
+const worked = (status, text) => status === 0 && !/\bError\b/.test(text);
+/** The same as cli, without waiting: resolves with whether it worked and what it printed. */
 const cliAsync = (args) =>
   new Promise((resolve) => {
-    const child = spawn(...command(args), { stdio: "ignore" });
-    child.on("close", (status) => resolve(status));
+    const child = spawn(...command(args), { stdio: ["ignore", "pipe", "pipe"] });
+    let text = "";
+    child.stdout.on("data", (chunk) => (text += chunk));
+    child.stderr.on("data", (chunk) => (text += chunk));
+    child.on("close", (status) => resolve({ ok: worked(status, text), text }));
   });
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+/** Stops with a clear message when the CLI isn't signed in (a sign-in can end in the middle of a run). */
+const requireSignIn = () => {
+  const result = cli(["whoami"]);
+  if (!worked(result.status, `${result.stdout}${result.stderr}`)) {
+    console.error("The Appwrite CLI isn't signed in: run `appwrite login`, then run this again.");
+    process.exit(1);
+  }
+};
 
 // Required (by a speed test) rather than run: just the rows
 const action = require.main === module ? process.argv[2] : "none";
@@ -304,6 +321,7 @@ if (action === "plan") {
     `(${rented.filter((p) => new Date(p.rental_period_end) < TODAY).length} ended)`,
   );
 } else if (action === "seed") {
+  requireSignIn();
   (async () => {
     // The pianos one at a time, six at once (Appwrite can't make rows with a relationship
     // column, here `users`, in bulk); a piano already there is skipped
@@ -324,13 +342,11 @@ if (action === "plan") {
           "--data",
           JSON.stringify(data),
         ];
-        if (
-          (await cliAsync([
-            ...args,
-            ...permissions.flatMap((p) => ["--permissions", p]),
-          ])) === 0
-        )
-          made++;
+        const { ok } = await cliAsync([
+          ...args,
+          ...permissions.flatMap((p) => ["--permissions", p]),
+        ]);
+        if (ok) made++;
       }
     };
     await Promise.all(Array.from({ length: 6 }, worker));
@@ -362,7 +378,7 @@ if (action === "plan") {
           T[kind],
           ...batch.flatMap((row) => ["--rows", row]),
         ]);
-        if (result.status !== 0) {
+        if (!worked(result.status, `${result.stdout}${result.stderr}`)) {
           console.error(
             `FAILED ${kind} ${done + 1}-${done + batch.length}:\n${`${result.error ?? ""}${result.stdout}${result.stderr}`.slice(0, 800)}`,
           );
@@ -374,34 +390,48 @@ if (action === "plan") {
     }
   })();
 } else if (action === "remove") {
-  // One row at a time, by its ID (never a bulk delete, which with no query would take every row), six at once
+  // One row at a time, by its ID (never a bulk delete, which with no query would take every
+  // row), and slowly: Appwrite limits how often a row can be deleted, and the CLI's
+  // sign-in ended once when 700 went six at a time. A row already gone counts as removed,
+  // so it can be run again until everything is gone.
+  requireSignIn();
+  // The rows are worked out from today's date, so on another day there may be a few more
+  // or fewer payments and services than were made: a margin of IDs past today's count is
+  // tried too (one that was never made is "not found", which counts as gone)
+  const margin = { pianos: 0, payments: 60, service: 20 };
+  const prefix = { pianos: "p", payments: "pay", service: "svc" };
   const all = Object.keys(out)
     .reverse()
-    .flatMap((kind) => out[kind].map((row) => ({ kind, id: row.$id })));
-  let next = 0;
-  let gone = 0;
-  const worker = async () => {
-    while (next < all.length) {
-      const { kind, id: rowId } = all[next++];
-      if (
-        (await cliAsync([
-          "tablesdb",
-          "delete-row",
-          "--database-id",
-          DB,
-          "--table-id",
-          T[kind],
-          "--row-id",
-          rowId,
-        ])) === 0
-      )
-        gone++;
-      if (next % 50 === 0) console.log(`${next} / ${all.length}`);
+    .flatMap((kind) =>
+      Array.from({ length: out[kind].length + margin[kind] }, (_, i) => ({ kind, id: id(prefix[kind], i + 1) }))
+    );
+  (async () => {
+    let gone = 0;
+    for (let i = 0; i < all.length; i++) {
+      const { kind, id: rowId } = all[i];
+      for (let attempt = 1; ; attempt++) {
+        const { ok, text } = await cliAsync(["tablesdb", "delete-row", "--database-id", DB, "--table-id", T[kind], "--row-id", rowId]);
+        if (ok || /could not be found/i.test(text)) {
+          gone++;
+          break;
+        }
+        if (/not authenticated/i.test(text)) {
+          console.error(`Stopped at ${i} of ${all.length}: the CLI was signed out. Run \`appwrite login\`, then remove again.`);
+          process.exit(1);
+        }
+        if (/rate limit/i.test(text) && attempt < 5) {
+          console.log("Appwrite asked to slow down; waiting a minute");
+          await pause(60000);
+          continue;
+        }
+        console.error(`FAILED ${kind} ${rowId}: ${text.slice(0, 300)}`);
+        process.exit(1);
+      }
+      await pause(700);
+      if ((i + 1) % 50 === 0) console.log(`${i + 1} / ${all.length}`);
     }
-  };
-  Promise.all(Array.from({ length: 6 }, worker)).then(() =>
-    console.log(`removed ${gone} of ${all.length} rows`),
-  );
+    console.log(`removed ${gone} of ${all.length} rows (those already gone included)`);
+  })();
 } else if (action !== "none") {
   console.log(
     "node scripts/demo/bulk-data.js plan | seed | remove  [--account-id ID --users-row ID] [--count 150]",
