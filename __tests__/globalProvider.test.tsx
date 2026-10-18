@@ -1,5 +1,6 @@
 jest.mock("@/lib/appwrite", () => ({
   getCurrentUser: jest.fn(),
+  createPhotoToken: jest.fn(() => Promise.resolve("a-token")),
 }));
 jest.mock("@/services/notifications", () => ({
   prepareRentalReminders: jest.fn(() => Promise.resolve(false)),
@@ -14,7 +15,8 @@ import React from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act } from "react-test-renderer";
 import GlobalProvider, { useGlobalContext } from "@/context/GlobalProvider";
-import { getCurrentUser } from "@/lib/appwrite";
+import { createPhotoToken, getCurrentUser } from "@/lib/appwrite";
+import { peekPhotoToken, setPhotoTokenForTests } from "@/lib/photoAuth";
 import {
   prepareRentalReminders,
   requestNotificationPermissions,
@@ -52,6 +54,37 @@ it("gets reminders ready at the start without asking anyone for a permission", a
   // The question comes later, from the sheet that explains it
   expect(prepareRentalReminders).toHaveBeenCalled();
   expect(requestNotificationPermissions).not.toHaveBeenCalled();
+});
+
+describe("the token photos are loaded with (Batch 51)", () => {
+  beforeEach(() => setPhotoTokenForTests(null));
+
+  it("is made as soon as someone is signed in, so the first photo needn't wait for it", async () => {
+    jest.mocked(getCurrentUser).mockResolvedValue(testUser as any);
+
+    await renderProvider();
+
+    expect(createPhotoToken).toHaveBeenCalledTimes(1);
+    expect(peekPhotoToken()).toBe("a-token");
+  });
+
+  it("is made for someone who signs in later too", async () => {
+    await renderProvider();
+    expect(createPhotoToken).not.toHaveBeenCalled();
+
+    act(() => {
+      context.setUser(testUser);
+    });
+    await flushPromises();
+
+    expect(createPhotoToken).toHaveBeenCalledTimes(1);
+  });
+
+  it("is not made when nobody is signed in", async () => {
+    await renderProvider();
+
+    expect(createPhotoToken).not.toHaveBeenCalled();
+  });
 });
 
 it("stores a freshly signed-in user in Redux (used by the Edit screen)", async () => {

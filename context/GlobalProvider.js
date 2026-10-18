@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { getCurrentUser } from "@/lib/appwrite";
+import { getPhotoToken } from "@/lib/photoAuth";
 import {
   clearSignedInUser,
   loadSignedInUser,
@@ -69,6 +70,12 @@ const GlobalProvider = ({ children }) => {
       });
     // setUser keeps its identity (it only changes with dispatch), so this still runs once
   }, [setUser]);
+
+  // Once someone is signed in, make the token their photos are loaded with, so it
+  // is ready by the time the first photo is drawn (lib/photoAuth.ts)
+  useEffect(() => {
+    if (user) void getPhotoToken();
+  }, [user]);
 
   // Open the piano from a tapped reminder, once someone is signed in
   const isSignedInRef = useRef(false);

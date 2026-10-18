@@ -111,7 +111,7 @@ describe("PianoCard", () => {
     const renderer = await setup().mounted;
     const image = renderer.root.findByType(Image);
 
-    expect(image.props.source).toEqual({ uri: comfortable.image_url });
+    expect(image.props.source).toMatchObject({ uri: comfortable.image_url });
     expect(image.props.contentFit).toBe("cover");
   });
 
@@ -302,7 +302,7 @@ describe("PianoRow", () => {
       paddingLeft: 20,
     });
     expect(flat(photo.props.style)).toMatchObject({ width: 64, height: 64, borderRadius: 12 });
-    expect(renderer.root.findByType(Image).props.source).toEqual({ uri: comfortable.image_url });
+    expect(renderer.root.findByType(Image).props.source).toMatchObject({ uri: comfortable.image_url });
   });
 
   it("says the title, then Category · Company, then the status", async () => {

@@ -1,5 +1,4 @@
 import Constants from "expo-constants";
-import { Image } from "expo-image";
 import { router } from "expo-router";
 import * as Updates from "expo-updates";
 import * as WebBrowser from "expo-web-browser";
@@ -11,7 +10,7 @@ import DeleteAccountSheet from "@/components/DeleteAccountSheet";
 import ExportPaymentsSheet from "@/components/ExportPaymentsSheet";
 import ReminderPreview, { SAMPLE_REMINDER } from "@/components/ReminderPreview";
 import SignOutSheet from "@/components/SignOutSheet";
-import { Group, Icon, Segmented, Spinner, Switch } from "@/components/ui";
+import { AuthedImage, Group, Icon, Segmented, Spinner, Switch } from "@/components/ui";
 import type { IconName } from "@/components/ui";
 import { PRIVACY_POLICY_URL } from "@/constants/links";
 import { fonts, maxScale, radii, spacing, type } from "@/constants/theme";
@@ -22,6 +21,7 @@ import { exportCustomers, exportExpenses, exportPayments } from "@/lib/exportDat
 import { forgetFormEvents } from "@/lib/formEvents";
 import { forgetLetterhead } from "@/lib/letterheadStore";
 import { forgetExpenses } from "@/lib/expensesStore";
+import { forgetPhotoToken } from "@/lib/photoAuth";
 import { forgetServiceLog } from "@/lib/serviceLogStore";
 import { forgetPaperPdfs } from "@/lib/paperPdf";
 import { clearPendingPianoLink } from "@/lib/pendingPianoLink";
@@ -266,6 +266,8 @@ const Profile = () => {
     await forgetServiceLog();
     forgetExpenses();
     forgetPaperPdfs();
+    // The photos' token stood for this account
+    forgetPhotoToken();
     // A label scanned just before signing out must not open for the next person
     clearPendingPianoLink();
     dispatch(resetPianoState() as any);
@@ -346,8 +348,10 @@ const Profile = () => {
           >
             <View style={styles.avatar}>
               {photo ? (
-                <Image
-                  source={{ uri: photo }}
+                <AuthedImage
+                  uri={photo}
+                  // The initial shows for the moment the photo's token takes to arrive
+                  fallback={<Text style={styles.initial}>{initialOf(user?.username, user?.email)}</Text>}
                   style={styles.photo}
                   contentFit="cover"
                   accessibilityElementsHidden

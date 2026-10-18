@@ -38,6 +38,7 @@ import { scheduleAllRentalNotifications } from "@/services/notifications";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { deletePianoEntry } from "@/lib/appwrite";
 import { loadPianosFromCache, savePianosToCache } from "@/lib/pianoCache";
+import { peekPhotoToken, setPhotoTokenForTests } from "@/lib/photoAuth";
 import {
   setBulkSelectionMode,
   toggleItemSelection,
@@ -223,9 +224,12 @@ describe("logging out", () => {
   it("clears the previous user's pianos and reminders", async () => {
     const { testStore, renderer } = await renderProfile();
     await savePianosToCache(testUser.accountId, [piano("a")]);
+    setPhotoTokenForTests("the-first-account's-token");
 
     await confirmSignOut(renderer);
 
+    // The token photos are loaded with stood for that account
+    expect(peekPhotoToken()).toBeNull();
     expect(testStore.getState().pianos.items).toEqual([]);
     expect(testStore.getState().pianos.filteredItems).toEqual([]);
     expect(fakeNotifications.rentalReminders()).toEqual([]);

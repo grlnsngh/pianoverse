@@ -62,7 +62,7 @@ describe("PianoPhoto with a photo", () => {
     const renderer = render(<PianoPhoto id="piano-1" uri={URI} />);
 
     expect(photos(renderer)).toHaveLength(1);
-    expect(photos(renderer)[0].props.source).toEqual({ uri: URI });
+    expect(photos(renderer)[0].props.source).toMatchObject({ uri: URI });
     expect(photos(renderer)[0].props.contentFit).toBe("cover");
     expect(drawings(renderer)).toHaveLength(0);
   });
@@ -89,7 +89,7 @@ describe("PianoPhoto with a photo", () => {
     act(() => renderer.update(<PianoPhoto id="piano-1" uri={`${URI}?v=2`} />));
 
     expect(photos(renderer)).toHaveLength(1);
-    expect(photos(renderer)[0].props.source).toEqual({ uri: `${URI}?v=2` });
+    expect(photos(renderer)[0].props.source).toMatchObject({ uri: `${URI}?v=2` });
     expect(drawings(renderer)).toHaveLength(0);
   });
 
@@ -321,7 +321,7 @@ describe("PianoPhoto with a Retry tile (a big photo, such as the top of a piano'
 
     expect(tile(renderer)).toBeUndefined();
     expect(photos(renderer)).toHaveLength(1);
-    expect(photos(renderer)[0].props.source).toEqual({ uri: URI });
+    expect(photos(renderer)[0].props.source).toMatchObject({ uri: URI });
   });
 
   it("shows the tile again if the photo fails again", () => {
@@ -339,7 +339,7 @@ describe("PianoPhoto with a Retry tile (a big photo, such as the top of a piano'
     act(() => renderer.update(<PianoPhoto id="piano-1" uri={`${URI}?v=2`} retryable />));
 
     expect(tile(renderer)).toBeUndefined();
-    expect(photos(renderer)[0].props.source).toEqual({ uri: `${URI}?v=2` });
+    expect(photos(renderer)[0].props.source).toMatchObject({ uri: `${URI}?v=2` });
   });
 
   it("still draws the piano when there is no photo at all: nothing failed, so there is nothing to retry", () => {

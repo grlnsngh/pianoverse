@@ -1,5 +1,4 @@
 import { createZoomController } from "@/utils/zoom";
-import { Image } from "expo-image";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -14,7 +13,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Icon } from "@/components/ui";
+import { AuthedImage, Icon } from "@/components/ui";
 import { fonts, maxScale } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 
@@ -141,9 +140,9 @@ const PhotoViewer: React.FC<PhotoViewerProps> = ({
           {...responder.panHandlers}
         >
           {!failed && (
-            <Image
+            <AuthedImage
               key={attempt}
-              source={{ uri: current }}
+              uri={current}
               style={{ width, height }}
               contentFit="contain"
               onError={() => setFailedUri(current)}
@@ -220,8 +219,8 @@ const PhotoViewer: React.FC<PhotoViewerProps> = ({
                     accessibilityState={{ selected }}
                     style={[styles.thumb, selected ? styles.thumbSelected : styles.thumbDim]}
                   >
-                    <Image
-                      source={{ uri }}
+                    <AuthedImage
+                      uri={uri}
                       style={StyleSheet.absoluteFill}
                       contentFit="cover"
                     />

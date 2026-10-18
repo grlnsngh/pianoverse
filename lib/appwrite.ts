@@ -493,6 +493,16 @@ const getLocalFileSize = async (uri: string) => {
 };
 
 /**
+ * A token that stands for the signed-in person for 15 minutes. An image view
+ * can't carry the session the SDK keeps, so a photo in the storage is asked for
+ * with this instead (lib/photoAuth.ts).
+ */
+export async function createPhotoToken(): Promise<string> {
+  const { jwt } = await account.createJWT();
+  return jwt;
+}
+
+/**
  * Uploads a picked image to the storage.
  *
  * @param {LocalImageAsset} file - The picked image (asset or file:// URI) to be uploaded.

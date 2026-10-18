@@ -73,6 +73,7 @@ export const fakeBackend = {
     fakeAccount.deleteSession.mockReset().mockImplementation(deleteSessionAsUsual);
     fakeAccount.createOAuth2Token.mockReset().mockImplementation(googleLoginUrl);
     fakeAccount.createSession.mockReset();
+    fakeAccount.createJWT.mockReset().mockResolvedValue({ jwt: "test-jwt" });
     fakeAccount.listIdentities.mockReset().mockResolvedValue({ total: 0, identities: [] });
     fakeFunctions.createExecution.mockReset().mockImplementation(accountDeleted);
   },
@@ -252,6 +253,7 @@ export const fakeAccount: Record<
   | "deleteSession"
   | "createOAuth2Token"
   | "createSession"
+  | "createJWT"
   | "listIdentities",
   jest.Mock
 > = {
@@ -260,6 +262,8 @@ export const fakeAccount: Record<
   deleteSession: jest.fn(deleteSessionAsUsual),
   createOAuth2Token: jest.fn(googleLoginUrl),
   createSession: jest.fn(),
+  // The token photos are loaded with (lib/photoAuth.ts)
+  createJWT: jest.fn(() => Promise.resolve({ jwt: "test-jwt" })),
   listIdentities: jest.fn(() => Promise.resolve({ total: 0, identities: [] })),
 };
 
@@ -275,6 +279,7 @@ class Account {
   deleteSession = (...args: unknown[]) => fakeAccount.deleteSession(...args);
   createOAuth2Token = (...args: unknown[]) => fakeAccount.createOAuth2Token(...args);
   createSession = (...args: unknown[]) => fakeAccount.createSession(...args);
+  createJWT = (...args: unknown[]) => fakeAccount.createJWT(...args);
   listIdentities = (...args: unknown[]) => fakeAccount.listIdentities(...args);
   createRecovery = jest.fn();
   updateRecovery = jest.fn();
