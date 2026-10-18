@@ -25,6 +25,9 @@
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     },
+    "test": {
+      "extends": "preview"
+    },
     "production": {
       "channel": "production",
       "android": {

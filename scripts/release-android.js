@@ -4,8 +4,9 @@ const publish = require("./publish-apk");
 
 // npm run release:android
 //
-// A new version for everyone, in one go: builds the APK (`npm run
-// build:android`, which raises the version when it has to) and, when the build
+// A new version for everyone, in one go: builds the website's small APK (`npm
+// run build:android -- --profile preview`, which raises the version when it has
+// to; only the phones' code, see plugins/with-apk-packaging.js) and, when the build
 // works, publishes it (`npm run publish:apk`): the GitHub release, and the
 // version, size and date on the website. Anything after `--` goes to
 // publish:apk (for example --notes "What's new").
@@ -14,8 +15,8 @@ const publish = require("./publish-apk");
 // notes in README.md), and the publishing runs here, where `gh` is signed in.
 // Elsewhere both run here.
 //
-// `npm run build:android` alone still makes an APK to try first, without
-// giving it to anyone.
+// `npm run build:android` alone makes the full test build, to try on phones and
+// emulators, without giving it to anyone.
 
 const root = path.join(__dirname, "..");
 
@@ -26,10 +27,11 @@ const wslPath = (windowsPath) =>
 const build = () => {
   if (process.platform === "win32") {
     // An interactive shell reads ~/.bashrc, which sets up nvm, Java and the Android SDK
-    const command = `cd '${wslPath(root)}' && npm run build:android -- --non-interactive`;
+    const command = `cd '${wslPath(root)}' && npm run build:android -- --profile preview --non-interactive`;
     return spawnSync("wsl", ["-e", "bash", "-ic", command], { stdio: "inherit" }).status ?? 1;
   }
-  return spawnSync("npm", ["run", "build:android", "--", "--non-interactive"], { cwd: root, stdio: "inherit" }).status ?? 1;
+  return spawnSync("npm", ["run", "build:android", "--", "--profile", "preview", "--non-interactive"], { cwd: root, stdio: "inherit" })
+    .status ?? 1;
 };
 
 if (require.main === module) {

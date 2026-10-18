@@ -19,7 +19,10 @@ const { readJson, readJsonIfExists, writeJson } = require("./version");
 //   npm run publish:apk -- --notes "What's new"  for the release page
 //   npm run publish:apk -- --no-merge            leave the site's pull request open instead of merging it
 //
-// A release is public: anyone with the link can install the app.
+// Only the small build goes on the website (the owner's rule): an APK that
+// carries the emulators' x86 code is a full test build and is refused, unless
+// --allow-full is given. A release is public: anyone with the link can install
+// the app.
 
 const REPO = "grlnsngh/pianoverse";
 const ASSET = "pianoverse.apk";
@@ -63,6 +66,16 @@ const newestApk = (root) => {
   return apks.length ? path.join(root, apks[0].name) : null;
 };
 
+/**
+ * Whether the APK is a full test build: it carries code for x86 processors,
+ * which only emulators have. File names in an APK (a zip) are stored as plain
+ * text, so they can be found in its bytes.
+ */
+const isFullBuild = (file) => {
+  const bytes = fs.readFileSync(file);
+  return bytes.includes(Buffer.from("lib/x86_64/")) || bytes.includes(Buffer.from("lib/x86/"));
+};
+
 /** A day as YYYY-MM-DD in the computer's own time zone. */
 const localDay = (date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -95,6 +108,12 @@ const run = ({
   const apk = value("--apk") ? path.resolve(root, value("--apk")) : newestApk(root);
   if (!apk || !fs.existsSync(apk)) {
     log("There is no APK to publish. Build one first: npm run build:android");
+    return 1;
+  }
+  if (isFullBuild(apk) && !args.includes("--allow-full")) {
+    log(
+      `${path.basename(apk)} is a full test build (it carries the emulators' x86 code), and the website gets the small one. Make it with: npm run release:android (or npm run build:android -- --profile preview).`
+    );
     return 1;
   }
   const record = readJsonIfExists(path.join(root, "last-build.json"));
@@ -183,4 +202,4 @@ if (require.main === module) {
   process.exit(run({ args: process.argv.slice(2) }));
 }
 
-module.exports = { run, applyRelease, formatDate, formatSize, newestApk, releaseWords };
+module.exports = { run, applyRelease, formatDate, formatSize, isFullBuild, newestApk, releaseWords };

@@ -2,8 +2,9 @@ const { withGradleProperties } = require("expo/config-plugins");
 
 /**
  * How the APK the website gives out is packed (the EAS build profile
- * "preview", which `npm run build:android` uses), so it downloads at about a
- * third of its old size:
+ * "preview", which `npm run release:android` builds), so it downloads at about
+ * a third of its old size. The full "test" build (`npm run build:android`) is
+ * left as it was, so it runs on the emulators too:
  *
  * - only the code real phones run: 64-bit ARM (almost every phone) and 32-bit
  *   ARM (older and cheaper phones). The x86 parts are for computer emulators;

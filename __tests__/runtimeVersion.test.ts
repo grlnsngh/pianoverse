@@ -464,6 +464,8 @@ describe("the update setup", () => {
     for (const name of ["development", "preview", "production"]) {
       expect(profiles[name].channel).toBe(name);
     }
+    // The full test build is the website's APK unpacked: the same channel, so the same updates
+    expect(profiles.test).toEqual({ extends: "preview" });
   });
 });
 
@@ -482,6 +484,8 @@ describe("the APK's packing (plugins/with-apk-packaging.js)", () => {
       "expo.useLegacyPackaging": "true",
     });
     expect(packagingProperties("production")).toEqual({});
+    // The full test build, which runs on the emulators too
+    expect(packagingProperties("test")).toEqual({});
     expect(packagingProperties(undefined)).toEqual({});
   });
 

@@ -149,6 +149,18 @@ describe("publishing", () => {
 });
 
 describe("what stops it", () => {
+  it("refuses a full test build, which carries the emulators' code, unless told to", () => {
+    const full = apk("build-3.apk", 0);
+    fs.writeFileSync(full, Buffer.concat([Buffer.alloc(500), Buffer.from("lib/x86_64/libhermes.so"), Buffer.alloc(500)]));
+
+    const refused = publish();
+    expect(refused.code).toBe(1);
+    expect(refused.text).toContain("build-3.apk is a full test build");
+    expect(refused.calls).toEqual([]);
+
+    expect(publish(["--allow-full", "--no-commit"]).code).toBe(0);
+  });
+
   it("refuses with no APK, or one that isn't of the version in app.json", () => {
     expect(publish().text).toContain("There is no APK to publish");
 
