@@ -117,6 +117,15 @@ const Today = () => {
   const openAdd = useCallback(() => router.push("/create"), []);
   const openIncome = useCallback(() => router.push("/income"), []);
   const openPiano = useCallback((id: string) => router.push(`/detail/${id}`), []);
+  // An ended rental's quick steps: the piano opens with the sheet already up
+  const openReturned = useCallback(
+    (id: string) => router.push({ pathname: "/detail/[id]", params: { id, then: "return" } }),
+    []
+  );
+  const openExtend = useCallback(
+    (id: string) => router.push({ pathname: "/detail/[id]", params: { id, then: "extend" } }),
+    []
+  );
   // A reminder that says how much is due, typed into the renter's WhatsApp chat
   const remind = useCallback(
     (entry: RentDueEntry) => {
@@ -265,7 +274,13 @@ const Today = () => {
         </View>
         {attention.length > 0 ? (
           attention.map((entry) => (
-            <AttentionRow key={entry.piano.$id} entry={entry} onOpen={openPiano} />
+            <AttentionRow
+              key={entry.piano.$id}
+              entry={entry}
+              onOpen={openPiano}
+              onReturned={openReturned}
+              onExtend={openExtend}
+            />
           ))
         ) : (
           <Text style={styles.quiet}>

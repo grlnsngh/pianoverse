@@ -185,6 +185,41 @@ describe("the action", () => {
   });
 });
 
+describe("from Today's quick steps", () => {
+  const openWith = async (then: string, piano = rental({ rental_period_end: "2026-09-10" as any })) => {
+    const { useLocalSearchParams } = jest.requireMock("expo-router");
+    useLocalSearchParams.mockReturnValue({ id: "piano-1", then });
+    const { renderer } = await openDetail(piano);
+    useLocalSearchParams.mockReturnValue({ id: "piano-1" });
+    return renderer;
+  };
+  const extendIsOpen = (renderer: ReactTestRenderer) =>
+    renderer.root.findAll((node) => (node.props as any).title === "Extend rental" && (node.props as any).visible === true)
+      .length > 0;
+
+  it("opens Mark as returned at once when Today's Mark returned was pressed", async () => {
+    const renderer = await openWith("return");
+
+    expect(sheetIsOpen(renderer)).toBe(true);
+    expect(extendIsOpen(renderer)).toBe(false);
+  });
+
+  it("opens Extend rental at once when Today's Extend was pressed", async () => {
+    const renderer = await openWith("extend");
+
+    expect(extendIsOpen(renderer)).toBe(true);
+    expect(sheetIsOpen(renderer)).toBe(false);
+  });
+
+  it("opens nothing for a piano whose rental is already gone, or when the page is opened as usual", async () => {
+    const gone = await openWith("return", rental({ rental_period_end: null, rental_period_start: null, rental_customer_name: "" }));
+    expect(sheetIsOpen(gone)).toBe(false);
+
+    const { renderer } = await openDetail(rental({ rental_period_end: "2026-09-10" as any }));
+    expect(sheetIsOpen(renderer)).toBe(false);
+  });
+});
+
 describe("the sheet", () => {
   it("names the renter and the piano, and says what will happen", async () => {
     const { renderer } = await openDetail();

@@ -4,7 +4,7 @@ import path from "path";
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { bumpVersion, bumped, needsBump, writeJson } = require("../scripts/version");
-const { run } = require("../scripts/build-android");
+const { run, profileOf } = require("../scripts/build-android");
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 /**
@@ -40,13 +40,25 @@ const setUp = (appJson: unknown, record?: unknown) => {
   if (record !== undefined) fs.writeFileSync(recordFile(), JSON.stringify(record));
 };
 
+/**
+ * git as the build script sees it: a clean checkout at `commit`, where `changed`
+ * says whether anything but the version files differs from a recorded commit.
+ */
+const fakeGit = ({ commit = "abc123", dirty = false, changed = false } = {}) => (gitArgs: string[]) => {
+  if (gitArgs[0] === "rev-parse") return { status: 0, stdout: commit };
+  if (gitArgs[0] === "status") return { status: 0, stdout: dirty ? " M utils/money.ts" : "" };
+  if (gitArgs[0] === "diff") return { status: changed ? 1 : 0, stdout: "" };
+  return { status: 1, stdout: "" };
+};
+
 /** Runs the script in the temp folder; eas answers with `status` and its arguments are kept. */
-const build = (args: string[] = [], status = 0) => {
+const build = (args: string[] = [], status = 0, git?: ReturnType<typeof fakeGit>) => {
   const calls: string[][] = [];
   const lines: string[] = [];
   const code = run({
     args,
     root: dir,
+    ...(git ? { git } : {}),
     spawn: (easArgs: string[]) => {
       calls.push(easArgs);
       return status;
@@ -169,12 +181,16 @@ describe("npm run build:android", () => {
   it("records what was built, and when, once the build works", () => {
     setUp(app("1.1.17", 28), { version: "1.1.15", versionCode: 26, builtAt: null });
 
-    build();
+    build([], 0, fakeGit({ commit: "abc123" }));
 
     expect(readRecord()).toEqual({
       version: "1.1.17",
       versionCode: 28,
       builtAt: "2026-10-02T09:30:00.000Z",
+      // The full test build, from a clean commit
+      profile: "test",
+      commit: "abc123",
+      dirty: false,
     });
   });
 
@@ -315,5 +331,57 @@ describe("the project's own files", () => {
     expect(typeof record.version).toBe("string");
     // The record never gets ahead of app.json: a build raises app.json first
     expect(record.versionCode).toBeLessThanOrEqual(expo.android.versionCode);
+  });
+});
+
+describe("a release right after a test build (the same number on the website)", () => {
+  const tested = { version: "1.1.21", versionCode: 32, builtAt: null, profile: "test", commit: "abc123", dirty: false };
+
+  it("keeps the test build's number when nothing but the version files changed since", () => {
+    setUp(app("1.1.21", 32), tested);
+
+    const { calls, text } = build(["--profile", "preview"], 0, fakeGit({ commit: "def456" }));
+
+    expect(readApp().expo).toMatchObject({ version: "1.1.21", android: { versionCode: 32 } });
+    expect(text).toContain("Building 1.1.21 (versionCode 32) for the website: the same code was tried as the test build");
+    expect(calls).toEqual([["build", "-p", "android", "--local", "--profile", "preview"]]);
+    expect(readRecord()).toMatchObject({ versionCode: 32, profile: "preview" });
+  });
+
+  it("raises it when the code changed since the test build", () => {
+    setUp(app("1.1.21", 32), tested);
+
+    build(["--profile", "preview"], 0, fakeGit({ changed: true }));
+
+    expect(readApp().expo.android.versionCode).toBe(33);
+  });
+
+  it("raises it when the test build was made with changes that weren't committed, since what it held can't be told", () => {
+    setUp(app("1.1.21", 32), { ...tested, dirty: true });
+
+    build(["--profile", "preview"], 0, fakeGit());
+
+    expect(readApp().expo.android.versionCode).toBe(33);
+  });
+
+  it("raises it after a release, after another test build, and when --bump is given", () => {
+    setUp(app("1.1.21", 32), { ...tested, profile: "preview" });
+    build(["--profile", "preview"], 0, fakeGit());
+    expect(readApp().expo.android.versionCode).toBe(33);
+
+    setUp(app("1.1.21", 32), tested);
+    build([], 0, fakeGit());
+    expect(readApp().expo.android.versionCode).toBe(33);
+
+    setUp(app("1.1.21", 32), tested);
+    build(["--profile", "preview", "--bump"], 0, fakeGit());
+    expect(readApp().expo.android.versionCode).toBe(33);
+  });
+
+  it("knows which profile it builds", () => {
+    expect(profileOf([])).toBe("test");
+    expect(profileOf(["--profile", "preview"])).toBe("preview");
+    expect(profileOf(["--profile=production"])).toBe("production");
+    expect(profileOf(["-e", "preview", "--non-interactive"])).toBe("preview");
   });
 });

@@ -322,7 +322,7 @@ const Home = () => {
     return () => {
       cancelled = true;
     };
-  }, [user?.accountId]);
+  }, [user?.accountId, dispatch]);
 
   // Keep the saved copy up to date, including changes made in the app
   useEffect(() => {
@@ -342,7 +342,7 @@ const Home = () => {
     // Keep rental reminders in line with the loaded pianos. This also removes
     // reminders for pianos that were deleted or are no longer rented.
     scheduleAllRentalNotifications(items);
-  }, [items, isLoading, loadError, user]);
+  }, [items, isLoading, loadError, user, dispatch]);
 
   // A label scanned with the phone's own camera opened the app: now that the pianos have
   // loaded (which only a signed-in person gets), open the piano it names

@@ -67,7 +67,8 @@ const GlobalProvider = ({ children }) => {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+    // setUser keeps its identity (it only changes with dispatch), so this still runs once
+  }, [setUser]);
 
   // Open the piano from a tapped reminder, once someone is signed in
   const isSignedInRef = useRef(false);

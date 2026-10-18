@@ -83,6 +83,17 @@ describe("the five designs", () => {
     expect(frame.firstLayers).toContain("#F2CDB6");
   });
 
+  it("shows the logo in Monogram's small letterhead when there is one, in place of the initials", () => {
+    const withLogo = letterheadFrame(make("monogram", { logo: { file: "logo-1.png", width: 600, height: 400 } }), tps, logo);
+    const without = letterheadFrame(make("monogram"), tps, NO_ASSETS);
+
+    expect(withLogo.restStrip).toContain('class="lh-logo"');
+    expect(withLogo.restStrip).not.toContain("font-size:42px");
+    expect(withLogo.restStrip).toContain("THE PIANO SERVICES");
+    expect(without.restStrip).not.toContain("lh-logo");
+    expect(without.restStrip).toContain(">TPS</span>");
+  });
+
   it("uses the colour chosen", () => {
     const frame = letterheadFrame(make("band", { colour: "navy" }), tps, NO_ASSETS);
 
