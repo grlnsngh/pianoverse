@@ -211,7 +211,9 @@ const run = ({
     log(`The site's pull request is open on ${branch}. Merge it to put the new version on the website.`);
     return 0;
   }
-  const merged = exec("gh", ["pr", "merge", branch, "--repo", REPO, "--merge", "--delete-branch"], { cwd: root });
+  // --admin: main wants the CI check to pass before a pull request is merged, and this one only
+  // has the version files and the site's words in it, so it isn't waited for (an administrator may)
+  const merged = exec("gh", ["pr", "merge", branch, "--repo", REPO, "--merge", "--admin", "--delete-branch"], { cwd: root });
   if (merged.status !== 0) {
     log(`The pull request couldn't be merged: ${(merged.stderr || merged.stdout).trim()}\nMerge it on GitHub to update the site.`);
     return 1;

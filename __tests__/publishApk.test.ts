@@ -198,7 +198,7 @@ describe("publishing", () => {
     );
     expect(calls.find((call) => call.args[0] === "switch" && call.args[1] === "-c")!.args[2]).toBe("release/v1.1.21");
     expect(calls.find((call) => call.args[0] === "pr" && call.args[1] === "merge")!.args).toEqual(
-      expect.arrayContaining(["release/v1.1.21", "--merge", "--delete-branch"])
+      expect.arrayContaining(["release/v1.1.21", "--merge", "--admin", "--delete-branch"])
     );
     expect(text).toContain("Merged: the website shows the new version");
   });
