@@ -1,7 +1,6 @@
-jest.mock("expo-image-manipulator", () => ({
-  manipulateAsync: jest.fn(),
-  SaveFormat: { JPEG: "jpeg" },
-}));
+jest.mock("expo-image-manipulator", () =>
+  require("./helpers/fakeImageManipulator").createFakeImageManipulatorModule()
+);
 jest.mock("expo-image-picker", () => ({
   requestCameraPermissionsAsync: jest.fn(),
   launchCameraAsync: jest.fn(),

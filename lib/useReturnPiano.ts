@@ -51,7 +51,7 @@ const useReturnPiano = () => {
             customerName: piano.rental_customer_name?.trim() || undefined,
           });
           paymentId = payment.$id;
-          dispatch(paymentsChanged() as any);
+          dispatch(paymentsChanged());
         } catch (error) {
           console.warn("Could not record the rent kept from the deposit:", error);
           showToast(SAVE_FAILED, { variant: "error", duration: "long" });
@@ -69,13 +69,13 @@ const useReturnPiano = () => {
           await deleteRentPayment(paymentId).catch((failure) =>
             console.warn("Could not take back the rent kept from the deposit:", failure)
           );
-          dispatch(paymentsChanged() as any);
+          dispatch(paymentsChanged());
         }
         showToast(SAVE_FAILED, { variant: "error", duration: "long" });
         return false;
       }
 
-      dispatch(updatePianoItem(updated) as any);
+      dispatch(updatePianoItem(updated));
       // No rental any more, so no reminders
       await scheduleRentalDueNotification(updated);
 
@@ -85,7 +85,7 @@ const useReturnPiano = () => {
       const undo = async (): Promise<void> => {
         try {
           const restored = await updatePianoFields(piano.$id, restoredRental(piano));
-          dispatch(updatePianoItem(restored) as any);
+          dispatch(updatePianoItem(restored));
           await scheduleRentalDueNotification(restored);
           if (keptId) {
             await deleteRentalHistoryEntry(keptId).catch((error) =>
@@ -99,7 +99,7 @@ const useReturnPiano = () => {
             );
             paymentId = null;
           }
-          dispatch(paymentsChanged() as any);
+          dispatch(paymentsChanged());
           showToast("Return undone", { variant: "success" });
         } catch (error) {
           console.warn("Could not undo marking the piano as returned:", error);
@@ -122,7 +122,7 @@ const useReturnPiano = () => {
         await saveOldRental(entry, (kept) => {
           keptId = kept.$id;
           // The screens that show history load it again
-          dispatch(paymentsChanged() as any);
+          dispatch(paymentsChanged());
         });
       }
       return true;

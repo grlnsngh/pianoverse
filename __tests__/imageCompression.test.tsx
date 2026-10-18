@@ -1,7 +1,6 @@
-jest.mock("expo-image-manipulator", () => ({
-  manipulateAsync: jest.fn(),
-  SaveFormat: { JPEG: "jpeg" },
-}));
+jest.mock("expo-image-manipulator", () =>
+  require("./helpers/fakeImageManipulator").createFakeImageManipulatorModule()
+);
 jest.mock("expo-image-picker", () => ({
   launchImageLibraryAsync: jest.fn(),
   MediaTypeOptions: { Images: "Images" },
@@ -25,6 +24,7 @@ import * as ImagePicker from "expo-image-picker";
 import Create from "@/app/create";
 import { prepareImageForUpload } from "@/utils/image";
 import { testUser } from "./helpers/fixtures";
+import { releasedPictures } from "./helpers/fakeImageManipulator";
 import { addPhotoFrom, createTestStore, renderWithStore } from "./helpers/render";
 
 const KB = 1024;
@@ -119,4 +119,28 @@ it("the Create screen re-encodes a big, detailed photo at most twice", async () 
   await addPhotoFrom(renderer.root, "library");
 
   expect(ImageManipulator.manipulateAsync).toHaveBeenCalledTimes(2);
+});
+
+describe("the picture's memory", () => {
+  it("is given back once a photo is saved, as each pass loads it again", async () => {
+    encodedSize = () => 800 * KB;
+    const before = { ...releasedPictures() };
+
+    await prepareImageForUpload(photo(3000, 4 * MB));
+
+    // Two passes (the first was still too big), each with its own context and saved picture
+    expect(releasedPictures().contexts - before.contexts).toBe(2);
+    expect(releasedPictures().images - before.images).toBe(2);
+  });
+
+  it("is given back too when saving fails", async () => {
+    encodedSize = () => 100 * KB;
+    jest.mocked(ImageManipulator.manipulateAsync).mockRejectedValueOnce(new Error("Out of memory"));
+    const before = { ...releasedPictures() };
+
+    await expect(prepareImageForUpload(photo(3000, 4 * MB))).rejects.toThrow("Out of memory");
+
+    expect(releasedPictures().contexts - before.contexts).toBe(1);
+    expect(releasedPictures().images - before.images).toBe(1);
+  });
 });

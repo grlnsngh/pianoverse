@@ -1,8 +1,9 @@
 import { useCallback, useState, useEffect, useRef } from "react";
 import { Alert } from "react-native";
 
-const useAppwrite = (fn: () => Promise<any>) => {
-  const [data, setData] = useState([]);
+/** Loads a list once, and again when asked (`refetch`), telling how it is going. */
+const useAppwrite = <T,>(fn: () => Promise<T[]>) => {
+  const [data, setData] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
   const hasFetchedRef = useRef(false);

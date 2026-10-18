@@ -255,11 +255,30 @@ describe("a missing table", () => {
     );
   });
 
+  it("is told the way the live project words it for a table, with the table's ID in the sentence", () => {
+    expect(
+      isMissingTable(
+        Object.assign(new Error("Table with the requested ID 'rental_history' could not be found."), {
+          type: "table_not_found",
+          code: 404,
+        })
+      )
+    ).toBe(true);
+    // The sentence alone is enough, and so is the type alone
+    expect(isMissingTable(new Error("Table with the requested ID 'expenses' could not be found."))).toBe(true);
+    expect(isMissingTable({ message: "x", type: "table_not_found" })).toBe(true);
+  });
+
   it("isn't mistaken for another failure", () => {
     expect(isMissingTable(new Error("Network request failed"))).toBe(false);
     expect(
       isMissingTable(
         new Error("Document with the requested ID could not be found.")
+      )
+    ).toBe(false);
+    expect(
+      isMissingTable(
+        new Error("Row with the requested ID 'abc' could not be found.")
       )
     ).toBe(false);
     expect(isMissingTable(undefined)).toBe(false);

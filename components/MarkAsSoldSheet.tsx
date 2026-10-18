@@ -109,7 +109,7 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
             console.warn("Could not take back the kept rental:", error)
           );
           keptId = null;
-          dispatch(paymentsChanged() as any);
+          dispatch(paymentsChanged());
         },
       }
     );
@@ -117,7 +117,7 @@ const MarkAsSoldSheet: React.FC<MarkAsSoldSheetProps> = ({
       await saveOldRental(entry, (kept) => {
         keptId = kept.$id;
         // The screens that show history load it again
-        dispatch(paymentsChanged() as any);
+        dispatch(paymentsChanged());
       });
     }
     setSaving(false);

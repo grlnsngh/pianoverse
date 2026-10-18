@@ -23,6 +23,7 @@ jest.mock("expo-router", () => ({
 import React from "react";
 import { act, ReactTestRenderer } from "react-test-renderer";
 import { router, useLocalSearchParams } from "expo-router";
+import type { Models } from "react-native-appwrite";
 import ForgetPassword from "@/app/(auth)/forget-password";
 import ResetPassword from "@/app/(auth)/reset-password";
 import SignIn from "@/app/(auth)/sign-in";
@@ -76,7 +77,7 @@ const pendingSignIn = () => {
   jest.mocked(signIn).mockImplementationOnce(
     () =>
       new Promise((resolve, reject) => {
-        succeed = () => resolve({});
+        succeed = () => resolve({} as Models.Session);
         fail = reject;
       })
   );

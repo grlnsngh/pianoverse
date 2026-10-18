@@ -1,4 +1,4 @@
-import qrcode from "qrcode-generator";
+import makeQr from "qrcode-generator";
 import { PianoItem } from "@/redux/pianos/types";
 import type { Letterhead } from "@/utils/letterhead";
 import { PIANO_LINK_PREFIX } from "@/utils/qrScan";
@@ -18,7 +18,7 @@ export const QUIET_ZONE = 4;
 
 /** The code for `text` as rows of modules, `true` where a module is dark. Error correction M (15%), the smallest version that fits. */
 export const qrMatrix = (text: string): boolean[][] => {
-  const code = qrcode(0, "M");
+  const code = makeQr(0, "M");
   code.addData(text);
   code.make();
   const size = code.getModuleCount();

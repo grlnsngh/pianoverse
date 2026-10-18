@@ -71,7 +71,7 @@ const FilterSheet = ({ visible, onClose }: FilterSheetProps) => {
   );
 
   const apply = () => {
-    dispatch(setPianoFilters(draft) as any);
+    dispatch(setPianoFilters(draft));
     onClose();
   };
 

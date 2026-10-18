@@ -7,14 +7,14 @@ export type TabKey = "today" | "pianos" | "account";
 export const SET_ACTIVE_TAB = "SET_ACTIVE_TAB";
 export const RESET_CREATE_FORM = "RESET_CREATE_FORM";
 
-export interface SetActiveTabAction {
+export type SetActiveTabAction = {
   type: typeof SET_ACTIVE_TAB;
   payload: TabKey;
-}
+};
 
-export interface ResetCreateFormAction {
+export type ResetCreateFormAction = {
   type: typeof RESET_CREATE_FORM;
-}
+};
 
 export type NavigationActionTypes = SetActiveTabAction | ResetCreateFormAction;
 

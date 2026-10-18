@@ -11,7 +11,7 @@ const text = (value: string | null | undefined) => value?.trim() || "";
 
 /** The calendar day of a stored date, as a string, or null. */
 const dayOf = (value: PianoItem["rental_period_start"]) => {
-  const date = parseStoredDate(value as any);
+  const date = parseStoredDate(value);
   return date ? toStoredDate(date) : null;
 };
 
@@ -46,7 +46,7 @@ export const clearedRental = (): PianoFieldsUpdate => ({
 /** What puts a piano's deposit back as it was: the amount and the day it was received. */
 export const restoredDeposit = (piano: PianoItem): PianoFieldsUpdate => ({
   rental_deposit: typeof piano.rental_deposit === "number" && piano.rental_deposit > 0 ? piano.rental_deposit : null,
-  deposit_received_on: dayOf(piano.deposit_received_on) as any,
+  deposit_received_on: dayOf(piano.deposit_received_on),
 });
 
 /** What puts a piano's rental back as it was (Undo), in the way the fields are saved. */
@@ -54,8 +54,8 @@ export const restoredRental = (piano: PianoItem): PianoFieldsUpdate => ({
   rental_customer_name: piano.rental_customer_name ?? null,
   rental_customer_mobile: piano.rental_customer_mobile ?? null,
   rental_customer_address: piano.rental_customer_address ?? null,
-  rental_period_start: dayOf(piano.rental_period_start) as any,
-  rental_period_end: dayOf(piano.rental_period_end) as any,
+  rental_period_start: dayOf(piano.rental_period_start),
+  rental_period_end: dayOf(piano.rental_period_end),
   rental_price: typeof piano.rental_price === "number" ? piano.rental_price : null,
   ...restoredDeposit(piano),
 });

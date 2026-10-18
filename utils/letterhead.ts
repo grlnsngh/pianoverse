@@ -231,6 +231,8 @@ const cleanImage = (input: unknown): LetterheadImage | null => {
 /** A picture from whatever was stored; a design saved before pictures existed gets the grand piano. */
 const cleanPicture = (input: unknown): LetterheadPicture => {
   if (!input || typeof input !== "object") return DEFAULT_PICTURE;
+  // Whatever was stored: each part is checked below before it is used
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { source, image, place, size, strength } = input as Record<string, any>;
   return {
     source: ["piano", "own", "none"].includes(source) ? source : DEFAULT_PICTURE.source,
@@ -243,6 +245,8 @@ const cleanPicture = (input: unknown): LetterheadPicture => {
 
 /** A design from whatever was stored: every part present and allowed, anything else the default. */
 export const cleanDesign = (input: unknown): LetterheadDesign => {
+  // Whatever was stored: each part is checked below before it is used
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const source = input && typeof input === "object" ? (input as Record<string, any>) : {};
   const upload = source.upload && typeof source.upload === "object" ? source.upload : {};
   const printed = source.printed && typeof source.printed === "object" ? source.printed : {};

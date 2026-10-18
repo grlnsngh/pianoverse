@@ -20,10 +20,10 @@ export const otherUser = {
 export const makePiano = (overrides: Partial<PianoItem> = {}): PianoItem =>
   ({
     $id: "piano-1",
-    $collectionId: "pianos",
+    $sequence: "1",
+    $tableId: "pianos",
     $databaseId: "db",
     $permissions: [],
-    $tenant: "",
     $createdAt: "2026-09-01T10:00:00.000+00:00",
     $updatedAt: "2026-09-01T10:00:00.000+00:00",
     category: "warehouse",

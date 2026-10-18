@@ -60,7 +60,7 @@ const useUpdatePiano = () => {
         return false;
       }
 
-      dispatch(updatePianoItem(updated) as any);
+      dispatch(updatePianoItem(updated));
       // The rental may have a new end date, or be over because it was sold
       await scheduleRentalDueNotification(updated);
       const { undo } = options;

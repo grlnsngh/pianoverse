@@ -166,7 +166,7 @@ describe("the web pages", () => {
   });
 
   it("the link the app puts in the reset email opens the reset page", () => {
-    expect(read("lib/appwrite.ts")).toContain("createRecovery(email, RESET_PASSWORD_URL)");
+    expect(read("lib/appwrite.ts")).toContain("createRecovery({ email, url: RESET_PASSWORD_URL })");
     const file = path.basename(new URL(RESET_PASSWORD_URL).pathname);
     expect(file).toBe("reset-password.html");
     expect(fs.existsSync(path.join(root, file))).toBe(true);
@@ -313,7 +313,6 @@ describe("the landing and download pages (docs/website/PLAN.md)", () => {
 
   it("say the version, size and date of the APK that is published, from web/release.json", () => {
     // npm run publish:apk writes release.json and fills in these spans (scripts/publish-apk.js)
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { releaseWords } = require("../scripts/publish-apk");
     const release = JSON.parse(read("web/release.json"));
     const words = releaseWords(release);

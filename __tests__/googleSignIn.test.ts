@@ -47,7 +47,11 @@ describe("the page Google sign-in opens", () => {
     expect(url.pathname).toContain("/oauth2/google");
     expect(url.searchParams.get("success")).toBe(REDIRECT);
     expect(url.searchParams.get("failure")).toBe(REDIRECT);
-    expect(fakeAccount.createOAuth2Token).toHaveBeenCalledWith("google", REDIRECT, REDIRECT);
+    expect(fakeAccount.createOAuth2Token).toHaveBeenCalledWith({
+      provider: "google",
+      success: REDIRECT,
+      failure: REDIRECT,
+    });
   });
 
   it("can't be made when Appwrite gives no address", () => {
@@ -74,7 +78,7 @@ describe("signing in with Google", () => {
 
     await signInWithGoogle("/sign-in");
 
-    expect(fakeAccount.createSession).toHaveBeenCalledWith("account-g1", "one-time");
+    expect(fakeAccount.createSession).toHaveBeenCalledWith({ userId: "account-g1", secret: "one-time" });
   });
 
   it("makes the user document for a first sign-in, with the Google name and email", async () => {
@@ -199,7 +203,7 @@ describe("signing in with Google", () => {
 
       await expect(signInWithGoogle("/sign-in")).resolves.toMatchObject({ status: "signed_in" });
 
-      expect(fakeAccount.deleteSession).toHaveBeenCalledWith("current");
+      expect(fakeAccount.deleteSession).toHaveBeenCalledWith({ sessionId: "current" });
       expect(fakeAccount.createSession).toHaveBeenCalledTimes(2);
     });
 
@@ -209,7 +213,7 @@ describe("signing in with Google", () => {
 
       await expect(signInWithGoogle("/sign-in")).rejects.toThrow();
 
-      expect(fakeAccount.deleteSession).toHaveBeenCalledWith("current");
+      expect(fakeAccount.deleteSession).toHaveBeenCalledWith({ sessionId: "current" });
     });
 
     it("still reports the first problem when signing out fails too", async () => {
@@ -218,7 +222,7 @@ describe("signing in with Google", () => {
       fakeBackend.signOutError = new Error("offline");
 
       await expect(signInWithGoogle("/sign-in")).rejects.toThrow(
-        "Collection with the requested ID could not be found."
+        "Table with the requested ID '66b26b2a00163be2e73a' could not be found."
       );
     });
 

@@ -43,7 +43,7 @@ const TabsLayout = () => {
 
   // Start on the first tab after signing in or opening the app
   useEffect(() => {
-    dispatch(setActiveTab(INITIAL_TAB) as any);
+    dispatch(setActiveTab(INITIAL_TAB));
   }, [dispatch]);
 
   return (
@@ -55,7 +55,7 @@ const TabsLayout = () => {
         <TabBar
           tabs={TABS}
           active={activeTab}
-          onSelect={(tab) => dispatch(setActiveTab(tab) as any)}
+          onSelect={(tab) => dispatch(setActiveTab(tab))}
         />
       )}
       {/* Once, before the phone's own question about notifications */}

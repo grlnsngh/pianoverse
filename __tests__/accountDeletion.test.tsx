@@ -78,13 +78,13 @@ describe("deleteAccount()", () => {
   it("asks the delete-account function, with a POST that confirms it, and waits for it", async () => {
     await deleteAccount();
 
-    expect(fakeFunctions.createExecution).toHaveBeenCalledWith(
-      appwriteConfig.deleteAccountFunctionId,
-      JSON.stringify({ confirm: "DELETE" }),
-      false,
-      "/",
-      "POST"
-    );
+    expect(fakeFunctions.createExecution).toHaveBeenCalledWith({
+      functionId: appwriteConfig.deleteAccountFunctionId,
+      body: JSON.stringify({ confirm: "DELETE" }),
+      async: false,
+      xpath: "/",
+      method: "POST",
+    });
   });
 
   it("gives the function's own message when it couldn't finish", async () => {

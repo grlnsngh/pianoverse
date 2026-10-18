@@ -15,8 +15,7 @@ import {
   Account,
   Client,
   ID,
-  Avatars,
-  Databases,
+  TablesDB,
   ExecutionMethod,
   Functions,
   OAuthProvider,
@@ -24,23 +23,24 @@ import {
   Storage,
 } from "react-native-appwrite";
 import type { Models } from "react-native-appwrite";
+import type { User } from "@/redux/users/types";
 
 export const appwriteConfig = {
   endpoint: "https://cloud.appwrite.io/v1",
   platform: "com.grlnsngh.pianoverse",
   projectId: "66b2693000154e2fa3c8",
   databaseId: "66b26b1300171b9140be",
-  userCollectionId: "66b26b2a00163be2e73a",
-  pianoCollectionId: "66b26b3c002284a5a862",
-  rentPaymentsCollectionId: "rent_payments",
+  userTableId: "66b26b2a00163be2e73a",
+  pianoTableId: "66b26b3c002284a5a862",
+  rentPaymentsTableId: "rent_payments",
   // Named rental_history in the console; it was made with an ID of its own
-  rentalHistoryCollectionId: "6abdffe40034432a5cde",
+  rentalHistoryTableId: "6abdffe40034432a5cde",
   // The paper forms' usage counts (Batch 32)
-  formEventsCollectionId: "form_events",
+  formEventsTableId: "form_events",
   // The tuning and service log (Batch 35)
-  serviceLogCollectionId: "service_log",
+  serviceLogTableId: "service_log",
   // Business expenses, not tied to a piano (Batch 36)
-  expensesCollectionId: "expenses",
+  expensesTableId: "expenses",
   storageId: "66b26b77003445e612b4",
   // The Appwrite Function in functions/delete-account
   deleteAccountFunctionId: "delete-account",
@@ -56,9 +56,55 @@ client
 
 const account = new Account(client);
 const storage = new Storage(client);
-const avatars = new Avatars(client);
-const databases = new Databases(client);
+const tablesDB = new TablesDB(client);
 const functions = new Functions(client);
+
+/** A row as the SDK hands it back: Appwrite's own fields, and the table's columns `T`. */
+type Row<T extends object = Record<string, unknown>> = Models.Row & T;
+
+/**
+ * The app's rows API: the five calls it makes on a table of the project's
+ * database. Here the SDK's loose typing of a row's columns is settled once,
+ * so that the callers get the type of the table they ask for.
+ */
+const db = {
+  list: <T extends object>(tableId: string, queries: string[]) =>
+    tablesDB.listRows<Row<T>>({ databaseId: appwriteConfig.databaseId, tableId, queries }),
+  create: async <T extends object>(
+    tableId: string,
+    rowId: string,
+    data: object,
+    permissions?: string[]
+  ) =>
+    (await tablesDB.createRow({
+      databaseId: appwriteConfig.databaseId,
+      tableId,
+      rowId,
+      data,
+      permissions,
+    })) as unknown as Row<T>,
+  update: async <T extends object>(tableId: string, rowId: string, data: object) =>
+    (await tablesDB.updateRow({
+      databaseId: appwriteConfig.databaseId,
+      tableId,
+      rowId,
+      data,
+    })) as unknown as Row<T>,
+  remove: (tableId: string, rowId: string) =>
+    tablesDB.deleteRow({ databaseId: appwriteConfig.databaseId, tableId, rowId }),
+};
+
+/**
+ * Where a stored photo is viewed, in the one form the app has always saved
+ * (and reads back, e.g. to find the file to delete). The SDK's own address
+ * builder adds parameters the saved addresses never had.
+ */
+export const fileViewUrl = (fileId: string) =>
+  `${appwriteConfig.endpoint}/storage/buckets/${appwriteConfig.storageId}/files/${fileId}/view?project=${appwriteConfig.projectId}`;
+
+/** The picture Appwrite draws from a name's letters, as an address. */
+const initialsUrl = (name: string) =>
+  `${appwriteConfig.endpoint}/avatars/initials?name=${encodeURIComponent(name)}&project=${appwriteConfig.projectId}`;
 
 /**
  * Creates a new user account and user document in the database.
@@ -66,31 +112,30 @@ const functions = new Functions(client);
  * @param {string} email - The email address of the new user.
  * @param {string} password - The password for the new user account.
  * @param {string} username - The username for the new user.
- * @returns {Promise<any>} A promise that resolves to the newly created user document.
+ * @returns {Promise<User>} A promise that resolves to the newly created user row.
  * @throws {Error} If there is an error during the user creation process.
  */
 export async function createUser(
   email: string,
   password: string,
   username: string
-): Promise<any> {
+): Promise<User> {
   try {
-    const newAccount = await account.create(
-      ID.unique(),
+    const newAccount = await account.create({
+      userId: ID.unique(),
       email,
       password,
-      username
-    );
+      name: username,
+    });
 
     if (!newAccount) throw Error;
 
-    const avatarUrl = avatars.getInitials(username);
+    const avatarUrl = initialsUrl(username);
 
     await signIn(email, password);
 
-    const newUser = await databases.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
+    const newUser = await db.create<User>(
+      appwriteConfig.userTableId,
       ID.unique(),
       {
         accountId: newAccount.$id,
@@ -116,15 +161,15 @@ export async function createUser(
  * @returns {Promise<any>} A promise that resolves to the session object if the sign-in is successful.
  * @throws {Error} If there is an error during the sign-in process.
  */
-export async function signIn(email: string, password: string): Promise<any> {
+export async function signIn(email: string, password: string): Promise<Models.Session> {
   try {
-    return await account.createEmailPasswordSession(email, password);
+    return await account.createEmailPasswordSession({ email, password });
   } catch (error) {
     // A session left from before (e.g. the app opened without a connection
     // and asked to sign in) blocks a new one, so end it and try again
     if ((error as { type?: string })?.type === "user_session_already_exists") {
-      await account.deleteSession("current").catch(() => {});
-      return account.createEmailPasswordSession(email, password);
+      await account.deleteSession({ sessionId: "current" }).catch(() => {});
+      return account.createEmailPasswordSession({ email, password });
     }
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(errorMessage);
@@ -141,7 +186,11 @@ export async function signIn(email: string, password: string): Promise<any> {
  * @returns {string} The address of the Google login page.
  */
 export function getGoogleLoginUrl(redirect: string): string {
-  const url = account.createOAuth2Token(OAuthProvider.Google, redirect, redirect);
+  const url = account.createOAuth2Token({
+    provider: OAuthProvider.Google,
+    success: redirect,
+    failure: redirect,
+  });
   if (!url) throw new Error("Couldn’t start Google sign-in.");
   return url.toString();
 }
@@ -151,20 +200,20 @@ export function getGoogleLoginUrl(redirect: string): string {
  *
  * @param {string} userId - The account Google's sign-in belongs to.
  * @param {string} secret - The one-time token.
- * @returns {Promise<any>} A promise that resolves to the session.
+ * @returns {Promise<Models.Session>} A promise that resolves to the session.
  * @throws {Error} If the token is wrong or has been used.
  */
 export async function createSessionFromToken(
   userId: string,
   secret: string
-): Promise<any> {
+): Promise<Models.Session> {
   try {
-    return await account.createSession(userId, secret);
+    return await account.createSession({ userId, secret });
   } catch (error) {
     // A session left from before blocks a new one, so end it and try again
     if ((error as { type?: string })?.type === "user_session_already_exists") {
-      await account.deleteSession("current").catch(() => {});
-      return account.createSession(userId, secret);
+      await account.deleteSession({ sessionId: "current" }).catch(() => {});
+      return account.createSession({ userId, secret });
     }
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(errorMessage);
@@ -194,20 +243,19 @@ export async function getGoogleAccessToken(): Promise<string | null> {
  * letters the app made up or an older Google photo.
  *
  * @param {GoogleProfile | null} profile - The Google name and photo, if they could be read.
- * @returns {Promise<any>} A promise that resolves to the user document.
+ * @returns {Promise<User>} A promise that resolves to the user row.
  * @throws {Error} If Appwrite can't be reached or the document can't be made.
  */
 export async function ensureUserDocument(
   profile: GoogleProfile | null = null
-): Promise<any> {
+): Promise<User> {
   const existing = await getCurrentUser();
   if (existing) {
     const photo = avatarToStore(existing.avatar, profile?.picture);
     if (!photo) return existing;
     try {
-      return await databases.updateDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.userCollectionId,
+      return await db.update(
+        appwriteConfig.userTableId,
         existing.$id,
         { avatar: photo }
       );
@@ -221,21 +269,20 @@ export async function ensureUserDocument(
   const current = await account.get();
   const username = usernameFor(profile?.name ?? current.name, current.email);
   const create = (avatar: unknown) =>
-    databases.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
+    db.create<User>(
+      appwriteConfig.userTableId,
       ID.unique(),
       { accountId: current.$id, email: current.email, username, avatar }
     );
 
-  if (!profile?.picture) return create(avatars.getInitials(username));
+  if (!profile?.picture) return create(initialsUrl(username));
   try {
     return await create(largerGooglePhoto(profile.picture));
   } catch (error) {
     // Say the photo address doesn't fit the column, or anything else about it:
     // the person still gets an account, with their initials
     console.warn("Could not save the Google photo, using initials:", error);
-    return create(avatars.getInitials(username));
+    return create(initialsUrl(username));
   }
 }
 
@@ -244,7 +291,7 @@ export async function ensureUserDocument(
  * Appwrite draws for `username`, marked as removed (see `utils/profile.ts`).
  */
 export function removedAvatarUrl(username: string): string {
-  return markRemoved(String(avatars.getInitials(username)));
+  return markRemoved(initialsUrl(username));
 }
 
 /**
@@ -253,16 +300,15 @@ export function removedAvatarUrl(username: string): string {
  *
  * @param {string} userDocumentId - The user document's ID.
  * @param {{ username?: string; avatar?: string; upi_id?: string | null }} fields - What to change.
- * @returns {Promise<any>} A promise that resolves to the updated user document.
+ * @returns {Promise<User>} A promise that resolves to the updated user row.
  * @throws {Error} If Appwrite can't be reached or refuses the change.
  */
 export async function updateUserProfile(
   userDocumentId: string,
   fields: { username?: string; avatar?: string; upi_id?: string | null }
-): Promise<any> {
-  return databases.updateDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.userCollectionId,
+): Promise<User> {
+  return db.update<User>(
+    appwriteConfig.userTableId,
     userDocumentId,
     fields
   );
@@ -284,12 +330,10 @@ export async function getCurrentUser() {
     throw error;
   }
 
-  const { documents } = await databases.listDocuments(
-    appwriteConfig.databaseId,
-    appwriteConfig.userCollectionId,
-    [Query.equal("accountId", currentAccount.$id)]
-  );
-  return documents[0] ?? null;
+  const { rows } = await db.list<User>(appwriteConfig.userTableId, [
+    Query.equal("accountId", currentAccount.$id),
+  ]);
+  return rows[0] ?? null;
 }
 
 /**
@@ -322,18 +366,19 @@ export function convertImageUrl(oldUrl: string): string | null {
  * Prepares a piano document for the app: converts the URLs of its photos to
  * ones without transformations.
  */
-export const toPianoItem = (document: Models.Document): PianoItem =>
-  ({
-    ...document,
-    image_url: document.image_url
-      ? convertImageUrl(document.image_url)
-      : document.image_url,
-    ...(Array.isArray(document.image_urls) && {
-      image_urls: document.image_urls
+export const toPianoItem = (row: Models.Row & Record<string, unknown>): PianoItem => {
+  const imageUrl = row.image_url as string | null | undefined;
+  const imageUrls = row.image_urls;
+  return {
+    ...row,
+    image_url: imageUrl ? convertImageUrl(imageUrl) : imageUrl,
+    ...(Array.isArray(imageUrls) && {
+      image_urls: (imageUrls as string[])
         .map(convertImageUrl)
-        .filter((url: string | null): url is string => !!url),
+        .filter((url): url is string => !!url),
     }),
-  }) as unknown as PianoItem;
+  } as unknown as PianoItem;
+};
 
 // Appwrite returns 25 documents per request unless a limit is given, so piano
 // lists are fetched page by page.
@@ -349,7 +394,7 @@ const MAX_PIANO_PAGES = 100;
  */
 export async function getUserPianoEntries(userAccountId: string) {
   try {
-    const documents: Models.Document[] = [];
+    const rows: Row[] = [];
     let cursor: string | undefined;
 
     for (let page = 0; page < MAX_PIANO_PAGES; page++) {
@@ -360,18 +405,14 @@ export async function getUserPianoEntries(userAccountId: string) {
       ];
       if (cursor) queries.push(Query.cursorAfter(cursor));
 
-      const { documents: pageDocuments } = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.pianoCollectionId,
-        queries
-      );
-      documents.push(...pageDocuments);
+      const { rows: pageRows } = await db.list(appwriteConfig.pianoTableId, queries);
+      rows.push(...pageRows);
 
-      if (pageDocuments.length < PIANO_PAGE_SIZE) break;
-      cursor = pageDocuments[pageDocuments.length - 1].$id;
+      if (pageRows.length < PIANO_PAGE_SIZE) break;
+      cursor = pageRows[pageRows.length - 1].$id;
     }
 
-    return documents.map(toPianoItem);
+    return rows.map(toPianoItem);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(errorMessage);
@@ -386,7 +427,7 @@ export async function getUserPianoEntries(userAccountId: string) {
  */
 export async function signOut() {
   try {
-    const session = await account.deleteSession("current");
+    const session = await account.deleteSession({ sessionId: "current" });
 
     return session;
   } catch (error) {
@@ -411,13 +452,13 @@ const DELETE_FAILED = "Your account couldn't be deleted. Check your connection a
 export async function deleteAccount(): Promise<void> {
   let execution: Models.Execution;
   try {
-    execution = await functions.createExecution(
-      appwriteConfig.deleteAccountFunctionId,
-      JSON.stringify({ confirm: "DELETE" }),
-      false,
-      "/",
-      ExecutionMethod.POST
-    );
+    execution = await functions.createExecution({
+      functionId: appwriteConfig.deleteAccountFunctionId,
+      body: JSON.stringify({ confirm: "DELETE" }),
+      async: false,
+      xpath: "/",
+      method: ExecutionMethod.POST,
+    });
   } catch (error) {
     console.warn("Could not run delete-account:", error);
     throw new Error(DELETE_FAILED);
@@ -542,11 +583,11 @@ export async function uploadFile(
       uri: file.uri,
     };
 
-    const uploadedFile = await storage.createFile(
-      appwriteConfig.storageId,
-      ID.unique(),
-      asset
-    );
+    const uploadedFile = await storage.createFile({
+      bucketId: appwriteConfig.storageId,
+      fileId: ID.unique(),
+      file: asset,
+    });
     if (!uploadedFile?.$id) throw new Error("Image upload failed.");
 
     const fileUrl = await getFilePreview(uploadedFile.$id);
@@ -565,10 +606,8 @@ export async function uploadFile(
  * @throws {Error} If no URL could be made for the file.
  */
 export async function getFilePreview(fileId: string) {
-  let fileUrl;
-
   try {
-    fileUrl = storage.getFileView(appwriteConfig.storageId, fileId);
+    const fileUrl = fileViewUrl(fileId);
 
     if (!fileUrl) throw Error;
 
@@ -654,9 +693,8 @@ export async function createPianoEntry(
     const result = await uploadPhotos(photos, pianoData, onProgress);
     uploaded = result.uploaded;
 
-    const response = await databases.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.pianoCollectionId,
+    const response = await db.create(
+      appwriteConfig.pianoTableId,
       ID.unique(),
       { ...fields, image_url: result.urls[0] ?? "", image_urls: result.urls }
     );
@@ -684,9 +722,8 @@ export async function updatePianoFields(
   documentId: string,
   fields: PianoFieldsUpdate
 ): Promise<PianoItem> {
-  const response = await databases.updateDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.pianoCollectionId,
+  const response = await db.update(
+    appwriteConfig.pianoTableId,
     documentId,
     fields
   );
@@ -715,9 +752,8 @@ export async function updatePianoEntry(
     const result = await uploadPhotos(photos, pianoData);
     uploaded = result.uploaded;
 
-    const response = await databases.updateDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.pianoCollectionId,
+    const response = await db.update(
+      appwriteConfig.pianoTableId,
       documentId,
       { ...fields, image_url: result.urls[0] ?? "", image_urls: result.urls }
     );
@@ -767,12 +803,15 @@ export async function deleteFileByUrl(url: string): Promise<void> {
   }
 
   try {
-    await storage.deleteFile(appwriteConfig.storageId, fileId);
+    await storage.deleteFile({ bucketId: appwriteConfig.storageId, fileId });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to delete file: ${errorMessage}`);
   }
 }
+
+/** What deleting a piano reads of it: which one it is and where its photos are. */
+export type DeletablePiano = Pick<PianoItem, "$id"> & Partial<Pick<PianoItem, "image_url" | "image_urls">>;
 
 /**
  * Deletes multiple piano entries from the database and their associated files from storage.
@@ -781,7 +820,7 @@ export async function deleteFileByUrl(url: string): Promise<void> {
  * @returns {Promise<{ deletedIds: string[]; failedIds: string[] }>} - Which pianos were deleted and which could not be.
  */
 export async function deleteMultiplePianoEntries(
-  items: any[]
+  items: DeletablePiano[]
 ): Promise<{ deletedIds: string[]; failedIds: string[] }> {
   const results = await Promise.all(
     items.map(async (item) => {
@@ -814,18 +853,17 @@ export async function deleteMultiplePianoEntries(
  * @throws {Error} - Throws an error if the deletion fails.
  * @see {@link deleteFileByUrl}
  */
-export async function deletePianoEntry(item: any) {
+export async function deletePianoEntry(item: DeletablePiano) {
   try {
     // Delete the piano entry from the database
-    const response = await databases.deleteDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.pianoCollectionId,
+    const response = await db.remove(
+      appwriteConfig.pianoTableId,
       item.$id
     );
 
     // Then its photos; a missing one must not keep the piano from being deleted
     const photoUrls = new Set<string>(
-      [item.image_url, ...(item.image_urls ?? [])].filter(Boolean)
+      [item.image_url, ...(item.image_urls ?? [])].filter((url): url is string => !!url)
     );
     await deletePhotoFiles([...photoUrls]);
 
@@ -900,26 +938,21 @@ export async function createRentPayment(
     ...(payment.note ? { note: payment.note } : {}),
   };
   const create = (fields: Record<string, unknown>) =>
-    databases.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.rentPaymentsCollectionId,
-      ID.unique(),
-      fields
-    );
+    db.create<RentPayment>(appwriteConfig.rentPaymentsTableId, ID.unique(), fields);
 
   const customerName = payment.customerName?.trim();
-  if (!customerName) return (await create(data)) as unknown as RentPayment;
+  if (!customerName) return await create(data);
 
   try {
-    return (await create({ ...data, customer_name: customerName })) as unknown as RentPayment;
+    return await create({ ...data, customer_name: customerName });
   } catch (error) {
     // The table may not have the customer_name column yet: the payment is
     // still worth saving, so record it without the name rather than failing
-    if (!/unknown attribute|invalid document structure/i.test(String((error as Error)?.message))) {
+    if (!/unknown (attribute|column)|invalid (document|row) structure/i.test(String((error as Error)?.message))) {
       throw error;
     }
     console.warn("rent_payments has no customer_name column yet; saved without it");
-    return (await create(data)) as unknown as RentPayment;
+    return await create(data);
   }
 }
 
@@ -932,15 +965,11 @@ const listRentPayments = async (queries: string[]): Promise<RentPayment[]> => {
     const pageQueries = [...queries, Query.limit(PAYMENT_PAGE_SIZE)];
     if (cursor) pageQueries.push(Query.cursorAfter(cursor));
 
-    const { documents } = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.rentPaymentsCollectionId,
-      pageQueries
-    );
-    payments.push(...(documents as unknown as RentPayment[]));
+    const { rows } = await db.list<RentPayment>(appwriteConfig.rentPaymentsTableId, pageQueries);
+    payments.push(...rows);
 
-    if (documents.length < PAYMENT_PAGE_SIZE) break;
-    cursor = documents[documents.length - 1].$id;
+    if (rows.length < PAYMENT_PAGE_SIZE) break;
+    cursor = rows[rows.length - 1].$id;
   }
 
   return payments;
@@ -1018,19 +1047,13 @@ export async function updateRentPayment(
     data.customer_name = changes.customerName.trim() || null;
   }
 
-  return (await databases.updateDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.rentPaymentsCollectionId,
-    paymentId,
-    data
-  )) as unknown as RentPayment;
+  return db.update<RentPayment>(appwriteConfig.rentPaymentsTableId, paymentId, data);
 }
 
 /** Deletes one rent payment. */
 export async function deleteRentPayment(paymentId: string) {
-  return databases.deleteDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.rentPaymentsCollectionId,
+  return db.remove(
+    appwriteConfig.rentPaymentsTableId,
     paymentId
   );
 }
@@ -1095,7 +1118,7 @@ export interface NewRentalHistory {
  * rental_history yet. The app works without it, it just can't keep a history.
  */
 export const isMissingTable = (error: unknown) =>
-  /collection with the requested id could not be found|collection_not_found/i.test(
+  /(collection|table) with the requested id.*could not be found|(collection|table)_not_found/i.test(
     String((error as { message?: string; type?: string })?.message ?? "") +
       String((error as { type?: string })?.type ?? "")
   );
@@ -1125,12 +1148,7 @@ export async function createRentalHistory(
         }
       : {}),
   };
-  return (await databases.createDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.rentalHistoryCollectionId,
-    ID.unique(),
-    data
-  )) as unknown as RentalHistoryEntry;
+  return db.create<RentalHistoryEntry>(appwriteConfig.rentalHistoryTableId, ID.unique(), data);
 }
 
 /**
@@ -1144,14 +1162,10 @@ export async function getRentalHistory(creator: string): Promise<RentalHistoryEn
     for (let page = 0; page < MAX_PAYMENT_PAGES; page++) {
       const queries = [Query.equal("creator", creator), Query.limit(PAYMENT_PAGE_SIZE)];
       if (cursor) queries.push(Query.cursorAfter(cursor));
-      const { documents } = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.rentalHistoryCollectionId,
-        queries
-      );
-      entries.push(...(documents as unknown as RentalHistoryEntry[]));
-      if (documents.length < PAYMENT_PAGE_SIZE) break;
-      cursor = documents[documents.length - 1].$id;
+      const { rows } = await db.list<RentalHistoryEntry>(appwriteConfig.rentalHistoryTableId, queries);
+      entries.push(...rows);
+      if (rows.length < PAYMENT_PAGE_SIZE) break;
+      cursor = rows[rows.length - 1].$id;
     }
   } catch (error) {
     if (isMissingTable(error)) return [];
@@ -1206,39 +1220,24 @@ export async function updateRentalHistoryEntry(
   entryId: string,
   changes: RentalHistoryChanges
 ): Promise<RentalHistoryEntry> {
-  return (await databases.updateDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.rentalHistoryCollectionId,
-    entryId,
-    historyRow(changes)
-  )) as unknown as RentalHistoryEntry;
+  return db.update<RentalHistoryEntry>(appwriteConfig.rentalHistoryTableId, entryId, historyRow(changes));
 }
 
 /** Deletes one kept rental, e.g. because marking the piano as returned was undone. */
 export async function deleteRentalHistoryEntry(entryId: string) {
-  return databases.deleteDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.rentalHistoryCollectionId,
+  return db.remove(
+    appwriteConfig.rentalHistoryTableId,
     entryId
   );
 }
 
 /** Deletes every kept rental of a piano, e.g. because the piano is deleted. */
 export async function deleteRentalHistoryForPiano(pianoId: string) {
-  const { documents } = await databases.listDocuments(
-    appwriteConfig.databaseId,
-    appwriteConfig.rentalHistoryCollectionId,
-    [Query.equal("piano_id", pianoId), Query.limit(PAYMENT_PAGE_SIZE)]
-  );
-  await Promise.all(
-    documents.map((document) =>
-      databases.deleteDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.rentalHistoryCollectionId,
-        document.$id
-      )
-    )
-  );
+  const { rows } = await db.list(appwriteConfig.rentalHistoryTableId, [
+    Query.equal("piano_id", pianoId),
+    Query.limit(PAYMENT_PAGE_SIZE),
+  ]);
+  await Promise.all(rows.map((row) => db.remove(appwriteConfig.rentalHistoryTableId, row.$id)));
 }
 
 /** A tuning, repair, cleaning, move or other service to keep (utils/serviceLog.ts). */
@@ -1274,26 +1273,20 @@ export async function createServiceEntry(entry: NewServiceEntry): Promise<Servic
   const fields = serviceRow(changes);
   // Nothing empty is sent for a new entry
   const data = Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== null));
-  return (await databases.createDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.serviceLogCollectionId,
-    ID.unique(),
-    { piano_id: pianoId, creator, ...data }
-  )) as unknown as ServiceEntry;
+  return db.create<ServiceEntry>(appwriteConfig.serviceLogTableId, ID.unique(), {
+    piano_id: pianoId,
+    creator,
+    ...data,
+  });
 }
 
 /** Changes an entry: only the fields in `changes` are sent. */
 export async function updateServiceEntry(entryId: string, changes: ServiceEntryChanges): Promise<ServiceEntry> {
-  return (await databases.updateDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.serviceLogCollectionId,
-    entryId,
-    serviceRow(changes)
-  )) as unknown as ServiceEntry;
+  return db.update<ServiceEntry>(appwriteConfig.serviceLogTableId, entryId, serviceRow(changes));
 }
 
 export async function deleteServiceEntry(entryId: string) {
-  return databases.deleteDocument(appwriteConfig.databaseId, appwriteConfig.serviceLogCollectionId, entryId);
+  return db.remove(appwriteConfig.serviceLogTableId, entryId);
 }
 
 /** Every service the owner has kept, for all their pianos, page by page; none when the table isn't there. */
@@ -1304,14 +1297,10 @@ export async function getServiceLog(creator: string): Promise<ServiceEntry[]> {
     for (let page = 0; page < MAX_PAYMENT_PAGES; page++) {
       const queries = [Query.equal("creator", creator), Query.limit(PAYMENT_PAGE_SIZE)];
       if (cursor) queries.push(Query.cursorAfter(cursor));
-      const { documents } = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.serviceLogCollectionId,
-        queries
-      );
-      entries.push(...(documents as unknown as ServiceEntry[]));
-      if (documents.length < PAYMENT_PAGE_SIZE) break;
-      cursor = documents[documents.length - 1].$id;
+      const { rows } = await db.list<ServiceEntry>(appwriteConfig.serviceLogTableId, queries);
+      entries.push(...rows);
+      if (rows.length < PAYMENT_PAGE_SIZE) break;
+      cursor = rows[rows.length - 1].$id;
     }
   } catch (error) {
     if (isMissingTable(error)) return [];
@@ -1322,16 +1311,11 @@ export async function getServiceLog(creator: string): Promise<ServiceEntry[]> {
 
 /** Deletes every service kept for a piano, e.g. because the piano is deleted. */
 export async function deleteServiceLogForPiano(pianoId: string) {
-  const { documents } = await databases.listDocuments(
-    appwriteConfig.databaseId,
-    appwriteConfig.serviceLogCollectionId,
-    [Query.equal("piano_id", pianoId), Query.limit(PAYMENT_PAGE_SIZE)]
-  );
-  await Promise.all(
-    documents.map((document) =>
-      databases.deleteDocument(appwriteConfig.databaseId, appwriteConfig.serviceLogCollectionId, document.$id)
-    )
-  );
+  const { rows } = await db.list(appwriteConfig.serviceLogTableId, [
+    Query.equal("piano_id", pianoId),
+    Query.limit(PAYMENT_PAGE_SIZE),
+  ]);
+  await Promise.all(rows.map((row) => db.remove(appwriteConfig.serviceLogTableId, row.$id)));
 }
 
 /** A business expense to keep (utils/expenses.ts). */
@@ -1366,26 +1350,16 @@ export async function createExpense(expense: NewExpense): Promise<Expense> {
   const fields = expenseRow(changes);
   // Nothing empty is sent for a new expense
   const data = Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== null));
-  return (await databases.createDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.expensesCollectionId,
-    ID.unique(),
-    { creator, ...data }
-  )) as unknown as Expense;
+  return db.create<Expense>(appwriteConfig.expensesTableId, ID.unique(), { creator, ...data });
 }
 
 /** Changes an expense: only the fields in `changes` are sent. */
 export async function updateExpense(expenseId: string, changes: ExpenseChanges): Promise<Expense> {
-  return (await databases.updateDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.expensesCollectionId,
-    expenseId,
-    expenseRow(changes)
-  )) as unknown as Expense;
+  return db.update<Expense>(appwriteConfig.expensesTableId, expenseId, expenseRow(changes));
 }
 
 export async function deleteExpense(expenseId: string) {
-  return databases.deleteDocument(appwriteConfig.databaseId, appwriteConfig.expensesCollectionId, expenseId);
+  return db.remove(appwriteConfig.expensesTableId, expenseId);
 }
 
 /** Every business expense the owner has kept, page by page; none when the table isn't there. */
@@ -1396,14 +1370,10 @@ export async function getExpenses(creator: string): Promise<Expense[]> {
     for (let page = 0; page < MAX_PAYMENT_PAGES; page++) {
       const queries = [Query.equal("creator", creator), Query.limit(PAYMENT_PAGE_SIZE)];
       if (cursor) queries.push(Query.cursorAfter(cursor));
-      const { documents } = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.expensesCollectionId,
-        queries
-      );
-      expenses.push(...(documents as unknown as Expense[]));
-      if (documents.length < PAYMENT_PAGE_SIZE) break;
-      cursor = documents[documents.length - 1].$id;
+      const { rows } = await db.list<Expense>(appwriteConfig.expensesTableId, queries);
+      expenses.push(...rows);
+      if (rows.length < PAYMENT_PAGE_SIZE) break;
+      cursor = rows[rows.length - 1].$id;
     }
   } catch (error) {
     if (isMissingTable(error)) return [];
@@ -1419,9 +1389,8 @@ export async function getExpenses(creator: string): Promise<Expense[]> {
  * from the app: only the owner, in the Appwrite console.
  */
 export async function createFormEvent(event: FormEvent) {
-  return databases.createDocument(
-    appwriteConfig.databaseId,
-    appwriteConfig.formEventsCollectionId,
+  return db.create(
+    appwriteConfig.formEventsTableId,
     event.id,
     formEventRow(event),
     []
@@ -1435,11 +1404,11 @@ export async function createFormEvent(event: FormEvent) {
  * @returns {Promise<any>} A promise that resolves to the recovery response.
  * @throws {Error} If there is an error during the password recovery process.
  */
-export async function sendPasswordRecovery(email: string): Promise<any> {
+export async function sendPasswordRecovery(email: string): Promise<Models.Token> {
   try {
     // For FREE plan: Use a simple web URL that redirects to your app
     // Appwrite will send the default email with this URL
-    const recovery = await account.createRecovery(email, RESET_PASSWORD_URL);
+    const recovery = await account.createRecovery({ email, url: RESET_PASSWORD_URL });
 
     return recovery;
   } catch (error) {
@@ -1461,9 +1430,9 @@ export async function updatePassword(
   userId: string,
   secret: string,
   password: string
-): Promise<any> {
+): Promise<Models.Token> {
   try {
-    const recovery = await account.updateRecovery(userId, secret, password);
+    const recovery = await account.updateRecovery({ userId, secret, password });
 
     return recovery;
   } catch (error) {

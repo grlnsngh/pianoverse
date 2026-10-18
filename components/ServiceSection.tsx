@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
-import { toneColor } from "@/components/DetailParts";
+import { SectionTitle, toneColor } from "@/components/DetailParts";
 import ServiceEntryRow from "@/components/ServiceEntryRow";
 import useServiceSheets from "@/components/useServiceSheets";
 import { Button, Icon, Spinner } from "@/components/ui";
@@ -20,7 +20,6 @@ import {
 } from "@/utils/serviceLog";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
 import useTextScale from "@/lib/useTextScale";
-import { SectionTitle } from "./DetailParts";
 
 /** The latest services on the piano's page; the rest are on its full list. */
 export const SERVICES_SHOWN = 3;

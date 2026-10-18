@@ -418,11 +418,11 @@ describe("the function's settings", () => {
       endpoint: id("endpoint"),
       projectId: id("projectId"),
       databaseId: id("databaseId"),
-      userTableId: id("userCollectionId"),
-      pianoTableId: id("pianoCollectionId"),
-      rentPaymentsTableId: id("rentPaymentsCollectionId"),
-      rentalHistoryTableId: id("rentalHistoryCollectionId"),
-      formEventsTableId: id("formEventsCollectionId"),
+      userTableId: id("userTableId"),
+      pianoTableId: id("pianoTableId"),
+      rentPaymentsTableId: id("rentPaymentsTableId"),
+      rentalHistoryTableId: id("rentalHistoryTableId"),
+      formEventsTableId: id("formEventsTableId"),
       storageId: id("storageId"),
     });
   });

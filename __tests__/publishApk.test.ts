@@ -3,10 +3,8 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 
-/* eslint-disable @typescript-eslint/no-var-requires */
 const { run, applyRelease, formatDate, formatSize, newestApk } = require("../scripts/publish-apk");
 const { wslPath } = require("../scripts/release-android");
-/* eslint-enable @typescript-eslint/no-var-requires */
 
 /**
  * `npm run publish:apk`: the newest APK goes up as the version's GitHub

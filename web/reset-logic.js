@@ -1,4 +1,3 @@
-/* eslint-env browser, node */
 /*
  * What the reset page checks and says. The wording is the app's (utils/authForms.ts),
  * and __tests__/resetPage.test.ts keeps the two the same. A plain script, so the

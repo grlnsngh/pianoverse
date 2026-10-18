@@ -179,9 +179,9 @@ const Today = () => {
         ...clearFilters(filters),
         category: categoryFilterOf("rentable"),
         isActiveRentals: true,
-      }) as any
+      })
     );
-    dispatch(setActiveTab("pianos") as any);
+    dispatch(setActiveTab("pianos"));
   }, [dispatch, filters]);
 
   // Pulling down loads the pianos (through the Pianos tab) and the payments again

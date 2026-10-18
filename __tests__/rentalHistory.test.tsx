@@ -21,10 +21,9 @@ jest.mock("expo-image-picker", () => ({
   launchImageLibraryAsync: jest.fn(),
   MediaTypeOptions: { Images: "Images" },
 }));
-jest.mock("expo-image-manipulator", () => ({
-  manipulateAsync: jest.fn(),
-  SaveFormat: { JPEG: "jpeg" },
-}));
+jest.mock("expo-image-manipulator", () =>
+  require("./helpers/fakeImageManipulator").createFakeImageManipulatorModule()
+);
 jest.mock("@/services/notifications", () => ({
   scheduleRentalDueNotification: jest.fn(() => Promise.resolve()),
 }));

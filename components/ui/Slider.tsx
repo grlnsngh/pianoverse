@@ -55,7 +55,6 @@ const Slider = ({ value, min, max, step = 1, onChange, accessibilityLabel, unit,
         onPanResponderMove: (_, gesture) => set(fromX(start.current + gesture.dx)),
       }),
     // The handlers read the latest values from the ref
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 

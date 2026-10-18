@@ -1,4 +1,5 @@
-import * as ImageManipulator from "expo-image-manipulator";
+import { SaveFormat } from "expo-image-manipulator";
+import { encodeImage } from "@/utils/imageEncode";
 
 // Photos are uploaded at most this wide and, where possible, this big, unless
 // the caller asks for something smaller (a profile picture does)
@@ -33,13 +34,9 @@ export const prepareImageForUpload = async <
   const fileSize = await getFileSize(asset.uri);
   if (fileSize <= targetSize) return { ...asset, fileSize };
 
-  const actions =
-    asset.width > maxWidth ? [{ resize: { width: maxWidth } }] : [];
+  const width = asset.width > maxWidth ? maxWidth : undefined;
   const encode = (compress: number) =>
-    ImageManipulator.manipulateAsync(asset.uri, actions, {
-      compress,
-      format: ImageManipulator.SaveFormat.JPEG,
-    });
+    encodeImage(asset.uri, { width, compress, format: SaveFormat.JPEG });
 
   let result = await encode(0.7);
   let resultSize = await getFileSize(result.uri);

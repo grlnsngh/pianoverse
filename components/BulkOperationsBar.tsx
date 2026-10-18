@@ -56,13 +56,13 @@ const BulkOperationsBar: React.FC<BulkOperationsBarProps> = ({ onRefresh }) => {
     const { deletedIds, failedIds } =
       await deleteMultiplePianoEntries(itemsToDelete);
     await Promise.all(deletedIds.map((id) => cancelRentalNotification(id)));
-    dispatch(removePianoItems(deletedIds) as any);
+    dispatch(removePianoItems(deletedIds));
     setIsDeleting(false);
 
     if (failedIds.length === 0) {
       // Clear selection and exit bulk mode
-      dispatch(clearSelectedItems() as any);
-      dispatch(setBulkSelectionMode(false) as any);
+      dispatch(clearSelectedItems());
+      dispatch(setBulkSelectionMode(false));
       showToast(
         `Deleted ${deletedIds.length} piano${deletedIds.length === 1 ? "" : "s"}`, { variant: "success" },
       );

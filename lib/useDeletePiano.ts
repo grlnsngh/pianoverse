@@ -34,7 +34,7 @@ const useDeletePiano = () => {
 
         await cancelRentalNotification(item.$id);
         onDeleted?.();
-        dispatch(removePianoItems([item.$id]) as any);
+        dispatch(removePianoItems([item.$id]));
         showToast(`Deleted ${item.title} successfully`, { variant: "success" });
       };
 

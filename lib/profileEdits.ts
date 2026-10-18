@@ -7,6 +7,7 @@ import {
   uploadFile,
 } from "@/lib/appwrite";
 import { cleanName, isUploadedPhoto } from "@/utils/profile";
+import type { User } from "@/redux/users/types";
 import { cleanUpiId } from "@/utils/upi";
 
 /** The part of the signed-in user these changes need. */
@@ -36,16 +37,16 @@ const forgetOldUpload = async (avatar: string | null | undefined) => {
  * picture. If it can't be saved on their account the upload is taken back, so
  * no file is left behind.
  *
- * @returns {Promise<any>} The updated user document.
+ * @returns {Promise<User>} The updated user row.
  * @throws {Error} If the upload or the change fails; nothing has changed then.
  */
 export async function changeProfilePhoto(
   user: ProfileUser,
   asset: LocalImageAsset
-): Promise<any> {
+): Promise<User> {
   const url = String(await uploadFile(asset, { users: user.accountId, title: "profile" }));
 
-  let updated;
+  let updated: User;
   try {
     updated = await updateUserProfile(user.$id, { avatar: url });
   } catch (error) {
@@ -61,10 +62,10 @@ export async function changeProfilePhoto(
  * Takes the profile picture away: the letter shows again, and a Google
  * sign-in doesn't bring the Google photo back (the avatar is marked as removed).
  *
- * @returns {Promise<any>} The updated user document.
+ * @returns {Promise<User>} The updated user row.
  * @throws {Error} If the change fails; nothing has changed then.
  */
-export async function removeProfilePhoto(user: ProfileUser): Promise<any> {
+export async function removeProfilePhoto(user: ProfileUser): Promise<User> {
   const updated = await updateUserProfile(user.$id, {
     avatar: removedAvatarUrl(user.username),
   });
@@ -76,10 +77,10 @@ export async function removeProfilePhoto(user: ProfileUser): Promise<any> {
  * Saves a new name. It is the app's name for the person: their Google account
  * is not changed.
  *
- * @returns {Promise<any>} The updated user document.
+ * @returns {Promise<User>} The updated user row.
  * @throws {Error} If the change fails; nothing has changed then.
  */
-export async function renameProfile(user: ProfileUser, name: string): Promise<any> {
+export async function renameProfile(user: ProfileUser, name: string): Promise<User> {
   return updateUserProfile(user.$id, { username: cleanName(name) });
 }
 
@@ -88,13 +89,13 @@ export async function renameProfile(user: ProfileUser, name: string): Promise<an
  * together or not at all. An empty UPI ID takes it off. Only what is given is
  * sent.
  *
- * @returns {Promise<any>} The updated user document.
+ * @returns {Promise<User>} The updated user row.
  * @throws {Error} If the change fails; nothing has changed then.
  */
 export async function saveProfileDetails(
   user: ProfileUser,
   changes: { name?: string; upiId?: string }
-): Promise<any> {
+): Promise<User> {
   return updateUserProfile(user.$id, {
     ...(changes.name !== undefined ? { username: cleanName(changes.name) } : {}),
     ...(changes.upiId !== undefined ? { upi_id: cleanUpiId(changes.upiId) || null } : {}),

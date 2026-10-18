@@ -1,6 +1,7 @@
 import { Directory, File, Paths } from "expo-file-system";
-import * as ImageManipulator from "expo-image-manipulator";
+import { SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
+import { encodeImage } from "@/utils/imageEncode";
 import type { LetterheadImage } from "@/utils/letterhead";
 
 /**
@@ -17,10 +18,10 @@ import type { LetterheadImage } from "@/utils/letterhead";
  */
 export type LetterheadImageKind = "logo" | "picture" | "letterhead";
 
-type Size = { width: number; format: ImageManipulator.SaveFormat; extension: string };
+type Size = { width: number; format: SaveFormat; extension: string };
 
-const PNG = { format: ImageManipulator.SaveFormat.PNG, extension: "png" };
-const JPEG = { format: ImageManipulator.SaveFormat.JPEG, extension: "jpg" };
+const PNG = { format: SaveFormat.PNG, extension: "png" };
+const JPEG = { format: SaveFormat.JPEG, extension: "jpg" };
 
 const SIZES: Record<Exclude<LetterheadImageKind, "picture">, Size> = {
   // Printed at most about 130 px wide: 600 is sharp on paper
@@ -54,11 +55,11 @@ export const pickLetterheadImage = async (kind: LetterheadImageKind): Promise<Le
   if (result.canceled || !result.assets?.length) return null;
   const asset = result.assets[0];
   const size = kind === "picture" ? pictureSize(asset) : SIZES[kind];
-  const resized = await ImageManipulator.manipulateAsync(
-    asset.uri,
-    asset.width > size.width ? [{ resize: { width: size.width } }] : [],
-    { compress: size.format === ImageManipulator.SaveFormat.PNG ? 1 : 0.85, format: size.format }
-  );
+  const resized = await encodeImage(asset.uri, {
+    width: asset.width > size.width ? size.width : undefined,
+    compress: size.format === SaveFormat.PNG ? 1 : 0.85,
+    format: size.format,
+  });
   const directory = folder();
   if (!directory.exists) directory.create({ intermediates: true, idempotent: true });
   const name = `${kind}-${Date.now()}.${size.extension}`;

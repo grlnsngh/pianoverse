@@ -10,7 +10,7 @@ import type { Settlement } from "@/utils/depositLines";
 
 /** The calendar day of a stored date, as a string to compare, or null. */
 const dayOf = (value: PianoItem["rental_period_start"]) => {
-  const date = parseStoredDate(value as any);
+  const date = parseStoredDate(value);
   return date ? toStoredDate(date) : null;
 };
 

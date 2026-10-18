@@ -114,7 +114,7 @@ const EditScreen = () => {
       // The end date or category may have changed
       await scheduleRentalDueNotification(updatedPiano);
       const updatedItem = toPianoItem(updatedPiano);
-      dispatch(updatePianoItem(updatedItem) as any);
+      dispatch(updatePianoItem(updatedItem));
       // Saved: going back now must not ask about the changes (lifted at once, since
       // the screen only draws again after this has gone back)
       setLeaving(true);
@@ -127,7 +127,7 @@ const EditScreen = () => {
       // The piano is saved either way; this only tells the person if it failed.
       const oldRental = rentalToArchive(filteredPiano, updatedItem);
       if (oldRental) {
-        await saveOldRental(oldRental, () => dispatch(paymentsChanged() as any));
+        await saveOldRental(oldRental, () => dispatch(paymentsChanged()));
       }
     } catch (error) {
       const errorMessage = (error as Error).message;

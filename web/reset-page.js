@@ -1,4 +1,3 @@
-/* eslint-env browser, node */
 /*
  * The reset page: shows the right view (link not valid, new password form,
  * done), checks the two fields like the app does, and sends the new password

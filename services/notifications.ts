@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { Platform } from "react-native";
 import { subDays } from "date-fns";
 import { setActiveTab } from "@/redux/navigation/actions";
+import type { PianoItem } from "@/redux/pianos/types";
 import store from "@/redux/store";
 import { parseStoredDate } from "@/utils/dates";
 import type { PlannedSummary } from "@/utils/morningSummary";
@@ -197,13 +198,13 @@ const syncScheduled = async (type: string, plans: Planned[]): Promise<string[]> 
 };
 
 /** A rental's reminders still ahead (none for a piano that isn't rented out or is sold). */
-const rentalPlans = (pianoItem: any): Planned[] => {
+const rentalPlans = (pianoItem: Partial<PianoItem> | null | undefined): Planned[] => {
   const dueDate = parseStoredDate(pianoItem?.rental_period_end);
   if (pianoItem?.category !== "rentable" || !dueDate || pianoItem.sold_date) return [];
   return getRentalReminderTimes(dueDate).map(({ daysBefore, date }) => ({
     content: {
       title: reminderTitle(daysBefore),
-      body: reminderBody(pianoItem.title, daysBefore),
+      body: reminderBody(pianoItem.title ?? "A piano", daysBefore),
       data: {
         pianoId: pianoItem.$id,
         type: "rental_due",
@@ -218,12 +219,12 @@ const rentalPlans = (pianoItem: any): Planned[] => {
 
 // Schedule a rental's reminders, each with its own identifier (so the next full
 // rescheduling knows them). Existing reminders must already be cancelled.
-const scheduleRentalReminders = (pianoItem: any) =>
+const scheduleRentalReminders = (pianoItem: Partial<PianoItem> | null | undefined) =>
   Promise.all(rentalPlans(pianoItem).map((plan) => schedulePlanned("rental_due", plan)));
 
 // Replace a piano's rental reminders with ones for its current due date
 // (none if it is no longer rented or the due date has passed)
-export const scheduleRentalDueNotification = async (pianoItem: any) => {
+export const scheduleRentalDueNotification = async (pianoItem: Partial<PianoItem> | null | undefined) => {
   try {
     if (!pianoItem?.$id) return [];
 
@@ -270,7 +271,7 @@ let schedulingQueue: Promise<unknown> = Promise.resolve();
 
 // Replace all rental reminders with ones for these pianos. Reminders for
 // pianos that were deleted or are no longer rented are removed too.
-export const scheduleAllRentalNotifications = (pianoItems: any[]) => {
+export const scheduleAllRentalNotifications = (pianoItems: Partial<PianoItem>[]) => {
   const run = async () => {
     try {
       const rentals = (Array.isArray(pianoItems) ? pianoItems : []).filter(
@@ -395,7 +396,7 @@ export const handleNotificationResponse = (
 
   // The morning summary is about the day: show Today, from wherever the app is
   if (data?.type === "morning_summary") {
-    store.dispatch(setActiveTab("today") as any);
+    store.dispatch(setActiveTab("today"));
     router.navigate("/home");
     return;
   }

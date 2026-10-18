@@ -1,6 +1,15 @@
+import type { User } from "./types";
+
 export const SET_CURRENT_USER = "SET_CURRENT_USER";
 
-export const setCurrentUser = (res: string | null) => ({
+export type SetCurrentUserAction = {
+  type: typeof SET_CURRENT_USER;
+  payload: User | null;
+};
+
+export type UserActionTypes = SetCurrentUserAction;
+
+export const setCurrentUser = (res: User | null): SetCurrentUserAction => ({
   type: SET_CURRENT_USER,
   payload: res,
 });

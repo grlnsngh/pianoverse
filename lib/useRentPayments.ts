@@ -105,7 +105,7 @@ const useRentPayments = (pianoId: string, enabled = true) => {
           customerName,
         });
         setPayments((current) => newestFirst([created, ...current]));
-        dispatch(paymentsChanged() as any);
+        dispatch(paymentsChanged());
         showToast(
           "Payment recorded",
           onReceipt
@@ -143,7 +143,7 @@ const useRentPayments = (pianoId: string, enabled = true) => {
           customerName: payment.customer_name ?? undefined,
         });
         setPayments((current) => newestFirst([created, ...current]));
-        dispatch(paymentsChanged() as any);
+        dispatch(paymentsChanged());
         showToast("Payment restored", { variant: "success" });
       } catch (error) {
         console.warn("Could not restore the rent payment:", error);
@@ -163,7 +163,7 @@ const useRentPayments = (pianoId: string, enabled = true) => {
         setPayments((current) =>
           current.filter((candidate) => candidate.$id !== payment.$id)
         );
-        dispatch(paymentsChanged() as any);
+        dispatch(paymentsChanged());
         showToast("Payment deleted", {
           variant: "success",
           duration: "long",
@@ -193,7 +193,7 @@ const useRentPayments = (pianoId: string, enabled = true) => {
             current.map((candidate) => (candidate.$id === payment.$id ? restored : candidate))
           )
         );
-        dispatch(paymentsChanged() as any);
+        dispatch(paymentsChanged());
         showToast("Change undone", { variant: "success" });
       } catch (error) {
         console.warn("Could not undo the change to the rent payment:", error);
@@ -215,7 +215,7 @@ const useRentPayments = (pianoId: string, enabled = true) => {
             current.map((candidate) => (candidate.$id === payment.$id ? updated : candidate))
           )
         );
-        dispatch(paymentsChanged() as any);
+        dispatch(paymentsChanged());
         showToast("Payment updated", {
           variant: "success",
           duration: "long",

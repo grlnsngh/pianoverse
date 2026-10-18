@@ -6,6 +6,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 
 - **Front-end Framework:** [React Native](https://reactnative.dev/)
 - **Front-end Framework:** [Expo](https://docs.expo.dev/) (SDK 58, Expo Router, React Native 0.88, React 19)
+- **Language:** TypeScript (strict). The app's own code has no `any`; the two places that read stored data of unknown shape say so in a comment.
 - **Back-end:** [Appwrite](https://appwrite.io/)
 - **State:** [Redux](https://redux.js.org/)
 - **UI:** our own components and design tokens (`components/ui/`, `constants/theme.ts`), drawn with React Native styles, in the [Figtree](https://fonts.google.com/specimen/Figtree) font
@@ -116,6 +117,8 @@ You will see options to open the app in:
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
 ## Backend (Appwrite)
+
+**How the app talks to Appwrite:** everything goes through `lib/appwrite.ts`, with the `react-native-appwrite` SDK at **1.3** (not 2.x: 2.0 added a push-notification module with native background services, which this app doesn't use and would put in every APK). Tables are read and written with the SDK's rows API (`TablesDB`), through one small typed layer in that file (`db.list`, `db.create`, `db.update`, `db.remove`), so a caller gets the type of the table it asks for; the table IDs are `appwriteConfig.*TableId`. Calls use the SDK's object parameters. **The photo address and the initials picture address are built by the app** (`fileViewUrl` and `initialsUrl`, the form the app has always saved and reads back to find a file to delete), because the SDK's own builders now return downloads or add parameters to the address (`__tests__/appwriteAddresses.test.ts` pins both). An error from the rows API says `Table with the requested ID '…' could not be found` (type `table_not_found`) for a missing table and may say `row`/`column` where the old documents API said `document`/`attribute`; the app's checks (`isMissingTable`, the `customer_name` fallback) know both. A photo bigger than 5 MB would make the SDK read the file in pieces with `expo-file-system`'s old API, which Expo SDK 58 moved to `expo-file-system/legacy`; photos are made smaller than that before upload (`utils/image.ts`), so it is not reached.
 
 Photos are uploaded through the Appwrite SDK, which only works with React Native's own `fetch`. Since Expo SDK 56 the default is Expo's `fetch`, so `.env` sets `EXPO_PUBLIC_USE_RN_FETCH=1` to keep React Native's. Keep that line; `__tests__/fetchSetting.test.ts` fails without it.
 
@@ -260,7 +263,7 @@ The first shows the account it found; `--yes` deletes it. Reply to say it's done
 npm test            # run the tests once
 npm run test:watch  # re-run tests as files change
 npm run typecheck   # TypeScript check
-npm run lint        # ESLint
+npm run lint        # ESLint 9 (eslint.config.js); `any` is an error in the app's code
 ```
 
 GitHub Actions runs the lint, the type check and the tests on every pull request.
