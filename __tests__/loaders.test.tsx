@@ -279,7 +279,15 @@ describe("Skeleton", () => {
     nativeEvent: { layout: { width, height: 20, x: 0, y: 0 } },
   });
   const shape = (renderer: Mounted) => hostByTestId(renderer.root, "sk");
-  const band = (renderer: Mounted) => animatedStyles(renderer.root)[0];
+  // The moving band: the view whose place comes from React Native's Animated
+  const bands = (renderer: Mounted) =>
+    renderer.root.findAll(
+      (node: any) =>
+        typeof node.type !== "string" &&
+        typeof node.props.style?.transform?.[0]?.translateX?.__getValue === "function"
+    );
+  const bandX = (renderer: Mounted) =>
+    bands(renderer)[0].props.style.transform[0].translateX.__getValue() as number;
 
   it("is a grey shape of the size and radius it is given", async () => {
     const renderer = await mount(
@@ -307,7 +315,8 @@ describe("Skeleton", () => {
   it("has no shimmer until it knows how wide it is", async () => {
     const renderer = await mount(<Skeleton testID="sk" width={100} height={16} />);
 
-    expect(animatedStyles(renderer.root)).toHaveLength(0);
+    expect(bands(renderer)).toHaveLength(0);
+    expect(renderer.root.findAllByType(Rect)).toHaveLength(0);
   });
 
   it("sweeps a light band that runs from base to highlight and back to base", async () => {
@@ -326,16 +335,24 @@ describe("Skeleton", () => {
   it("moves the band across in 1.5 seconds, at a steady speed", async () => {
     const renderer = await mount(<Skeleton testID="sk" width={200} height={16} />);
     await act(async () => shape(renderer).props.onLayout(layout(200)));
-    const x = () => band(renderer).transform[0].translateX as number;
+    const x = () => bandX(renderer);
 
-    // Just off the left edge, then across the middle, then off the right.
-    // (One frame in, because Reanimated applies a new width on the next frame)
+    // Just off the left edge, then across the middle, then off the right
     await advance(16);
     expect(x()).toBeLessThan(-190);
     await advance(734);
-    expect(x()).toBeCloseTo(0, 0);
+    expect(Math.abs(x())).toBeLessThan(10);
     await advance(700);
     expect(x()).toBeGreaterThan(150);
+  });
+
+  it("moves the band on the native driver, not with Reanimated (Batch 50)", async () => {
+    const timing = jest.spyOn(require("react-native").Animated, "timing");
+    const renderer = await mount(<Skeleton testID="sk" width={200} height={16} />);
+    await act(async () => shape(renderer).props.onLayout(layout(200)));
+
+    expect(timing).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ useNativeDriver: true }));
+    expect(animatedStyles(renderer.root)).toHaveLength(0);
   });
 
   it("is a plain grey shape with reduced motion", async () => {
@@ -344,7 +361,7 @@ describe("Skeleton", () => {
     await act(async () => shape(renderer).props.onLayout(layout(200)));
     await advance(750);
 
-    expect(animatedStyles(renderer.root)).toHaveLength(0);
+    expect(bands(renderer)).toHaveLength(0);
     expect(renderer.root.findAllByType(Rect)).toHaveLength(0);
   });
 });
