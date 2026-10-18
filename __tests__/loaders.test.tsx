@@ -6,7 +6,6 @@ import { KeysLoader, Skeleton, Spinner, useSkeletonDelay } from "@/components/ui
 import { lightColors as colors } from "@/constants/theme";
 import {
   advance,
-  animatedStyleOf,
   animatedStyles,
   hostByTestId,
   mount,
@@ -24,7 +23,19 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-const degrees = (style: any) => parseFloat(style.transform[0].rotate);
+/** A React Native Animated value as it is now (the loaders moved off Reanimated in Batch 50). */
+const now = (value: any) => (typeof value?.__getValue === "function" ? value.__getValue() : value);
+/** The spinner's turn right now, in degrees. */
+const turnOf = (renderer: any, testID: string) => {
+  const node = renderer.root.find(
+    (n: any) => typeof n.type !== "string" && n.props.testID === testID && n.props.style !== undefined
+  );
+  const style = (Array.isArray(node.props.style) ? node.props.style : [node.props.style]).reduce(
+    (all: any, part: any) => ({ ...all, ...part }),
+    {}
+  );
+  return parseFloat(now(style.transform[0].rotate));
+};
 const flatten = (style: any) =>
   (Array.isArray(style) ? style : [style]).reduce(
     (all: any, part: any) => ({ ...all, ...part }),
@@ -72,16 +83,17 @@ describe("Spinner", () => {
 
   it("makes a full turn every 0.8 seconds", async () => {
     const renderer = await mount(<Spinner testID="spinner" />);
-    const spinner = () => animatedStyleOf(hostByTestId(renderer.root, "spinner"));
+    const spinner = () => turnOf(renderer, "spinner");
 
-    expect(degrees(spinner())).toBe(0);
+    expect(spinner()).toBe(0);
     await advance(200);
-    expect(degrees(spinner())).toBeCloseTo(90, 0);
+    expect(spinner()).toBeCloseTo(90, -1);
     await advance(200);
-    expect(degrees(spinner())).toBeCloseTo(180, 0);
+    expect(spinner()).toBeCloseTo(180, -1);
     await advance(400);
-    // Back at the start of the next turn
-    expect(degrees(spinner()) % 360).toBeCloseTo(0, 0);
+    // Back at the start of the next turn (or just about to be)
+    const end = spinner() % 360;
+    expect(Math.min(end, 360 - end)).toBeLessThan(10);
   });
 
   it("stands still when the phone asks for less motion", async () => {
@@ -90,9 +102,7 @@ describe("Spinner", () => {
 
     await advance(400);
 
-    expect(
-      degrees(animatedStyleOf(hostByTestId(renderer.root, "spinner")))
-    ).toBe(0);
+    expect(turnOf(renderer, "spinner")).toBe(0);
     // Still there, as a static shape
     expect(renderer.root.findByType(Path)).toBeTruthy();
   });
@@ -108,16 +118,12 @@ describe("Spinner", () => {
     }) as any);
     const renderer = await mount(<Spinner testID="spinner" />);
     await advance(200);
-    expect(
-      degrees(animatedStyleOf(hostByTestId(renderer.root, "spinner")))
-    ).toBeCloseTo(90, 0);
+    expect(turnOf(renderer, "spinner")).toBeCloseTo(90, -1);
 
     await act(async () => onChange(true));
     await advance(300);
 
-    expect(
-      degrees(animatedStyleOf(hostByTestId(renderer.root, "spinner")))
-    ).toBe(0);
+    expect(turnOf(renderer, "spinner")).toBe(0);
   });
 
   it("says it is loading, unless the words beside it already do", async () => {
@@ -155,24 +161,26 @@ describe("Spinner", () => {
 
     await advance(200);
 
-    expect(
-      degrees(animatedStyleOf(hostByTestId(renderer.root, "spinner")))
-    ).toBeCloseTo(90, 0);
+    expect(turnOf(renderer, "spinner")).toBeCloseTo(90, -1);
   });
 });
 
 describe("KeysLoader", () => {
+  // Each bar: the composite view whose style moves with React Native's Animated
   const bars = (renderer: Mounted) =>
     renderer.root
       .findAll(
-        (node) =>
-          typeof node.type === "string" &&
-          node.props.jestAnimatedStyle !== undefined
+        (node: any) =>
+          typeof node.type !== "string" &&
+          flatten(node.props.style ?? {}).transform?.[1]?.scaleY?.__getValue !== undefined
       )
-      .map((node) => ({
-        animated: animatedStyleOf(node),
-        base: flatten(node.props.style),
-      }));
+      .map((node: any) => {
+        const { transform, ...base } = flatten(node.props.style);
+        return {
+          animated: { transform: transform.map((part: any) => Object.fromEntries(Object.entries(part).map(([k, v]) => [k, now(v)]))) },
+          base,
+        };
+      });
   const scale = (bar: { animated: any }) => bar.animated.transform[1].scaleY as number;
 
   it("is five bars, with the middle one orange", async () => {

@@ -1,15 +1,5 @@
-import React, { useEffect } from "react";
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
+import React, { useEffect, useRef } from "react";
+import { Animated, Easing, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import useReducedMotion from "@/lib/useReducedMotion";
 import { motion } from "@/constants/theme";
 import { useColors } from "@/lib/ThemeContext";
@@ -52,38 +42,42 @@ type KeyProps = {
   animate: boolean;
 };
 
+// The bars move with React Native's own Animated on the native driver, not
+// Reanimated: the splash shows them as the app starts, and a Reanimated loop
+// left a queue behind when they went (see Skeleton.tsx, Batch 50)
 const Key = ({ index, height, width, radius, color, animate }: KeyProps) => {
   // 0 is the smallest bar, 1 the full height
-  const grow = useSharedValue(animate ? 0 : 1);
+  const grow = useRef(new Animated.Value(animate ? 0 : 1)).current;
 
   useEffect(() => {
     if (!animate) {
-      cancelAnimation(grow);
-      grow.value = 1;
+      grow.setValue(1);
       return;
     }
-    grow.value = 0;
-    grow.value = withDelay(
-      index * motion.duration.keysStagger,
-      withRepeat(
-        withSequence(
-          withTiming(1, { duration: HALF_LOOP_MS, easing: Easing.inOut(Easing.ease) }),
-          withTiming(0, { duration: HALF_LOOP_MS, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        false
-      )
-    );
-    return () => cancelAnimation(grow);
+    grow.setValue(0);
+    const half = (toValue: number) =>
+      Animated.timing(grow, {
+        toValue,
+        duration: HALF_LOOP_MS,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      });
+    const loop = Animated.loop(Animated.sequence([half(1), half(0)]));
+    // Each bar starts a little after the one before, so they ripple
+    const start = setTimeout(() => loop.start(), index * motion.duration.keysStagger);
+    return () => {
+      clearTimeout(start);
+      loop.stop();
+    };
   }, [animate, index, grow]);
 
-  const style = useAnimatedStyle(() => {
-    const scale = MIN_SCALE + (1 - MIN_SCALE) * grow.value;
-    // Scaling happens around the middle, so nudge the bar down to keep its foot on the line
-    return {
-      transform: [{ translateY: (height * (1 - scale)) / 2 }, { scaleY: scale }],
-    };
-  }, [height]);
+  // Scaling happens around the middle, so the bar moves down as it shrinks to keep its foot on the line
+  const style = {
+    transform: [
+      { translateY: grow.interpolate({ inputRange: [0, 1], outputRange: [(height * (1 - MIN_SCALE)) / 2, 0] }) },
+      { scaleY: grow.interpolate({ inputRange: [0, 1], outputRange: [MIN_SCALE, 1] }) },
+    ],
+  };
 
   return (
     <Animated.View
