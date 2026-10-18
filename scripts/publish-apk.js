@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -41,11 +42,15 @@ const formatDate = (day) => {
   return `${d} ${MONTHS[m - 1]} ${y}`;
 };
 
+/** The SHA-256 of a file, as lowercase hex: its fingerprint, for anyone who wants to check a download. */
+const sha256Of = (file) => crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+
 /** The words each RELEASE span on the pages shows. */
 const releaseWords = (release) => ({
   version: release.version,
   size: formatSize(release.bytes),
   date: formatDate(release.date),
+  ...(typeof release.sha256 === "string" ? { sha256: release.sha256 } : {}),
 });
 
 /** The page with every `<span data-release="…">` filled in from the release. */
@@ -145,10 +150,13 @@ const run = ({
   const upload = path.join(folder, ASSET);
   fs.copyFileSync(apk, upload);
   const bytes = fs.statSync(upload).size;
+  const sha256 = sha256Of(upload);
 
-  const notes =
+  const written =
     value("--notes") ??
     `Pianoverse for Android, version ${version} (versionCode ${versionCode}). Free. Needs Android 7.0 or later.\n\nHow to install it, step by step: https://grlnsngh.github.io/pianoverse/download.html`;
+  // The file's fingerprint goes in the notes and on the download page (Batch 52, SEC2)
+  const notes = written.includes(sha256) ? written : `${written}\n\nSHA-256 of ${ASSET}: ${sha256}`;
   const exists = exec("gh", ["release", "view", tag, "--repo", REPO]).status === 0;
   const uploaded = exists
     ? exec("gh", ["release", "upload", tag, upload, "--clobber", "--repo", REPO])
@@ -161,13 +169,13 @@ const run = ({
   log(`${exists ? "Updated" : "Published"} ${tag}: https://github.com/${REPO}/releases/tag/${tag} (${formatSize(bytes)})`);
 
   // The site: release.json and the words on the pages
-  const release = { version, versionCode, tag, bytes, date: localDay(now()) };
+  const release = { version, versionCode, tag, bytes, sha256, date: localDay(now()) };
   writeJson(path.join(root, "web", "release.json"), release);
   for (const page of PAGES) {
     const file = path.join(root, page);
     fs.writeFileSync(file, applyRelease(fs.readFileSync(file, "utf8"), release));
   }
-  log(`The site now says version ${version}, ${formatSize(bytes)}, ${formatDate(release.date)}.`);
+  log(`The site now says version ${version}, ${formatSize(bytes)}, ${formatDate(release.date)}, SHA-256 ${sha256.slice(0, 12)}…`);
 
   if (args.includes("--no-commit")) return 0;
 

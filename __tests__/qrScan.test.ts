@@ -85,9 +85,25 @@ describe("an address from outside", () => {
     expect(takePendingPianoLink()).toBeNull();
   });
 
-  it("leaves any other address alone", () => {
-    expect(redirectSystemPath({ path: "/income", initial: false })).toBe("/income");
+  it("opens the first screen, whatever any other address asks for", () => {
+    for (const path of [
+      "/income",
+      "pianoverse://income",
+      "pianoverse://letterhead-upload",
+      "pianoverse://edit/abc",
+      "pianoverse://detail/../income",
+      "exp+pianoverse://expo-development-client/?url=http%3A%2F%2Fexample.com",
+      "https://example.com/detail/abc",
+      "",
+    ]) {
+      expect(redirectSystemPath({ path, initial: false })).toBe("/");
+      expect(redirectSystemPath({ path, initial: true })).toBe("/");
+    }
     expect(takePendingPianoLink()).toBeNull();
+  });
+
+  it("is still the first screen for the address of the app itself", () => {
+    expect(redirectSystemPath({ path: "/", initial: true })).toBe("/");
   });
 });
 

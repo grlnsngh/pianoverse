@@ -48,6 +48,72 @@ const rental = makePiano({
 });
 
 describe("the CSV export", () => {
+  // Batch 52 (SEC2): a spreadsheet runs a field that starts with = + - or @ as a formula
+  describe("text typed by a person that a spreadsheet would run as a formula", () => {
+    const FORMULA = '=HYPERLINK("http://example.com","click")';
+
+    it("is shown as the text it is, in every field a person types", () => {
+      const [row] = exportOf([
+        makePiano({
+          category: "rentable",
+          title: FORMULA,
+          make: "@SUM(1+1)",
+          company_associated: "-2+3",
+          description: "+cmd|' /C calc'!A0",
+          rental_customer_name: "=1+1",
+          rental_customer_mobile: "@evil",
+          rental_customer_address: "-cmd",
+          rental_period_start: inDays(-30),
+          rental_period_end: inDays(30),
+          rental_price: 4000,
+        }),
+      ]);
+
+      expect(row["Piano Name"]).toBe(`'${FORMULA}`);
+      expect(row["Brand/Make"]).toBe("'@SUM(1+1)");
+      expect(row["Company/Owner"]).toBe("'-2+3");
+      expect(row["Notes/Description"]).toBe("'+cmd|' /C calc'!A0");
+      expect(row["Rental Customer Name"]).toBe("'=1+1");
+      expect(row["Customer Phone"]).toBe("'@evil");
+      expect(row["Customer Address"]).toBe("'-cmd");
+    });
+
+    it("is shown as the text it is for an event piano, a piano on sale and a piano sold", () => {
+      const [event, onSale, sold] = exportOf([
+        makePiano({ category: "events", event_purchase_from: "=A1", event_model_number: "+B2", event_b_number: "@C3" }),
+        makePiano({ category: "on_sale", on_sale_purchase_from: "=D4" }),
+        makePiano({ category: "on_sale", sold_date: inDays(-3), sold_price: 50000, sold_to_name: "=E5", sold_to_address: "-F6x" }),
+      ]);
+
+      expect(event["Purchased From (Event)"]).toBe("'=A1");
+      expect(event["Model Number"]).toBe("'+B2");
+      expect(event["B Number"]).toBe("'@C3");
+      expect(onSale["Purchased From (Sale)"]).toBe("'=D4");
+      expect(sold["Buyer"]).toBe("'=E5");
+      expect(sold["Buyer Address"]).toBe("'-F6x");
+    });
+
+    it("leaves a phone number with a plus, ordinary names and the numbers the app works out as they were", () => {
+      const [row] = exportOf([
+        makePiano({
+          ...rental,
+          title: "Weber W-121",
+          rental_customer_name: "Asha Mehta",
+          rental_customer_mobile: "+91 98765 43210",
+          rental_customer_address: "12-B, Model Town",
+          purchase_price: 62000,
+        }),
+      ]);
+
+      expect(row["Piano Name"]).toBe("Weber W-121");
+      expect(row["Rental Customer Name"]).toBe("Asha Mehta");
+      expect(row["Customer Phone"]).toBe("+91 98765 43210");
+      expect(row["Customer Address"]).toBe("12-B, Model Town");
+      expect(row["Monthly Rent"]).toBe("₹4,000");
+      expect(row["Bought For"]).toBe("₹62,000");
+    });
+  });
+
   it("marks a sold piano as sold, with the sale's details", () => {
     const [row] = exportOf([
       {

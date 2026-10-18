@@ -3,23 +3,15 @@ import { PianoItem } from "@/redux/pianos/types";
 import type { Customer } from "@/utils/customers";
 import { categoryOf, PIANO_SERVICE, type Cost } from "@/utils/expenses";
 import { kindOf } from "@/utils/serviceLog";
-import { toCSVText } from "@/utils/csvExport";
+import { asText, toCSVText } from "@/utils/csvExport";
 import { parseStoredDate, toStoredDate } from "@/utils/dates";
 
 // The payments and customers as CSV, for a spreadsheet or an accountant. Unlike
 // the piano list these are plain: amounts are bare numbers (no ₹ or commas) so a
 // spreadsheet can add them up, and days are yyyy-MM-dd so they sort and parse.
 
-/**
- * A spreadsheet reads a field that starts with = or @ (or a + or - that isn't
- * the start of a number, like a phone number's "+91") as a formula, which
- * could be made to do things. A text field like that gets a ' in front, so it
- * is shown as the text it is.
- */
-export const asText = (value: string | null | undefined) => {
-  const text = value?.trim() ?? "";
-  return /^(=|@|[+-](?![\d\s.]))/.test(text) ? `'${text}` : text;
-};
+// The formula guard for typed text lives with the escaping (utils/csvExport.ts)
+export { asText };
 
 const day = (value: string | null | undefined) => {
   const parsed = parseStoredDate(value);

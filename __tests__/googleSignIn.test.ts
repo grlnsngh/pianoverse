@@ -260,10 +260,29 @@ describe("the user document, on its own", () => {
 });
 
 describe("the way back into the app", () => {
-  it("leaves every other address as it is", () => {
-    expect(redirectSystemPath({ path: "pianoverse://reset-password?userId=a&secret=b", initial: true })).toBe(
-      "pianoverse://reset-password?userId=a&secret=b"
-    );
-    expect(redirectSystemPath({ path: "/home", initial: false })).toBe("/home");
+  it("leaves the addresses of the screens before signing in as they are", () => {
+    // The website's buttons, and the reset email's old link
+    for (const path of [
+      "pianoverse://sign-in",
+      "pianoverse://forget-password",
+      "pianoverse://reset-password?userId=a&secret=b",
+      "/sign-up",
+      "/sign-in/",
+    ]) {
+      expect(redirectSystemPath({ path, initial: true })).toBe(path);
+    }
+  });
+
+  it("opens the first screen for every other address, since a link isn't to choose the screen", () => {
+    for (const path of [
+      "/home",
+      "pianoverse://home",
+      "pianoverse://sign-in/../income",
+      "pianoverse://sign-in.evil",
+      "pianoverse://sign-in/edit/abc",
+      "exp+pianoverse://sign-in",
+    ]) {
+      expect(redirectSystemPath({ path, initial: false })).toBe("/");
+    }
   });
 });

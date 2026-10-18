@@ -11,6 +11,21 @@ import { purchasePriceOf } from "./pianoMoney";
 import { isSold } from "./pianoStatus";
 
 /**
+ * A spreadsheet reads a field that starts with = or @ as a formula, which
+ * could be made to do things, and so one that starts with + or -, unless it is
+ * only a number or a phone number ("-500", "+91 98765 43210"): digits, spaces,
+ * dots, commas, brackets and hyphens can't call anything. "-1+cmd|…" starts
+ * like a negative number but isn't one. A text field like that gets a ' in
+ * front, so it is shown as the text it is. For what a person typed (a title,
+ * a name, an address), not for dates, prices and statuses the app works out.
+ */
+export const asText = (value: string | null | undefined) => {
+  const text = value?.trim() ?? "";
+  const formula = /^(=|@)/.test(text) || (/^[+-]/.test(text) && !/^[+-][\d\s.,()-]+$/.test(text));
+  return formula ? `'${text}` : text;
+};
+
+/**
  * Escapes CSV field values by wrapping them in quotes if they contain special characters
  */
 export const escapeCSVField = (field: any): string => {
@@ -134,10 +149,10 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
 
     return [
       // Basic Info
-      escapeCSVField(piano.title),
+      escapeCSVField(asText(piano.title)),
       escapeCSVField(sold ? "Sold" : formatCategory(piano.category)),
-      escapeCSVField(piano.make),
-      escapeCSVField(piano.company_associated),
+      escapeCSVField(asText(piano.make)),
+      escapeCSVField(asText(piano.company_associated)),
       escapeCSVField(
         piano.date_of_purchase ? formatDate(piano.date_of_purchase) : ""
       ),
@@ -146,17 +161,17 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
       // Rental Information (only for rentable pianos)
       escapeCSVField(
         piano.category.toLowerCase() === "rentable"
-          ? piano.rental_customer_name
+          ? asText(piano.rental_customer_name)
           : ""
       ),
       escapeCSVField(
         piano.category.toLowerCase() === "rentable"
-          ? piano.rental_customer_mobile
+          ? asText(piano.rental_customer_mobile)
           : ""
       ),
       escapeCSVField(
         piano.category.toLowerCase() === "rentable"
-          ? piano.rental_customer_address
+          ? asText(piano.rental_customer_address)
           : ""
       ),
       escapeCSVField(
@@ -204,16 +219,16 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
       // Event Information (only for event pianos)
       escapeCSVField(
         piano.category.toLowerCase() === "events"
-          ? piano.event_purchase_from
+          ? asText(piano.event_purchase_from)
           : ""
       ),
       escapeCSVField(
         piano.category.toLowerCase() === "events"
-          ? piano.event_model_number
+          ? asText(piano.event_model_number)
           : ""
       ),
       escapeCSVField(
-        piano.category.toLowerCase() === "events" ? piano.event_b_number : ""
+        piano.category.toLowerCase() === "events" ? asText(piano.event_b_number) : ""
       ),
 
       // Sale Information (only for sale pianos)
@@ -224,7 +239,7 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
       ),
       escapeCSVField(
         piano.category.toLowerCase() === "on_sale"
-          ? piano.on_sale_purchase_from
+          ? asText(piano.on_sale_purchase_from)
           : ""
       ),
       escapeCSVField(
@@ -238,11 +253,11 @@ export const convertPianosToCSV = (pianos: PianoItem[]): string => {
       escapeCSVField(
         sold && piano.sold_price ? formatPrice(piano.sold_price) : ""
       ),
-      escapeCSVField(sold ? piano.sold_to_name : ""),
-      escapeCSVField(sold ? piano.sold_to_address : ""),
+      escapeCSVField(sold ? asText(piano.sold_to_name) : ""),
+      escapeCSVField(sold ? asText(piano.sold_to_address) : ""),
 
       // Additional Info
-      escapeCSVField(piano.description),
+      escapeCSVField(asText(piano.description)),
       escapeCSVField(formatDate(piano.$createdAt)),
       escapeCSVField(formatDate(piano.$updatedAt)),
     ];
