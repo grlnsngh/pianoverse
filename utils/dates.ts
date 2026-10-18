@@ -49,7 +49,9 @@ export const parseStoredDate = (value: StoredDate): Date | null => {
     return isNaN(value.getTime()) ? null : startOfDay(value);
   }
 
-  const dayOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  // A day, alone or as Appwrite returns it (midnight UTC): the usual shapes, read without
+  // parsing a whole date, which is slow on the phone and done for every payment
+  const dayOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:T00:00:00(?:\.0{1,3})?(?:Z|\+00:00))?$/);
   if (dayOnly) {
     return new Date(+dayOnly[1], +dayOnly[2] - 1, +dayOnly[3]);
   }

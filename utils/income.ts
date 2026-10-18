@@ -47,21 +47,25 @@ export const incomeByMonth = (
   pianos: PianoItem[],
   count: number,
   today = new Date()
-): MonthIncome[] =>
-  Array.from({ length: count }, (_, index) => {
+): MonthIncome[] => {
+  // Each day read once, not once for every month
+  const paidDays = payments.flatMap((payment) => {
+    const day = parseStoredDate(payment.paid_on);
+    return day ? [{ day, amount: payment.amount }] : [];
+  });
+  const soldDays = pianos.flatMap((piano) => {
+    const day = isSold(piano) ? parseStoredDate(piano.sold_date) : null;
+    return day ? [{ day, amount: piano.sold_price ?? 0 }] : [];
+  });
+
+  return Array.from({ length: count }, (_, index) => {
     const month = startOfMonth(subMonths(today, count - 1 - index));
 
-    const paid = payments.filter((payment) => {
-      const paidOn = parseStoredDate(payment.paid_on);
-      return paidOn !== null && isSameMonth(paidOn, month);
-    });
-    const sold = pianos.filter((piano) => {
-      const soldOn = isSold(piano) ? parseStoredDate(piano.sold_date) : null;
-      return soldOn !== null && isSameMonth(soldOn, month);
-    });
+    const paid = paidDays.filter((payment) => isSameMonth(payment.day, month));
+    const sold = soldDays.filter((sale) => isSameMonth(sale.day, month));
 
     const rent = paid.reduce((sum, payment) => sum + payment.amount, 0);
-    const sales = sold.reduce((sum, piano) => sum + (piano.sold_price ?? 0), 0);
+    const sales = sold.reduce((sum, sale) => sum + sale.amount, 0);
     return {
       month,
       rent,
@@ -71,6 +75,7 @@ export const incomeByMonth = (
       total: rent + sales,
     };
   });
+};
 
 /** Whether nothing came in during any of the months. */
 export const noIncome = (months: MonthIncome[]) =>

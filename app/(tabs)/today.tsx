@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { format } from "date-fns";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
@@ -102,17 +102,29 @@ const Today = () => {
   const loadingFirstTime = !ready && !seenReady;
   const showSkeleton = useSkeletonDelay(loadingFirstTime);
 
-  const attention = needsAttention(pianos);
-  const shelf = rentedOut(pianos);
-  const counts = stockCounts(pianos);
-  const received = receivedInMonth(payments);
-  const recent = recentPayments(payments, pianos);
+  // Worked out again only when the pianos, the payments, the service log or the day change,
+  // not on every render (pulling down, a sheet opening): with many pianos it adds up.
+  // They read today's date themselves, so `day` is what tells them it changed.
+  /* eslint-disable react-hooks/exhaustive-deps */
+  const attention = useMemo(() => needsAttention(pianos), [pianos, day]);
+  const shelf = useMemo(() => rentedOut(pianos), [pianos, day]);
+  const counts = useMemo(() => stockCounts(pianos), [pianos, day]);
+  const received = useMemo(() => receivedInMonth(payments), [payments, day]);
+  const recent = useMemo(() => recentPayments(payments, pianos), [payments, pianos, day]);
 
-  const months = incomeByMonth(income.payments, pianos, TODAY_MONTHS);
+  const months = useMemo(() => incomeByMonth(income.payments, pianos, TODAY_MONTHS), [income.payments, pianos, day]);
   // Not worked out until the payments are here: with none, every rental would owe
-  const owing =
-    income.loaded && !income.failed ? rentDueEntries(pianos, income.payments) : [];
-  const serviceDueList = serviceLog.status === "ready" ? serviceDue(pianos, serviceLog.entries) : [];
+  const incomeReady = income.loaded && !income.failed;
+  const owing = useMemo(
+    () => (incomeReady ? rentDueEntries(pianos, income.payments) : []),
+    [incomeReady, pianos, income.payments, day]
+  );
+  const serviceReady = serviceLog.status === "ready";
+  const serviceDueList = useMemo(
+    () => (serviceReady ? serviceDue(pianos, serviceLog.entries) : []),
+    [serviceReady, pianos, serviceLog.entries, day]
+  );
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const openAdd = useCallback(() => router.push("/create"), []);
   const openIncome = useCallback(() => router.push("/income"), []);

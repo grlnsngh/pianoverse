@@ -76,16 +76,15 @@ describe("reading stored dates", () => {
     "2026-09-26", // saved by this version
     "2026-09-26T00:00:00.000+00:00", // a day as returned by Appwrite
     "Sat Sep 26 2026", // older Edit screen
+    // Midnight UTC written the other ways, read by the same quick path as Appwrite's
+    "2026-09-26T00:00:00Z",
+    "2026-09-26T00:00:00.000Z",
   ];
 
   it.each(["Asia/Kolkata", "America/Los_Angeles", "UTC", "Pacific/Auckland"])(
     "gives the same calendar day in %s",
     (timeZone) => {
-      expect(storedDaysInTimeZone(timeZone, stored)).toEqual([
-        "2026-09-26",
-        "2026-09-26",
-        "2026-09-26",
-      ]);
+      expect(storedDaysInTimeZone(timeZone, stored)).toEqual(Array(5).fill("2026-09-26"));
     }
   );
 
