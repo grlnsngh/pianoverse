@@ -3,6 +3,7 @@ jest.mock("react-native-appwrite", () =>
 );
 jest.mock("react-native-reanimated", () => require("react-native-reanimated/mock"));
 jest.mock("expo-router", () => ({
+  usePreventRemove: jest.fn(() => jest.fn()),
   router: {
     push: jest.fn(),
     back: jest.fn(),

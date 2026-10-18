@@ -16,8 +16,8 @@ import { dropsOldDeposit, depositAmount } from "@/utils/deposits";
 import { rentalToArchive } from "@/utils/rentalHistory";
 import { showDialog } from "@/utils/dialog";
 import { showToast } from "@/utils/toast";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { router, useLocalSearchParams, usePreventRemove } from "expo-router";
+import React, { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -38,11 +38,10 @@ import { makeStyles } from "@/lib/ThemeContext";
 
 const EditScreen = () => {
   const styles = useStyles();
-  const { id } = useLocalSearchParams();
+  const id = String(useLocalSearchParams().id ?? "");
   const pianosList = useSelector((state: RootState) => state.pianos.items);
   const user = useSelector((state: RootState) => state.users.user);
   const dispatch = useDispatch();
-  const navigation = useNavigation();
 
   const filteredPiano: PianoItem | undefined = pianosList.find(
     (piano) => piano.$id === id
@@ -58,31 +57,27 @@ const EditScreen = () => {
 
   // The form as it was opened, to tell whether anything has been changed
   const [openedForm] = useState(form);
-  const hasChanges = useRef(false);
-  hasChanges.current = JSON.stringify(form) !== JSON.stringify(openedForm);
-  // Set once the changes are saved, so leaving doesn't ask about them
-  const saved = useRef(false);
+  const hasChanges = JSON.stringify(form) !== JSON.stringify(openedForm);
+  // Set once the changes are saved or thrown away, so leaving doesn't ask about them
+  const [leaving, setLeaving] = useState(false);
 
   // Going back (Cancel, or Android's back button) with changes that weren't
   // saved asks first, instead of losing them
-  useEffect(
-    () =>
-      navigation.addListener("beforeRemove", (event) => {
-        if (saved.current || !hasChanges.current) return;
-        event.preventDefault();
-        const discard = () => navigation.dispatch(event.data.action);
+  const disablePrevention = usePreventRemove(hasChanges && !leaving, ({ repeat }) => {
+    const discard = () => {
+      setLeaving(true);
+      repeat();
+    };
 
-        showDialog({
-          title: "Discard changes?",
-          message: "You have unsaved changes to this piano.",
-          actions: [
-            { label: "Discard", tone: "destructive", onPress: discard },
-            { label: "Keep editing", emphasis: true, onPress: () => {} },
-          ],
-        });
-      }),
-    [navigation]
-  );
+    showDialog({
+      title: "Discard changes?",
+      message: "You have unsaved changes to this piano.",
+      actions: [
+        { label: "Discard", tone: "destructive", onPress: discard },
+        { label: "Keep editing", emphasis: true, onPress: () => {} },
+      ],
+    });
+  });
 
   if (!filteredPiano) {
     return (
@@ -115,12 +110,15 @@ const EditScreen = () => {
         input.rental_deposit = null;
         input.deposit_received_on = null;
       }
-      const updatedPiano = await updatePianoEntry(id.toString(), input, getPianoPhotos(filteredPiano));
+      const updatedPiano = await updatePianoEntry(id, input, getPianoPhotos(filteredPiano));
       // The end date or category may have changed
       await scheduleRentalDueNotification(updatedPiano);
       const updatedItem = toPianoItem(updatedPiano);
       dispatch(updatePianoItem(updatedItem) as any);
-      saved.current = true;
+      // Saved: going back now must not ask about the changes (lifted at once, since
+      // the screen only draws again after this has gone back)
+      setLeaving(true);
+      disablePrevention();
       if (router.canGoBack()) router.back();
       else router.replace("/home");
       showToast("Piano entry updated successfully", { variant: "success" });

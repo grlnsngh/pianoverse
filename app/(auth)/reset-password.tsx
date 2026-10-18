@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, StyleSheet, TextInput, View } from "react-native";
+import { Alert, StyleSheet, View, TextInputInstance } from "react-native";
 import AuthScreen, { AuthError } from "@/components/AuthScreen";
 import { Button, Field } from "@/components/ui";
 import { spacing } from "@/constants/theme";
@@ -31,7 +31,7 @@ const ResetPassword = () => {
   const [errors, setErrors] = useState({ password: "", confirmPassword: "" });
   const [failure, setFailure] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
-  const fields = { password: useRef<TextInput>(null), confirmPassword: useRef<TextInput>(null) };
+  const fields = { password: useRef<TextInputInstance>(null), confirmPassword: useRef<TextInputInstance>(null) };
 
   // Handle URL parameters from web redirect
   useEffect(() => {

@@ -128,13 +128,15 @@ describe("making a form's PDF", () => {
         options: { overwrite: true },
       },
     ]);
-    expect(pdf).toEqual({ uri: "file:///docs/Rent receipts.pdf", fileName: "Rent receipts.pdf", pages: 3 });
+    expect(pdf).toEqual({ uri: "file:///docs/Rent receipts.pdf", fileName: "Rent receipts.pdf", pages: 1 });
   });
 
-  it("counts the pages itself when the phone doesn't say", async () => {
+  it("counts the pages itself, whatever the phone says (Android only estimates from the content's height)", async () => {
     printToFile.mockResolvedValueOnce({ uri: "file:///cache/Print/x.pdf", numberOfPages: 0 });
-
     expect((await savePaperForm("handover", letterhead, 4)).pages).toBe(4);
+
+    printToFile.mockResolvedValueOnce({ uri: "file:///cache/Print/y.pdf", numberOfPages: 2 });
+    expect((await savePaperForm("rent_card", letterhead, 1)).pages).toBe(1);
   });
 
   it("makes no more than 20 copies", async () => {

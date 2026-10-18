@@ -138,12 +138,16 @@ export const loadPaperParts = async (design: LetterheadDesign): Promise<PaperPar
  * `textZoom: 100` keeps Android's web view from enlarging the text by the
  * phone's Font size: the pages are laid out for the designed size, so a PDF
  * made on a phone at 150% would otherwise overflow its boxes and pages.
+ *
+ * The page count is the app's own (`expectedPages`, every page being a box of
+ * a fixed size): the number Android's print code returns is only an estimate
+ * from the height of the content, and said 2 for a one page card (Expo SDK 58).
  */
 const savePdf = async (html: string, fileName: string, expectedPages: number): Promise<SavedPdf> => {
   const printed = await Print.printToFileAsync({ html, ...A4, margins: NO_MARGINS, textZoom: 100 });
   const target = new File(Paths.document, fileName);
   await new File(printed.uri).move(target, { overwrite: true });
-  return { uri: target.uri, fileName, pages: printed.numberOfPages || expectedPages };
+  return { uri: target.uri, fileName, pages: expectedPages };
 };
 
 /**

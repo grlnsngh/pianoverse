@@ -2,6 +2,8 @@ jest.mock("react-native-appwrite", () =>
   require("./helpers/fakeAppwrite").createFakeAppwriteModule()
 );
 jest.mock("expo-router", () => ({
+  usePreventRemove: (...args: unknown[]) =>
+    require("./helpers/preventRemove").fakePreventRemove.hook(...args),
   router: {
     push: jest.fn(),
     back: jest.fn(),
@@ -31,6 +33,7 @@ import * as ImagePicker from "expo-image-picker";
 import { router, useNavigation } from "expo-router";
 import EditScreen from "@/app/edit/[id]";
 import { fakeBackend, fileViewUrl } from "./helpers/fakeAppwrite";
+import { fakePreventRemove } from "./helpers/preventRemove";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   addPhotoFrom,
@@ -190,30 +193,27 @@ it("clears the customer's details when a rental is changed into another kind of 
 });
 
 describe("leaving the Edit screen", () => {
-  // A navigation object that remembers what listens for leaving the screen
-  const listeners: Record<string, (event: any) => void> = {};
   const navigation = {
     setOptions: jest.fn(),
     dispatch: jest.fn(),
-    addListener: jest.fn((name: string, listener: (event: any) => void) => {
-      listeners[name] = listener;
-      return jest.fn();
-    }),
+    addListener: jest.fn(() => jest.fn()),
   };
 
+  // Leaving as the back button does: the screen's guard (usePreventRemove)
+  // either lets it go or runs its callback, which has `repeat` to carry on
   const tryToLeave = () => {
-    const event = {
-      preventDefault: jest.fn(),
-      data: { action: { type: "GO_BACK" } },
-    };
-    act(() => listeners.beforeRemove(event));
-    return event;
+    let leaving!: ReturnType<typeof fakePreventRemove.tryToLeave>;
+    act(() => {
+      leaving = fakePreventRemove.tryToLeave();
+    });
+    return leaving;
   };
 
   const typeTitle = (renderer: any, text: string) =>
     typeInto(renderer.root, "Title", text);
 
   beforeEach(() => {
+    fakePreventRemove.reset();
     jest.mocked(useNavigation).mockReturnValue(navigation as any);
   });
 
@@ -221,9 +221,10 @@ describe("leaving the Edit screen", () => {
     const renderer = renderEditScreenFor(makePiano({ title: "Yamaha U1" }));
     typeTitle(renderer, "Yamaha U3");
 
-    const event = tryToLeave();
+    const leaving = tryToLeave();
 
-    expect(event.preventDefault).toHaveBeenCalled();
+    expect(leaving.blocked).toBe(true);
+    expect(leaving.repeat).not.toHaveBeenCalled();
     expect(dialogOf(renderer.root)).toEqual({
       title: "Discard changes?",
       message: "You have unsaved changes to this piano.",
@@ -231,7 +232,9 @@ describe("leaving the Edit screen", () => {
       actions: ["Discard", "Keep editing"],
     });
     await pressDialog(renderer.root, "Discard");
-    expect(navigation.dispatch).toHaveBeenCalledWith(event.data.action);
+    // It carries on leaving, and the guard is off so it isn't asked again
+    expect(leaving.repeat).toHaveBeenCalledTimes(1);
+    expect(fakePreventRemove.guarding()).toBe(false);
     expect(fakeBackend.documents.get("piano-1")?.title).toBe("Yamaha U1");
   });
 
@@ -239,18 +242,17 @@ describe("leaving the Edit screen", () => {
     const renderer = renderEditScreenFor(makePiano({ title: "Yamaha U1" }));
     typeTitle(renderer, "Yamaha U3");
 
-    tryToLeave();
+    const leaving = tryToLeave();
     await pressDialog(renderer.root, "Keep editing");
 
-    expect(navigation.dispatch).not.toHaveBeenCalled();
+    expect(leaving.repeat).not.toHaveBeenCalled();
+    expect(fakePreventRemove.guarding()).toBe(true);
   });
 
   it("leaves without asking when nothing was changed", () => {
     renderEditScreenFor(makePiano({ title: "Yamaha U1" }));
 
-    const event = tryToLeave();
-
-    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(tryToLeave().blocked).toBe(false);
     expect(alerts.titles()).toEqual([]);
   });
 
@@ -260,9 +262,9 @@ describe("leaving the Edit screen", () => {
 
     await pressText(renderer.root, "Save changes");
     expect(router.back).toHaveBeenCalled();
-    const event = tryToLeave();
-
-    expect(event.preventDefault).not.toHaveBeenCalled();
+    // Saving lifts the guard at once, before the screen has drawn again
+    expect(fakePreventRemove.disablePrevention).toHaveBeenCalled();
+    expect(tryToLeave().blocked).toBe(false);
     expect(alerts.titles()).toEqual([]);
   });
 });

@@ -1,12 +1,5 @@
 import React, { useRef } from "react";
-import {
-  Pressable,
-  Text,
-  TextInput,
-  TextInputProps,
-  TextStyle,
-  View,
-} from "react-native";
+import { Pressable, Text, TextInput, TextInputProps, TextStyle, View, TextInputInstance } from "react-native";
 import { fonts, spacing, type } from "@/constants/theme";
 import { useGroup } from "./Group";
 import Icon from "./Icon";
@@ -65,7 +58,7 @@ const FormRow = ({
   const styles = useStyles();
   const group = useGroup();
   const { fontScale, large } = useTextScale();
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const showChevron = chevron ?? !!onPress;
   const columnWidth = labelWidth ?? group.labelWidth;
   // Label above value: on a page, and for a text field in a sheet, whose hint has to be read

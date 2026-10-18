@@ -44,7 +44,7 @@ let alerts: ReturnType<typeof captureAlerts>;
 beforeEach(() => {
   jest.clearAllMocks();
   alerts = captureAlerts();
-  jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+  jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
 });
 
 afterEach(() => {

@@ -1,15 +1,6 @@
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, TextInputInstance } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CameraDeniedSheet from "@/components/CameraDeniedSheet";
 import { AuthedImage, Button, Field, Icon, Sheet, Spinner } from "@/components/ui";
@@ -52,8 +43,8 @@ const EditProfile = () => {
   const [cameraDenied, setCameraDenied] = useState(false);
   // The picture that couldn't be loaded, so the letter shows instead of an empty circle
   const [brokenPhoto, setBrokenPhoto] = useState<string | null>(null);
-  const nameField = useRef<TextInput>(null);
-  const upiField = useRef<TextInput>(null);
+  const nameField = useRef<TextInputInstance>(null);
+  const upiField = useRef<TextInputInstance>(null);
 
   const avatar = profilePhoto(user?.avatar);
   const photo = avatar && avatar !== brokenPhoto ? avatar : null;

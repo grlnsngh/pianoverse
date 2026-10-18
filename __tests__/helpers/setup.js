@@ -17,6 +17,21 @@ jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock")
 );
 
+// expo-notifications 58 sets its own foreground handler as soon as it is imported. Its native
+// stand-in under Jest hands back a subscription that can't be removed, which trips the app's
+// own setNotificationHandler (services/notifications.ts) when a test uses the real package
+jest.mock("expo-notifications/build/NotificationsHandlerModule.native", () => ({
+  __esModule: true,
+  default: {
+    addListener: () => ({ remove: () => {} }),
+    removeListener: () => {},
+    removeAllListeners: () => {},
+    emit: () => {},
+    listenerCount: () => 0,
+    handleNotificationAsync: () => Promise.resolve(),
+  },
+}));
+
 // Over-the-air updates are off in tests, like while developing; a test that
 // needs them on mocks the module itself
 jest.mock("expo-updates", () => ({

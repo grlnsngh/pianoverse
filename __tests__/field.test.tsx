@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TextInput } from "react-native";
+import { StyleSheet, Text, TextInput, type TextInputInstance } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { act } from "react-test-renderer";
 import { Field } from "@/components/ui";
@@ -267,7 +267,7 @@ describe("Field with a password", () => {
 
 describe("Field ref", () => {
   it("gives the screen the input, so it can move focus to the next field", async () => {
-    const ref = React.createRef<TextInput>();
+    const ref = React.createRef<TextInputInstance>();
     const renderer = await mount(
       <Field ref={ref} label="Email" value="" onChangeText={() => {}} />
     );

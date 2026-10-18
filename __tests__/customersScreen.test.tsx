@@ -48,7 +48,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(getRentPaymentsBetween).mockResolvedValue([]);
   jest.mocked(router.canGoBack).mockReturnValue(true);
-  jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+  jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
   mockParams.key = "asha%20mehta";
 });
 afterEach(() => {

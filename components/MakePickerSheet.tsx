@@ -1,11 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View, ScrollViewInstance } from "react-native";
 import { Icon, Sheet } from "@/components/ui";
 import { fonts, maxScale, radii, spacing } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
@@ -85,7 +79,7 @@ const MakePickerSheet = ({
   const { fontScale } = useTextScale();
   const [query, setQuery] = useState("");
   const [listHeight, setListHeight] = useState(0);
-  const list = useRef<ScrollView>(null);
+  const list = useRef<ScrollViewInstance>(null);
   const sections = useMemo(() => makeSections(makes, query), [makes, query]);
 
   // Start from the whole list each time it opens

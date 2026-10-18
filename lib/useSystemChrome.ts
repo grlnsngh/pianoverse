@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Platform, StatusBar } from "react-native";
+import { StatusBar } from "react-native";
 import * as SystemUI from "expo-system-ui";
 import type { Palette, Scheme } from "@/constants/theme";
 
@@ -11,9 +11,10 @@ import type { Palette, Scheme } from "@/constants/theme";
  *
  * Android draws the app behind a see-through status bar (edge to edge, since
  * Expo SDK 54), so its icons always follow the theme: left alone they are
- * white, and can't be seen on a light page. The rest has always been light,
- * so in light it is left alone until the person has been in dark and comes
- * back.
+ * white, and can't be seen on a light page. (Its colour isn't set: it isn't
+ * seen, and React Native 0.88 no longer has a call for it.) The rest has
+ * always been light, so in light it is left alone until the person has been
+ * in dark and comes back.
  */
 export default function useSystemChrome(scheme: Scheme, colors: Palette) {
   const changed = useRef(false);
@@ -23,9 +24,6 @@ export default function useSystemChrome(scheme: Scheme, colors: Palette) {
 
     if (scheme === "light" && !changed.current) return;
     changed.current = true;
-
-    // Only Android has a coloured bar to set; on a translucent one it is not seen
-    if (Platform.OS === "android") StatusBar.setBackgroundColor(colors.page, true);
 
     const setWindowColor = async () => {
       try {
