@@ -13,6 +13,15 @@
   };
 
   var link = logic.readLink(window.location.search);
+  // The secret is only needed here, in memory: take it out of the address bar, so it
+  // isn't left in the browser's history or in a link someone copies or shares from it
+  if (window.location.search && window.history && window.history.replaceState) {
+    try {
+      window.history.replaceState(null, "", window.location.pathname);
+    } catch (_error) {
+      // A browser that won't: the page works the same
+    }
+  }
   var form = byId("reset-form");
   var submit = byId("submit");
   var busy = false;

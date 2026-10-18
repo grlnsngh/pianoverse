@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -29,7 +30,8 @@ beforeEach(() => {
   );
   fs.writeFileSync(
     path.join(dir, "download.html"),
-    '<dd><span data-release="version">1.1.20</span>, <span data-release="date">17 October 2026</span></dd><dd><span data-release="size">147 MB</span>.</dd>'
+    '<dd><span data-release="version">1.1.20</span>, <span data-release="date">17 October 2026</span></dd><dd><span data-release="size">147 MB</span>.</dd>' +
+      '<dd><code><span data-release="sha256">old-fingerprint</span></code></dd>'
   );
 });
 afterEach(() => {
@@ -43,6 +45,9 @@ const apk = (name: string, bytes: number, ageSeconds = 0) => {
   fs.utimesSync(file, time, time);
   return file;
 };
+
+/** The SHA-256 of an APK made by apk(): `bytes` zero bytes. */
+const fingerprintOf = (bytes: number) => crypto.createHash("sha256").update(Buffer.alloc(bytes)).digest("hex");
 
 /** Runs the script; `answers` says what gh and git answer, by the first two words of the command. */
 const publish = (args: string[] = [], answers: Record<string, number> = {}, env: Record<string, string> = {}) => {
@@ -98,6 +103,61 @@ describe("publishing", () => {
     expect(text).toContain("Published v1.1.21: https://github.com/grlnsngh/pianoverse/releases/tag/v1.1.21 (62 MB)");
   });
 
+  // Batch 52 (SEC2): anyone can check that what they downloaded is the file that was published
+  describe("the file's fingerprint", () => {
+    it("is the SHA-256 of the file that goes up, on the download page and in release.json", () => {
+      apk("build-2.apk", 5000);
+
+      const { read } = publish(["--no-commit"]);
+
+      const sha = fingerprintOf(5000);
+      expect(sha).toMatch(/^[0-9a-f]{64}$/);
+      expect(JSON.parse(read("web/release.json")).sha256).toBe(sha);
+      expect(read("download.html")).toContain(`<code><span data-release="sha256">${sha}</span></code>`);
+    });
+
+    it("is in the release notes, after the notes written by hand too", () => {
+      apk("build-2.apk", 5000);
+      const sha = fingerprintOf(5000);
+
+      const plain = publish(["--no-commit"]);
+      const plainNotes = plain.calls.find((call) => call.args[1] === "create")!.args[plain.calls.find((call) => call.args[1] === "create")!.args.indexOf("--notes") + 1];
+      expect(plainNotes).toContain(`SHA-256 of pianoverse.apk: ${sha}`);
+      expect(plainNotes).toContain("Pianoverse for Android, version 1.1.21");
+
+      const written = publish(["--no-commit", "--notes", "What's new: a thing"]);
+      const create = written.calls.find((call) => call.args[1] === "create")!;
+      const notes = create.args[create.args.indexOf("--notes") + 1];
+      expect(notes).toBe(`What's new: a thing\n\nSHA-256 of pianoverse.apk: ${sha}`);
+    });
+
+    it("is not added twice to notes that already have it", () => {
+      apk("build-2.apk", 5000);
+      const sha = fingerprintOf(5000);
+
+      const { calls } = publish(["--no-commit", "--notes", `Checked: ${sha}`]);
+
+      const create = calls.find((call) => call.args[1] === "create")!;
+      expect(create.args[create.args.indexOf("--notes") + 1]).toBe(`Checked: ${sha}`);
+    });
+
+    it("changes with the file", () => {
+      apk("build-2.apk", 5000);
+      expect(fingerprintOf(5000)).not.toBe(fingerprintOf(5001));
+    });
+
+    it("fills the page's span only when the release has one", () => {
+      const html = '<span data-release="sha256">old</span> <span data-release="size">1 MB</span>';
+
+      expect(applyRelease(html, { version: "1.1.21", bytes: 62_000_000, date: "2026-10-20", sha256: "abc123" })).toBe(
+        '<span data-release="sha256">abc123</span> <span data-release="size">62 MB</span>'
+      );
+      expect(applyRelease(html, { version: "1.1.21", bytes: 62_000_000, date: "2026-10-20" })).toBe(
+        '<span data-release="sha256">old</span> <span data-release="size">62 MB</span>'
+      );
+    });
+  });
+
   it("replaces the APK of a release that already exists, instead of making a second one", () => {
     apk("build-2.apk", 1000);
 
@@ -118,6 +178,7 @@ describe("publishing", () => {
       versionCode: 32,
       tag: "v1.1.21",
       bytes: 62_000_000,
+      sha256: fingerprintOf(62_000_000),
       date: "2026-10-20",
     });
     expect(read("index.html")).toContain('Version <span data-release="version">1.1.21</span>, <span data-release="size">62 MB</span>');

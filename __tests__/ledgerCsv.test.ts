@@ -159,10 +159,17 @@ describe("text a spreadsheet could read as a formula", () => {
   it("gets one when it starts with a + or - that isn't the start of a number", () => {
     expect(asText("-cmd|' /C calc'!A0")).toBe("'-cmd|' /C calc'!A0");
     expect(asText("+cmd")).toBe("'+cmd");
+    // Starts like a number, isn't one
+    expect(asText("-1+cmd|' /C calc'!A0")).toBe("'-1+cmd|' /C calc'!A0");
+    expect(asText("-2+3")).toBe("'-2+3");
+    expect(asText("+1*SUM(A1)")).toBe("'+1*SUM(A1)");
+    expect(asText("+")).toBe("'+");
   });
 
   it("is left alone when it is a phone number or a number, or ordinary text", () => {
     expect(asText("+91 98765 43210")).toBe("+91 98765 43210");
+    expect(asText("+91-98765-43210")).toBe("+91-98765-43210");
+    expect(asText("-1,500.50")).toBe("-1,500.50");
     expect(asText("-500")).toBe("-500");
     expect(asText("+.5")).toBe("+.5");
     expect(asText("Asha Mehta")).toBe("Asha Mehta");

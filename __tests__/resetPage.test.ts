@@ -167,6 +167,27 @@ describe("the reset page", () => {
     expect(page.visible()).toEqual(["form"]);
   });
 
+  it("takes the link's secret out of the address bar once it has read it, and still sends it", async () => {
+    const fetchFn = jest.fn().mockResolvedValue({ ok: true, status: 200 });
+    const page = open("?userId=u1&secret=s1&expire=2026-10-18", fetchFn);
+
+    expect(page.dom.window.location.search).toBe("");
+    expect(page.dom.window.location.href).toBe("https://grlnsngh.github.io/pianoverse/reset-password.html");
+    expect(page.visible()).toEqual(["form"]);
+
+    page.type("password", "pianoverse1");
+    page.type("confirm", "pianoverse1");
+    page.submit();
+    await page.settle();
+
+    expect(JSON.parse(fetchFn.mock.calls[0][1].body)).toMatchObject({ userId: "u1", secret: "s1" });
+  });
+
+  it("takes the address bar clean for an invalid link too, and for the page with no link", () => {
+    expect(open("?userId=u1").dom.window.location.search).toBe("");
+    expect(open("").dom.window.location.search).toBe("");
+  });
+
   it.each(["", "?userId=u1", "?secret=s1"])(
     "says the link isn't valid when it is %p",
     (search) => {

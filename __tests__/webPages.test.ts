@@ -318,6 +318,9 @@ describe("the landing and download pages (docs/website/PLAN.md)", () => {
     const release = JSON.parse(read("web/release.json"));
     const words = releaseWords(release);
     expect(release.tag).toBe(`v${release.version}`);
+    // The file's fingerprint (SHA-256): 64 hexadecimal characters, shown on the download page
+    expect(release.sha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(read("download.html")).toContain(`<span data-release="sha256">${release.sha256}</span>`);
     for (const page of SITE_PAGES) {
       const spans = [...read(page).matchAll(/<span data-release="(\w+)">([^<]*)<\/span>/g)];
       expect(spans.length).toBeGreaterThanOrEqual(2);

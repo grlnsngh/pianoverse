@@ -762,7 +762,8 @@ a {
 
 .site .btn-big {
   min-height: 3.5rem;
-  padding: 0.875rem 1.75rem;
+  /* Slimmer sides on a narrow phone with big text, so a word of the label never has to break */
+  padding: 0.875rem min(1.75rem, 4vw);
   border-radius: 1rem;
   font-size: 1.0625rem;
 }
@@ -1369,6 +1370,25 @@ a {
   margin: 0.125rem 0 0;
   font-weight: 600;
   overflow-wrap: anywhere;
+}
+
+/* The file's fingerprint: a row of its own, 64 characters that break wherever they have to */
+.dl-fact-wide {
+  grid-column: 1 / -1;
+}
+
+.dl-hash {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.dl-facts .dl-fact-note {
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+  font-weight: 400;
 }
 
 .dl-install,
