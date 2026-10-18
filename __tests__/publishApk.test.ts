@@ -45,7 +45,7 @@ const apk = (name: string, bytes: number, ageSeconds = 0) => {
 };
 
 /** Runs the script; `answers` says what gh and git answer, by the first two words of the command. */
-const publish = (args: string[] = [], answers: Record<string, number> = {}) => {
+const publish = (args: string[] = [], answers: Record<string, number> = {}, env: Record<string, string> = {}) => {
   const calls: { command: string; args: string[] }[] = [];
   const lines: string[] = [];
   const code = run({
@@ -60,6 +60,7 @@ const publish = (args: string[] = [], answers: Record<string, number> = {}) => {
     },
     now: () => new Date(2026, 9, 20, 15, 0),
     log: (line: string) => lines.push(line),
+    env,
   });
   return { code, calls, text: lines.join("\n"), read: (file: string) => fs.readFileSync(path.join(dir, file), "utf8") };
 };
@@ -195,5 +196,27 @@ describe("what stops it", () => {
 describe("one command for a release", () => {
   it("finds the project from WSL, which sees a Windows drive under /mnt", () => {
     expect(wslPath("D:\\Workplace\\pianoverse")).toBe("/mnt/d/Workplace/pianoverse");
+  });
+});
+
+describe("run from PowerShell, which leaves out the -- after npm run", () => {
+  // npm keeps --apk and --notes for itself and hands their values over as loose words
+  it("publishes nothing when the flags didn't arrive, and says how to run it", () => {
+    const loose = publish(["build-123.apk", "What's", "new"], {}, { npm_config_apk: "true", npm_config_notes: "true" });
+
+    expect(loose.code).toBe(1);
+    expect(loose.calls).toEqual([]);
+    expect(loose.text).toContain("node scripts/publish-apk.js --apk <file>");
+  });
+
+  it("stops on loose words alone, or on npm's settings alone", () => {
+    expect(publish(["build-123.apk"]).code).toBe(1);
+    expect(publish([], {}, { npm_config_notes: "true" }).calls).toEqual([]);
+  });
+
+  it("still takes the flags with their values, and --allow-full", () => {
+    const { text } = publish(["--notes", "What's new", "--allow-full"]);
+
+    expect(text).not.toContain("didn't arrive");
   });
 });

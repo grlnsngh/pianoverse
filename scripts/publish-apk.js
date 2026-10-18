@@ -89,17 +89,33 @@ const runCommand = (command, args, options = {}) => {
  * Publishes the APK and the site. Returns the exit code. `exec(command, args)`
  * runs gh, git and npx, and is only replaced in tests.
  */
+/** The flags that are followed by a value. */
+const VALUE_FLAGS = ["--apk", "--notes"];
+
 const run = ({
   args,
   root = path.join(__dirname, ".."),
   exec = runCommand,
   now = () => new Date(),
   log = console.log,
+  env = process.env,
 }) => {
   const value = (flag) => {
     const at = args.indexOf(flag);
     return at > -1 ? args[at + 1] : undefined;
   };
+  // PowerShell drops the `--` in `npm run publish:apk -- --notes "..."`, so npm keeps
+  // --apk and --notes as its own settings and hands their values over as loose words.
+  // Publishing then would lose the notes, or pick the newest APK instead of the one
+  // named, so it stops and says how to run it.
+  const loose = args.filter((arg, i) => !arg.startsWith("--") && !VALUE_FLAGS.includes(args[i - 1]));
+  if (loose.length > 0 || env.npm_config_apk !== undefined || env.npm_config_notes !== undefined) {
+    log(
+      "Nothing was published: the --apk or --notes didn't arrive (PowerShell leaves out the `--` after npm run).\n" +
+        'Run it as: node scripts/publish-apk.js --apk <file> --notes "What\'s new"'
+    );
+    return 1;
+  }
   const app = readJson(path.join(root, "app.json"));
   const version = app.expo.version;
   const versionCode = app.expo.android.versionCode;
