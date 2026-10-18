@@ -1,5 +1,8 @@
 {
-  "version": "1.1.20",
-  "versionCode": 31,
-  "builtAt": "2026-10-17T06:20:09.411Z"
+  "version": "1.1.21",
+  "versionCode": 32,
+  "builtAt": "2026-10-18T06:21:44.986Z",
+  "profile": "preview",
+  "commit": "b65f651a27411c17f010cc5b3aa36a3e349394c4",
+  "dirty": false
 }
