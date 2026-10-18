@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { format } from "date-fns";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import AttentionRow from "@/components/AttentionRow";
@@ -38,11 +38,16 @@ import {
   recentPayments,
   rentedOut,
   stockCounts,
+  type ShelfEntry,
 } from "@/utils/today";
 import { makeStyles } from "@/lib/ThemeContext";
 import useTextScale from "@/lib/useTextScale";
 
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+const shelfKey = (entry: ShelfEntry) => entry.piano.$id;
+// The room between two shelf cards (a gap on the list would also go round the space it keeps for cards not drawn)
+const ShelfGap = () => <View style={{ width: spacing.md }} />;
 
 /**
  * The Today tab: what needs the owner. The money received this month, how many
@@ -129,6 +134,10 @@ const Today = () => {
   const openAdd = useCallback(() => router.push("/create"), []);
   const openIncome = useCallback(() => router.push("/income"), []);
   const openPiano = useCallback((id: string) => router.push(`/detail/${id}`), []);
+  const renderShelfCard = useCallback(
+    ({ item }: { item: ShelfEntry }) => <ShelfCard entry={item} onOpen={openPiano} />,
+    [openPiano]
+  );
   // An ended rental's quick steps: the piano opens with the sheet already up
   const openReturned = useCallback(
     (id: string) => router.push({ pathname: "/detail/[id]", params: { id, then: "return" } }),
@@ -371,15 +380,19 @@ const Today = () => {
                 <Text style={styles.seeAll}>See all</Text>
               </Pressable>
             </View>
-            <ScrollView
+            {/* Only the cards near the screen are drawn: with many pianos there can be dozens out */}
+            <FlatList
               horizontal
+              data={shelf}
+              keyExtractor={shelfKey}
+              renderItem={renderShelfCard}
+              ItemSeparatorComponent={ShelfGap}
+              initialNumToRender={4}
+              maxToRenderPerBatch={4}
+              windowSize={5}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.shelf}
-            >
-              {shelf.map((entry) => (
-                <ShelfCard key={entry.piano.$id} entry={entry} onOpen={openPiano} />
-              ))}
-            </ScrollView>
+            />
           </>
         )}
 
@@ -474,7 +487,7 @@ const useStyles = makeStyles((colors) => ({
     paddingHorizontal: spacing.screen,
     color: colors.ink2,
   },
-  shelf: { gap: spacing.md, paddingHorizontal: spacing.screen },
+  shelf: { paddingHorizontal: spacing.screen },
 }));
 
 export default Today;
