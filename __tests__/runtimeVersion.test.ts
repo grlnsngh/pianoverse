@@ -482,10 +482,11 @@ describe("the APK's packing (plugins/with-apk-packaging.js)", () => {
     expect(packagingProperties("preview")).toEqual({
       reactNativeArchitectures: "arm64-v8a,armeabi-v7a",
       "expo.useLegacyPackaging": "true",
+      "android.enableMinifyInReleaseBuilds": "true",
     });
     expect(packagingProperties("production")).toEqual({});
-    // The full test build, which runs on the emulators too
-    expect(packagingProperties("test")).toEqual({});
+    // The full test build runs on the emulators too, and is minified like the website's, so what is tried is what ships
+    expect(packagingProperties("test")).toEqual({ "android.enableMinifyInReleaseBuilds": "true" });
     expect(packagingProperties(undefined)).toEqual({});
   });
 
