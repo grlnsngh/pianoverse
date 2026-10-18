@@ -73,7 +73,7 @@ describe("signing in", () => {
     await expect(signIn("tester@example.com", "12345678")).resolves.toEqual({
       $id: "session-2",
     });
-    expect(fakeAccount.deleteSession).toHaveBeenCalledWith("current");
+    expect(fakeAccount.deleteSession).toHaveBeenCalledWith({ sessionId: "current" });
     expect(fakeAccount.createEmailPasswordSession).toHaveBeenCalledTimes(2);
   });
 

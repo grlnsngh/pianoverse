@@ -28,13 +28,13 @@ describe("the project the app expects", () => {
   it("has every table the app and the delete-account function use, under the IDs they use", () => {
     expect(configured("databaseId")).toBe(project.tablesDB[0].$id);
     const tables = {
-      users: configured("userCollectionId"),
-      pianos: configured("pianoCollectionId"),
-      rent_payments: configured("rentPaymentsCollectionId"),
-      rental_history: configured("rentalHistoryCollectionId"),
-      form_events: configured("formEventsCollectionId"),
-      service_log: configured("serviceLogCollectionId"),
-      expenses: configured("expensesCollectionId"),
+      users: configured("userTableId"),
+      pianos: configured("pianoTableId"),
+      rent_payments: configured("rentPaymentsTableId"),
+      rental_history: configured("rentalHistoryTableId"),
+      form_events: configured("formEventsTableId"),
+      service_log: configured("serviceLogTableId"),
+      expenses: configured("expensesTableId"),
     };
     for (const [name, id] of Object.entries(tables)) {
       expect(tableById(id)?.name).toBe(name);

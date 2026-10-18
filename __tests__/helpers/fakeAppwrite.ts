@@ -2,15 +2,16 @@
  * In-memory stand-in for the parts of `react-native-appwrite` the app uses.
  *
  * It mirrors the real SDK/server behaviour these tests depend on:
- *  - `listDocuments` returns at most 25 documents unless a `limit()` query is given
+ *  - `listRows` returns at most 25 rows unless a `limit()` query is given
  *  - `equal()`, `greaterThanEqual()`, `lessThan()`, `orderDesc()`, `limit()` and
  *    `cursorAfter()` queries are honoured (dates are compared as dates)
  *  - `storage.createFile` resolves to `undefined` when `file.size` is not a number,
  *    because the real SDK skips its upload loop in that case
  *  - the price columns of the pianos collection are numbers (double) and the
  *    server rejects anything else, e.g. the text "185000"
- *  - pianos, rent payments and kept rentals live in separate collections, and a collection
- *    that does not exist yet (`missingCollections`) rejects every request
+ *  - pianos, rent payments and kept rentals live in separate tables, and a table
+ *    that does not exist yet (`missingCollections`) rejects every request, with the
+ *    404 and the `table_not_found` type Appwrite answers with
  *  - every write is checked against the live project's tables (appwrite/project.json,
  *    kept in step by `npm run check:appwrite`): a table ID that isn't there, a column
  *    it doesn't have, a missing required value, the wrong type or text that is too
@@ -80,20 +81,24 @@ export const fakeBackend = {
 };
 
 /** The table in the live project, or Appwrite's error when there is none with that ID. */
-const tableFor = (collectionId: string) => {
-  const table = PROJECT.tables.find((candidate: { $id: string }) => candidate.$id === collectionId);
-  if (!table || fakeBackend.missingCollections.has(collectionId)) {
-    throw new Error("Collection with the requested ID could not be found.");
+const tableFor = (tableId: string) => {
+  const table = PROJECT.tables.find((candidate: { $id: string }) => candidate.$id === tableId);
+  if (!table || fakeBackend.missingCollections.has(tableId)) {
+    throw Object.assign(new Error(`Table with the requested ID '${tableId}' could not be found.`), {
+      name: "AppwriteException",
+      code: 404,
+      type: "table_not_found",
+    });
   }
   return table;
 };
 
-const storeFor = (collectionId: string) => {
-  tableFor(collectionId);
-  if (collectionId === PAYMENTS_COLLECTION_ID) return fakeBackend.payments;
-  if (collectionId === RENTAL_HISTORY_COLLECTION_ID) return fakeBackend.history;
-  if (collectionId === SERVICE_LOG_COLLECTION_ID) return fakeBackend.service;
-  if (collectionId === EXPENSES_COLLECTION_ID) return fakeBackend.expenses;
+const storeFor = (tableId: string) => {
+  tableFor(tableId);
+  if (tableId === PAYMENTS_COLLECTION_ID) return fakeBackend.payments;
+  if (tableId === RENTAL_HISTORY_COLLECTION_ID) return fakeBackend.history;
+  if (tableId === SERVICE_LOG_COLLECTION_ID) return fakeBackend.service;
+  if (tableId === EXPENSES_COLLECTION_ID) return fakeBackend.expenses;
   return fakeBackend.documents;
 };
 
@@ -101,13 +106,13 @@ const storeFor = (collectionId: string) => {
 const asSent = (data: object): Record<string, unknown> => JSON.parse(JSON.stringify(data));
 
 /** Refuses what the live table would refuse, with Appwrite's message. */
-const checkRow = (collectionId: string, data: Record<string, unknown>, creating: boolean) => {
+const checkRow = (tableId: string, data: Record<string, unknown>, creating: boolean) => {
   for (const column of Object.keys(data)) {
     if (fakeBackend.unknownColumns.has(column)) {
       throw new Error(`Invalid document structure: Unknown attribute: "${column}"`);
     }
   }
-  const problem = rowProblem(tableFor(collectionId), data, { creating });
+  const problem = rowProblem(tableFor(tableId), data, { creating });
   if (problem) throw new Error(problem);
 };
 
@@ -129,13 +134,13 @@ class Client {
   }
 }
 
-class Databases {
-  async listDocuments(_databaseId: string, collectionId: string, queries: string[] = []) {
+class TablesDB {
+  async listRows({ tableId, queries = [] }: { databaseId: string; tableId: string; queries?: string[] }) {
     fakeBackend.listCalls.push(queries);
-    fakeBackend.listCollections.push(collectionId);
+    fakeBackend.listCollections.push(tableId);
     const parsed = queries.map((query) => JSON.parse(query));
 
-    let docs = [...storeFor(collectionId).values()];
+    let docs = [...storeFor(tableId).values()];
     for (const query of parsed) {
       if (query.method === "equal") {
         docs = docs.filter((doc) => query.values.includes(doc[query.attribute]));
@@ -166,40 +171,59 @@ class Databases {
     if (cursor) {
       const index = docs.findIndex((doc) => doc.$id === cursor.values[0]);
       if (index === -1) {
-        throw new Error(`Document with the requested ID '${cursor.values[0]}' could not be found.`);
+        throw new Error(`Row with the requested ID '${cursor.values[0]}' could not be found.`);
       }
       docs = docs.slice(index + 1);
     }
 
     const limit = parsed.find((query) => query.method === "limit")?.values[0] ?? 25;
-    return { total, documents: docs.slice(0, limit) };
+    return { total, rows: docs.slice(0, limit) };
   }
 
-  async createDocument(_databaseId: string, collectionId: string, id: string, data: object) {
-    const store = storeFor(collectionId);
-    checkRow(collectionId, asSent(data), true);
-    const doc = { ...data, $id: id, $createdAt: new Date().toISOString() };
-    store.set(id, doc);
+  async createRow({
+    tableId,
+    rowId,
+    data,
+  }: {
+    databaseId: string;
+    tableId: string;
+    rowId: string;
+    data: object;
+    permissions?: string[];
+  }) {
+    const store = storeFor(tableId);
+    checkRow(tableId, asSent(data), true);
+    const doc = { ...data, $id: rowId, $tableId: tableId, $createdAt: new Date().toISOString() };
+    store.set(rowId, doc);
     return doc;
   }
 
-  async updateDocument(_databaseId: string, collectionId: string, id: string, data: object) {
+  async updateRow({
+    tableId,
+    rowId: id,
+    data,
+  }: {
+    databaseId: string;
+    tableId: string;
+    rowId: string;
+    data: object;
+  }) {
     if (fakeBackend.failNextDocumentUpdate) {
       fakeBackend.failNextDocumentUpdate = false;
       throw new Error("Network request failed");
     }
-    const store = storeFor(collectionId);
+    const store = storeFor(tableId);
     const existing = store.get(id);
-    if (!existing) throw new Error("Document with the requested ID could not be found.");
-    checkRow(collectionId, asSent(data), false);
+    if (!existing) throw new Error(`Row with the requested ID '${id}' could not be found.`);
+    checkRow(tableId, asSent(data), false);
     const updated = { ...existing, ...JSON.parse(JSON.stringify(data)) };
     store.set(id, updated);
     return updated;
   }
 
-  async deleteDocument(_databaseId: string, collectionId: string, id: string) {
-    if (!storeFor(collectionId).delete(id)) {
-      throw new Error("Document with the requested ID could not be found.");
+  async deleteRow({ tableId, rowId: id }: { databaseId: string; tableId: string; rowId: string }) {
+    if (!storeFor(tableId).delete(id)) {
+      throw new Error(`Row with the requested ID '${id}' could not be found.`);
     }
     return {};
   }
@@ -208,7 +232,7 @@ class Databases {
 class Storage {
   constructor(private client: Client) {}
 
-  async createFile(_bucketId: string, fileId: string, file: StoredFile) {
+  async createFile({ fileId, file }: { bucketId: string; fileId: string; file: StoredFile }) {
     // Real SDK: `if (size <= CHUNK_SIZE)` is false for undefined, and the chunk
     // loop `while (offset < size)` never runs, so it resolves to undefined.
     if (typeof file.size !== "number" || Number.isNaN(file.size)) return undefined;
@@ -216,13 +240,7 @@ class Storage {
     return { $id: fileId, name: file.name, mimeType: file.type, sizeOriginal: file.size };
   }
 
-  getFileView(bucketId: string, fileId: string) {
-    return new URL(
-      `${this.client.config.endpoint}/storage/buckets/${bucketId}/files/${fileId}/view?project=${this.client.config.project}`
-    );
-  }
-
-  async deleteFile(_bucketId: string, fileId: string) {
+  async deleteFile({ fileId }: { bucketId: string; fileId: string }) {
     if (!fakeBackend.files.delete(fileId)) {
       throw new Error("The requested file could not be found.");
     }
@@ -231,7 +249,15 @@ class Storage {
 }
 
 /** The page Appwrite would send the person to for Google, as the SDK builds it. */
-const googleLoginUrl = (provider: string, success?: string, failure?: string) =>
+const googleLoginUrl = ({
+  provider,
+  success,
+  failure,
+}: {
+  provider: string;
+  success?: string;
+  failure?: string;
+}) =>
   new URL(
     `${ENDPOINT}/account/tokens/oauth2/${provider}?project=test&success=${encodeURIComponent(
       success ?? ""
@@ -307,19 +333,12 @@ class Functions {
   createExecution = (...args: unknown[]) => (fakeFunctions.createExecution as jest.Mock)(...args);
 }
 
-class Avatars {
-  getInitials(name: string) {
-    return new URL(`${ENDPOINT}/avatars/initials?name=${encodeURIComponent(name)}`);
-  }
-}
-
 export const createFakeAppwriteModule = () => ({
   __esModule: true,
   Client,
-  Databases,
+  TablesDB,
   Storage,
   Account,
-  Avatars,
   Functions,
   ExecutionMethod: sdk.ExecutionMethod,
   Query: sdk.Query,

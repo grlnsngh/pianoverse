@@ -1,3 +1,4 @@
+import type { Models } from "react-native-appwrite";
 import { User } from "../users/types";
 
 // Define the action type
@@ -14,14 +15,7 @@ export const UPDATE_PIANO_ITEM = "UPDATE_PIANO_ITEM";
 export const RESET_PIANO_STATE = "RESET_PIANO_STATE";
 
 // Define the type for a piano item
-export interface PianoItem {
-  $collectionId: string;
-  $createdAt: string;
-  $databaseId: string;
-  $id: string;
-  $permissions: any[];
-  $tenant: string;
-  $updatedAt: string;
+export interface PianoItem extends Models.Row {
   category: string;
   creator: string;
   description?: string;

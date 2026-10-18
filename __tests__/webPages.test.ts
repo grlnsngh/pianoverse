@@ -166,7 +166,7 @@ describe("the web pages", () => {
   });
 
   it("the link the app puts in the reset email opens the reset page", () => {
-    expect(read("lib/appwrite.ts")).toContain("createRecovery(email, RESET_PASSWORD_URL)");
+    expect(read("lib/appwrite.ts")).toContain("createRecovery({ email, url: RESET_PASSWORD_URL })");
     const file = path.basename(new URL(RESET_PASSWORD_URL).pathname);
     expect(file).toBe("reset-password.html");
     expect(fs.existsSync(path.join(root, file))).toBe(true);
