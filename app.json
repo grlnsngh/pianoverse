@@ -21,11 +21,14 @@
       },
       "package": "com.grlnsngh.pianoverse",
       "versionCode": 32,
+      "allowBackup": false,
       "blockedPermissions": [
-        "android.permission.SYSTEM_ALERT_WINDOW"
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
-    "runtimeVersion": "5",
+    "runtimeVersion": "6",
     "updates": {
       "url": "https://u.expo.dev/9002c527-c408-455a-925b-2d4c09ae3118",
       "checkAutomatically": "ON_LOAD",

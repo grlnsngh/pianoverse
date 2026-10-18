@@ -84,6 +84,21 @@ describe("saving and opening a file", () => {
     expect(write).toHaveBeenCalledWith("file:///docs/a.csv", "x,y\n1,2");
   });
 
+  it("opens it only once it is written, since writing takes a moment", async () => {
+    const steps: string[] = [];
+    write.mockImplementation(() => {
+      steps.push("written");
+    });
+    launch.mockImplementation(async () => {
+      steps.push("opened");
+      return { resultCode: 0 } as any;
+    });
+
+    await saveAndOpenCSV("a.csv", "x");
+
+    expect(steps).toEqual(["written", "opened"]);
+  });
+
   it("opens it straight in a spreadsheet app on Android", async () => {
     await saveAndOpenCSV("a.csv", "x");
 

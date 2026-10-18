@@ -7,6 +7,7 @@ jest.mock("expo-image-picker", () => ({
   MediaTypeOptions: { Images: "Images" },
 }));
 jest.mock("expo-router", () => ({
+  usePreventRemove: jest.fn(() => jest.fn()),
   router: { push: jest.fn(), back: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({})),
   useNavigation: jest.fn(() => ({

@@ -1,13 +1,6 @@
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import { router, useLocalSearchParams, usePreventRemove } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Alert,
-  BackHandler,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  View,
-} from "react-native";
+import { Alert, BackHandler, KeyboardAvoidingView, Platform, ScrollView, View, ScrollViewInstance } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector, useStore } from "react-redux";
 import {
@@ -51,9 +44,8 @@ const HEADINGS: Record<AddStep, { title: string; subtitle: string }> = {
 const Create = () => {
   const styles = useStyles();
   const params = useLocalSearchParams();
-  const navigation = useNavigation();
   const store = useStore<RootState>();
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   const [step, setStep] = useState<AddStep>(1);
   const [form, setForm] = useState<PianoFormState>(() => {
     // Coming back from the review screen, carry on with the same form
@@ -107,34 +99,30 @@ const Create = () => {
 
   // Leaving with something entered (Cancel, Android's back button on the
   // first step, or a swipe back) asks first, instead of losing it
-  const latestForm = useRef(form);
-  latestForm.current = form;
-  useEffect(
-    () =>
-      navigation.addListener("beforeRemove", (event) => {
-        if (!hasEntries(latestForm.current)) return;
-        // The piano was published or the flow cancelled from the review: the
-        // form is finished with, even if this screen hasn't cleared it yet
-        if (
-          store.getState().navigation.createFormResetCount !==
-          resetsSeen.current
-        ) {
-          return;
-        }
-        event.preventDefault();
-        const discard = () => navigation.dispatch(event.data.action);
+  const [leaving, setLeaving] = useState(false);
+  usePreventRemove(hasEntries(form) && !leaving, ({ repeat }) => {
+    // The piano was published or the flow cancelled from the review: the
+    // form is finished with, even if this screen hasn't cleared it yet
+    // (that is read from the store, since this screen draws after the
+    // review has already gone back)
+    if (store.getState().navigation.createFormResetCount !== resetsSeen.current) {
+      repeat();
+      return;
+    }
+    const discard = () => {
+      setLeaving(true);
+      repeat();
+    };
 
-        showDialog({
-          title: "Stop adding this piano?",
-          message: "What you entered so far will be lost.",
-          actions: [
-            { label: "Discard", tone: "destructive", onPress: discard },
-            { label: "Keep going", emphasis: true, onPress: () => {} },
-          ],
-        });
-      }),
-    [navigation, store],
-  );
+    showDialog({
+      title: "Stop adding this piano?",
+      message: "What you entered so far will be lost.",
+      actions: [
+        { label: "Discard", tone: "destructive", onPress: discard },
+        { label: "Keep going", emphasis: true, onPress: () => {} },
+      ],
+    });
+  });
 
   const goOn = () => {
     const problem = step === 1 ? basicsProblem(form) : categoryProblem(form);

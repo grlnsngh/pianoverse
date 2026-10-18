@@ -13,6 +13,7 @@ jest.mock("expo-notifications", () =>
   require("./helpers/fakeNotifications").createFakeNotificationsModule()
 );
 jest.mock("expo-router", () => ({
+  usePreventRemove: jest.fn(() => jest.fn()),
   router: {
     push: jest.fn(),
     back: jest.fn(),

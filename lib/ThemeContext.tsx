@@ -116,19 +116,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
  * The styles are built once for each theme and kept, so a component gets the
  * same object every time it draws.
  */
-export const makeStyles = <
-  T extends StyleSheet.NamedStyles<T> | StyleSheet.NamedStyles<any>,
->(
-  factory: (colors: Palette) => T
-) => {
-  const built = new Map<Palette, T>();
-  return (): T => {
+export const makeStyles = <S extends StyleMap>(factory: (colors: Palette) => S & StyleMap) => {
+  const built = new Map<Palette, Readonly<S>>();
+  return (): Readonly<S> => {
     const colors = useColors();
     let styles = built.get(colors);
     if (!styles) {
-      styles = StyleSheet.create(factory(colors)) as T;
+      styles = StyleSheet.create(factory(colors));
       built.set(colors, styles);
     }
     return styles;
   };
 };
+
+/**
+ * What StyleSheet.create takes: a name for each style. Written as React Native
+ * 0.88 writes it (it no longer has `NamedStyles`), `S & StyleMap`, so that a
+ * value like `flexDirection: "row"` keeps its exact type instead of becoming a string.
+ */
+type StyleMap = Parameters<typeof StyleSheet.create>[0];

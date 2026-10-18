@@ -1,6 +1,7 @@
 import { differenceInCalendarMonths, format, parse } from "date-fns";
 import React from "react";
 import { Alert, AlertButton, Dimensions } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import {
@@ -100,11 +101,13 @@ export const renderWithStore = (ui: React.ReactElement, store: TestStore) => {
   act(() => {
     renderer = create(
       <Provider store={store}>
-        {/* The router's root view provides this in the app */}
-        <SafeAreaProvider initialMetrics={TEST_METRICS}>
-          {ui}
-          <DialogHost />
-        </SafeAreaProvider>
+        {/* The app's root layout has this view; the swipeable rows need it */}
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider initialMetrics={TEST_METRICS}>
+            {ui}
+            <DialogHost />
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
       </Provider>
     );
   });

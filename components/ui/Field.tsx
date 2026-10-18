@@ -1,14 +1,5 @@
 import React, { forwardRef, useRef, useState } from "react";
-import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputProps,
-  View,
-  ViewStyle,
-} from "react-native";
+import { Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle, TextInputInstance } from "react-native";
 import { fonts, radii, type } from "@/constants/theme";
 import Icon from "./Icon";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
@@ -36,7 +27,7 @@ export type FieldProps = Omit<TextInputProps, "style" | "placeholderTextColor"> 
  * a Show / Hide button. Forwards its ref, so a form can move focus to the next
  * field.
  */
-const Field = forwardRef<TextInput, FieldProps>(function Field(
+const Field = forwardRef<TextInputInstance, FieldProps>(function Field(
   {
     label,
     error,
@@ -54,11 +45,11 @@ const Field = forwardRef<TextInput, FieldProps>(function Field(
   const styles = useStyles();
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
-  const localRef = useRef<TextInput | null>(null);
+  const localRef = useRef<TextInputInstance | null>(null);
   const isPassword = !!secureTextEntry;
   const hasError = !!error;
 
-  const setRef = (node: TextInput | null) => {
+  const setRef = (node: TextInputInstance | null) => {
     localRef.current = node;
     if (typeof forwardedRef === "function") forwardedRef(node);
     else if (forwardedRef) forwardedRef.current = node;

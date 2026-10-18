@@ -20,7 +20,9 @@ export const createFakeFileSystemModule = () => {
 
     create() {}
 
-    write(content: string) {
+    // Asynchronous, as File.write is since Expo SDK 58: the file is written a moment later
+    async write(content: string) {
+      await Promise.resolve();
       writeFile(this.uri, content);
     }
   }

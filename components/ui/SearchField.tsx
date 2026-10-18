@@ -1,11 +1,5 @@
 import React, { forwardRef } from "react";
-import {
-  Pressable,
-  StyleProp,
-  TextInput,
-  View,
-  ViewStyle,
-} from "react-native";
+import { Pressable, StyleProp, TextInput, View, ViewStyle, TextInputInstance } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { fonts, shadows } from "@/constants/theme";
 import Icon from "./Icon";
@@ -29,7 +23,7 @@ export type SearchFieldProps = {
  * tab's, but one you type in. A round clear button appears at its right end
  * once something is typed.
  */
-const SearchField = forwardRef<TextInput, SearchFieldProps>(
+const SearchField = forwardRef<TextInputInstance, SearchFieldProps>(
   ({ value, onChangeText, onClear, autoFocus, style, testID }, ref) => {
     const colors = useColors();
     const styles = useStyles();

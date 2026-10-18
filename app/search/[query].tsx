@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, Text, View, TextInputInstance } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSelector } from "react-redux";
@@ -34,7 +34,7 @@ const Search = () => {
   const { query } = useLocalSearchParams();
   const initialText = (Array.isArray(query) ? query[0] : query) ?? "";
   const [text, setText] = useState(initialText);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
 
   const pianos = useSelector((state: RootState) => state.pianos.items);
   const filters = useSelector((state: RootState) => state.pianos.filters);
@@ -95,9 +95,9 @@ const Search = () => {
       <Text style={styles.count} accessibilityLiveRegion="polite">
         {countText(results.length, term !== "")}
       </Text>
-    ) : null;
+    ) : undefined;
   const footer =
-    results.length > 0 ? <Text style={styles.hint}>{HINT}</Text> : null;
+    results.length > 0 ? <Text style={styles.hint}>{HINT}</Text> : undefined;
 
   const shared = {
     data,

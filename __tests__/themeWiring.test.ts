@@ -39,13 +39,14 @@ describe("where the theme is wired in", () => {
     expect(source("app/_layout.tsx")).toMatch(/useSystemChrome\(scheme, colors\)/);
   });
 
-  it("lets the phone's own setting reach the app (app.json is automatic), in runtime 5", () => {
+  it("lets the phone's own setting reach the app (app.json is automatic), from runtime 5 on", () => {
     const config = JSON.parse(source("app.json")).expo;
 
     expect(config.userInterfaceStyle).toBe("automatic");
-    // 4 since the move to Expo SDK 57, 5 since paper forms added expo-print;
-    // "automatic" joined runtime 5 before any build of it was made
-    expect(config.runtimeVersion).toBe("5");
+    // 4 since the move to Expo SDK 57, 5 since paper forms added expo-print
+    // ("automatic" joined runtime 5 before any build of it was made), 6 since
+    // Expo SDK 58; every build from runtime 5 on has it
+    expect(Number(config.runtimeVersion)).toBeGreaterThanOrEqual(5);
   });
 });
 

@@ -308,9 +308,10 @@ export const saveAndOpenCSV = async (fileName: string, content: string): Promise
   const file = new File(Paths.document, fileName);
   const fileUri = file.uri;
 
-  // Write to file (as UTF-8), replacing an earlier export with the same name
+  // Write to file (as UTF-8), replacing an earlier export with the same name.
+  // Writing is asynchronous since Expo SDK 58: opening the file before it is done would open an empty one
   file.create({ overwrite: true });
-  file.write(content);
+  await file.write(content);
 
   // Try to open directly in spreadsheet apps
   if (Platform.OS === "android") {

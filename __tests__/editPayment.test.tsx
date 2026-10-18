@@ -71,7 +71,7 @@ beforeEach(() => {
   jest.spyOn(console, "log").mockImplementation(() => {});
   jest.spyOn(console, "warn").mockImplementation(() => {});
   jest.spyOn(console, "error").mockImplementation(() => {});
-  jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+  jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
 });
 afterEach(() => {
   jest.useRealTimers();

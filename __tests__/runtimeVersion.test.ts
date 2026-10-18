@@ -419,6 +419,104 @@ const RECORDED: Record<string, { packages: string[]; config: unknown }> = {
       experiments: { typedRoutes: true },
     },
   },
+  // Expo SDK 58 (React Native 0.88; Batch 54, the security upgrade): every
+  // native package changed, and the app stopped being backed up to Google
+  // (allowBackup) and stopped asking for the old shared-storage permissions
+  // (it keeps its files in its own folder and uses the photo picker)
+  "6": {
+    packages: [
+      "@react-native-async-storage/async-storage@2.2.0",
+      "@sentry/react-native@8.28.0",
+      "expo@58.0.14",
+      "expo-asset@58.0.16",
+      "expo-camera@58.0.10",
+      "expo-constants@58.0.12",
+      "expo-dev-client@58.0.14",
+      "expo-file-system@58.0.9",
+      "expo-font@58.0.8",
+      "expo-haptics@58.0.7",
+      "expo-image@58.0.15",
+      "expo-image-manipulator@58.0.14",
+      "expo-image-picker@58.0.10",
+      "expo-intent-launcher@58.0.3",
+      "expo-linking@58.0.13",
+      "expo-local-authentication@58.0.2",
+      "expo-notifications@58.1.5",
+      "expo-print@58.0.6",
+      "expo-router@58.0.23",
+      "expo-sharing@58.0.19",
+      "expo-splash-screen@58.0.10",
+      "expo-status-bar@58.0.3",
+      "expo-system-ui@58.0.6",
+      "expo-updates@58.0.17",
+      "expo-web-browser@58.0.6",
+      "react-native@0.88.0",
+      "react-native-gesture-handler@3.3.0",
+      "react-native-reanimated@4.7.1",
+      "react-native-safe-area-context@5.10.1",
+      "react-native-screens@4.30.0",
+      "react-native-svg@15.16.0",
+      "react-native-webview@14.0.1",
+      "react-native-worklets@0.13.0",
+    ],
+    config: {
+      name: "pianoverse",
+      slug: "pianoverse",
+      orientation: "portrait",
+      icon: "./assets/images/icon.png",
+      scheme: ["pianoverse", "appwrite-callback-66b2693000154e2fa3c8"],
+      userInterfaceStyle: "automatic",
+      backgroundColor: "#FFFFFF",
+      ios: { supportsTablet: true },
+      android: {
+        adaptiveIcon: {
+          foregroundImage: "./assets/images/adaptive-icon.png",
+          backgroundColor: "#ffffff",
+        },
+        package: "com.grlnsngh.pianoverse",
+        allowBackup: false,
+        blockedPermissions: [
+          "android.permission.SYSTEM_ALERT_WINDOW",
+          "android.permission.READ_EXTERNAL_STORAGE",
+          "android.permission.WRITE_EXTERNAL_STORAGE",
+        ],
+      },
+      plugins: [
+        "expo-router",
+        [
+          "expo-splash-screen",
+          { backgroundColor: "#FF9C01", image: "./assets/images/splash-blank.png" },
+        ],
+        [
+          "expo-image-picker",
+          {
+            photosPermission:
+              "Pianoverse uses your photos so you can add pictures of your pianos.",
+            cameraPermission:
+              "Pianoverse uses the camera so you can take pictures of your pianos.",
+            microphonePermission: false,
+          },
+        ],
+        [
+          "expo-camera",
+          {
+            cameraPermission: "Pianoverse uses the camera to scan the labels on your pianos.",
+            microphonePermission: false,
+            recordAudioAndroid: false,
+          },
+        ],
+        [
+          "expo-local-authentication",
+          { faceIDPermission: "Pianoverse uses Face ID to unlock the app." },
+        ],
+        [
+          "@sentry/react-native",
+          { organization: "grow-by-pixel", project: "pianoverse", url: "https://sentry.io/" },
+        ],
+      ],
+      experiments: { typedRoutes: true },
+    },
+  },
 };
 
 describe("the runtime version for over-the-air updates", () => {

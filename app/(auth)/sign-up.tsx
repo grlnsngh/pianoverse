@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, View, TextInputInstance } from "react-native";
 import AuthScreen, { AuthDivider, AuthError, AuthSwitch } from "@/components/AuthScreen";
 import GoogleButton from "@/components/GoogleButton";
 import { Button, Field } from "@/components/ui";
@@ -38,9 +38,9 @@ const SignUp = () => {
   const google = useGoogleSignIn("/sign-up", setFailure);
   const working = isSubmitting || google.busy;
   const fields = {
-    username: useRef<TextInput>(null),
-    email: useRef<TextInput>(null),
-    password: useRef<TextInput>(null),
+    username: useRef<TextInputInstance>(null),
+    email: useRef<TextInputInstance>(null),
+    password: useRef<TextInputInstance>(null),
   };
 
   const change = (key: Key) => (text: string) => {

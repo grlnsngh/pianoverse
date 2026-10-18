@@ -2,6 +2,8 @@ jest.mock("react-native-appwrite", () =>
   require("./helpers/fakeAppwrite").createFakeAppwriteModule()
 );
 jest.mock("expo-router", () => ({
+  usePreventRemove: (...args: unknown[]) =>
+    require("./helpers/preventRemove").fakePreventRemove.hook(...args),
   router: {
     push: jest.fn(),
     back: jest.fn(),
@@ -48,6 +50,7 @@ import { goToAddStep, setAddStepListener } from "@/utils/addFlow";
 import { headingOffset, makeSections } from "@/components/MakePickerSheet";
 import { createEmptyPianoForm, PianoFormState } from "@/utils/pianoForm";
 import { fakeBackend } from "./helpers/fakeAppwrite";
+import { fakePreventRemove } from "./helpers/preventRemove";
 import { makePiano, testUser } from "./helpers/fixtures";
 import {
   allTexts,
@@ -89,24 +92,20 @@ const photoAsset = (name: string) => ({
   ],
 });
 
-// A navigation object that remembers what listens for leaving the screen
-const listeners: Record<string, (event: any) => void> = {};
 const navigation = {
   setOptions: jest.fn(),
   dispatch: jest.fn(),
-  addListener: jest.fn((name: string, listener: (event: any) => void) => {
-    listeners[name] = listener;
-    return jest.fn();
-  }),
+  addListener: jest.fn(() => jest.fn()),
 };
 
+// Leaving as the back button does: the screen's guard (usePreventRemove) either
+// lets it go or runs its callback, which has `repeat` to carry on leaving
 const tryToLeave = () => {
-  const event = {
-    preventDefault: jest.fn(),
-    data: { action: { type: "GO_BACK" } },
-  };
-  act(() => listeners.beforeRemove(event));
-  return event;
+  let leaving!: ReturnType<typeof fakePreventRemove.tryToLeave>;
+  act(() => {
+    leaving = fakePreventRemove.tryToLeave();
+  });
+  return leaving;
 };
 
 // Presses a button without waiting for what it starts to finish
@@ -136,6 +135,7 @@ const shownPhotos = (renderer: ReactTestRenderer) => [
 beforeEach(() => {
   jest.clearAllMocks();
   fakeBackend.reset();
+  fakePreventRemove.reset();
   jest.mocked(useNavigation).mockReturnValue(navigation as any);
   jest.mocked(router.canDismiss).mockReturnValue(true);
   jest.mocked(useLocalSearchParams).mockReturnValue({});
@@ -429,18 +429,17 @@ describe("leaving the Add flow", () => {
   it("leaves without asking when nothing was entered", () => {
     renderCreate();
 
-    const event = tryToLeave();
-
-    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(tryToLeave().blocked).toBe(false);
   });
 
   it("asks before throwing away what was entered", async () => {
     const { renderer } = renderCreate();
     typeInto(renderer.root, "Title", "Kawai K-300");
 
-    const event = tryToLeave();
+    const leaving = tryToLeave();
 
-    expect(event.preventDefault).toHaveBeenCalled();
+    expect(leaving.blocked).toBe(true);
+    expect(leaving.repeat).not.toHaveBeenCalled();
     expect(dialogOf(renderer.root)).toEqual({
       title: "Stop adding this piano?",
       message: "What you entered so far will be lost.",
@@ -448,17 +447,20 @@ describe("leaving the Add flow", () => {
       actions: ["Discard", "Keep going"],
     });
     await pressDialog(renderer.root, "Discard");
-    expect(navigation.dispatch).toHaveBeenCalledWith(event.data.action);
+    // It carries on leaving, and the guard is off so it isn't asked again
+    expect(leaving.repeat).toHaveBeenCalledTimes(1);
+    expect(fakePreventRemove.guarding()).toBe(false);
   });
 
   it("stays when the person keeps going", async () => {
     const { renderer } = renderCreate();
     typeInto(renderer.root, "Title", "Kawai K-300");
 
-    tryToLeave();
+    const leaving = tryToLeave();
     await pressDialog(renderer.root, "Keep going");
 
-    expect(navigation.dispatch).not.toHaveBeenCalled();
+    expect(leaving.repeat).not.toHaveBeenCalled();
+    expect(fakePreventRemove.guarding()).toBe(true);
   });
 
   it("doesn't ask once the piano was published, even before the form is cleared", () => {
@@ -467,9 +469,10 @@ describe("leaving the Add flow", () => {
 
     // What publishing does, straight before it leaves
     store.dispatch(resetCreateForm());
-    const event = tryToLeave();
+    const leaving = tryToLeave();
 
-    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(leaving.repeat).toHaveBeenCalledTimes(1);
+    expect(dialogOf(renderer.root)).toBeNull();
   });
 
   it("starts over from the first step once the piano was published", async () => {

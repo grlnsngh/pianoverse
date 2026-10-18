@@ -24,6 +24,7 @@ const setUpReminderChannel = async () => {
   if (Platform.OS !== "android") return;
   await Notifications.setNotificationChannelAsync("rental-reminders", {
     name: "Rental Reminders",
+    // eslint-disable-next-line import/namespace -- the plugin can't follow expo-notifications' re-exports
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
     lightColor: "#FF9C01",
@@ -31,6 +32,7 @@ const setUpReminderChannel = async () => {
   });
   await Notifications.setNotificationChannelAsync(SUMMARY_CHANNEL, {
     name: "Morning summary",
+    // eslint-disable-next-line import/namespace -- the plugin can't follow expo-notifications' re-exports
     importance: Notifications.AndroidImportance.DEFAULT,
     lightColor: "#FF9C01",
     sound: "default",

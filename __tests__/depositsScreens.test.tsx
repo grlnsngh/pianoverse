@@ -1,6 +1,7 @@
 jest.mock("expo-notifications", () => require("./helpers/fakeNotifications").createFakeNotificationsModule());
 jest.mock("react-native-appwrite", () => require("./helpers/fakeAppwrite").createFakeAppwriteModule());
 jest.mock("expo-router", () => ({
+  usePreventRemove: jest.fn(() => jest.fn()),
   router: {
     push: jest.fn(),
     back: jest.fn(),

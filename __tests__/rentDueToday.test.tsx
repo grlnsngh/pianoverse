@@ -25,7 +25,7 @@ beforeEach(() => {
   jest.useFakeTimers({ now: new Date(2026, 8, 29, 12, 0, 0) });
   jest.clearAllMocks();
   jest.mocked(getRentPaymentsBetween).mockResolvedValue([]);
-  jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+  jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
 });
 afterEach(() => {
   jest.useRealTimers();

@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { Pressable, Text, View } from "react-native";
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import Swipeable, { type SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
 import { Icon } from "@/components/ui";
 import { fonts } from "@/constants/theme";
 import { makeStyles, useColors } from "@/lib/ThemeContext";
@@ -9,7 +9,7 @@ import { makeStyles, useColors } from "@/lib/ThemeContext";
 const ACTION_WIDTH = 80;
 
 // The row that is open now, so opening another one closes it
-let openRow: Swipeable | null = null;
+let openRow: SwipeableMethods | null = null;
 
 type SwipeableRowProps = {
   children: React.ReactNode;
@@ -29,7 +29,7 @@ type SwipeableRowProps = {
 const SwipeableRow = ({ children, onEdit, onDelete, enabled = true }: SwipeableRowProps) => {
   const colors = useColors();
   const styles = useStyles();
-  const row = useRef<Swipeable>(null);
+  const row = useRef<SwipeableMethods>(null);
 
   const choose = (action: () => void) => () => {
     row.current?.close();

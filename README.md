@@ -5,7 +5,7 @@ Welcome to **Pianoverse**, your comprehensive cross-platform inventory managemen
 ## Technologies Used
 
 - **Front-end Framework:** [React Native](https://reactnative.dev/)
-- **Front-end Framework:** [Expo](https://docs.expo.dev/) (SDK 57, Expo Router, React Native 0.86, React 19)
+- **Front-end Framework:** [Expo](https://docs.expo.dev/) (SDK 58, Expo Router, React Native 0.88, React 19)
 - **Back-end:** [Appwrite](https://appwrite.io/)
 - **State:** [Redux](https://redux.js.org/)
 - **UI:** our own components and design tokens (`components/ui/`, `constants/theme.ts`), drawn with React Native styles, in the [Figtree](https://fonts.google.com/specimen/Figtree) font
@@ -81,7 +81,7 @@ Follow these steps to get started with Pianoverse:
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 22, the version in `.nvmrc` (Expo SDK 57 needs 20.19.4 or later). In WSL, `nvm install` and then `nvm use` in the project pick it; `nvm alias default 22` makes it the one every new terminal starts with.
+- [Node.js](https://nodejs.org/) 22, the version in `.nvmrc` (Expo SDK 58 needs 22.13 or later). In WSL, `nvm install` and then `nvm use` in the project pick it; `nvm alias default 22` makes it the one every new terminal starts with.
 - [EAS CLI](https://docs.expo.dev/build/setup/) 24 or later, for builds and updates: `npm i -g eas-cli@latest` (in WSL too, where the builds run). `eas.json` refuses older ones.
 - The Expo CLI comes with the project; run it with `npx expo`.
 
@@ -321,7 +321,7 @@ npm run update -- --message "Fix the reminder wording"
 
 That publishes to the `preview` channel, which is what `eas build --profile preview` builds listen to (`npm run update:production` is for the `production` profile). Publish from an up-to-date `main`, never from a branch that isn't finished. The phone looks for an update when the app starts and when you come back to it after ten minutes; when one has downloaded, a message says **An update is ready** with a **Restart** button, and if you ignore it the update is used the next time the app starts. The bottom of the Account tab shows `Version 1.1.15 · update 9f8e7d6c` once an update is running.
 
-**When a new build is needed instead:** a native package is added, removed or upgraded, or a native setting in `app.json` changes (permissions, plugins, icon, splash, scheme). An update built for the old native part would crash a phone that has the new one, and the other way round. So `runtimeVersion` in `app.json` names the native part: an update only reaches builds with the same number. `__tests__/runtimeVersion.test.ts` fails when the native part changes; the fix is to raise `runtimeVersion`, record the new list in that test, and make a new build before publishing any update.
+**When a new build is needed instead:** a native package is added, removed or upgraded, or a native setting in `app.json` changes (permissions, plugins, icon, splash, scheme). An update built for the old native part would crash a phone that has the new one, and the other way round. So `runtimeVersion` in `app.json` names the native part: an update only reaches builds with the same number. `__tests__/runtimeVersion.test.ts` fails when the native part changes; the fix is to raise `runtimeVersion`, record the new list in that test, and make a new build before publishing any update. The runtime numbers so far: 4 (Expo SDK 57), 5 (paper forms, crash reports and the QR scanner; the builds 1.1.20 and 1.1.21) and 6 (Expo SDK 58, with the Android backup switched off and the two shared-storage permissions blocked). A phone keeps the runtime of its APK, so after 6 is given out, phones that stay on 5 get no more updates until they install the new APK.
 
 **If nothing arrives:** the installed app must be a build made with `expo-updates` (Account shows `Version 1.1.15` or later, and the build was made after this was added), made from a project whose `runtimeVersion` in `app.json` is the same as the one you publish from; the phone needs internet; and the update must go to the channel the build was made for (`preview` for `--profile preview`). The first time, `eas update` may say the channel doesn't exist: create it once with `eas channel:create preview`. `eas update:list` and the project's Updates page on expo.dev show what has been published.
 
