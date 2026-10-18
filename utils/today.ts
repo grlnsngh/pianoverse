@@ -104,13 +104,16 @@ export const stockCounts = (pianos: PianoItem[], month = new Date()) => ({
 });
 
 /** Payments newest first: by the day they were paid, then by when they were recorded. */
-export const newestFirst = (payments: RentPayment[]): RentPayment[] =>
-  [...payments].sort(
+export const newestFirst = (payments: RentPayment[]): RentPayment[] => {
+  // Each day read once, not on every comparison
+  const days = new Map(payments.map((payment) => [payment, parseStoredDate(payment.paid_on)?.getTime() ?? 0]));
+  return [...payments].sort(
     (a, b) =>
-      (parseStoredDate(b.paid_on)?.getTime() ?? 0) -
-        (parseStoredDate(a.paid_on)?.getTime() ?? 0) ||
-      b.$createdAt.localeCompare(a.$createdAt)
+      days.get(b)! - days.get(a)! ||
+      // The same moment written the same way, so plain order is enough (and much quicker on the phone)
+      (b.$createdAt < a.$createdAt ? -1 : b.$createdAt > a.$createdAt ? 1 : 0)
   );
+};
 
 /** The payments dated in the month of `month`. */
 export const paymentsInMonth = (

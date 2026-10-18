@@ -44,6 +44,7 @@ Tick `[x]` when done.
   - [x] S6.1 `npm run publish:apk` [the newest APK as `pianoverse.apk` in the release `v<version>`; `web/release.json` and the `data-release` spans on the pages filled in; a pull request to `main`, merged; the rule in `CLAUDE.md`]
   - [x] S6.2 `npm run release:android` [builds (in WSL on Windows) and then publishes]
   - [x] S6.3 A smaller APK [`plugins/with-apk-packaging.js`: only the phones' code (arm64 and 32-bit ARM; the emulators' x86 was 63 MB) and compressed native libraries (49 MB to 19); a build-only plugin, so runtime 5 and its updates are unchanged]
+  - [x] S6.4 Minified code (Batch 50, O1) [the same plugin turns on R8 for the website's and the test builds: the app's code in the APK 22.5 MB to 8.7, the website's APK 53 MB to about 39 (a trial build, not published; the next `npm run release:android` publishes it)]
   - [x] S6.4 The tests [`publishApk` (new), `webPages` (the site's version is the published release's), `runtimeVersion` (build-only plugins), `buildScripts`]
 
 ## Switching to the Play Store (when the listing is live)

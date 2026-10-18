@@ -6,6 +6,7 @@ import {
 } from "date-fns";
 import type { RentPayment } from "@/lib/appwrite";
 import { PianoItem } from "@/redux/pianos/types";
+import { groupByPiano } from "@/utils/byPiano";
 import { parseStoredDate } from "@/utils/dates";
 import { formatRupees } from "@/utils/money";
 import { getPianoRentalState } from "@/utils/pianoStatus";
@@ -127,10 +128,12 @@ export const rentDueEntries = (
   pianos: PianoItem[],
   payments: RentPayment[],
   today = startOfToday()
-): RentDueEntry[] =>
-  pianos
+): RentDueEntry[] => {
+  // Each rental only goes through its own payments
+  const byPiano = groupByPiano(payments);
+  return pianos
     .flatMap((piano) => {
-      const balance = rentBalance(piano, payments, today);
+      const balance = rentBalance(piano, byPiano.get(piano.$id) ?? [], today);
       return balance && balance.due > 0
         ? [{ piano, who: piano.rental_customer_name?.trim() || null, balance }]
         : [];
@@ -141,6 +144,7 @@ export const rentDueEntries = (
         (a.balance.since?.getTime() ?? 0) - (b.balance.since?.getTime() ?? 0) ||
         a.piano.title.localeCompare(b.piano.title)
     );
+};
 
 /**
  * How many months back (counting this one) payments have to be loaded for every

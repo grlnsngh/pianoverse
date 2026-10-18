@@ -448,6 +448,24 @@ describe("Rented out", () => {
     expect(filters.isOverdue).toBe(false);
   });
 
+  it("draws only the cards near the screen when many rentals are out, and keeps the others to scroll to", async () => {
+    // Batch 50 (O2): with 75 rentals out, every card and its photo was drawn when Today opened
+    const many = Array.from({ length: 30 }, (_, n) =>
+      rental(`r${n}`, `Kawai K-${100 + n}`, `Renter ${n}`, "2026-09-01", "2027-03-01")
+    );
+    const { renderer } = await open({ items: many });
+
+    const shelf = renderer.root.find(
+      (node: any) => node.props.horizontal === true && Array.isArray(node.props.data)
+    );
+    expect(shelf.props.data).toHaveLength(30);
+    const drawn = renderer.root.findAll(
+      (node: any) => typeof node.type === "string" && node.props.testID === "shelf-progress-fill"
+    );
+    expect(drawn.length).toBeGreaterThan(0);
+    expect(drawn.length).toBeLessThan(30);
+  });
+
   it("is left out when nothing is on rent", async () => {
     const { renderer } = await open({ items: [warehouse, youngChang] });
 

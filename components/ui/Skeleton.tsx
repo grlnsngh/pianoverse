@@ -1,19 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   DimensionValue,
+  Easing,
   LayoutChangeEvent,
   StyleProp,
   View,
   ViewStyle,
 } from "react-native";
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import useReducedMotion from "@/lib/useReducedMotion";
 import { motion } from "@/constants/theme";
@@ -55,6 +49,15 @@ export type SkeletonProps = {
  * A grey placeholder shape with a light band sweeping across it once every
  * 1.5 s. Give it the size and radius of the real content so nothing jumps when
  * the content arrives. With reduced motion it is a plain grey shape.
+ *
+ * The band moves with React Native's own Animated on the native driver, not
+ * Reanimated (Batch 50, O2). Reanimated 4.5 keeps the last frame of a running
+ * animation queued after its view is gone and applies the queue again each time
+ * a drawing (react-native-svg) is drawn, logging an error with a long stack
+ * trace for every gone view each time. When Today's and Pianos' skeletons gave
+ * way to 166 pianos full of drawn icons, that was 3,600 errors and 470,000 log
+ * lines on the main thread, and the app answered no tap for five seconds.
+ * Reanimated 4.7.1 fixes it (#10435); this one never enters that queue.
  */
 const Skeleton = ({
   width,
@@ -66,42 +69,32 @@ const Skeleton = ({
   const colors = useColors();
   const reduced = useReducedMotion();
   const [measured, setMeasured] = useState(0);
-  // The width also lives in a shared value, so the animated style below reads
-  // the current width rather than one captured when it was created
-  const bandWidth = useSharedValue(0);
-  const sweep = useSharedValue(0);
+  // 0 to 1 across one sweep
+  const sweep = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (reduced || measured === 0) {
-      cancelAnimation(sweep);
-      sweep.value = 0;
-      return;
-    }
-    sweep.value = 0;
-    sweep.value = withRepeat(
-      withTiming(1, { duration: motion.duration.shimmer, easing: Easing.linear }),
-      -1,
-      false
+    sweep.setValue(0);
+    if (reduced || measured === 0) return;
+    const loop = Animated.loop(
+      Animated.timing(sweep, {
+        toValue: 1,
+        duration: motion.duration.shimmer,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
     );
-    return () => cancelAnimation(sweep);
+    loop.start();
+    return () => loop.stop();
   }, [reduced, measured, sweep]);
 
   // The band is as wide as the shape and moves from just off the left edge to
   // just off the right
-  const band = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: -bandWidth.value + sweep.value * 2 * bandWidth.value },
-    ],
-  }));
+  const translateX = sweep.interpolate({ inputRange: [0, 1], outputRange: [-measured, measured] });
 
   return (
     <View
       testID={testID}
-      onLayout={(event: LayoutChangeEvent) => {
-        const measuredWidth = event.nativeEvent.layout.width;
-        bandWidth.value = measuredWidth;
-        setMeasured(measuredWidth);
-      }}
+      onLayout={(event: LayoutChangeEvent) => setMeasured(event.nativeEvent.layout.width)}
       // Decoration: the screen says it is loading, not each grey shape
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
@@ -119,10 +112,14 @@ const Skeleton = ({
       {!reduced && measured > 0 && (
         <Animated.View
           pointerEvents="none"
-          style={[
-            { position: "absolute", top: 0, bottom: 0, left: 0, width: measured },
-            band,
-          ]}
+          style={{
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: measured,
+            transform: [{ translateX }],
+          }}
         >
           <Svg width="100%" height="100%">
             <Defs>

@@ -12,6 +12,9 @@ const { withGradleProperties } = require("expo/config-plugins");
  * - the native libraries compressed in the APK (Gradle's "legacy packaging"),
  *   49 MB down to 19. The phone unpacks them when it installs the app, so the
  *   installed app takes a little more room than the download.
+ * - the app's Java and Kotlin code minified by R8 (Batch 50, O1): what is never
+ *   called is left out and the rest gets short names. This one is on the full
+ *   "test" build too, so the code that is tried is the code that ships.
  *
  * Nothing in the app's code changes, so the same JavaScript runs on it and
  * over-the-air updates still reach it (see __tests__/runtimeVersion.test.ts,
@@ -20,13 +23,18 @@ const { withGradleProperties } = require("expo/config-plugins");
  * parts it runs.
  */
 
-const APK_PROFILES = ["preview"];
+/** R8 minifying, on every APK the owner installs or gives out. */
+const MINIFY = { "android.enableMinifyInReleaseBuilds": "true" };
 
-/** The Gradle settings for a build profile: none outside the APK's. */
-const packagingProperties = (profile) =>
-  APK_PROFILES.includes(profile)
-    ? { reactNativeArchitectures: "arm64-v8a,armeabi-v7a", "expo.useLegacyPackaging": "true" }
-    : {};
+/** The Gradle settings for a build profile: none for the store's bundle or a development build. */
+const packagingProperties = (profile) => {
+  if (profile === "preview") {
+    return { reactNativeArchitectures: "arm64-v8a,armeabi-v7a", "expo.useLegacyPackaging": "true", ...MINIFY };
+  }
+  // The full test build keeps every processor's code, so it runs on the emulators
+  if (profile === "test") return { ...MINIFY };
+  return {};
+};
 
 /** gradle.properties' entries with these settings put in, replacing any value they had. */
 const applyProperties = (entries, properties) => {

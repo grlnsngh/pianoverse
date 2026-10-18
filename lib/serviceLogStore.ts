@@ -9,7 +9,8 @@ import {
 import type { PianoItem } from "@/redux/pianos/types";
 import { scheduleAllServiceNotifications, type TuningReminder } from "@/services/notifications";
 import { parseStoredDate } from "@/utils/dates";
-import { entriesFor, serviceState, type ServiceEntry, type ServiceKind } from "@/utils/serviceLog";
+import { groupByPiano } from "@/utils/byPiano";
+import { serviceState, type ServiceEntry, type ServiceKind } from "@/utils/serviceLog";
 import { showToast } from "@/utils/toast";
 
 /**
@@ -61,8 +62,9 @@ export const rescheduleTuningReminders = (next?: PianoItem[]) => {
   if (next) pianos = next;
   if (state.status !== "ready") return Promise.resolve([]);
   const reminders: TuningReminder[] = [];
+  const byPiano = groupByPiano(state.entries);
   for (const piano of pianos) {
-    const tuning = serviceState(piano, entriesFor(state.entries, piano.$id));
+    const tuning = serviceState(piano, byPiano.get(piano.$id) ?? []);
     if (tuning && tuning.days >= 0) {
       reminders.push({
         pianoId: piano.$id,

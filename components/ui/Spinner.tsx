@@ -1,13 +1,5 @@
-import React, { useEffect } from "react";
-import { StyleProp, ViewStyle } from "react-native";
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
+import React, { useEffect, useRef } from "react";
+import { Animated, Easing, StyleProp, ViewStyle } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import useReducedMotion from "@/lib/useReducedMotion";
 import { motion } from "@/constants/theme";
@@ -33,6 +25,11 @@ export type SpinnerProps = {
 /**
  * A ring with a quarter of it turning. With reduced motion it stays still, so
  * it still shows that something is loading.
+ *
+ * It turns with React Native's own Animated on the native driver, not
+ * Reanimated, like the skeleton's shimmer (see Skeleton.tsx, Batch 50): a
+ * Reanimated loop left a queue behind when the spinner went, which cost the
+ * main thread a logged error for every drawing drawn after it.
  */
 const Spinner = ({
   size = 24,
@@ -45,26 +42,25 @@ const Spinner = ({
 }: SpinnerProps) => {
   const colors = useColors();
   const reduced = useReducedMotion();
-  const turn = useSharedValue(0);
+  // 0 to 1 across one turn
+  const turn = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (reduced) {
-      cancelAnimation(turn);
-      turn.value = 0;
-      return;
-    }
-    turn.value = 0;
-    turn.value = withRepeat(
-      withTiming(1, { duration: motion.duration.spinnerTurn, easing: Easing.linear }),
-      -1,
-      false
+    turn.setValue(0);
+    if (reduced) return;
+    const loop = Animated.loop(
+      Animated.timing(turn, {
+        toValue: 1,
+        duration: motion.duration.spinnerTurn,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
     );
-    return () => cancelAnimation(turn);
+    loop.start();
+    return () => loop.stop();
   }, [reduced, turn]);
 
-  const spin = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${turn.value * 360}deg` }],
-  }));
+  const spin = { transform: [{ rotate: turn.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] }) }] };
 
   // A thinner ring looks right on a big spinner
   const strokeWidth = size >= 40 ? 2.4 : 3;

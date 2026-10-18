@@ -2,6 +2,7 @@ import { addMonths, differenceInCalendarDays, format, startOfToday } from "date-
 import type { IconName } from "@/components/ui/Icon";
 import { PIANO_CATEGORY } from "@/constants/Piano";
 import type { PianoItem } from "@/redux/pianos/types";
+import { groupByPiano } from "@/utils/byPiano";
 import { parseStoredDate } from "@/utils/dates";
 import { isSold } from "@/utils/pianoStatus";
 
@@ -162,11 +163,14 @@ export const serviceDue = (
   pianos: PianoItem[],
   entries: ServiceEntry[],
   today = startOfToday()
-): ServiceDueEntry[] =>
-  pianos
-    .map((piano) => ({ piano, state: serviceState(piano, entriesFor(entries, piano.$id), today) }))
+): ServiceDueEntry[] => {
+  // Each piano only goes through its own entries (their order doesn't matter here)
+  const byPiano = groupByPiano(entries);
+  return pianos
+    .map((piano) => ({ piano, state: serviceState(piano, byPiano.get(piano.$id) ?? [], today) }))
     .filter((item): item is ServiceDueEntry => !!item.state && item.state.tone !== "ok")
     .sort((a, b) => a.state.days - b.state.days);
+};
 
 /** Where a piano is, for Today's list: "Rented to Meera Kapoor" or "In the warehouse". */
 export const whereLine = (piano: PianoItem) => {

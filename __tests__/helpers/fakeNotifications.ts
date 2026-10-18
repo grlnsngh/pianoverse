@@ -73,8 +73,12 @@ export const createFakeNotificationsModule = () => ({
   getPermissionsAsync: jest.fn(async () => ({ status: "granted" })),
   requestPermissionsAsync: jest.fn(async () => ({ status: "granted" })),
   setNotificationChannelAsync: jest.fn(async () => null),
-  scheduleNotificationAsync: jest.fn(async ({ content, trigger }: any) => {
-    const identifier = `notification-${fakeNotifications.nextId++}`;
+  scheduleNotificationAsync: jest.fn(async ({ identifier: given, content, trigger }: any) => {
+    // A given identifier is kept, and replaces one already scheduled with it, as on the phone
+    const identifier = given ?? `notification-${fakeNotifications.nextId++}`;
+    fakeNotifications.scheduled = fakeNotifications.scheduled.filter(
+      (notification) => notification.identifier !== identifier
+    );
     fakeNotifications.scheduled.push({ identifier, content, trigger });
     return identifier;
   }),
