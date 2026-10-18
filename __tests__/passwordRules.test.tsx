@@ -100,7 +100,6 @@ describe("reset password screen", () => {
 
 it("the web reset page asks for at least 8 characters too", () => {
   // The page runs web/reset-logic.js (its own tests are in resetPage.test.ts)
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const webRules = require("../web/reset-logic.js");
   const html = fs.readFileSync(path.join(__dirname, "..", "reset-password.html"), "utf8");
 

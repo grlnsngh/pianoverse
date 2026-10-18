@@ -75,7 +75,7 @@ const PaymentsSection = ({
 
       {status === "error" && (
         <View style={styles.centered}>
-          <Text style={styles.note}>Couldn't load payments</Text>
+          <Text style={styles.note}>Couldn&apos;t load payments</Text>
           <Button title="Retry" variant="text" size="compact" onPress={onRetry} />
         </View>
       )}

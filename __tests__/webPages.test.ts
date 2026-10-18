@@ -313,7 +313,6 @@ describe("the landing and download pages (docs/website/PLAN.md)", () => {
 
   it("say the version, size and date of the APK that is published, from web/release.json", () => {
     // npm run publish:apk writes release.json and fills in these spans (scripts/publish-apk.js)
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { releaseWords } = require("../scripts/publish-apk");
     const release = JSON.parse(read("web/release.json"));
     const words = releaseWords(release);

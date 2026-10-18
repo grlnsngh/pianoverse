@@ -2,10 +2,8 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 
-/* eslint-disable @typescript-eslint/no-var-requires */
 const { bumpVersion, bumped, needsBump, writeJson } = require("../scripts/version");
 const { run, profileOf } = require("../scripts/build-android");
-/* eslint-enable @typescript-eslint/no-var-requires */
 
 /**
  * `npm run build:android`: raises the version only when the last build used the

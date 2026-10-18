@@ -568,7 +568,6 @@ describe("the update setup", () => {
 });
 
 describe("the APK's packing (plugins/with-apk-packaging.js)", () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { packagingProperties, applyProperties } = require("../plugins/with-apk-packaging");
 
   it("is a build-only plugin in app.json, and changes nothing the JavaScript runs on", () => {

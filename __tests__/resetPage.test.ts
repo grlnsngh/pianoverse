@@ -2,9 +2,7 @@ import fs from "fs";
 import path from "path";
 import { confirmPasswordError, newPasswordError } from "@/utils/authForms";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { JSDOM } = require("jsdom");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const logic = require("../web/reset-logic.js");
 
 /**
