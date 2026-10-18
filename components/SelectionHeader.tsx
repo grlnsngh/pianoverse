@@ -28,15 +28,15 @@ const SelectionHeader = () => {
 
   const toggleAll = () => {
     if (selectedItems.length === filteredItems.length) {
-      dispatch(clearSelectedItems() as any);
+      dispatch(clearSelectedItems());
     } else {
-      dispatch(selectAllItems(filteredItems.map((item) => item.$id)) as any);
+      dispatch(selectAllItems(filteredItems.map((item) => item.$id)));
     }
   };
 
   const cancel = () => {
-    dispatch(clearSelectedItems() as any);
-    dispatch(setBulkSelectionMode(false) as any);
+    dispatch(clearSelectedItems());
+    dispatch(setBulkSelectionMode(false));
   };
 
   return (

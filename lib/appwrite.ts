@@ -112,14 +112,14 @@ const initialsUrl = (name: string) =>
  * @param {string} email - The email address of the new user.
  * @param {string} password - The password for the new user account.
  * @param {string} username - The username for the new user.
- * @returns {Promise<any>} A promise that resolves to the newly created user document.
+ * @returns {Promise<User>} A promise that resolves to the newly created user row.
  * @throws {Error} If there is an error during the user creation process.
  */
 export async function createUser(
   email: string,
   password: string,
   username: string
-): Promise<any> {
+): Promise<User> {
   try {
     const newAccount = await account.create({
       userId: ID.unique(),
@@ -134,7 +134,7 @@ export async function createUser(
 
     await signIn(email, password);
 
-    const newUser = await db.create(
+    const newUser = await db.create<User>(
       appwriteConfig.userTableId,
       ID.unique(),
       {
@@ -161,7 +161,7 @@ export async function createUser(
  * @returns {Promise<any>} A promise that resolves to the session object if the sign-in is successful.
  * @throws {Error} If there is an error during the sign-in process.
  */
-export async function signIn(email: string, password: string): Promise<any> {
+export async function signIn(email: string, password: string): Promise<Models.Session> {
   try {
     return await account.createEmailPasswordSession({ email, password });
   } catch (error) {
@@ -200,13 +200,13 @@ export function getGoogleLoginUrl(redirect: string): string {
  *
  * @param {string} userId - The account Google's sign-in belongs to.
  * @param {string} secret - The one-time token.
- * @returns {Promise<any>} A promise that resolves to the session.
+ * @returns {Promise<Models.Session>} A promise that resolves to the session.
  * @throws {Error} If the token is wrong or has been used.
  */
 export async function createSessionFromToken(
   userId: string,
   secret: string
-): Promise<any> {
+): Promise<Models.Session> {
   try {
     return await account.createSession({ userId, secret });
   } catch (error) {
@@ -243,12 +243,12 @@ export async function getGoogleAccessToken(): Promise<string | null> {
  * letters the app made up or an older Google photo.
  *
  * @param {GoogleProfile | null} profile - The Google name and photo, if they could be read.
- * @returns {Promise<any>} A promise that resolves to the user document.
+ * @returns {Promise<User>} A promise that resolves to the user row.
  * @throws {Error} If Appwrite can't be reached or the document can't be made.
  */
 export async function ensureUserDocument(
   profile: GoogleProfile | null = null
-): Promise<any> {
+): Promise<User> {
   const existing = await getCurrentUser();
   if (existing) {
     const photo = avatarToStore(existing.avatar, profile?.picture);
@@ -269,7 +269,7 @@ export async function ensureUserDocument(
   const current = await account.get();
   const username = usernameFor(profile?.name ?? current.name, current.email);
   const create = (avatar: unknown) =>
-    db.create(
+    db.create<User>(
       appwriteConfig.userTableId,
       ID.unique(),
       { accountId: current.$id, email: current.email, username, avatar }
@@ -300,14 +300,14 @@ export function removedAvatarUrl(username: string): string {
  *
  * @param {string} userDocumentId - The user document's ID.
  * @param {{ username?: string; avatar?: string; upi_id?: string | null }} fields - What to change.
- * @returns {Promise<any>} A promise that resolves to the updated user document.
+ * @returns {Promise<User>} A promise that resolves to the updated user row.
  * @throws {Error} If Appwrite can't be reached or refuses the change.
  */
 export async function updateUserProfile(
   userDocumentId: string,
   fields: { username?: string; avatar?: string; upi_id?: string | null }
-): Promise<any> {
-  return db.update(
+): Promise<User> {
+  return db.update<User>(
     appwriteConfig.userTableId,
     userDocumentId,
     fields
@@ -366,18 +366,19 @@ export function convertImageUrl(oldUrl: string): string | null {
  * Prepares a piano document for the app: converts the URLs of its photos to
  * ones without transformations.
  */
-export const toPianoItem = (row: Models.Row & Record<string, any>): PianoItem =>
-  ({
+export const toPianoItem = (row: Models.Row & Record<string, unknown>): PianoItem => {
+  const imageUrl = row.image_url as string | null | undefined;
+  const imageUrls = row.image_urls;
+  return {
     ...row,
-    image_url: row.image_url
-      ? convertImageUrl(row.image_url)
-      : row.image_url,
-    ...(Array.isArray(row.image_urls) && {
-      image_urls: row.image_urls
+    image_url: imageUrl ? convertImageUrl(imageUrl) : imageUrl,
+    ...(Array.isArray(imageUrls) && {
+      image_urls: (imageUrls as string[])
         .map(convertImageUrl)
-        .filter((url: string | null): url is string => !!url),
+        .filter((url): url is string => !!url),
     }),
-  }) as unknown as PianoItem;
+  } as unknown as PianoItem;
+};
 
 // Appwrite returns 25 documents per request unless a limit is given, so piano
 // lists are fetched page by page.
@@ -809,6 +810,9 @@ export async function deleteFileByUrl(url: string): Promise<void> {
   }
 }
 
+/** What deleting a piano reads of it: which one it is and where its photos are. */
+export type DeletablePiano = Pick<PianoItem, "$id"> & Partial<Pick<PianoItem, "image_url" | "image_urls">>;
+
 /**
  * Deletes multiple piano entries from the database and their associated files from storage.
  *
@@ -816,7 +820,7 @@ export async function deleteFileByUrl(url: string): Promise<void> {
  * @returns {Promise<{ deletedIds: string[]; failedIds: string[] }>} - Which pianos were deleted and which could not be.
  */
 export async function deleteMultiplePianoEntries(
-  items: any[]
+  items: DeletablePiano[]
 ): Promise<{ deletedIds: string[]; failedIds: string[] }> {
   const results = await Promise.all(
     items.map(async (item) => {
@@ -849,7 +853,7 @@ export async function deleteMultiplePianoEntries(
  * @throws {Error} - Throws an error if the deletion fails.
  * @see {@link deleteFileByUrl}
  */
-export async function deletePianoEntry(item: any) {
+export async function deletePianoEntry(item: DeletablePiano) {
   try {
     // Delete the piano entry from the database
     const response = await db.remove(
@@ -859,7 +863,7 @@ export async function deletePianoEntry(item: any) {
 
     // Then its photos; a missing one must not keep the piano from being deleted
     const photoUrls = new Set<string>(
-      [item.image_url, ...(item.image_urls ?? [])].filter(Boolean)
+      [item.image_url, ...(item.image_urls ?? [])].filter((url): url is string => !!url)
     );
     await deletePhotoFiles([...photoUrls]);
 
@@ -1400,7 +1404,7 @@ export async function createFormEvent(event: FormEvent) {
  * @returns {Promise<any>} A promise that resolves to the recovery response.
  * @throws {Error} If there is an error during the password recovery process.
  */
-export async function sendPasswordRecovery(email: string): Promise<any> {
+export async function sendPasswordRecovery(email: string): Promise<Models.Token> {
   try {
     // For FREE plan: Use a simple web URL that redirects to your app
     // Appwrite will send the default email with this URL
@@ -1426,7 +1430,7 @@ export async function updatePassword(
   userId: string,
   secret: string,
   password: string
-): Promise<any> {
+): Promise<Models.Token> {
   try {
     const recovery = await account.updateRecovery({ userId, secret, password });
 

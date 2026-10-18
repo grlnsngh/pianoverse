@@ -95,7 +95,7 @@ const Home = () => {
   const { user } = useGlobalContext();
   const fetchFunction = useCallback(() => {
     if (!user || !user.accountId) {
-      return Promise.resolve([]);
+      return Promise.resolve<PianoItem[]>([]);
     }
     return getUserPianoEntries(user.accountId);
   }, [user]);
@@ -148,8 +148,8 @@ const Home = () => {
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        dispatch(clearSelectedItems() as any);
-        dispatch(setBulkSelectionMode(false) as any);
+        dispatch(clearSelectedItems());
+        dispatch(setBulkSelectionMode(false));
         return true;
       },
     );
@@ -160,7 +160,7 @@ const Home = () => {
   // rows only re-render when their own props change
   const handleToggleItemSelection = useCallback(
     (itemId: string) => {
-      dispatch(toggleItemSelection(itemId) as any);
+      dispatch(toggleItemSelection(itemId));
     },
     [dispatch],
   );
@@ -171,10 +171,10 @@ const Home = () => {
       const { isBulkSelectionMode, selectedItems } = store.getState().pianos;
       // Enter bulk selection mode and select the long-pressed item
       if (!isBulkSelectionMode) {
-        dispatch(setBulkSelectionMode(true) as any);
+        dispatch(setBulkSelectionMode(true));
       }
       if (!selectedItems.includes(itemId)) {
-        dispatch(toggleItemSelection(itemId) as any);
+        dispatch(toggleItemSelection(itemId));
       }
     },
     [dispatch, store],
@@ -205,14 +205,14 @@ const Home = () => {
   const selectCategory = useCallback(
     (tab: CategoryTab) =>
       dispatch(
-        setPianoFilters({ ...filters, category: categoryFilterOf(tab) }) as any,
+        setPianoFilters({ ...filters, category: categoryFilterOf(tab) }),
       ),
     [filters, dispatch],
   );
   const toggleLayout = useCallback(
     () =>
       dispatch(
-        setPianoFilters(withLayout(filters, isGrid ? "list" : "grid")) as any,
+        setPianoFilters(withLayout(filters, isGrid ? "list" : "grid")),
       ),
     [filters, isGrid, dispatch],
   );
@@ -274,7 +274,7 @@ const Home = () => {
           actionLabel="Clear filters"
           actionVariant="secondary"
           onAction={() =>
-            dispatch(setPianoFilters(clearFilters(filters)) as any)
+            dispatch(setPianoFilters(clearFilters(filters)))
           }
         />
       );
@@ -301,7 +301,7 @@ const Home = () => {
     dispatch(
       setFilteredPianoListItems(
         applyPianoFilters(pianoReduxItems, filters),
-      ) as any,
+      ),
     );
   }, [pianoReduxItems, filters, dispatch]);
 
@@ -316,7 +316,7 @@ const Home = () => {
       if (cancelled || !cached) return;
       setSavedAt(cached.savedAt);
       if (!hasLoadedRef.current) {
-        dispatch(setPianoListItems(cached.pianos) as any);
+        dispatch(setPianoListItems(cached.pianos));
       }
     });
     return () => {
@@ -337,7 +337,7 @@ const Home = () => {
     // reminders, rather than treating it as an empty list
     if (isLoading || loadError || !user) return;
     hasLoadedRef.current = true;
-    dispatch(setPianoListItems(items) as any);
+    dispatch(setPianoListItems(items));
 
     // Keep rental reminders in line with the loaded pianos. This also removes
     // reminders for pianos that were deleted or are no longer rented.
@@ -362,7 +362,7 @@ const Home = () => {
   const renderItem = useCallback(
     ({ item }: { item: PianoItem | (PianoItem & { empty?: boolean }) }) => {
       // A blank cell that keeps the last card of the grid from stretching
-      if ((item as any).empty) return <View style={styles.blankCell} />;
+      if ("empty" in item && item.empty) return <View style={styles.blankCell} />;
 
       const piano = item as PianoItem;
       const shared = {

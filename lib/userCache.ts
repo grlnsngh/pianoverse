@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { User } from "@/redux/users/types";
 
 /**
  * The signed-in user saved on the device, so the app can open without a
@@ -8,7 +9,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const KEY = "signedInUser";
 
-export const saveSignedInUser = async (user: object) => {
+export const saveSignedInUser = async (user: User) => {
   try {
     await AsyncStorage.setItem(KEY, JSON.stringify(user));
   } catch (error) {
@@ -16,7 +17,7 @@ export const saveSignedInUser = async (user: object) => {
   }
 };
 
-export const loadSignedInUser = async (): Promise<any | null> => {
+export const loadSignedInUser = async (): Promise<User | null> => {
   try {
     const stored = await AsyncStorage.getItem(KEY);
     return stored ? JSON.parse(stored) : null;

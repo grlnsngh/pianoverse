@@ -208,3 +208,14 @@ describe("opening the app", () => {
     expect(context.isLogged).toBe(false);
   });
 });
+
+describe("using who is signed in", () => {
+  it("says so when a screen asks outside the provider, instead of handing back nothing", () => {
+    // React reports the error it is about to throw
+    jest.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(() => renderWithStore(<CaptureContext />, createTestStore())).toThrow(
+      "useGlobalContext is used outside GlobalProvider."
+    );
+  });
+});

@@ -10,6 +10,9 @@ module.exports = {
     "react-hooks/set-state-in-effect": "off",
     "react-hooks/globals": "off",
     "react-hooks/immutability": "off",
+    // Batch 55: no `any` is left in the app's code, so a new one is an error.
+    // (The tests below may still use it to stand in for a screen's props.)
+    "@typescript-eslint/no-explicit-any": "error",
   },
   overrides: [
     {
@@ -32,6 +35,7 @@ module.exports = {
         "@typescript-eslint/no-require-imports": "off",
         // Inline mock components don't need names
         "react/display-name": "off",
+        "@typescript-eslint/no-explicit-any": "off",
       },
     },
   ],

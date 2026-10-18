@@ -237,11 +237,11 @@ const Review = () => {
         (finished, total) => setUploaded({ finished, total })
       );
       await scheduleRentalDueNotification(createdPiano);
-      dispatch(addPianoItem(toPianoItem(createdPiano)) as any);
+      dispatch(addPianoItem(toPianoItem(createdPiano)));
       // The form under this screen starts over, and the Pianos tab is where
       // Done leaves to
-      dispatch(resetCreateForm() as any);
-      dispatch(setActiveTab("pianos") as any);
+      dispatch(resetCreateForm());
+      dispatch(setActiveTab("pianos"));
       setAdded({ id: createdPiano.$id, title: form.title });
       setStage("published");
       savedTap();
@@ -262,7 +262,7 @@ const Review = () => {
           tone: "destructive",
           onPress: () => {
             // The form is finished with, so leaving doesn't ask a second time
-            dispatch(resetCreateForm() as any);
+            dispatch(resetCreateForm());
             leave();
           },
         },

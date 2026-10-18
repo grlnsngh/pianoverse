@@ -5,6 +5,9 @@ import React, {
   useEffect,
   useRef,
   useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
 } from "react";
 import { getCurrentUser } from "@/lib/appwrite";
 import { getPhotoToken } from "@/lib/photoAuth";
@@ -15,18 +18,35 @@ import {
 } from "@/lib/userCache";
 import { useDispatch } from "react-redux";
 import { setCurrentUser } from "@/redux/users/actions";
+import type { User } from "@/redux/users/types";
 import * as Notifications from "expo-notifications";
 import {
   prepareRentalReminders,
   handleNotificationResponse,
 } from "@/services/notifications";
 
-const GlobalContext = createContext();
-export const useGlobalContext = () => useContext(GlobalContext);
+export type GlobalContextValue = {
+  isLogged: boolean;
+  setIsLogged: Dispatch<SetStateAction<boolean>>;
+  /** The signed-in person's user row, or null when nobody is signed in. */
+  user: User | null;
+  /** Changes who is signed in everywhere: here, in Redux and on the device. */
+  setUser: (user: User | null) => void;
+  /** True until the app knows whether anybody is signed in. */
+  loading: boolean;
+};
 
-const GlobalProvider = ({ children }) => {
+const GlobalContext = createContext<GlobalContextValue | undefined>(undefined);
+
+export const useGlobalContext = (): GlobalContextValue => {
+  const value = useContext(GlobalContext);
+  if (!value) throw new Error("useGlobalContext is used outside GlobalProvider.");
+  return value;
+};
+
+const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const [isLogged, setIsLogged] = useState(false);
-  const [user, setUserState] = useState(null);
+  const [user, setUserState] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
 
@@ -34,7 +54,7 @@ const GlobalProvider = ({ children }) => {
   // sign-in, sign-up and logout, not only when the app starts. The user is
   // also remembered on the device, so the app can open without a connection.
   const setUser = useCallback(
-    (nextUser) => {
+    (nextUser: User | null) => {
       setUserState(nextUser);
       dispatch(setCurrentUser(nextUser));
       if (nextUser) saveSignedInUser(nextUser);
@@ -80,10 +100,10 @@ const GlobalProvider = ({ children }) => {
   // Open the piano from a tapped reminder, once someone is signed in
   const isSignedInRef = useRef(false);
   isSignedInRef.current = isLogged && !loading;
-  const pendingResponseRef = useRef(null);
-  const lastHandledResponseRef = useRef(null);
+  const pendingResponseRef = useRef<Notifications.NotificationResponse | null>(null);
+  const lastHandledResponseRef = useRef<string | null>(null);
 
-  const openFromNotification = useCallback((response) => {
+  const openFromNotification = useCallback((response: Notifications.NotificationResponse) => {
     const id = response.notification.request.identifier;
     if (lastHandledResponseRef.current === id) return;
     if (!isSignedInRef.current) {

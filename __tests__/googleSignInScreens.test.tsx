@@ -23,6 +23,8 @@ jest.mock("expo-router", () => ({
 import React from "react";
 import { act, ReactTestInstance, ReactTestRenderer } from "react-test-renderer";
 import { router } from "expo-router";
+import type { Models } from "react-native-appwrite";
+import type { User } from "@/redux/users/types";
 import SignIn from "@/app/(auth)/sign-in";
 import GoogleButton from "@/components/GoogleButton";
 import SignUp from "@/app/(auth)/sign-up";
@@ -43,15 +45,15 @@ import {
 /** "Continue with Google" on the Sign in and Create account screens. */
 
 const google = jest.mocked(signInWithGoogle);
-const user = { $id: "user-doc-9", username: "Gurleen Singh" };
+const user = { $id: "user-doc-9", username: "Gurleen Singh" } as User;
 
 beforeEach(() => {
   jest.clearAllMocks();
   google.mockReset().mockResolvedValue({ status: "signed_in", user });
   // Back to what they answer in every other test, whatever an earlier test left queued
-  jest.mocked(signIn).mockReset().mockResolvedValue({});
+  jest.mocked(signIn).mockReset().mockResolvedValue({} as Models.Session);
   jest.mocked(getCurrentUser).mockReset().mockResolvedValue({ $id: "user-doc-1" } as any);
-  jest.mocked(createUser).mockReset().mockResolvedValue({ $id: "user-doc-1" });
+  jest.mocked(createUser).mockReset().mockResolvedValue({ $id: "user-doc-1" } as User);
 });
 afterEach(() => {
   jest.restoreAllMocks();

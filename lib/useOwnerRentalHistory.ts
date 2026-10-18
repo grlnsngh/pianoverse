@@ -132,7 +132,7 @@ const useOwnerRentalHistory = (enabled = true): OwnerRentalHistory => {
   const shown = useCallback(
     (next: (entries: RentalHistoryEntry[]) => RentalHistoryEntry[]) => {
       if (mounted.current) setState((current) => ({ ...current, entries: next(current.entries) }));
-      dispatch(paymentsChanged() as any);
+      dispatch(paymentsChanged());
     },
     [dispatch]
   );

@@ -102,58 +102,58 @@ export interface FiltersType {
   };
 }
 
-export interface SetPianoListItemsAction {
+export type SetPianoListItemsAction = {
   type: typeof SET_PIANO_LIST_ITEMS;
   payload: PianoItem[];
-}
+};
 
-export interface SetPianoFiltersAction {
+export type SetPianoFiltersAction = {
   type: typeof SET_PIANO_FILTERS;
   payload: FiltersType;
-}
+};
 
-export interface SetFilteredPianoListItemsAction {
+export type SetFilteredPianoListItemsAction = {
   type: typeof SET_FILTERED_PIANO_LIST_ITEMS;
   payload: PianoItem[];
-}
+};
 
-export interface SetBulkSelectionModeAction {
+export type SetBulkSelectionModeAction = {
   type: typeof SET_BULK_SELECTION_MODE;
   payload: boolean;
-}
+};
 
-export interface ClearSelectedItemsAction {
+export type ClearSelectedItemsAction = {
   type: typeof CLEAR_SELECTED_ITEMS;
-}
+};
 
-export interface ToggleItemSelectionAction {
+export type ToggleItemSelectionAction = {
   type: typeof TOGGLE_ITEM_SELECTION;
   payload: string;
-}
+};
 
-export interface SelectAllItemsAction {
+export type SelectAllItemsAction = {
   type: typeof SELECT_ALL_ITEMS;
   payload: string[];
-}
+};
 
-export interface RemovePianoItemsAction {
+export type RemovePianoItemsAction = {
   type: typeof REMOVE_PIANO_ITEMS;
   payload: string[];
-}
+};
 
-export interface AddPianoItemAction {
+export type AddPianoItemAction = {
   type: typeof ADD_PIANO_ITEM;
   payload: PianoItem;
-}
+};
 
-export interface UpdatePianoItemAction {
+export type UpdatePianoItemAction = {
   type: typeof UPDATE_PIANO_ITEM;
   payload: PianoItem;
-}
+};
 
-export interface ResetPianoStateAction {
+export type ResetPianoStateAction = {
   type: typeof RESET_PIANO_STATE;
-}
+};
 
 export type PianoActionTypes =
   | SetPianoFiltersAction

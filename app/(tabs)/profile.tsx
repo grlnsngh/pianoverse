@@ -270,8 +270,8 @@ const Profile = () => {
     forgetPhotoToken();
     // A label scanned just before signing out must not open for the next person
     clearPendingPianoLink();
-    dispatch(resetPianoState() as any);
-    dispatch(setActiveTab("pianos") as any);
+    dispatch(resetPianoState());
+    dispatch(setActiveTab("pianos"));
     setUser(null);
     setIsLogged(false);
     router.replace("/");

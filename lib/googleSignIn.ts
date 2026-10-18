@@ -8,10 +8,11 @@ import {
 } from "@/lib/appwrite";
 import { fetchGoogleProfile } from "@/lib/googleProfile";
 import { setGoogleReturnPath, GoogleReturnPath } from "@/lib/googleReturn";
+import type { User } from "@/redux/users/types";
 import { googleRedirectUrl, parseGoogleReturn } from "@/utils/googleSignIn";
 
 export type GoogleSignInResult =
-  | { status: "signed_in"; user: any }
+  | { status: "signed_in"; user: User }
   /** The person closed Google's page without finishing: not a failure */
   | { status: "cancelled" };
 

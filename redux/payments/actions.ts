@@ -1,8 +1,8 @@
 export const PAYMENTS_CHANGED = "PAYMENTS_CHANGED";
 
-export interface PaymentsChangedAction {
+export type PaymentsChangedAction = {
   type: typeof PAYMENTS_CHANGED;
-}
+};
 
 export type PaymentsActionTypes = PaymentsChangedAction;
 

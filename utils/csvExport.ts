@@ -28,7 +28,7 @@ export const asText = (value: string | null | undefined) => {
 /**
  * Escapes CSV field values by wrapping them in quotes if they contain special characters
  */
-export const escapeCSVField = (field: any): string => {
+export const escapeCSVField = (field: unknown): string => {
   if (field === null || field === undefined) return "";
   const stringField = String(field);
   // If the field contains comma, quote, or newline, wrap it in quotes and escape internal quotes
