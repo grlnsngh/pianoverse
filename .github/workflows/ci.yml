@@ -5,6 +5,10 @@ on:
   push:
     branches: [main]
 
+# Reading the code is all this needs: the token it runs with can't change anything
+permissions:
+  contents: read
+
 jobs:
   check:
     name: Lint, types and tests
